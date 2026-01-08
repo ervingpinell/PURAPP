@@ -35,31 +35,36 @@ class PaymentWebhookController extends Controller
             // Validar firma (Security)
             $service = app(\App\Services\AlignetPaymentService::class);
             $purchaseVerification = $request->input('purchaseVerification');
+            $authorizationResult = $request->input('authorizationResult');
             $skipSignature = false;
 
-            // Para transacciones rechazadas, Alignet a veces no envía firma
+            // Lógica Granular de Validación de Firma
             if (empty($purchaseVerification)) {
+                // Caso 1: Rechazo/Cancelación sin firma -> Permitir (Bypass)
+                // Incluimos 01 (Denegado), 05 (Rechazado), y otros códigos de fallo
                 if (in_array($authorizationResult, ['01', '05', '06', '07'])) {
-                    Log::warning('Alignet: Empty signature for rejected transaction - Bypassing check', [
+                    Log::warning('Alignet: Empty signature for rejected/cancelled transaction - Bypassing check', [
                         'auth' => $authorizationResult,
                         'op' => $operationNumber
                     ]);
                     $skipSignature = true;
                 } else {
-                    Log::error('Alignet Webhook: Missing signature for non-rejected transaction');
-                    return $this->renderModalResponse($request, 'error', __('m_checkout.payment.operation_rejected'), route('public.carts.index', ['error' => __('m_checkout.payment.operation_rejected')]));
+                    // Caso 2: Éxito (00) o desconocido sin firma -> Error de Seguridad
+                    Log::error('Alignet Webhook: Missing signature for critical transaction', ['auth' => $authorizationResult]);
+                    $securityMsg = __('m_checkout.payment.operation_rejected');
+                    return $this->renderModalResponse($request, 'error', $securityMsg, route('public.carts.index', ['error' => $securityMsg]));
                 }
             }
 
+            // Si hay firma (o no es bypass), validamos estrictamente
             if (!$skipSignature && !$service->validateResponse($request->all())) {
                 Log::error('Alignet Webhook: Invalid signature', $request->all());
 
                 // Build debug string for user visibility
-                $debug = "AuthResult: " . ($request->input('authorizationResult') ?? 'N/A') .
+                $debug = "AuthResult: " . ($authorizationResult ?? 'N/A') .
                     ", ErrorCode: " . ($request->input('errorCode') ?? 'N/A') .
                     ", ErrorMsg: " . ($request->input('errorMessage') ?? 'N/A');
 
-                // Si falla firma, igual redirigimos a error pero con detalles para debug
                 $securityMsg = __('m_checkout.payment.operation_rejected');
                 return $this->renderModalResponse($request, 'error', $securityMsg . "\n\nDEBUG: " . $debug, route('public.carts.index', ['error' => $securityMsg . "\n\nDEBUG: " . $debug]));
             }

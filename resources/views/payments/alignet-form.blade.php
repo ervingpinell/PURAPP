@@ -367,6 +367,25 @@
             }
         }
 
+        // ⏳ TIMEOUT DE SEGURIDAD (5 Minutos)
+        const PAYMENT_TIMEOUT_MS = 300000;
+        const timeoutTimer = setTimeout(() => {
+            console.error('❌ Alignet Payment Timeout (5 min limit reached)');
+            const loadingMsg = document.getElementById('loading-message');
+            const btnPay = document.getElementById('btn-pay');
+
+            if (loadingMsg) {
+                loadingMsg.innerHTML = '<i class="fas fa-history"></i> Tiempo de espera agotado.';
+                loadingMsg.classList.add('active');
+            }
+
+            if (btnPay) btnPay.disabled = false;
+
+            // Opcional: Redirigir automáticamente
+            // window.location.href = "{{ route('public.carts.index') }}?error=Tiempo de espera agotado";
+            alert('El tiempo de espera para el pago ha expirado. Si ya realizó el pago, por favor contacte a soporte. De lo contrario, intente nuevamente.');
+        }, PAYMENT_TIMEOUT_MS);
+
         // Auto-close modal if returning from Alignet (after webhook redirect)
         // This uses localStorage to communicate between the payment page and the redirected page
         document.addEventListener('DOMContentLoaded', function() {
@@ -374,6 +393,7 @@
             window.addEventListener('storage', function(e) {
                 if (e.key === 'alignet_payment_complete' && e.newValue === 'true') {
                     console.log('🔄 Recibida señal de pago completado, cerrando modal...');
+                    clearTimeout(timeoutTimer); // Cancelar timeout
                     closeAlignetModal();
                     // Clear the flag
                     localStorage.removeItem('alignet_payment_complete');
