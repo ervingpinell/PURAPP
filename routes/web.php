@@ -468,6 +468,10 @@ Route::middleware([SetLocale::class])->group(function () {
         ->name('payment.alignet.query');
 
     // Alignet test/debug route (development only)
+
+    // Booking Confirmation
+    Route::get('/booking/{booking}/confirmation', [PublicBookingController::class, 'confirmation'])
+        ->name('booking.confirmation');
     Route::get('/test-alignet', function () {
         $service = new \App\Services\AlignetPaymentService();
 

@@ -1499,7 +1499,8 @@ class PaymentController extends Controller
                     // Determine redirect URL
                     if ($payment->booking_id) {
                         $booking = $payment->booking;
-                        $param = $booking->booking_reference ?? $booking->booking_id;
+                        // Use booking_id to match default route model binding
+                        $param = $booking->booking_id;
                         $redirectUrl = route('booking.confirmation', $param);
                     } else {
                         $redirectUrl = route(app()->getLocale() . '.home');

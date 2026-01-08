@@ -557,6 +557,43 @@ class BookingController extends Controller
     }
 
     /**
+     * Show booking confirmation page
+     */
+    public function confirmation(Booking $booking)
+    {
+        // Verificar que el usuario tenga acceso a esta booking
+        // Si hay usuario autenticado, verificamos email o rol admin
+        // Si no hay usuario autenticado (guest flow), verificamos session booking id? 
+        // Por ahora seguimos la logica del user pero adaptada a guest si es necesario
+
+        $user = Auth::user();
+
+        // Permitir acceso si es el dueño de la reserva
+        if ($user && $booking->user_id === $user->user_id) {
+            // Authorized
+        }
+        // Permitir acceso a admins
+        elseif ($user && $user->hasRole('admin')) {
+            // Authorized
+        }
+        // Guest access logic: Permitir si la booking acaba de ser creada en esta sesión
+        elseif (session()->has('guest_payment_id') || session('recent_booking_id') == $booking->booking_id) {
+            // Authorized (we might need to store recent_booking_id in session during creation)
+        } else {
+            // Fallback: Check email matching if needed, or simple 403
+            // For now using the user provided logic but strictly for auth users + admin
+            if (($booking->user_id !== ($user?->user_id)) && !($user?->hasRole('admin'))) {
+                // Si es un guest que acaba de pagar, deberíamos permitirle verlo.
+                // Como el PaymentController hace login del usuario (restoreSession), 
+                // el chequeo de user_id debería pasar si el usuario fue logueado/restaurado.
+                abort(403);
+            }
+        }
+
+        return view('public.payment-confirmation', compact('booking'));
+    }
+
+    /**
      * Destinatarios de notificación (admins), desde .env:
      * BOOKING_NOTIFY y/o MAIL_NOTIFICATIONS (coma-separado).
      */
