@@ -104,9 +104,9 @@ class PaymentWebhookController extends Controller
 
                 // Mapeo básico de errores comunes
                 if ($authorizationResult === '01') {
-                    $userMessage = __('m_checkout.payment.card_declined');
+                    $userMessage = __('m_checkout.payment.operation_denied');
                 } elseif ($authorizationResult === '05') {
-                    $userMessage = __('m_checkout.payment.failed');
+                    $userMessage = __('m_checkout.payment.operation_rejected');
                 } else {
                     $userMessage = $errorMessage ?? __('m_checkout.payment.failed');
                 }

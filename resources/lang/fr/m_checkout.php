@@ -114,6 +114,11 @@ return [
         'success'            => 'Paiement réussi! Vous recevrez un email de confirmation bientôt.',
         'session_expired'    => 'Votre session a expiré. Veuillez vous reconnecter.',
 
+        // Alignet Bank Specific Messages
+        'operation_denied'   => 'Opération refusée.',
+        'operation_rejected' => 'Opération rejetée.',
+        'operation_authorized' => 'Opération autorisée.',
+
         // Debug info for bank support
         'debug_info'         => 'DEBUG - Code: :code | Auth: :auth | Message: :message',
     ],

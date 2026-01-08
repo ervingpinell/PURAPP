@@ -103,6 +103,24 @@ return [
         'secure_transaction' => 'Sichere Transaktion',
         'error_occurred'     => 'Beim Verarbeiten der Zahlung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         'invalid_response'   => 'Die Antwort des Zahlungsanbieters ist ungültig.',
+
+        // Friendly error messages for Alignet
+        'cancelled_by_user'  => 'Sie haben die Zahlung abgebrochen.',
+        'timeout'            => 'Die Zahlungsfrist ist abgelaufen.',
+        'insufficient_funds' => 'Unzureichende Mittel.',
+        'card_declined'      => 'Ihre Karte wurde abgelehnt.',
+        'invalid_card'       => 'Ungültige Kartendaten.',
+        'failed'             => 'Die Zahlung konnte nicht verarbeitet werden.',
+        'success'            => 'Zahlung erfolgreich! Sie erhalten in Kürze eine Bestätigungs-E-Mail.',
+        'session_expired'    => 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.',
+
+        // Alignet Bank Specific Messages
+        'operation_denied'   => 'Operation verweigert.',
+        'operation_rejected' => 'Operation abgelehnt.',
+        'operation_authorized' => 'Operation genehmigt.',
+
+        // Debug info for bank support
+        'debug_info'         => 'DEBUG - Code: :code | Auth: :auth | Message: :message',
     ],
     'booking' => [
         'summary'   => 'Buchungsübersicht',
@@ -114,16 +132,3 @@ return [
         'name' => 'Tour',
     ],
 ];
-        
-        // Friendly error messages for Alignet
-        'cancelled_by_user'  => 'Sie haben die Zahlung abgebrochen.',
-        'timeout'            => 'Die Zahlungsfrist ist abgelaufen.',
-        'insufficient_funds' => 'Unzureichende Mittel.',
-        'card_declined'      => 'Ihre Karte wurde abgelehnt.',
-        'invalid_card'       => 'Ungültige Kartendaten.',
-        'failed'             => 'Die Zahlung konnte nicht verarbeitet werden.',
-        'success'            => 'Zahlung erfolgreich! Sie erhalten in Kürze eine Bestätigungs-E-Mail.',
-        'session_expired'    => 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.',
-        
-        // Debug info for bank support
-        'debug_info'         => 'DEBUG - Code: :code | Auth: :auth | Message: :message',
