@@ -467,6 +467,10 @@ Route::middleware([SetLocale::class])->group(function () {
         ->middleware('auth')
         ->name('payment.alignet.query');
 
+    // Alignet Webhook Callback (Server-to-Server or Browser Post)
+    Route::post('/webhooks/payment/alignet', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'alignet'])
+        ->name('webhooks.payment.alignet');
+
     // Alignet test/debug route (development only)
 
     // Booking Confirmation
