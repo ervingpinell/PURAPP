@@ -102,10 +102,15 @@ class PaymentWebhookController extends Controller
                     return response()->json(['status' => 'REJECTED']);
                 }
 
+                // Redirigir al carrito con información de error para mostrarla
+                $redirectUrl = route('public.carts.index', [
+                    'error' => $errorMessage ?? 'Su pago fue rechazado',
+                    'details' => "Code: " . ($errorCode ?? $authorizationResult) . " - " . ($errorMessage ?? 'Unknown')
+                ]);
+
                 return response('
                     <script>
-                        alert("Pago rechazado: ' . ($errorMessage ?? 'Error desconocido') . '");
-                        window.top.location.href = "' . route('payment.show') . '";
+                        window.top.location.href = "' . $redirectUrl . '";
                     </script>
                 ');
             }
