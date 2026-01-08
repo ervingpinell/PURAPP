@@ -1370,7 +1370,8 @@ class PaymentController extends Controller
 
         return view('payments.alignet-form', [
             'booking' => $booking,
-            'paymentData' => $paymentData
+            'paymentData' => $paymentData,
+            'paymentId' => $payment->payment_id
         ]);
     }
 
@@ -1702,5 +1703,35 @@ class PaymentController extends Controller
         ]);
 
         return redirect()->route('public.carts.index');
+    }
+
+    /**
+     * Check payment status for manual polling (Alignet Modal workaround)
+     */
+    public function checkStatus(Payment $payment)
+    {
+        // 🔒 Security: Only allow checking own payments or guest session payments
+        $user = Auth::user();
+        $isOwner = $user && $payment->user_id === $user->user_id; // Check user_id key
+        $isGuestOwner = session('guest_payment_id') == $payment->payment_id;
+
+        if (!$isOwner && !$isGuestOwner && !$user?->hasRole('admin')) {
+            return response()->json(['status' => 'unauthorized'], 403);
+        }
+
+        if ($payment->status === 'completed') {
+            // Find the associated booking to generate redirect URL
+            $booking = Booking::find($payment->booking_id);
+            // Verify booking exists before generating route
+            if ($booking) {
+                $redirectUrl = route('booking.confirmation', $booking->booking_id);
+                return response()->json([
+                    'status' => 'paid',
+                    'redirect_url' => $redirectUrl
+                ]);
+            }
+        }
+
+        return response()->json(['status' => $payment->status]);
     }
 }

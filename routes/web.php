@@ -472,6 +472,10 @@ Route::middleware([SetLocale::class])->group(function () {
     // Booking Confirmation
     Route::get('/booking/{booking}/confirmation', [PublicBookingController::class, 'confirmation'])
         ->name('booking.confirmation');
+
+    // Payment Status Polling (Breakout for Alignet Modal)
+    Route::get('/api/payment/check-status/{payment}', [PaymentController::class, 'checkStatus'])
+        ->name('api.payment.status');
     Route::get('/test-alignet', function () {
         $service = new \App\Services\AlignetPaymentService();
 

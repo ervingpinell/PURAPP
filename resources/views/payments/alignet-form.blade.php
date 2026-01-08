@@ -296,6 +296,35 @@
 
                 console.log('✅ Modal invocado exitosamente');
 
+                // 🔄 BREAKOUT: Polling de estado para evitar congelamiento
+                // Si el navegador bloquea la redirección del iframe (X-Frame-Options/Sandbox),
+                // nosotros redirigimos manualmente desde aquí apenas detectamos el pago.
+                const paymentId = '{{ $paymentId ?? "" }}';
+                if (paymentId) {
+                    console.log('🔄 Iniciando monitor de estado para pago:', paymentId);
+                    const statusInterval = setInterval(function() {
+                        fetch('/api/payment/check-status/' + paymentId)
+                            .then(res => res.json())
+                            .then(data => {
+                                console.log('Estado de pago:', data.status);
+                                if (data.status === 'paid' && data.redirect_url) {
+                                    clearInterval(statusInterval);
+                                    console.log('✅ Pago confirmado! Redirigiendo forzosamente...');
+                                    loadingMsg.innerHTML = '<i class="fas fa-check-circle"></i> ¡Pago Exitoso! Redirigiendo...';
+                                    loadingMsg.classList.add('active');
+
+                                    // Cerrar modal sucio para evitar bloqueos visuales
+                                    try {
+                                        closeAlignetModal();
+                                    } catch (e) {}
+
+                                    window.location.href = data.redirect_url;
+                                }
+                            })
+                            .catch(err => console.error('Status check error:', err));
+                    }, 3000); // Verificar cada 3 segundos
+                }
+
                 // Re-habilitar botón después de 2 segundos
                 setTimeout(() => {
                     btnPay.disabled = false;
