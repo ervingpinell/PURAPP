@@ -179,6 +179,15 @@
                 <i class="fas fa-lock"></i> Proceder al Pago
             </button>
 
+            <!-- Botón de Escape Manual (Por si Alignet se cuelga) -->
+            <div style="margin-top: 15px; text-align: center;">
+                <a href="{{ route('public.carts.index') }}?error=Operación cancelada manualmente"
+                    onclick="closeAlignetModal();"
+                    style="color: #718096; font-size: 0.9em; text-decoration: none; border-bottom: 1px dotted #718096;">
+                    Cancelar y volver
+                </a>
+            </div>
+
             <div class="loading-message" id="loading-message">
                 <i class="fas fa-spinner fa-spin"></i> Cargando módulo de pago...
             </div>
