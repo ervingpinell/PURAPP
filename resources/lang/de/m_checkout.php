@@ -114,3 +114,16 @@ return [
         'name' => 'Tour',
     ],
 ];
+        
+        // Friendly error messages for Alignet
+        'cancelled_by_user'  => 'Sie haben die Zahlung abgebrochen.',
+        'timeout'            => 'Die Zahlungsfrist ist abgelaufen.',
+        'insufficient_funds' => 'Unzureichende Mittel.',
+        'card_declined'      => 'Ihre Karte wurde abgelehnt.',
+        'invalid_card'       => 'Ungültige Kartendaten.',
+        'failed'             => 'Die Zahlung konnte nicht verarbeitet werden.',
+        'success'            => 'Zahlung erfolgreich! Sie erhalten in Kürze eine Bestätigungs-E-Mail.',
+        'session_expired'    => 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.',
+        
+        // Debug info for bank support
+        'debug_info'         => '(Code: :code, Auth: :auth)',

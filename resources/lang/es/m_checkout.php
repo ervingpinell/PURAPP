@@ -105,14 +105,17 @@ return [
         'invalid_response'   => 'La respuesta del procesador de pagos no es válida.',
 
         // Friendly error messages for Alignet
-        'cancelled_by_user'  => 'Cancelaste el pago. Tu carrito sigue disponible.',
-        'timeout'            => 'El tiempo de pago expiró. Por favor intenta nuevamente.',
-        'insufficient_funds' => 'Fondos insuficientes. Por favor verifica tu saldo o usa otra tarjeta.',
-        'card_declined'      => 'Tu tarjeta fue rechazada. Por favor contacta a tu banco o usa otra tarjeta.',
-        'invalid_card'       => 'Los datos de la tarjeta son inválidos. Por favor verifica e intenta nuevamente.',
-        'failed'             => 'El pago no pudo ser procesado. Por favor intenta nuevamente.',
+        'cancelled_by_user'  => 'Cancelaste el pago.',
+        'timeout'            => 'El tiempo de pago expiró.',
+        'insufficient_funds' => 'Fondos insuficientes.',
+        'card_declined'      => 'Tu tarjeta fue rechazada.',
+        'invalid_card'       => 'Los datos de la tarjeta son inválidos.',
+        'failed'             => 'El pago no pudo ser procesado.',
         'success'            => '¡Pago exitoso! Recibirás un correo de confirmación pronto.',
         'session_expired'    => 'Tu sesión expiró. Por favor inicia sesión nuevamente.',
+
+        // Debug info for bank support
+        'debug_info'         => '(Código: :code, Auth: :auth)',
     ],
     'booking' => [
         'summary'   => 'Resumen de la reserva',

@@ -103,6 +103,19 @@ return [
         'secure_transaction' => 'Secure Transaction',
         'error_occurred'     => 'An error occurred while processing the payment. Please try again.',
         'invalid_response'   => 'The payment processor response is invalid.',
+
+        // Friendly error messages for Alignet
+        'cancelled_by_user'  => 'You cancelled the payment.',
+        'timeout'            => 'Payment time expired.',
+        'insufficient_funds' => 'Insufficient funds.',
+        'card_declined'      => 'Your card was declined.',
+        'invalid_card'       => 'Invalid card details.',
+        'failed'             => 'Payment could not be processed.',
+        'success'            => 'Payment successful! You will receive a confirmation email soon.',
+        'session_expired'    => 'Your session expired. Please log in again.',
+
+        // Debug info for bank support
+        'debug_info'         => '(Code: :code, Auth: :auth)',
     ],
     'booking' => [
         'summary'   => 'Booking Summary',

@@ -1550,6 +1550,7 @@ class PaymentController extends Controller
         // Translate technical error codes to user-friendly messages
         $errorCode = $request->input('errorCode');
         $errorMessage = $request->input('errorMessage');
+        $authResult = $request->input('authorizationResult');
 
         // Map Alignet error codes to friendly messages
         $friendlyMessage = match ($errorCode) {
@@ -1558,13 +1559,27 @@ class PaymentController extends Controller
             '2302' => __('m_checkout.payment.insufficient_funds'), // Insufficient funds
             '2303' => __('m_checkout.payment.card_declined'),      // Card declined
             '2304' => __('m_checkout.payment.invalid_card'),       // Invalid card
-            default => $errorMessage ?? __('m_checkout.payment.failed')
+            default => __('m_checkout.payment.failed')
         };
+
+        // Add technical debug info for bank support (if in debug mode or for specific error codes)
+        $debugInfo = '';
+        if (config('app.debug') || in_array($errorCode, ['2300', '2301', '2302', '2303', '2304'])) {
+            $debugInfo = __('m_checkout.payment.debug_info', [
+                'code' => $errorCode,
+                'auth' => $authResult,
+            ]);
+        }
+
+        // Combine friendly message with debug info
+        $fullMessage = $debugInfo ? "{$friendlyMessage} {$debugInfo}" : $friendlyMessage;
 
         Log::info('Alignet payment failed - User-friendly message', [
             'error_code' => $errorCode,
+            'auth_result' => $authResult,
             'technical_message' => $errorMessage,
             'friendly_message' => $friendlyMessage,
+            'full_message' => $fullMessage,
         ]);
 
         // 🔥 CRITICAL: Generate temporary token to restore session after cross-site redirect
@@ -1580,7 +1595,7 @@ class PaymentController extends Controller
                     'user_id' => $user->user_id,
                     'payment_id' => $payment->payment_id,
                     'cart_id' => $cartId,
-                    'error_message' => $friendlyMessage,
+                    'error_message' => $fullMessage,
                 ],
                 now()->addMinutes(5)
             );
@@ -1597,7 +1612,7 @@ class PaymentController extends Controller
 
         // If no user (guest), simply redirect to cart
         return redirect()->route('public.carts.index')
-            ->with('error', $friendlyMessage);
+            ->with('error', $fullMessage);
     }
 
     /**

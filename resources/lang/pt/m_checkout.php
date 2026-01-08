@@ -114,3 +114,16 @@ return [
         'name' => 'Tour',
     ],
 ];
+        
+        // Friendly error messages for Alignet
+        'cancelled_by_user'  => 'Você cancelou o pagamento.',
+        'timeout'            => 'O tempo de pagamento expirou.',
+        'insufficient_funds' => 'Fundos insuficientes.',
+        'card_declined'      => 'Seu cartão foi recusado.',
+        'invalid_card'       => 'Detalhes do cartão inválidos.',
+        'failed'             => 'O pagamento não pôde ser processado.',
+        'success'            => 'Pagamento bem-sucedido! Você receberá um email de confirmação em breve.',
+        'session_expired'    => 'Sua sessão expirou. Por favor, faça login novamente.',
+        
+        // Debug info for bank support
+        'debug_info'         => '(Code: :code, Auth: :auth)',
