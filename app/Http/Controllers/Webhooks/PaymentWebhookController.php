@@ -34,10 +34,27 @@ class PaymentWebhookController extends Controller
 
             // Validar firma (Security)
             $service = app(\App\Services\AlignetPaymentService::class);
-            if (!$service->validateResponse($request->all())) {
+            $purchaseVerification = $request->input('purchaseVerification');
+            $skipSignature = false;
+
+            // Para transacciones rechazadas, Alignet a veces no envía firma
+            if (empty($purchaseVerification)) {
+                if (in_array($authorizationResult, ['01', '05', '06', '07'])) {
+                    Log::warning('Alignet: Empty signature for rejected transaction - Bypassing check', [
+                        'auth' => $authorizationResult,
+                        'op' => $operationNumber
+                    ]);
+                    $skipSignature = true;
+                } else {
+                    Log::error('Alignet Webhook: Missing signature for non-rejected transaction');
+                    return $this->renderModalResponse($request, 'error', __('m_checkout.payment.operation_rejected'), route('public.carts.index', ['error' => __('m_checkout.payment.operation_rejected')]));
+                }
+            }
+
+            if (!$skipSignature && !$service->validateResponse($request->all())) {
                 Log::error('Alignet Webhook: Invalid signature', $request->all());
 
-                // Build debug string for user visibility (as requested)
+                // Build debug string for user visibility
                 $debug = "AuthResult: " . ($request->input('authorizationResult') ?? 'N/A') .
                     ", ErrorCode: " . ($request->input('errorCode') ?? 'N/A') .
                     ", ErrorMsg: " . ($request->input('errorMessage') ?? 'N/A');
@@ -80,7 +97,7 @@ class PaymentWebhookController extends Controller
                 // Opcional: Marcar como cancelado en BD si queremos
                 $this->paymentService->handleFailedPayment($payment, 'user_cancelled', 'User cancelled payment');
 
-                return $this->renderModalResponse($request, 'cancel', __('m_checkout.payment.cancelled_by_user'), route('public.carts.index', ['error' => __('m_checkout.payment.cancelled_by_user')]));
+                return $this->renderModalResponse($request, 'cancel', __('m_checkout.payment.cancelled_by_user'), route('public.carts.index'));
             } else {
                 // ❌ FALLO (Cualquier otro código)
                 $errorCode = $request->input('errorCode');
