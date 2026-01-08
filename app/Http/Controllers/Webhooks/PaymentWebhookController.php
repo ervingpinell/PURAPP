@@ -44,7 +44,7 @@ class PaymentWebhookController extends Controller
 
                 // Si falla firma, igual redirigimos a error pero con detalles para debug
                 $securityMsg = __('m_checkout.payment.invalid_response');
-                return $this->renderModalResponse($request, 'error', $securityMsg . ' ' . $debug, route('public.carts.index', ['error' => $securityMsg . ' (' . $debug . ')']));
+                return $this->renderModalResponse($request, 'error', $securityMsg . "\n\nDEBUG: " . $debug, route('public.carts.index', ['error' => $securityMsg . "\n\nDEBUG: " . $debug]));
             }
 
             // Buscar pago
@@ -57,7 +57,7 @@ class PaymentWebhookController extends Controller
 
             if (!$payment) {
                 Log::error('Alignet Webhook: Payment not found', ['op' => $operationNumber]);
-                return $this->renderModalResponse($request, 'error', 'Pago no encontrado', route('public.carts.index', ['error' => 'Payment Not Found']));
+                return $this->renderModalResponse($request, 'error', 'Pago no encontrado', route('public.carts.index', ['error' => 'Payment Not Found. Op: ' . $operationNumber]));
             }
 
             // 🚦 LÓGICA DE ESTADOS
@@ -111,7 +111,7 @@ class PaymentWebhookController extends Controller
                     $userMessage = $errorMessage ?? __('m_checkout.payment.failed');
                 }
 
-                return $this->renderModalResponse($request, 'error', $userMessage, route('public.carts.index', ['error' => $userMessage . " (" . $debug . ")"]));
+                return $this->renderModalResponse($request, 'error', $userMessage, route('public.carts.index', ['error' => $userMessage . "\n\nDEBUG: " . $debug]));
             }
         } catch (\Exception $e) {
             Log::error('Alignet Webhook Exception', ['error' => $e->getMessage()]);
