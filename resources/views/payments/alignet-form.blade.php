@@ -315,6 +315,8 @@
                             .then(res => res.json())
                             .then(data => {
                                 console.log('Estado de pago:', data.status);
+
+                                // Caso 1: Pago Exitoso
                                 if (data.status === 'paid' && data.redirect_url) {
                                     clearInterval(statusInterval);
                                     console.log('✅ Pago confirmado! Redirigiendo forzosamente...');
@@ -327,6 +329,21 @@
                                     } catch (e) {}
 
                                     window.location.href = data.redirect_url;
+                                }
+
+                                // Caso 2: Pago Fallido / Cancelado (Breakout para cancelaciones)
+                                else if (data.status === 'failed' || data.status === 'rejected' || data.status === 'cancelled') {
+                                    clearInterval(statusInterval);
+                                    console.log('❌ Pago fallido/cancelado detectado. Saliendo...');
+                                    loadingMsg.innerHTML = '<i class="fas fa-times-circle"></i> Pago cancelado. Redirigiendo...';
+                                    loadingMsg.classList.add('active');
+
+                                    try {
+                                        closeAlignetModal();
+                                    } catch (e) {}
+
+                                    // Redirigir al carrito con error genérico (ya que no tenemos el mensaje detallado aquí)
+                                    window.location.href = "{{ route('public.carts.index') }}?error=El proceso de pago fue cancelado o rechazado.";
                                 }
                             })
                             .catch(err => console.error('Status check error:', err));
