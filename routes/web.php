@@ -462,7 +462,9 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/payment/{payment}/status', [\App\Http\Controllers\PaymentController::class, 'status'])->name('payment.status');
 
     // Alignet payment routes
-    Route::get('/payment/alignet/{payment}', [\App\Http\Controllers\PaymentController::class, 'showAlignetPaymentForm'])->name('payment.alignet');
+    Route::get('/payment/alignet/{payment}', [\App\Http\Controllers\PaymentController::class, 'showAlignetPaymentForm'])
+        ->middleware(['auth', 'alignet.cors'])
+        ->name('payment.alignet');
     Route::get('/payment/alignet/query/{operationNumber}', [\App\Http\Controllers\PaymentController::class, 'queryAlignetTransaction'])
         ->middleware('auth')
         ->name('payment.alignet.query');
