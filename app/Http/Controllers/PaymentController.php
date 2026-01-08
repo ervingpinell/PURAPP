@@ -1562,17 +1562,15 @@ class PaymentController extends Controller
             default => __('m_checkout.payment.failed')
         };
 
-        // Add technical debug info for bank support (if in debug mode or for specific error codes)
-        $debugInfo = '';
-        if (config('app.debug') || in_array($errorCode, ['2300', '2301', '2302', '2303', '2304'])) {
-            $debugInfo = __('m_checkout.payment.debug_info', [
-                'code' => $errorCode,
-                'auth' => $authResult,
-            ]);
-        }
+        // Add technical debug info for bank verification (always show for payment errors)
+        $debugInfo = __('m_checkout.payment.debug_info', [
+            'code' => $errorCode,
+            'auth' => $authResult,
+            'message' => $errorMessage,
+        ]);
 
         // Combine friendly message with debug info
-        $fullMessage = $debugInfo ? "{$friendlyMessage} {$debugInfo}" : $friendlyMessage;
+        $fullMessage = "{$friendlyMessage} {$debugInfo}";
 
         Log::info('Alignet payment failed - User-friendly message', [
             'error_code' => $errorCode,

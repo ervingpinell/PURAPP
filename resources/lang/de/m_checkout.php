@@ -126,4 +126,4 @@ return [
         'session_expired'    => 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.',
         
         // Debug info for bank support
-        'debug_info'         => '(Code: :code, Auth: :auth)',
+        'debug_info'         => 'DEBUG - Code: :code | Auth: :auth | Message: :message',

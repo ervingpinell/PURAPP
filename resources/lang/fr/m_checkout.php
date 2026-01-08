@@ -115,7 +115,7 @@ return [
         'session_expired'    => 'Votre session a expiré. Veuillez vous reconnecter.',
 
         // Debug info for bank support
-        'debug_info'         => '(Code: :code, Auth: :auth)',
+        'debug_info'         => 'DEBUG - Code: :code | Auth: :auth | Message: :message',
     ],
     'booking' => [
         'summary'   => 'Résumé de la réservation',

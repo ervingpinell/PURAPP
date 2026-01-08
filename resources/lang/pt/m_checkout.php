@@ -126,4 +126,4 @@ return [
         'session_expired'    => 'Sua sessão expirou. Por favor, faça login novamente.',
         
         // Debug info for bank support
-        'debug_info'         => '(Code: :code, Auth: :auth)',
+        'debug_info'         => 'DEBUG - Code: :code | Auth: :auth | Message: :message',
