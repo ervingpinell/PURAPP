@@ -119,6 +119,7 @@ class AlignetPaymentService
             'shippingState' => substr(trim($customerData['state'] ?? '') !== '' ? trim($customerData['state']) : 'SJ', 0, 15), // Doc says 15.
             'shippingCountry' => $this->mapCountryToNumeric($customerData['country'] ?? 'CR'), // Fix: Use Numeric Code
             'userCommerce' => substr(hash('sha256', trim($customerData['email'] ?? 'guest')), 0, 10), // Unique ID, Max 10 chars
+            'userCodePayme' => $userCodePayme ?? '', // Mandatory: Si (even if empty)
             'descriptionProducts' => substr($customerData['description'] ?? 'Tour booking', 0, 30),
             'programmingLanguage' => 'PHP',
             'urlResponse' => rtrim(config('app.url'), '/') . '/webhooks/payment/alignet', // Force correct path, ignore Env typo
@@ -127,20 +128,12 @@ class AlignetPaymentService
                 $operationNumber,
                 $amountCents
             ),
+            'reserved1' => isset($customerData['booking_id']) ? (string)$customerData['booking_id'] : '', // Mandatory for some logic
+            'reserved2' => isset($customerData['payment_id']) ? (string)$customerData['payment_id'] : '', // Used for recovery
             // URLs para el formulario (separadas según ejemplo oficial)
             'base_url' => $this->config['urls'][$this->environment]['base'] ?? 'https://integracion.alignetsac.com/',
             'vpos2_script' => $this->config['urls'][$this->environment]['vpos2_script'] ?? 'https://integracion.alignetsac.com/VPOS2/js/modalcomercio.js',
         ];
-
-        // 🔥 CRITICAL: Store booking_id and payment_id for session-independent recovery
-        if (!empty($customerData['booking_id'])) {
-            $paymentData['reserved1'] = (string)$customerData['booking_id'];
-        }
-
-        // 🔥 CRITICAL: Store payment_id in reserved2 to recover payment without session
-        if (!empty($customerData['payment_id'])) {
-            $paymentData['reserved2'] = (string)$customerData['payment_id'];
-        }
 
         // Add phone if available (shippingPhone is optional per Alignet docs)
         if (!empty($customerData['phone'])) {
