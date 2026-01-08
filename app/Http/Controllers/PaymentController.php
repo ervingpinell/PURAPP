@@ -1474,10 +1474,20 @@ class PaymentController extends Controller
         ]);
 
         if ($authResult === '00') {
+            Log::info('Processing successful payment', [
+                'payment_id' => $payment->payment_id,
+                'auth_result' => $authResult,
+            ]);
+
             try {
                 // Delegar al servicio centralizado para manejar creación de bookings, 
                 // limpieza de sesión (incluyendo promo codes) y correos.
                 $success = $this->paymentService->handleSuccessfulPayment($payment, $request->all());
+
+                Log::info('handleSuccessfulPayment result', [
+                    'success' => $success,
+                    'payment_id' => $payment->payment_id,
+                ]);
 
                 if ($success) {
                     session()->forget('guest_payment_id');
@@ -1522,9 +1532,18 @@ class PaymentController extends Controller
 
                     // Guest user - direct redirect
                     return redirect($redirectUrl)->with('success', $successMessage);
+                } else {
+                    Log::warning('handleSuccessfulPayment returned false', [
+                        'payment_id' => $payment->payment_id,
+                        'auth_result' => $authResult,
+                    ]);
                 }
             } catch (\Exception $e) {
-                Log::error('Alignet handling failed', ['error' => $e->getMessage()]);
+                Log::error('Alignet handling failed', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'payment_id' => $payment->payment_id,
+                ]);
                 // Fallthrough to error page
             }
         }
