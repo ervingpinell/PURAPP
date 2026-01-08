@@ -29,6 +29,16 @@ class CartController extends Controller
     /* ====================== Cart view (guests + auth) ====================== */
     public function index(Request $request)
     {
+        // 🚨 FIX: Flash URL parameters to session so SweetAlert in view can display them
+        if ($request->has('error')) {
+            session()->flash('error', $request->get('error'));
+        }
+        if ($request->has('success')) {
+            session()->flash('success', $request->get('success'));
+        }
+        if ($request->has('info')) {
+            session()->flash('message', $request->get('info'));
+        }
         if (!Auth::check()) {
             // Guest user - show session cart
             $sessionCartItems = session('guest_cart_items', []);
