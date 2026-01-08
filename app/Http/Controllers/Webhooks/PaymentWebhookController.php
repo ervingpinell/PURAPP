@@ -36,7 +36,8 @@ class PaymentWebhookController extends Controller
             $service = app(\App\Services\AlignetPaymentService::class);
             if (!$service->validateResponse($request->all())) {
                 Log::error('Alignet Webhook: Invalid signature', $request->all());
-                return response()->json(['error' => 'Invalid signature'], 400);
+                // Si falla firma, igual redirigimos a error por seguridad
+                return $this->renderModalResponse($request, 'error', 'Error de Seguridad: Firma Inválida', route('public.carts.index', ['error' => 'Security Error']));
             }
 
             // Buscar pago
@@ -49,11 +50,12 @@ class PaymentWebhookController extends Controller
 
             if (!$payment) {
                 Log::error('Alignet Webhook: Payment not found', ['op' => $operationNumber]);
-                return response()->json(['error' => 'Payment not found'], 404);
+                return $this->renderModalResponse($request, 'error', 'Pago no encontrado', route('public.carts.index', ['error' => 'Payment Not Found']));
             }
 
+            // 🚦 LÓGICA DE ESTADOS
             if ($authorizationResult === '00') {
-                // ✅ ÉXITO
+                // ✅ ÉXITO (00)
                 if ($payment->status !== 'completed') {
                     $this->paymentService->handleSuccessfulPayment($payment, [
                         'transaction_id' => $operationNumber,
@@ -62,27 +64,18 @@ class PaymentWebhookController extends Controller
                     ]);
                 }
 
-                Log::info('✅ Alignet Payment Confirmed via Webhook', ['payment_id' => $payment->payment_id]);
+                Log::info('✅ Alignet Payment Confirmed', ['payment_id' => $payment->payment_id]);
+                return $this->renderModalResponse($request, 'success', '¡Pago Exitoso!', route('booking.confirmation', $payment->booking_id));
+            } elseif ($authorizationResult === '99' || $request->input('errorCode') == '2401') {
+                // 🚫 CANCELADO (99 o 2401 VbV Cancel)
+                Log::info('Alignet Payment Cancelled', ['payment_id' => $payment->payment_id]);
 
-                // 🚦 RESPONSE STRATEGY:
-                // Si es una petición del navegador (Browser Callback), redirigimos.
-                // Si es S2S (Server to Server), retornamos JSON/Text.
-                // VPOS2 suele hacer POST desde el navegador al final.
+                // Opcional: Marcar como cancelado en BD si queremos
+                $this->paymentService->handleFailedPayment($payment, 'user_cancelled', 'User cancelled payment');
 
-                // Detectamos si es AJAX o Navegador
-                if ($request->wantsJson()) {
-                    return response()->json(['status' => 'OK']);
-                }
-
-                // Si es navegador, retornamos una página "Cerrar y Redirigir"
-                // Ojo: Si estamos dentro del iframe, necesitamos JS para romper el iframe.
-                return response('
-                    <script>
-                        window.top.location.href = "' . route('booking.confirmation', $payment->booking_id) . '";
-                    </script>
-                ');
+                return $this->renderModalResponse($request, 'cancel', 'Pago Cancelado por Usuario', route('public.carts.index', ['error' => 'Proceso de pago cancelado']));
             } else {
-                // ❌ FALLO
+                // ❌ FALLO (Cualquier otro código)
                 $errorCode = $request->input('errorCode');
                 $errorMessage = $request->input('errorMessage');
 
@@ -98,21 +91,8 @@ class PaymentWebhookController extends Controller
                     $errorMessage ?? 'Payment rejected by bank'
                 );
 
-                if ($request->wantsJson()) {
-                    return response()->json(['status' => 'REJECTED']);
-                }
-
-                // Redirigir al carrito con información de error para mostrarla
-                $redirectUrl = route('public.carts.index', [
-                    'error' => $errorMessage ?? 'Su pago fue rechazado',
-                    'details' => "Code: " . ($errorCode ?? $authorizationResult) . " - " . ($errorMessage ?? 'Unknown')
-                ]);
-
-                return response('
-                    <script>
-                        window.top.location.href = "' . $redirectUrl . '";
-                    </script>
-                ');
+                $details = "Code: " . ($errorCode ?? $authorizationResult) . " - " . ($errorMessage ?? 'Unknown');
+                return $this->renderModalResponse($request, 'error', $errorMessage ?? 'Pago Rechazado', route('public.carts.index', ['error' => 'Pago rechazado', 'details' => $details]));
             }
         } catch (\Exception $e) {
             Log::error('Alignet Webhook Exception', ['error' => $e->getMessage()]);
@@ -328,5 +308,24 @@ class PaymentWebhookController extends Controller
                 'refund_amount' => $refundedAmount,
             ]);
         }
+    }
+    /**
+     * Helper para responder HTML o JSON según contexto
+     */
+    private function renderModalResponse(Request $request, string $type, string $message, string $redirectUrl)
+    {
+        if ($request->wantsJson()) {
+            return response()->json([
+                'status' => $type,
+                'message' => $message,
+                'redirect_url' => $redirectUrl
+            ]);
+        }
+
+        return view('payments.alignet-response', [
+            'type' => $type,
+            'message' => $message,
+            'redirectUrl' => $redirectUrl
+        ]);
     }
 }

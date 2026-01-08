@@ -122,6 +122,8 @@ class AlignetPaymentService
             'descriptionProducts' => substr($customerData['description'] ?? 'Tour booking', 0, 30),
             'programmingLanguage' => 'PHP',
             'urlResponse' => rtrim(config('app.url'), '/') . '/webhooks/payment/alignet', // Force correct path, ignore Env typo
+            'urlCancel' => rtrim(config('app.url'), '/') . '/webhooks/payment/alignet', // Handle cancellation (same webhook)
+            'urlError' => rtrim(config('app.url'), '/') . '/webhooks/payment/alignet', // Handle errors (same webhook)
             'timeoutResponse' => '300', // 5 minutos de espera para redirection
             'purchaseVerification' => $this->generatePurchaseVerification(
                 $operationNumber,
