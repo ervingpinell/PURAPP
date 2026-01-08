@@ -43,7 +43,8 @@ class PaymentWebhookController extends Controller
                     ", ErrorMsg: " . ($request->input('errorMessage') ?? 'N/A');
 
                 // Si falla firma, igual redirigimos a error pero con detalles para debug
-                return $this->renderModalResponse($request, 'error', 'Error de Seguridad. ' . $debug, route('public.carts.index', ['error' => 'Security Error: Invalid Signature. ' . $debug]));
+                $securityMsg = __('m_checkout.payment.invalid_response');
+                return $this->renderModalResponse($request, 'error', $securityMsg . ' ' . $debug, route('public.carts.index', ['error' => $securityMsg . ' (' . $debug . ')']));
             }
 
             // Buscar pago
@@ -71,7 +72,7 @@ class PaymentWebhookController extends Controller
                 }
 
                 Log::info('✅ Alignet Payment Confirmed', ['payment_id' => $payment->payment_id]);
-                return $this->renderModalResponse($request, 'success', '¡Pago Exitoso!', route('booking.confirmation', $payment->booking_id));
+                return $this->renderModalResponse($request, 'success', __('m_checkout.payment.success'), route('booking.confirmation', $payment->booking_id));
             } elseif ($authorizationResult === '99' || $request->input('errorCode') == '2401') {
                 // 🚫 CANCELADO (99 o 2401 VbV Cancel)
                 Log::info('Alignet Payment Cancelled', ['payment_id' => $payment->payment_id]);
@@ -79,7 +80,7 @@ class PaymentWebhookController extends Controller
                 // Opcional: Marcar como cancelado en BD si queremos
                 $this->paymentService->handleFailedPayment($payment, 'user_cancelled', 'User cancelled payment');
 
-                return $this->renderModalResponse($request, 'cancel', 'Pago Cancelado por Usuario', route('public.carts.index', ['error' => 'Proceso de pago cancelado']));
+                return $this->renderModalResponse($request, 'cancel', __('m_checkout.payment.cancelled_by_user'), route('public.carts.index', ['error' => __('m_checkout.payment.cancelled_by_user')]));
             } else {
                 // ❌ FALLO (Cualquier otro código)
                 $errorCode = $request->input('errorCode');
@@ -97,11 +98,20 @@ class PaymentWebhookController extends Controller
                     $errorMessage ?? 'Payment rejected by bank'
                 );
 
-                $debug = "AuthResult: " . ($authorizationResult ?? 'N/A') .
-                    ", ErrorCode: " . ($errorCode ?? 'N/A') .
-                    ", ErrorMsg: " . ($errorMessage ?? 'N/A');
+                $debug = "Auth: " . ($authorizationResult ?? '?') .
+                    ", Code: " . ($errorCode ?? '?') .
+                    ", Msg: " . ($errorMessage ?? 'N/A');
 
-                return $this->renderModalResponse($request, 'error', $errorMessage ?? 'Pago Rechazado', route('public.carts.index', ['error' => "Pago Rechazado. " . $debug]));
+                // Mapeo básico de errores comunes
+                if ($authorizationResult === '01') {
+                    $userMessage = __('m_checkout.payment.card_declined');
+                } elseif ($authorizationResult === '05') {
+                    $userMessage = __('m_checkout.payment.failed');
+                } else {
+                    $userMessage = $errorMessage ?? __('m_checkout.payment.failed');
+                }
+
+                return $this->renderModalResponse($request, 'error', $userMessage, route('public.carts.index', ['error' => $userMessage . " (" . $debug . ")"]));
             }
         } catch (\Exception $e) {
             Log::error('Alignet Webhook Exception', ['error' => $e->getMessage()]);
