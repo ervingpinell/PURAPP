@@ -121,7 +121,7 @@
   {{-- Dropdown del menú (MÓVIL/TABLET) --}}
   <div class="navbar-links d-lg-none" id="navbar-links">
     <a href="{{ localized_route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
-    <a href="#" class="scroll-to-tours">{{ __('adminlte::adminlte.tours') }}</a>
+    <a href="{{ localized_route('tours.index') }}">{{ __('adminlte::adminlte.tours') }}</a>
     <a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a>
     <a href="{{ localized_route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
     <a href="{{ localized_route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>

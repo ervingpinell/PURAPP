@@ -152,56 +152,97 @@ if ($len <= 0) return 1;
                 @endphp
 
                 <div class="col d-flex">
-                  <div class="tour-modal-card h-100 w-100 d-flex flex-column">
-                    <img src="{{ $tourCover }}" class="card-img-top" alt="{{ $tour->getTranslatedName() }}">
-                    <div class="card-body d-flex flex-column p-3">
-                      <h5 class="card-title card-title-text mb-2">{{ $tour->getTranslatedName() }}</h5>
-
+                  <div class="tour-modal-card-vertical h-100 w-100">
+                    {{-- Badges arriba --}}
+                    <div class="tour-badges">
                       @if(!empty($tour->length))
-                      <p class="text small mb-2">
-                        <strong class="muted">{{ $durLabel }}:</strong> {{ $tour->length }} {{ $unitLabel }}
-                      </p>
+                      <span class="badge-duration">⏱ {{ $tour->length }} {{ $unitLabel }}</span>
                       @endif
-
-                      @if($activeCategories->isNotEmpty())
-                      <div class="mb-3 small mt-auto">
-                        @foreach($activeCategories as $priceRecord)
-                        @php
-                        $category = $priceRecord->category;
-                        $nameTr = $catName($category);
-                        $price = (float) $priceRecord->price;
-                        $ageText = $ageRangeText($category);
-                        $isSeasonal = $priceRecord->valid_from || $priceRecord->valid_until;
-                        @endphp
-                        <div class="d-flex justify-content-between">
-                          <div>
-                            <strong>{{ $nameTr }}</strong>
-                            @if($ageText)
-                            <small>({{ $ageText }})</small>
-                            @endif
-                            @if($isSeasonal)
-                            <span class="badge badge-info badge-sm ml-1" style="font-size: 0.6rem;" title="Precio de temporada">
-                              <i class="fas fa-calendar-alt"></i>
-                            </span>
-                            @endif
-                            <div class="text-muted" style="font-size: 0.65rem;">
-                              Min: {{ $priceRecord->min_quantity ?? 0 }} - Máx: {{ $priceRecord->max_quantity ?? 12 }}
-                            </div>
-                          </div>
-                          <strong style="color:#006633">${{ number_format($price, 2) }}</strong>
-                        </div>
-                        @endforeach
-                      </div>
-                      @else
-                      <div class="mb-3 small mt-auto text-muted">
-                        {{ __('adminlte::adminlte.no_prices_available') ?? 'Precios no disponibles' }}
-                      </div>
-                      @endif
-
-                      <a href="{{ localized_route('tours.show', $tour) }}" class="btn btn-success w-100 mt-2">
-                        {{ __('adminlte::adminlte.see_tour') }}
-                      </a>
+                      <span class="badge-category">{{ $translatedTitle }}</span>
                     </div>
+
+                    {{-- Imagen grande --}}
+                    <img src="{{ $tourCover }}" class="tour-image" alt="{{ $tour->getTranslatedName() }}">
+
+                    {{-- Título + Precio principal --}}
+                    @php
+                    $tourName = $tour->getTranslatedName();
+                    // Dividir título por paréntesis
+                    if (preg_match('/^([^(]+)(?:\((.+)\))?$/', $tourName, $matches)) {
+                    $mainTitle = trim($matches[1]);
+                    $subtitle = isset($matches[2]) ? trim($matches[2]) : '';
+                    } else {
+                    $mainTitle = $tourName;
+                    $subtitle = '';
+                    }
+
+                    // Obtener precio principal (primera categoría)
+                    $mainPrice = $activeCategories->isNotEmpty()
+                    ? (float) $activeCategories->first()->price
+                    : 0;
+                    @endphp
+
+                    <div class="tour-header-row">
+                      <div class="tour-title-section">
+                        <h5 class="tour-title-main">{{ $mainTitle }}</h5>
+                        @if($subtitle)
+                        <p class="tour-subtitle">{{ $subtitle }}</p>
+                        @endif
+                        @php
+                        $overview = $tour->getTranslatedOverview();
+                        @endphp
+                        @if($overview)
+                        <p class="tour-description">{{ Str::limit(strip_tags($overview), 120) }}</p>
+                        @endif
+                      </div>
+                      @if($mainPrice > 0)
+                      <div class="tour-price-main">${{ number_format($mainPrice, 0) }}</div>
+                      @endif
+                    </div>
+
+                    {{-- Separador --}}
+                    <hr class="tour-divider">
+
+                    {{-- Categorías de precio --}}
+                    @if($activeCategories->isNotEmpty())
+                    <div class="tour-categories">
+                      @foreach($activeCategories as $priceRecord)
+                      @php
+                      $category = $priceRecord->category;
+                      $nameTr = $catName($category);
+                      $price = (float) $priceRecord->price;
+                      $ageText = $ageRangeText($category);
+                      $isSeasonal = $priceRecord->valid_from || $priceRecord->valid_until;
+                      $minQty = $priceRecord->min_quantity ?? 0;
+                      $maxQty = $priceRecord->max_quantity ?? 12;
+                      @endphp
+                      <div class="category-row">
+                        <div class="category-info">
+                          <strong class="category-name">{{ $nameTr }}</strong>
+                          @if($ageText)
+                          <span class="category-age">({{ $ageText }})</span>
+                          @endif
+                          @if($isSeasonal)
+                          <span class="badge badge-info badge-sm ml-1" style="font-size: 0.6rem;" title="Precio de temporada">
+                            <i class="fas fa-calendar-alt"></i>
+                          </span>
+                          @endif
+                          <small class="category-capacity">{{ $minQty }}-{{ $maxQty }} personas</small>
+                        </div>
+                        <strong class="category-price">${{ number_format($price, 0) }}</strong>
+                      </div>
+                      @endforeach
+                    </div>
+                    @else
+                    <div class="text-muted text-center py-3">
+                      {{ __('adminlte::adminlte.no_prices_available') ?? 'Precios no disponibles' }}
+                    </div>
+                    @endif
+
+                    {{-- Botón CTA --}}
+                    <a href="{{ localized_route('tours.show', $tour) }}" class="btn-tour-cta">
+                      {{ __('adminlte::adminlte.see_tour_details') }} →
+                    </a>
                   </div>
                 </div>
                 @endforeach

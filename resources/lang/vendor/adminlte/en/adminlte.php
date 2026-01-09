@@ -136,6 +136,7 @@ return [
     'half_day_tours' => 'Half-day tours',
     'see_tour' => 'View tour',
     'see_tours' => 'View tours',
+    'see_tour_details' => 'View tour details',
     'what_visitors_say' => 'What our visitors say',
     'quote_1' => 'An unforgettable experience!',
     'guest_1' => 'Carlos M.',

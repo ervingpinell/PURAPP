@@ -569,6 +569,273 @@
     }
 }
 
+/* ========================================
+   DISEÑO VERTICAL CON BADGES ARRIBA
+   ======================================== */
+
+/* === Card vertical === */
+.tour-modal-card-vertical {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    height: 100%;
+}
+
+/* === Badges pills arriba === */
+.tour-badges {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.badge-duration {
+    background: linear-gradient(135deg, #2c6e49 0%, #1f4d32 100%);
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.badge-category {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* === Imagen grande === */
+.tour-modal-card-vertical .tour-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* === Título + Precio === */
+.tour-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.tour-title-section {
+    flex: 1;
+    min-width: 0;
+}
+
+.tour-title-main {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    background: var(--primary-red);
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+    text-align: left;
+}
+
+.tour-subtitle {
+    font-size: 0.85rem;
+    color: #2c3e50;
+    margin: 0;
+    line-height: 1.3;
+    text-align: left;
+}
+
+.tour-description {
+    font-size: 0.8rem;
+    color: #5a6c7d;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    line-height: 1.4;
+    text-align: left;
+}
+
+.tour-price-main {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #006633;
+    flex-shrink: 0;
+    display: none; /* Ocultar precio principal */
+}
+
+/* === Separador === */
+.tour-divider {
+    border: none;
+    border-top: 2px solid #e0e0e0;
+    margin: 0.75rem 0;
+}
+
+/* === Categorías === */
+.tour-categories {
+    margin-bottom: 1rem;
+}
+
+.category-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.category-row:last-child {
+    border-bottom: none;
+}
+
+.category-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.category-name {
+    font-size: 0.9rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.category-age {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-left: 0.25rem;
+}
+
+.category-capacity {
+    display: block;
+    font-size: 0.75rem;
+    color: #95a5a6;
+    margin-top: 0.15rem;
+}
+
+.category-price {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #006633;
+    flex-shrink: 0;
+    margin-left: 1rem;
+}
+
+/* === Botón CTA === */
+.btn-tour-cta {
+    background: linear-gradient(135deg, #2c6e49 0%, #1f4d32 100%);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-top: auto;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: block;
+}
+
+.btn-tour-cta:hover {
+    background: linear-gradient(135deg, #1f4d32 0%, #163a24 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(44, 110, 73, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+/* === Responsive móviles === */
+@media (max-width: 576.98px) {
+    .tour-modal-card-vertical {
+        padding: 0.5rem;
+    }
+    
+    .tour-modal-card-vertical .tour-image {
+        height: 120px;
+        margin-bottom: 0.5rem;
+        border-radius: 6px;
+    }
+    
+    .tour-badges {
+        gap: 0.4rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .tour-title-main {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.4rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .tour-subtitle {
+        font-size: 0.65rem;
+        margin-bottom: 0.3rem;
+    }
+    
+    .tour-description {
+        font-size: 0.65rem;
+        margin-top: 0.3rem;
+        line-height: 1.3;
+    }
+    
+    .tour-divider {
+        margin: 0.5rem 0;
+    }
+    
+    .tour-price-main {
+        font-size: 1rem;
+    }
+    
+    .category-row {
+        padding: 0.35rem 0;
+        text-align: left;
+    }
+    
+    .category-info {
+        text-align: left;
+    }
+    
+    .category-name {
+        font-size: 0.75rem;
+    }
+    
+    .category-age {
+        font-size: 0.65rem;
+    }
+    
+    .category-capacity {
+        font-size: 0.65rem;
+        margin-top: 0.1rem;
+    }
+    
+    .category-price {
+        font-size: 0.8rem;
+    }
+    
+    .btn-tour-cta {
+        padding: 0.55rem 1rem;
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+    }
+    
+    /* Badges más pequeños */
+    .badge-duration,
+    .badge-category {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* ======================================== */
+
 /* === Modales: mejorar legibilidad en móviles girados (landscape bajo) === */
 @media (max-height: 480px) and (orientation: landscape) {
     .modal.modal-fix-top .modal-dialog {

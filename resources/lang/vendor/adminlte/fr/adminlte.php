@@ -135,6 +135,7 @@ return [
     'half_day_tours' => 'Circuits d’une demi-journée',
     'see_tour' => 'Voir le circuit',
     'see_tours' => 'Voir les circuits',
+    'see_tour_details' => 'Voir les détails du circuit',
     'what_visitors_say' => 'Ce que disent nos visiteurs',
     'quote_1' => 'Une expérience inoubliable !',
     'guest_1' => 'Carlos M.',
