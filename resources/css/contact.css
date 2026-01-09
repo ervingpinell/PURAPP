@@ -22,10 +22,15 @@
   --contact-shadow: 0 8px 20px rgba(0,0,0,.06);
 }
 
-/* Sección (no cambiamos look, solo espaciados) */
+/* Sección más compacta */
 .contact-section{
-  padding-top: clamp(24px, 2.2vw, 40px);
-  padding-bottom: clamp(24px, 2.2vw, 40px);
+  padding-top: clamp(16px, 1.5vw, 28px);
+  padding-bottom: clamp(16px, 1.5vw, 28px);
+}
+
+/* Contenedor más estrecho en desktop */
+.contact-section .container{
+  max-width: 1000px;
 }
 
 /* Cards */
@@ -73,20 +78,20 @@
   margin-bottom: .35rem;
 }
 
-/* Inputs: forzamos los .form-control-lg a tamaño normal/compacto */
+/* Inputs compactos (sin -lg) */
 .contact-section .form-control{
   font-size: var(--contact-body);
-  padding: .55rem .8rem;
+  padding: .5rem .75rem;
   border-radius: .5rem;
   border: 1px solid var(--contact-border);
 }
 .contact-section .form-control.form-control-lg{
   font-size: var(--contact-body);
-  padding: .55rem .8rem;
+  padding: .5rem .75rem;
   height: auto;
 }
 .contact-section textarea.form-control{
-  min-height: 140px;
+  min-height: 100px; /* Más compacto */
   line-height: 1.45;
 }
 
@@ -163,15 +168,19 @@
 /* Pequeños ajustes responsive */
 @media (max-width: 991.98px){
   .contact-section .card{ border-radius: 10px; }
+  .contact-section .container{ max-width: 100%; }
 }
 @media (max-width: 575.98px){
+  .contact-section{ padding-top: 1rem; padding-bottom: 1rem; }
   .contact-section .card-header{ padding: .5rem .75rem; }
   .contact-section .card-header h4{ font-size: var(--contact-body); }
-  .contact-section .form-label{ font-size: var(--contact-sm); }
-  .contact-section .form-control{ font-size: var(--contact-sm); padding: .5rem .75rem; }
-  .contact-section textarea.form-control{ min-height: 120px; }
+  .contact-section .card-body{ padding: .75rem; }
+  .contact-section .form-label{ font-size: var(--contact-sm); margin-bottom: .25rem; }
+  .contact-section .form-control{ font-size: var(--contact-sm); padding: .45rem .65rem; }
+  .contact-section textarea.form-control{ min-height: 90px; }
   .contact-section .btn-success{ font-size: var(--contact-sm); padding: .5rem .8rem; }
   .contact-section .card.bg-light .badge.bg-success{ font-size: var(--contact-xs) !important; padding: .3rem .55rem; }
+  .contact-section .mb-3{ margin-bottom: .75rem !important; }
 }
 
 /* (Opcional) Utilidad por si no existiera en tu CSS global */
