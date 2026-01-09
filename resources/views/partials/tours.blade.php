@@ -227,7 +227,7 @@ if ($len <= 0) return 1;
                             <i class="fas fa-calendar-alt"></i>
                           </span>
                           @endif
-                          <small class="category-capacity">{{ $minQty }}-{{ $maxQty }} personas</small>
+                          <small class="category-capacity">{{ $minQty }}-{{ $maxQty }} {{ __('adminlte::adminlte.persons_max') }}</small>
                         </div>
                         <strong class="category-price">${{ number_format($price, 0) }}</strong>
                       </div>

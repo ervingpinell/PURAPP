@@ -661,7 +661,7 @@
 }
 
 .badge-duration {
-    background: linear-gradient(135deg, #2c6e49 0%, #1f4d32 100%);
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
     color: white;
     padding: 0.35rem 0.75rem;
     border-radius: 20px;
@@ -673,12 +673,7 @@
 }
 
 .badge-category {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    color: white;
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    display: none; /* Ocultar badge de categoría */
 }
 
 /* === Imagen grande === */
@@ -759,6 +754,7 @@
     align-items: flex-start;
     padding: 0.5rem 0;
     border-bottom: 1px solid #f8f9fa;
+    text-align: left; /* Alinear a la izquierda en desktop y mobile */
 }
 
 .category-row:last-child {
@@ -774,6 +770,7 @@
     font-size: 0.9rem;
     color: #2c3e50;
     font-weight: 600;
+    text-align: left;
 }
 
 .category-age {
