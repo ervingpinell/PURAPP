@@ -264,95 +264,139 @@
       });
 
       /* =========================
-         6) Validación Frontend (PAX)
-            - Min 2 adultos
-            - Máx 2 niños
-            - Total <= 12
-            - Ajuste live mientras el usuario digita
+         6) Real-time Category Validation & Price Calculation
+            - Validates against category max and global max (12)
+            - Shows live price breakdown
+            - Disables submit button when invalid
          ========================= */
-      const PAX_MAX_TOTAL = 12;
-      const PAX_MIN_ADULTS = 2;
-      const PAX_MAX_KIDS = 2;
+      const GLOBAL_MAX_PERSONS = 12;
 
       function parseIntSafe(v) {
         const n = parseInt(v, 10);
         return isNaN(n) ? 0 : n;
       }
 
-      function validateAndClampAdultsKids(adultsInput, kidsInput) {
-        let a = clamp(parseIntSafe(adultsInput.value), 0, PAX_MAX_TOTAL);
-        let k = clamp(parseIntSafe(kidsInput.value), 0, PAX_MAX_KIDS);
+      function attachCategoryValidation(modal) {
+        const form = modal.querySelector('form.edit-item-form');
+        if (!form) return;
 
-        // mínimo 2 adultos
-        if (a < PAX_MIN_ADULTS) a = PAX_MIN_ADULTS;
+        const itemId = modal.id.replace('editItemModal-', '');
+        const inputs = form.querySelectorAll('.category-quantity-input');
+        const submitBtn = document.getElementById(`submit-btn-${itemId}`);
+        const validationAlert = document.getElementById(`validation-alert-${itemId}`);
+        const validationMessage = document.getElementById(`validation-message-${itemId}`);
+        const priceBreakdown = document.getElementById(`price-breakdown-${itemId}`);
+        const modalTotal = document.getElementById(`modal-total-${itemId}`);
 
-        // no superar total
-        if ((a + k) > PAX_MAX_TOTAL) {
-          // reducir niños primero
-          const extra = (a + k) - PAX_MAX_TOTAL;
-          const newKids = clamp(k - extra, 0, PAX_MAX_KIDS);
-          if (newKids < k) k = newKids;
-          // Si aún supera, recortar adultos pero nunca < 2
-          if ((a + k) > PAX_MAX_TOTAL) {
-            a = clamp(PAX_MAX_TOTAL - k, PAX_MIN_ADULTS, PAX_MAX_TOTAL);
+        if (!inputs.length) return;
+
+        const validateAndUpdate = () => {
+          let totalPersons = 0;
+          let totalPrice = 0;
+          let hasError = false;
+          let errorMessage = '';
+          const breakdown = [];
+
+          inputs.forEach(input => {
+            const qty = parseIntSafe(input.value);
+            const categoryMax = parseIntSafe(input.dataset.categoryMax);
+            const globalMax = parseIntSafe(input.dataset.globalMax);
+            const price = parseFloat(input.dataset.categoryPrice) || 0;
+            const categoryName = input.dataset.categoryName || 'Category';
+
+            if (qty > 0) {
+              totalPersons += qty;
+              const subtotal = qty * price;
+              totalPrice += subtotal;
+
+              breakdown.push({
+                name: categoryName,
+                qty: qty,
+                price: price,
+                subtotal: subtotal
+              });
+
+              // Check category max
+              if (qty > categoryMax) {
+                hasError = true;
+                errorMessage = @json(__('carts.validation.category_max_exceeded', ['category' => ':category', 'max' => ':max']))
+                  .replace(':category', categoryName)
+                  .replace(':max', categoryMax);
+              }
+            }
+          });
+
+          // Check global max
+          if (totalPersons > GLOBAL_MAX_PERSONS) {
+            hasError = true;
+            errorMessage = @json(__('carts.validation.max_total', ['max' => 12]))
+              .replace(':max', GLOBAL_MAX_PERSONS);
           }
-        }
 
-        adultsInput.value = a;
-        kidsInput.value = k;
-      }
+          // Check minimum (at least 1 person)
+          if (totalPersons === 0) {
+            hasError = true;
+            errorMessage = @json(__('m_bookings.validation.min_one_person_required'));
+          }
 
-      function attachPaxListeners(scope) {
-        const adults = scope.querySelector('input[name="adults_quantity"]');
-        const kids = scope.querySelector('input[name="kids_quantity"]');
-        if (!adults || !kids) return;
+          // Update validation alert
+          if (hasError) {
+            validationAlert.style.display = 'block';
+            validationMessage.textContent = errorMessage;
+            if (submitBtn) {
+              submitBtn.disabled = true;
+              submitBtn.classList.add('disabled');
+            }
+          } else {
+            validationAlert.style.display = 'none';
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.classList.remove('disabled');
+            }
+          }
 
-        // set min/max HTML también
-        adults.setAttribute('min', String(PAX_MIN_ADULTS));
-        adults.setAttribute('max', String(PAX_MAX_TOTAL));
-        kids.setAttribute('min', '0');
-        kids.setAttribute('max', String(PAX_MAX_KIDS));
+          // Update price breakdown
+          if (priceBreakdown) {
+            if (breakdown.length > 0) {
+              priceBreakdown.innerHTML = breakdown.map(item => `
+                <div class="d-flex justify-content-between mb-1">
+                  <span>${item.qty}x ${item.name}</span>
+                  <span>$${item.subtotal.toFixed(2)}</span>
+                </div>
+              `).join('');
+            } else {
+              priceBreakdown.innerHTML = '<div class="text-muted text-center py-2">' +
+                @json(__('adminlte::adminlte.noItemsSelected') ?? 'No items selected') +
+                '</div>';
+            }
+          }
 
-        const revalidate = () => validateAndClampAdultsKids(adults, kids);
-        ['input', 'change', 'blur'].forEach(ev => {
-          adults.addEventListener(ev, revalidate);
-          kids.addEventListener(ev, revalidate);
+          // Update total
+          if (modalTotal) {
+            modalTotal.textContent = totalPrice.toFixed(2);
+          }
+        };
+
+        // Attach listeners to all category inputs
+        inputs.forEach(input => {
+          ['input', 'change'].forEach(event => {
+            input.addEventListener(event, validateAndUpdate);
+          });
         });
 
-        // validación inicial
-        revalidate();
+        // Initial validation
+        validateAndUpdate();
       }
 
-      // aplicar a cada modal de edición
-      document.querySelectorAll('.modal form.edit-item-form').forEach(form => attachPaxListeners(form));
+      // Apply to all edit modals
+      document.querySelectorAll('.modal[id^="editItemModal-"]').forEach(modal => {
+        attachCategoryValidation(modal);
 
-      // validar antes de enviar (mensaje amable) — con I18N
-      function validateEditForm(form) {
-        const adults = form.querySelector('input[name="adults_quantity"]');
-        const kids = form.querySelector('input[name="kids_quantity"]');
-        if (!adults || !kids) return true;
-
-        const a = parseIntSafe(adults.value);
-        const k = parseIntSafe(kids.value);
-        const total = a + k;
-
-        if (a < PAX_MIN_ADULTS) {
-          swalInfo(I18N.info, I18N.minAdults);
-          adults.focus();
-          return false;
-        }
-        if (k > PAX_MAX_KIDS) {
-          swalInfo(I18N.info, I18N.maxKids);
-          kids.focus();
-          return false;
-        }
-        if (total > PAX_MAX_TOTAL) {
-          swalInfo(I18N.info, I18N.maxTotal);
-          adults.focus();
-          return false;
-        }
-        return true;
-      }
+        // Re-validate when modal is shown (in case data changed)
+        modal.addEventListener('shown.bs.modal', () => {
+          attachCategoryValidation(modal);
+        });
+      });
 
       /* =========================
          7) Código Promocional (Apply / Remove)

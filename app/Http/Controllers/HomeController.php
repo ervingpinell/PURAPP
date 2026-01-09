@@ -602,7 +602,7 @@ class HomeController extends Controller
             }
 
             $max     = min($max, $maxPersonsGlobal);
-            $initial = in_array($slug, ['adult', 'adulto', 'adults'], true) ? max($min, 2) : 0;
+            $initial = $min; // Use the actual minimum from the category instead of hardcoded value
 
             // Texto de rango de edad
             $ageMin       = $category->age_min;

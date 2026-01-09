@@ -19,7 +19,7 @@ return [
     'filters.status'  => 'Statut',
     'filters.all'     => '-- Tous --',
     'filters.active'  => 'Actif',
-    'filters.inactive'=> 'Inactif',
+    'filters.inactive' => 'Inactif',
     'filters.search'  => 'Rechercher',
     'filters.clear'   => 'Effacer',
 
@@ -119,7 +119,7 @@ return [
     'fields.language'  => 'Langue',
     'fields.schedule'  => 'Horaire',
     'fields.hotel'     => 'Hôtel',
-    'fields.hotel_name'=> 'Nom de l’hôtel',
+    'fields.hotel_name' => 'Nom de l’hôtel',
     'fields.adults'    => 'Nombre d’adultes',
     'fields.kids'      => 'Nombre d’enfants',
 
@@ -147,10 +147,10 @@ return [
     'messages.code_removed'        => 'Code supprimé avec succès.',
     'messages.slot_full'           => 'Ce créneau horaire est complet.',
     'messages.date_blocked'        => 'La date sélectionnée est bloquée pour cette excursion.',
-    'messages.schedule_unavailable'=> 'L’horaire sélectionné n’est pas disponible pour cette excursion.',
+    'messages.schedule_unavailable' => 'L’horaire sélectionné n’est pas disponible pour cette excursion.',
     'messages.validation_failed'   => 'La validation des données a échoué.',
     'messages.cart_expires_in'     => 'Le panier expirera dans :minutes minutes.',
-    'messages.cart_being_processed'=> 'Votre panier est en cours de traitement. Veuillez réessayer dans quelques secondes.',
+    'messages.cart_being_processed' => 'Votre panier est en cours de traitement. Veuillez réessayer dans quelques secondes.',
 
     'messages' => [
         'limited_seats_available' => 'Il ne reste que :available places pour ":tour" le :date.',
@@ -178,6 +178,11 @@ return [
         'cart_refreshed'          => 'Le délai de votre panier a été prolongé.',
         'extend_success'          => 'Panier prolongé avec succès.',
         'max_extensions_reached'  => 'Vous avez déjà atteint le nombre maximal de prolongations autorisées.',
+    ],
+
+    'validation' => [
+        'max_total' => 'Le maximum de :max personnes autorisées a été dépassé.',
+        'category_max_exceeded' => 'Le maximum de :max pour :category a été dépassé.',
     ],
 
 ];

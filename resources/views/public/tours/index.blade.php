@@ -331,6 +331,9 @@
                         <i class="fas fa-calendar-alt"></i>
                       </span>
                       @endif
+                      <div class="text-muted" style="font-size: 0.7rem;">
+                        Min: {{ $priceRecord->min_quantity ?? 0 }} - Máx: {{ $priceRecord->max_quantity ?? 12 }}
+                      </div>
                     </div>
                     <div class="tours-index-price-amount">
                       ${{ number_format($amount, 2) }}

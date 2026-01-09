@@ -104,6 +104,7 @@ return ($t === $key) ? $fallback : $t;
                     <span class="fw-semibold">${cat.name}</span>
                     ${cat.age_text ? `<small class="text-muted">(${cat.age_text})</small>` : ''}
                     <small class="text-muted price-display">$${cat.price.toFixed(2)}</small>
+                    <small class="text-muted" style="font-size: 0.7rem;">Min: ${cat.min} - Máx: ${cat.max}</small>
                 </div>
             </div>
             <div class="d-flex align-items-center gap-2">

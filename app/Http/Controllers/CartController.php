@@ -328,12 +328,11 @@ class CartController extends Controller
                 $cart = Cart::create([
                     'user_id'   => $user->user_id,
                     'is_active' => true,
-                    'expires_at' => now()->addMinutes($expirationMinutes),  // 🆕
+                    'expires_at' => now()->addMinutes($expirationMinutes),
                 ]);
-            } else {
-                // 🆕 Update expiration
-                $cart->update(['expires_at' => now()->addMinutes($expirationMinutes)]);
             }
+            // ✅ DO NOT refresh expiration when adding to existing cart
+            // Cart expiration is set only once when created - items already hold spots
 
             // Pickup - CORREGIDO: usar meeting_point_id directamente
             [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForStore($request);

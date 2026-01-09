@@ -181,4 +181,9 @@ return [
         'max_extensions_reached'  => 'You have already reached the maximum allowed extensions.',
     ],
 
+    'validation' => [
+        'max_total' => 'The maximum of :max persons allowed has been exceeded.',
+        'category_max_exceeded' => 'The maximum of :max for :category has been exceeded.',
+    ],
+
 ];

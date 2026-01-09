@@ -19,7 +19,7 @@ return [
     'filters.status'  => 'Status',
     'filters.all'     => '-- Todos --',
     'filters.active'  => 'Ativo',
-    'filters.inactive'=> 'Inativo',
+    'filters.inactive' => 'Inativo',
     'filters.search'  => 'Buscar',
     'filters.clear'   => 'Limpar',
 
@@ -119,7 +119,7 @@ return [
     'fields.language'  => 'Idioma',
     'fields.schedule'  => 'Horário',
     'fields.hotel'     => 'Hotel',
-    'fields.hotel_name'=> 'Nome do hotel',
+    'fields.hotel_name' => 'Nome do hotel',
     'fields.adults'    => 'Número de adultos',
     'fields.kids'      => 'Número de crianças',
 
@@ -147,10 +147,10 @@ return [
     'messages.code_removed'        => 'Código removido com sucesso.',
     'messages.slot_full'           => 'Este horário está lotado.',
     'messages.date_blocked'        => 'A data selecionada está bloqueada para este passeio.',
-    'messages.schedule_unavailable'=> 'O horário selecionado não está disponível para este passeio.',
+    'messages.schedule_unavailable' => 'O horário selecionado não está disponível para este passeio.',
     'messages.validation_failed'   => 'A validação dos dados falhou.',
     'messages.cart_expires_in'     => 'O carrinho irá expirar em :minutes minutos.',
-    'messages.cart_being_processed'=> 'Seu carrinho está sendo processado. Tente novamente em alguns segundos.',
+    'messages.cart_being_processed' => 'Seu carrinho está sendo processado. Tente novamente em alguns segundos.',
 
     'messages' => [
         'limited_seats_available' => 'Restam apenas :available vagas para ":tour" em :date.',
@@ -178,6 +178,11 @@ return [
         'cart_refreshed'          => 'O tempo do seu carrinho foi estendido.',
         'extend_success'          => 'Carrinho estendido com sucesso.',
         'max_extensions_reached'  => 'Você já atingiu o máximo de extensões permitidas.',
+    ],
+
+    'validation' => [
+        'max_total' => 'O máximo de :max pessoas permitidas foi excedido.',
+        'category_max_exceeded' => 'O máximo de :max para :category foi excedido.',
     ],
 
 ];

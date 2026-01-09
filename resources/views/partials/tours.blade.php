@@ -96,7 +96,7 @@ if ($len <= 0) return 1;
     <div class="modal fade modal-fix-top" id="modal-{{ $slugKey }}" tabindex="-1"
       aria-labelledby="modalLabel-{{ $slugKey }}" aria-hidden="true"
       style="--title-rows-xs:{{$rowsXS}};--title-rows-sm:{{$rowsSM}};--title-rows-md:{{$rowsMD}};--title-rows-lg:{{$rowsLG}};">
-      <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered modal-fullscreen-sm-down">
+      <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-sm-down" style="margin-top: 2rem;">
         <div class="modal-content">
           <div class="modal-header text-white" style="background:#0f2419">
             <h5 class="modal-title text-center w-100 text-white"
@@ -184,6 +184,9 @@ if ($len <= 0) return 1;
                               <i class="fas fa-calendar-alt"></i>
                             </span>
                             @endif
+                            <div class="text-muted" style="font-size: 0.65rem;">
+                              Min: {{ $priceRecord->min_quantity ?? 0 }} - Máx: {{ $priceRecord->max_quantity ?? 12 }}
+                            </div>
                           </div>
                           <strong style="color:#006633">${{ number_format($price, 2) }}</strong>
                         </div>

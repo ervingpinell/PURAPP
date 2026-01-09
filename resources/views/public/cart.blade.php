@@ -760,19 +760,62 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
 
                 // Get translated category name
                 $categoryName = $category->getTranslatedName(app()->getLocale()) ?? $category->name ?? 'Category';
+
+                // Calculate the actual max for this category (respect both category and global limits)
+                $categoryMax = min(
+                $price->max_quantity ?? 12,
+                (int) config('booking.max_persons_per_booking', 12)
+                );
                 @endphp
                 <div class="col-6 col-md-4">
-                  <label class="form-label small">{{ $categoryName }}</label>
+                  <label class="form-label small">
+                    {{ $categoryName }}
+                    @if($category->age_range)
+                    <span class="text-muted">({{ $category->age_range }})</span>
+                    @endif
+                  </label>
                   <input type="number"
                     name="categories[{{ $categoryId }}]"
-                    class="form-control"
+                    class="form-control category-quantity-input"
                     value="{{ $currentQty }}"
                     min="0"
-                    max="20"
+                    max="{{ $categoryMax }}"
+                    data-category-id="{{ $categoryId }}"
+                    data-category-name="{{ $categoryName }}"
+                    data-category-price="{{ $price->price }}"
+                    data-category-max="{{ $price->max_quantity }}"
+                    data-global-max="{{ config('booking.max_persons_per_booking', 12) }}"
                     placeholder="0">
+                  <small class="form-text text-muted">
+                    Min: {{ $price->min_quantity ?? 0 }} - Máx: {{ $price->max_quantity }}
+                  </small>
                 </div>
                 @endforeach
               </div>
+
+              {{-- Real-time validation alert --}}
+              <div id="validation-alert-{{ $item->item_id }}" class="alert alert-warning mt-3" style="display:none;" role="alert">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                <span id="validation-message-{{ $item->item_id }}"></span>
+              </div>
+
+              {{-- Price breakdown display --}}
+              <div class="card mt-3 bg-light">
+                <div class="card-body py-2">
+                  <div id="price-breakdown-{{ $item->item_id }}" class="small">
+                    {{-- Populated by JavaScript --}}
+                  </div>
+                  <div class="border-top pt-2 mt-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <strong>{{ __('adminlte::adminlte.total') }}:</strong>
+                      <strong class="text-primary fs-5">
+                        $<span id="modal-total-{{ $item->item_id }}">0.00</span>
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div class="form-text">
                 <i class="fas fa-info-circle me-1"></i>
                 {{ __('adminlte::adminlte.quantitiesHelp') ?? 'Ajusta las cantidades según necesites. Puedes dejar en 0 las categorías que no uses.' }}
@@ -846,7 +889,7 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
           <button type="button" class="btn btn-secondary w-100 w-sm-auto me-sm-2 mb-2 mb-sm-0" data-bs-dismiss="modal">
             <i class="fas fa-times"></i> {{ __('adminlte::adminlte.cancel') }}
           </button>
-          <button type="submit" class="btn btn-primary w-100 w-sm-auto">
+          <button type="submit" id="submit-btn-{{ $item->item_id }}" class="btn btn-primary w-100 w-sm-auto">
             <i class="fas fa-save"></i> {{ __('adminlte::adminlte.update') }}
           </button>
         </div>
