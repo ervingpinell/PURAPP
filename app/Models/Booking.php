@@ -6,6 +6,35 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * Booking Model
+ *
+ * Represents a tour booking made by a customer.
+ * Handles booking lifecycle, payment tracking, and customer data.
+ *
+ * @property int $booking_id Primary key
+ * @property int|null $user_id User who made the booking (null for guests)
+ * @property int $tour_id Tour being booked
+ * @property string $booking_reference Unique booking reference code
+ * @property string $status Booking status (pending, confirmed, paid, cancelled)
+ * @property bool $is_paid Payment status flag
+ * @property float $total_amount Total booking amount
+ * @property float $paid_amount Amount already paid
+ * @property array|null $user_snapshot Guest user data snapshot
+ * @property string|null $checkout_token Secure token for guest checkout
+ * @property \Carbon\Carbon|null $checkout_token_expires_at Token expiration
+ * @property \Carbon\Carbon|null $pending_expires_at Pending payment expiration
+ * @property \Carbon\Carbon $booking_date When booking was created
+ * @property \Carbon\Carbon|null $paid_at When payment was completed
+ * @property \Carbon\Carbon|null $deleted_at Soft delete timestamp
+ *
+ * @property-read User|null $user
+ * @property-read Tour $tour
+ * @property-read TourLanguage $tourLanguage
+ * @property-read \Illuminate\Database\Eloquent\Collection|BookingDetail[] $details
+ * @property-read \Illuminate\Database\Eloquent\Collection|Payment[] $payments
+ * @property-read Payment|null $latestPayment
+ */
 class Booking extends Model
 {
     use HasFactory, SoftDeletes;
@@ -39,14 +68,19 @@ class Booking extends Model
         'checkout_accessed_at',
     ];
 
+    /**
+     * Boot the model.
+     * Automatically generates booking reference on creation.
+     *
+     * @return void
+     */
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($booking) {
-            if (!$booking->payment_token) {
-                $booking->payment_token = bin2hex(random_bytes(32));
-                $booking->payment_token_created_at = now();
+            if (empty($booking->booking_reference)) {
+                $booking->booking_reference = self::generateBookingReference();
             }
         });
     }
@@ -60,41 +94,77 @@ class Booking extends Model
         'checkout_token_expires_at' => 'datetime',
         'checkout_accessed_at'      => 'datetime',
     ];
-    // ---------------- Relaciones ----------------
+    /**
+     * Relationships
+     */
+
+    /**
+     * User who made the booking.
+     * Returns null for guest bookings.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // Incluir tours archivados
+    /**
+     * Tour being booked.
+     * Includes soft-deleted tours for historical bookings.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function tour()
     {
         return $this->belongsTo(Tour::class, 'tour_id')->withTrashed();
     }
 
+    /**
+     * Language selected for the tour.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function tourLanguage()
     {
         return $this->belongsTo(TourLanguage::class, 'tour_language_id', 'tour_language_id');
     }
 
+    /**
+     * All booking details (participants, dates, categories).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function details()
     {
         return $this->hasMany(BookingDetail::class, 'booking_id', 'booking_id');
     }
 
+    /**
+     * Primary booking detail (first detail record).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
     public function detail()
     {
         return $this->hasOne(BookingDetail::class, 'booking_id', 'booking_id');
     }
 
+    /**
+     * Hotel for pickup (if applicable).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function hotel()
     {
         return $this->belongsTo(HotelList::class, 'hotel_id', 'hotel_id');
     }
 
     /**
-     * Redención real (pivot) con el código cargado.
-     * Carga encadenada del modelo PromoCode.
+     * Promo code redemption record.
+     * Eager loads the associated promo code model.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function redemption()
     {
@@ -103,26 +173,43 @@ class Booking extends Model
     }
 
     /**
-     * Compatibilidad: $booking->promoCode devuelve el modelo del cupón
-     * (desde pivot) o, si lo usabas antes, por columna legacy.
+     * Get the promo code used for this booking.
+     * Accessor for backward compatibility.
+     *
+     * @return PromoCode|null
      */
     public function getPromoCodeAttribute()
     {
         return $this->redemption?->promoCode;
     }
 
-    // (opcional) legacy si aún existe la columna used_by_booking_id en promo_codes
+    /**
+     * Legacy promo code relationship.
+     * Used if old column structure exists.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
     public function promoCodeLegacy()
     {
         return $this->hasOne(PromoCode::class, 'used_by_booking_id', 'booking_id');
     }
 
+    /**
+     * Reviews left by the booking user for this tour.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function reviews()
     {
         return $this->hasMany(Review::class, 'tour_id', 'tour_id')
             ->whereColumn('user_id', 'bookings.user_id');
     }
 
+    /**
+     * Review requests sent for this booking.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function reviewRequests()
     {
         return $this->hasMany(ReviewRequest::class, 'booking_id', 'booking_id');

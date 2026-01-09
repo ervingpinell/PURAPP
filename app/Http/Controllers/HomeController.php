@@ -22,6 +22,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
+/**
+ * HomeController
+ *
+ * Handles homepage display and public tour listings.
+ */
 class HomeController extends Controller
 {
     public function index(ReviewDistributor $distributor, ReviewsCacheManager $cacheManager)

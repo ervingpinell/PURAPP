@@ -16,6 +16,11 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Policy;
 use App\Models\PolicySection;
 
+/**
+ * PaymentController
+ *
+ * Manages payment processing and transactions.
+ */
 class PaymentController extends Controller
 {
     public function __construct(

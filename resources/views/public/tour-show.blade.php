@@ -16,7 +16,7 @@
 <section class="tour-section">
   <div class="container">
     <div class="row g-4 align-items-start">
-      {{-- ✅ Columna izquierda --}}
+      {{-- Columna izquierda --}}
       <div class="col-md-7">
         @include('partials.tour.feedback')
 
@@ -27,7 +27,7 @@
         @include('partials.tour.overview', ['tour' => $tour])
       </div>
 
-      {{-- ✅ Columna derecha --}}
+      {{-- Columna derecha --}}
       <div class="col-md-5 d-flex flex-column justify-content-between tour-right-col">
         <div class="flex-grow-1 mb-3">
           @include('partials.tour.reservation-box', [

@@ -4,6 +4,45 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * BookingDetail Model
+ *
+ * Represents detailed information for a booking.
+ * Stores tour date, schedule, categories, pricing, and pickup details.
+ *
+ * @property int $details_id Primary key
+ * @property int $booking_id Associated booking
+ * @property int $tour_id Tour being booked
+ * @property int $schedule_id Schedule/time slot
+ * @property \Carbon\Carbon $tour_date Date of the tour
+ * @property int|null $tour_language_id Language for the tour
+ * @property array $categories JSON array of category details (category_id, name, slug, quantity, price)
+ * @property float $total Total amount for this detail
+ * @property int|null $hotel_id Hotel for pickup
+ * @property bool $is_other_hotel Whether using a non-listed hotel
+ * @property string|null $other_hotel_name Name of other hotel
+ * @property int|null $meeting_point_id Meeting point
+ * @property string|null $meeting_point_name Meeting point name
+ * @property string|null $meeting_point_pickup_time Pickup time at meeting point
+ * @property string|null $meeting_point_description Meeting point description
+ * @property string|null $meeting_point_map_url Meeting point map URL
+ * @property string|null $pickup_time Pickup time (TIME field)
+ * @property array|null $taxes_breakdown Tax breakdown JSON
+ * @property float|null $taxes_total Total taxes amount
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ *
+ * @property-read Booking $booking
+ * @property-read Tour $tour
+ * @property-read TourLanguage|null $tourLanguage
+ * @property-read Schedule $schedule
+ * @property-read HotelList|null $hotel
+ * @property-read MeetingPoint|null $meetingPoint
+ * @property-read int $total_pax Total number of participants
+ * @property-read float $subtotal Subtotal before taxes
+ * @property-read int $adults_quantity Number of adults
+ * @property-read int $kids_quantity Number of kids
+ */
 class BookingDetail extends Model
 {
     protected $table = 'booking_details';

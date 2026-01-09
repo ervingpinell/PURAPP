@@ -2,6 +2,11 @@
 
 namespace App\Services\PaymentGateway\Exceptions;
 
+/**
+ * GatewayNotEnabledException
+ *
+ * Handles gatewaynotenabledexception operations.
+ */
 class GatewayNotEnabledException extends \Exception
 {
     public function __construct(string $gateway)

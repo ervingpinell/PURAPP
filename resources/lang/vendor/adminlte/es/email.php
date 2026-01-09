@@ -22,12 +22,12 @@ return [
     'state_updated' => 'Actualizada',
     'state_pending' => 'Pendiente',
     'meeting_point' => 'Punto de encuentro',
-    
+
 
     // Confirmada (ya la tenías, incluyo por consistencia)
     'booking_confirmed_subject' => 'Tu reserva (:reference) ha sido confirmada',
     'booking_confirmed_title' => 'Reserva Confirmada',
-    'booking_confirmed_message' => 'Tu reserva con :company ha sido confirmada con éxito. Código de referencia: :reference 🎉',
+    'booking_confirmed_message' => 'Tu reserva con :company ha sido confirmada con éxito. Código de referencia: :reference',
 
     // Cancelada
     'booking_cancelled_subject' => 'Tu reserva (:reference) ha sido cancelada',

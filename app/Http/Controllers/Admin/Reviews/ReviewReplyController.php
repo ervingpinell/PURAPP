@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * ReviewReplyController
+ *
+ * Handles reviewreply operations.
+ */
 class ReviewReplyController extends Controller
 {
     /**

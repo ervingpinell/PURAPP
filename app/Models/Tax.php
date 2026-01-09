@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * Tax Model
+ *
+ * Represents a tax configuration.
+ */
 class Tax extends Model
 {
     use HasFactory, SoftDeletes;

@@ -15,9 +15,9 @@ class GeneratePolicySlugs extends Command
         $query = Policy::query();
 
         if (!$this->option('force')) {
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->whereNull('slug')
-                  ->orWhere('slug', '');
+                    ->orWhere('slug', '');
             });
         }
 
@@ -43,7 +43,7 @@ class GeneratePolicySlugs extends Command
 
         $bar->finish();
         $this->newLine(2);
-        $this->info("✓ Generated slugs for {$policies->count()} policies.");
+        $this->info("Generated slugs for {$policies->count()} policies.");
 
         return 0;
     }

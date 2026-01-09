@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * AmenityTranslation Model
+ *
+ * Stores translated amenity names and descriptions.
+ */
 class AmenityTranslation extends Model
 {
     protected $table = 'amenity_translations';

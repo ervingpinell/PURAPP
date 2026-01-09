@@ -25,6 +25,43 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 // Spatie Permission
 use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * User Model
+ *
+ * Represents a registered user in the system.
+ * Handles authentication, authorization, 2FA, and user preferences.
+ *
+ * @property int $user_id Primary key
+ * @property string $email Email address (unique)
+ * @property string|null $pending_email New email pending verification
+ * @property string|null $email_change_token Token for email change verification
+ * @property \Carbon\Carbon|null $email_change_token_expires_at Token expiration
+ * @property \Carbon\Carbon|null $email_verified_at Email verification timestamp
+ * @property string $password Hashed password
+ * @property string $first_name User's first name
+ * @property string $last_name User's last name
+ * @property string $full_name Full name (first + last)
+ * @property string|null $country_code Phone country code
+ * @property string|null $phone Phone number
+ * @property string|null $locale Preferred locale (en, es, fr, pt, de)
+ * @property bool $is_guest Whether user is a guest account
+ * @property bool $is_active Account active status
+ * @property string|null $two_factor_secret 2FA secret key
+ * @property string|null $two_factor_recovery_codes 2FA recovery codes (encrypted)
+ * @property \Carbon\Carbon|null $two_factor_confirmed_at When 2FA was confirmed
+ * @property string|null $remember_token Remember me token
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon|null $deleted_at Soft delete timestamp
+ *
+ * @property-read string $full_phone Phone with country code
+ * @property-read string $e164_phone Phone in E.164 format
+ * @property-read bool $two_factor_enabled Whether 2FA is enabled
+ * @property-read bool $two_factor_confirmed Whether 2FA is confirmed
+ * @property-read \Illuminate\Database\Eloquent\Collection|Cart[] $cart
+ * @property-read \Illuminate\Database\Eloquent\Collection|\Spatie\Permission\Models\Role[] $roles
+ * @property-read \Illuminate\Database\Eloquent\Collection|\Spatie\Permission\Models\Permission[] $permissions
+ */
 class User extends Authenticatable implements MustVerifyEmail, HasLocalePreference
 {
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;

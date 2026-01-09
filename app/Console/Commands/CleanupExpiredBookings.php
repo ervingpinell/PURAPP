@@ -101,21 +101,22 @@ class CleanupExpiredBookings extends Command
                         'notes' => ($booking->notes ?? '') . "\n[Auto-cancelled: Payment timeout]",
                     ]);
 
-                    // Log the cleanup
-                    Log::info('Booking auto-cancelled due to payment timeout', [
-                        'booking_id' => $booking->booking_id,
-                        'reference' => $booking->booking_reference,
-                        'user_id' => $booking->user_id,
-                        'created_at' => $booking->created_at,
-                        'age_minutes' => $booking->created_at->diffInMinutes(Carbon::now()),
-                    ]);
+                    if (config('app.debug')) {
+                        Log::info('Booking auto-cancelled due to payment timeout', [
+                            'booking_id' => $booking->booking_id,
+                            'reference' => $booking->booking_reference,
+                            'user_id' => $booking->user_id,
+                            'created_at' => $booking->created_at,
+                            'age_minutes' => $booking->created_at->diffInMinutes(Carbon::now()),
+                        ]);
+                    }
                 });
 
                 $cancelled++;
-                $this->line("✓ Cancelled booking #{$booking->booking_id}");
+                $this->line("Cancelled booking #{$booking->booking_id}");
             } catch (\Exception $e) {
                 $errors++;
-                $this->error("✗ Failed to cancel booking #{$booking->booking_id}: {$e->getMessage()}");
+                $this->error("Failed to cancel booking #{$booking->booking_id}: {$e->getMessage()}");
                 Log::error('Failed to cancel expired booking', [
                     'booking_id' => $booking->booking_id,
                     'error' => $e->getMessage(),

@@ -12,6 +12,11 @@ use App\Models\Review;
 use App\Models\ReviewProvider;
 use App\Models\Booking; // <-- import para chequear columnas y relación
 
+/**
+ * ReviewAdminController
+ *
+ * Handles reviewadmin operations.
+ */
 class ReviewAdminController extends Controller
 {
     use AuthorizesRequests;

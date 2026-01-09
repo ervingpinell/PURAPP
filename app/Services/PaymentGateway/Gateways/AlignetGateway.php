@@ -7,6 +7,11 @@ use App\Services\PaymentGateway\DTO\PaymentIntentResponse;
 use App\Services\AlignetPaymentService;
 use Exception;
 
+/**
+ * AlignetGateway
+ *
+ * Alignet payment gateway integration.
+ */
 class AlignetGateway extends AbstractPaymentGateway
 {
     protected string $gatewayName = 'alignet';
@@ -45,7 +50,7 @@ class AlignetGateway extends AbstractPaymentGateway
                 'zip' => $data['customer_zip'] ?? '',
                 'state' => $data['customer_state'] ?? '',
                 'country' => $data['customer_country'] ?? 'CR',
-                'phone' => $data['customer_phone'] ?? '', // ✅ Add Phone
+                'phone' => $data['customer_phone'] ?? '', // Add phone number
                 'description' => $data['description'] ?? 'Tour booking',
                 'booking_id' => $data['booking_id'] ?? '',
                 'payment_id' => $data['payment_id'] ?? '', // 🔥 CRITICAL: Pass payment_id for reserved2
@@ -74,9 +79,9 @@ class AlignetGateway extends AbstractPaymentGateway
                     'operation_number' => $operationNumber,
                     'amount' => $data['amount'],
                     'currency' => $data['currency'],
-                    'payment_data' => $paymentData, // ✅ IMPORTANTE: Guardar payment_data aquí
+                    'payment_data' => $paymentData, // IMPORTANT: Save payment_data here
                 ],
-                raw: $paymentData // ✅ También aquí
+                raw: $paymentData // Also save here
             );
         } catch (Exception $e) {
             $this->handleException($e, 'create_payment_intent');

@@ -235,7 +235,7 @@
       $rawName = $tour->translated_name ?? $tour->name;
       $displayName = preg_replace('/\s*\(.*?\)\s*/', '', (string) $rawName) ?: $rawName;
 
-      // ✅ NUEVO: Obtener solo UN PRECIO por categoría (válido para HOY)
+      // NUEVO: Obtener solo UN PRECIO por categoría (válido para HOY)
       $activeCategories = $tour->activePricesForDate(now())
       ->sortBy('category_id')
       ->values();

@@ -10,7 +10,18 @@ class TestGraphMail extends Command
 {
     protected $signature = 'mail:test-graph {email?}';
 
-    protected $description = 'Prueba el envío de correos mediante Microsoft Graph API';
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Test email sending via Microsoft Graph API';
+
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
 
     public function handle()
     {
@@ -33,10 +44,10 @@ class TestGraphMail extends Command
             ['Config', 'Valor'],
             [
                 ['MAIL_MAILER', $mailer],
-                ['MSFT_TENANT_ID', $tenantId ? substr($tenantId, 0, 8) . '...' : '❌ NO CONFIGURADO'],
-                ['MSFT_CLIENT_ID', $clientId ? substr($clientId, 0, 8) . '...' : '❌ NO CONFIGURADO'],
-                ['MSFT_CLIENT_SECRET', $clientSecret ? '✓ Configurado' : '❌ NO CONFIGURADO'],
-                ['MSFT_SENDER_UPN', $senderUpn ?: '❌ NO CONFIGURADO'],
+                ['MSFT_TENANT_ID', $tenantId ? substr($tenantId, 0, 8) . '...' : 'NOT CONFIGURED'],
+                ['MSFT_CLIENT_ID', $clientId ? substr($clientId, 0, 8) . '...' : 'NOT CONFIGURED'],
+                ['MSFT_CLIENT_SECRET', $clientSecret ? 'Configured' : 'NOT CONFIGURED'],
+                ['MSFT_SENDER_UPN', $senderUpn ?: 'NOT CONFIGURED'],
                 ['MSFT_REPLY_TO', $replyTo ?: '(ninguno)'],
             ]
         );
@@ -44,12 +55,12 @@ class TestGraphMail extends Command
 
         // Validar configuración
         if (!$tenantId || !$clientId || !$clientSecret || !$senderUpn) {
-            $this->error('❌ Configuración incompleta. Revisa tu .env');
+            $this->error('Incomplete configuration. Check your .env file');
             return Command::FAILURE;
         }
 
         if ($mailer !== 'graph') {
-            $this->warn("⚠ MAIL_MAILER está configurado como '{$mailer}', no como 'graph'");
+            $this->warn("MAIL_MAILER is configured as '{$mailer}', not as 'graph'");
             $this->newLine();
             if (!$this->confirm('¿Deseas continuar de todas formas?', false)) {
                 return Command::FAILURE;
@@ -62,9 +73,9 @@ class TestGraphMail extends Command
         try {
             $authService = app(GraphAuthService::class);
             $token = $authService->getAccessToken();
-            $this->info('✓ Token obtenido exitosamente: ' . substr($token, 0, 20) . '...');
+            $this->info('Token obtained successfully: ' . substr($token, 0, 20) . '...');
         } catch (\Throwable $e) {
-            $this->error('❌ Error al obtener token: ' . $e->getMessage());
+            $this->error('Error obtaining token: ' . $e->getMessage());
             return Command::FAILURE;
         }
         $this->newLine();
@@ -76,37 +87,36 @@ class TestGraphMail extends Command
             ?: $this->ask('Email del destinatario', config('mail.from.address'));
 
         if (!filter_var($recipientEmail, FILTER_VALIDATE_EMAIL)) {
-            $this->error('❌ Email inválido');
+            $this->error('Invalid email');
             return Command::FAILURE;
         }
 
         try {
             Mail::mailer('graph')->raw(
                 'Este es un correo de prueba enviado desde Green Vacations CR usando Microsoft Graph API.' . PHP_EOL . PHP_EOL .
-                'Si recibes este mensaje, significa que la configuración está funcionando correctamente.' . PHP_EOL . PHP_EOL .
-                'Detalles técnicos:' . PHP_EOL .
-                '- Mailer: graph' . PHP_EOL .
-                '- Sender UPN: ' . $senderUpn . PHP_EOL .
-                '- Tenant ID: ' . substr($tenantId, 0, 8) . '...' . PHP_EOL .
-                '- Fecha: ' . now()->format('d-M-Y H:i:s'),
+                    'Si recibes este mensaje, significa que la configuración está funcionando correctamente.' . PHP_EOL . PHP_EOL .
+                    'Detalles técnicos:' . PHP_EOL .
+                    '- Mailer: graph' . PHP_EOL .
+                    '- Sender UPN: ' . $senderUpn . PHP_EOL .
+                    '- Tenant ID: ' . substr($tenantId, 0, 8) . '...' . PHP_EOL .
+                    '- Fecha: ' . now()->format('d-M-Y H:i:s'),
                 function ($message) use ($recipientEmail, $senderUpn, $replyTo) {
                     $message->to($recipientEmail)
-                            ->from($senderUpn, config('mail.from.name', 'Green Vacations CR'))
-                            ->subject('Test de Microsoft Graph Mail - ' . now()->format('d-M-Y H:i:s'));
+                        ->from($senderUpn, config('mail.from.name', 'Green Vacations CR'))
+                        ->subject('Test de Microsoft Graph Mail - ' . now()->format('d-M-Y H:i:s'));
                     if ($replyTo) {
                         $message->replyTo($replyTo);
                     }
                 }
             );
 
-            $this->info('✓ Correo enviado exitosamente a: ' . $recipientEmail);
+            $this->info('Email sent successfully to: ' . $recipientEmail);
             $this->newLine();
             $this->info('Revisa tu bandeja de entrada (y spam) en los próximos minutos.');
 
             return Command::SUCCESS;
-
         } catch (\Throwable $e) {
-            $this->error('❌ Error al enviar correo: ' . $e->getMessage());
+            $this->error('Error sending email: ' . $e->getMessage());
             $this->newLine();
 
             if ($this->option('verbose')) {

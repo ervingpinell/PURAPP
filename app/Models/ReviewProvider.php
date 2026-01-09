@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Crypt;
 
+/**
+ * ReviewProvider Model
+ *
+ * Represents a review provider (Google, TripAdvisor, etc.).
+ */
 class ReviewProvider extends Model
 {
     protected $table = 'review_providers';

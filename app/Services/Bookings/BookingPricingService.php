@@ -4,6 +4,11 @@ namespace App\Services\Bookings;
 
 use App\Models\{PromoCode, Tour};
 
+/**
+ * BookingPricingService
+ *
+ * Calculates booking prices and applies discounts.
+ */
 class BookingPricingService
 {
     /** Suma quantity * price en el snapshot */

@@ -27,7 +27,7 @@ return [
 
     'booking_confirmed_subject' => 'Sua reserva (:reference) foi confirmada',
     'booking_confirmed_title' => 'Reserva Confirmada',
-    'booking_confirmed_message' => 'Sua reserva com a :company foi confirmada com sucesso. Referência: :reference 🎉',
+    'booking_confirmed_message' => 'Sua reserva com a :company foi confirmada com sucesso. Referência: :reference',
 
     'booking_cancelled_subject' => 'Sua reserva (:reference) foi cancelada',
     'booking_cancelled_title' => 'Cancelamento de Reserva',

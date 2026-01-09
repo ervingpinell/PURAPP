@@ -8,6 +8,11 @@ use App\Models\Policy;
 use App\Models\PolicyTranslation;
 use App\Services\Contracts\TranslatorInterface;
 
+/**
+ * PolicyController
+ *
+ * Handles policy operations.
+ */
 class PolicyController extends Controller
 {
     public function __construct()

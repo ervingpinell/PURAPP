@@ -8,6 +8,11 @@ use App\Models\Tour;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * TourOrderController
+ *
+ * Handles tourorder operations.
+ */
 class TourOrderController extends Controller
 {
     public function index(Request $request)

@@ -618,7 +618,7 @@ $isFull = $count >= $max;
       preview.innerHTML = `<div class="alert alert-${over?'danger':'light'} py-2 px-3 mb-0 border">
       <i class="fas fa-${over?'exclamation-triangle text-danger':'images text-secondary'} me-2"></i>
       <strong>${arr.length}</strong> ${@json(__('m_tours.image.ui.files_word', [], false) ?? 'archivos')} (<strong>${totalMB} MB</strong> / ${MAX_MB} MB)
-      ${over ? '<br><strong>⚠️ ' + i18n.limit_word + '</strong>' : ''}
+      ${over ? '<br><strong>WARNING ' + i18n.limit_word + '</strong>' : ''}
     </div>`;
       if (btn) btn.style.display = over ? 'none' : 'inline-block';
     }

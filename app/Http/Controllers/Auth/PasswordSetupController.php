@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 
+/**
+ * PasswordSetupController
+ *
+ * Handles passwordsetup operations.
+ */
 class PasswordSetupController extends Controller
 {
     public function __construct(

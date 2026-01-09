@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\Log;
 
 class TestJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+ use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle(): void
-    {
-        Log::info('✅ TestJob ejecutado correctamente por el Worker');
-    }
+ public function handle(): void
+ {
+ Log::info(' TestJob ejecutado correctamente por el Worker');
+ }
 }

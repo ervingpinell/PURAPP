@@ -7,6 +7,11 @@ use App\Models\User;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 
+/**
+ * PublicEmailVerificationController
+ *
+ * Handles publicemailverification operations.
+ */
 class PublicEmailVerificationController extends Controller
 {
     public function __invoke(Request $request, $id, $hash)

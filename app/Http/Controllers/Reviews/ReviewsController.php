@@ -16,6 +16,11 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
+/**
+ * ReviewsController
+ *
+ * Handles tour review operations.
+ */
 class ReviewsController extends Controller
 {
     private int $defaultTtl = 60 * 60 * 24; // 24h
@@ -116,7 +121,7 @@ public function index(Request $request)
  * Reviews de un tour específico (mínimo 12-15, sin repetir)
  */
 public function tour(
-        Tour $tour, // ✅ CAMBIADO: recibe el modelo directamente
+        Tour $tour, // CAMBIADO: recibe el modelo directamente
         ReviewAggregator $agg,
         Request $request
     ) {
@@ -292,7 +297,7 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
     $response->setEtag($etag)
         ->header('Cache-Control', 'public, max-age=900, s-maxage=900, stale-while-revalidate=300')
         ->header('Vary', 'Accept-Language')
-        ->header('X-Robots-Tag', 'noindex, nofollow, noarchive'); // 🚫 evita indexación total
+        ->header('X-Robots-Tag', 'noindex, nofollow, noarchive'); // evita indexación total
 
     if ($response->isNotModified($request)) {
         return $response;

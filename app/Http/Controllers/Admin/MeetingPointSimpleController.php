@@ -10,6 +10,11 @@ use Illuminate\Http\Request;
 use App\Services\Contracts\TranslatorInterface;
 use App\Models\MeetingPointTranslation;
 
+/**
+ * MeetingPointSimpleController
+ *
+ * Handles meetingpointsimple operations.
+ */
 class MeetingPointSimpleController extends Controller
 {
     public function __construct()

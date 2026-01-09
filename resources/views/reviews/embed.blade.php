@@ -32,7 +32,7 @@
   $reviews = collect($reviews ?? []);
   $r       = $reviews->first();
 
-  // ✅ PRIORIDAD: 1) Review, 2) Query params, 3) DB
+  // PRIORIDAD: 1) Review, 2) Query params, 3) DB
   $tourId   = (int)($r['tour_id'] ?? request('tour_id', 0));
   $tourName = trim((string)($r['tour_name'] ?? request('tname', '')));
 

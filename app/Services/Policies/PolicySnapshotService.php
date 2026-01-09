@@ -6,6 +6,11 @@ use App\Models\Policy;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 
+/**
+ * PolicySnapshotService
+ *
+ * Handles policysnapshot operations.
+ */
 class PolicySnapshotService
 {
     /**

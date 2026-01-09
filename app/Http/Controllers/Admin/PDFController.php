@@ -7,6 +7,11 @@ use App\Http\Controllers\Controller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Booking;
 
+/**
+ * PDFController
+ *
+ * Handles pdf operations.
+ */
 class PDFController extends Controller
 {
     public function generateReceipt($id)

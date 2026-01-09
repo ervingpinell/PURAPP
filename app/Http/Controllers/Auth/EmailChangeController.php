@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Carbon;
 
+/**
+ * EmailChangeController
+ *
+ * Handles emailchange operations.
+ */
 class EmailChangeController extends Controller
 {
 

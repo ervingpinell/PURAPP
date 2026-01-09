@@ -704,26 +704,26 @@ $I18N = [
       if (c2) c2.textContent = leftCritical;
     };
 
-    // ✅ OPCIÓN 2: Solo usar alertas del servidor, ignorar cache mezclado
+    // OPCIÓN 2: Solo usar alertas del servidor, ignorar cache mezclado
     const mountCards = () => {
-      // ✅ Filtrar alertas inválidas (sin tour_id válido)
+      // Filtrar alertas inválidas (sin tour_id válido)
       const validAlerts = serverRaw.filter(a => {
         const tid = a.tour_id;
         return tid && tid !== 0 && tid !== null && tid !== undefined;
       });
 
-      // ✅ Ordenar por fecha y nombre de tour
+      // Ordenar por fecha y nombre de tour
       const arr = validAlerts.sort((a, b) =>
         (a.date || '').localeCompare(b.date || '') || (a.tour || '').localeCompare(b.tour || '')
       );
 
-      // ✅ Renderizar
+      // Renderizar
       if (list) {
         list.innerHTML = arr.length ? arr.map(cardHTML).join('') :
           `<div class="cap-empty"><i class="fas fa-check-circle"></i><p>${T('no_alerts')}</p></div>`;
       }
 
-      // ✅ Hidratación: asegurar data-tour desde el mapa
+      // Hidratación: asegurar data-tour desde el mapa
       $$('.cap-card').forEach(c => {
         if (!c.dataset.tour || c.dataset.tour === '0' || c.dataset.tour === '') {
           const sid = String(c.dataset.id || '');
@@ -734,7 +734,7 @@ $I18N = [
         }
       });
 
-      // ✅ Actualizar cache solo con alertas válidas del servidor
+      // Actualizar cache solo con alertas válidas del servidor
       const freshCache = {};
       validAlerts.forEach(a => {
         freshCache[a.key] = {
@@ -849,11 +849,11 @@ $I18N = [
       const remaining = parseInt(res.remaining || 0, 10);
       const pct = parseInt(res.pct || 0, 10);
 
-      // ✅ Determinar estado basado en la respuesta del servidor
+      // Determinar estado basado en la respuesta del servidor
       const isBlocked = max === 0;
       const displayMax = isBlocked ? used : max;
 
-      // ✅ Actualizar valores en el DOM
+      // Actualizar valores en el DOM
       const usedEl = card.querySelector('.js-used');
       const remEl = card.querySelector('.js-rem');
       const pctEl = card.querySelector('.js-pct');
@@ -870,12 +870,12 @@ $I18N = [
       const blkBtn = card.querySelector('.js-block');
       const barFillEl = card.querySelector('.cap-bar__fill');
 
-      // ✅ Resetear todas las clases primero
+      // Resetear todas las clases primero
       if (chip) chip.className = 'cap-chip';
       if (barFillEl) barFillEl.classList.remove('cap-bar__fill--blocked');
       card.classList.remove('cap-card--blocked');
 
-      // ✅ Aplicar el estado correcto según respuesta del servidor
+      // Aplicar el estado correcto según respuesta del servidor
       if (isBlocked) {
         // Estado: BLOQUEADO (max = 0)
         if (chip) {
@@ -936,12 +936,12 @@ $I18N = [
       const pct = (max || 0) > 0 ? Math.floor((u * 100) / max) : 0;
       const type = remaining === 0 ? 'sold_out' : (remaining <= 3 || pct >= 80) ? 'near_capacity' : 'info';
 
-      // ✅ Obtener tour_id de la tarjeta
+      // Obtener tour_id de la tarjeta
       const tourId = getTourIdForCard(card);
 
       return {
         key: card.dataset.key,
-        tour_id: tourId, // ✅ Incluir tour_id
+        tour_id: tourId, // Incluir tour_id
         schedule_id: parseInt(card.dataset.id, 10),
         date: card.dataset.date,
         tour: card.querySelector('.cap-card__title')?.textContent || '—',
@@ -1058,7 +1058,7 @@ $I18N = [
         const [used, currentMax] = (card.querySelector('.js-used')?.textContent || '0/0').split('/').map(x => parseInt(x, 10));
         const isSoldOrBlocked = currentMax === 0 || currentMax === used || card.querySelector('.cap-chip')?.classList.contains('cap-chip--danger');
 
-        // ✅ SIEMPRE preguntar cuántos espacios agregar
+        // SIEMPRE preguntar cuántos espacios agregar
         let suggestedAmount;
         let promptTitle;
         let promptLabel;
@@ -1066,7 +1066,7 @@ $I18N = [
         if (isSoldOrBlocked) {
           // Si está bloqueado, sugerir +2 desde lo que ya está usado
           suggestedAmount = 2;
-          promptTitle = `🔓 ${T('unlock')} - ${T('modify_capacity')}`;
+          promptTitle = `${T('unlock')} - ${T('modify_capacity')}`;
           promptLabel = `Actualmente: ${used} reservados (bloqueado). ¿Cuántos espacios liberar?`;
         } else {
           // Si está activo, sugerir +5 desde la capacidad actual
@@ -1082,7 +1082,7 @@ $I18N = [
           html: `
           <p style="font-size:14px;color:#6b7280;margin-bottom:12px;">
             ${isSoldOrBlocked
-              ? `<strong>✅ Desbloquear y liberar espacios</strong><br>Número positivo: cuántos espacios totales tendrá disponible`
+              ? `<strong>OK Desbloquear y liberar espacios</strong><br>Número positivo: cuántos espacios totales tendrá disponible`
               : `${T('positive_expand')}<br>${T('negative_reduce')}`
             }
           </p>
@@ -1095,7 +1095,7 @@ $I18N = [
             min: isSoldOrBlocked ? 1 : -999
           },
           showCancelButton: true,
-          confirmButtonText: isSoldOrBlocked ? '🔓 Desbloquear' : T('add'),
+          confirmButtonText: isSoldOrBlocked ? 'Desbloquear' : T('add'),
           cancelButtonText: T('cancel'),
           customClass: {
             confirmButton: isSoldOrBlocked ? 'btn btn-success' : 'btn btn-primary'
@@ -1156,7 +1156,7 @@ $I18N = [
           await Swal.fire({
             icon: 'success',
             title: T('ready'),
-            text: isSoldOrBlocked ? `🔓 Desbloqueado con ${data.max_capacity} espacios disponibles` : T('capacity_updated'),
+            text: isSoldOrBlocked ? `Desbloqueado con ${data.max_capacity} espacios disponibles` : T('capacity_updated'),
             timer: 2500,
             showConfirmButton: false
           });

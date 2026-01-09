@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * PaymentService
+ *
+ * Handles payment processing logic and gateway interactions.
+ */
 class PaymentService
 {
     public function __construct(
@@ -49,12 +54,16 @@ class PaymentService
 
         // Si ya existe un pago pendiente con intent, reutilizarlo
         if ($payment && $payment->gateway_payment_intent_id) {
-            Log::info('Reusing existing payment record', [
+            if (config('app.debug')) {
+
+                Log::info('Reusing existing payment record', [
                 'payment_id'               => $payment->payment_id,
                 'booking_id'               => $booking->booking_id,
                 'gateway_payment_intent_id' => $payment->gateway_payment_intent_id,
                 'gateway'                  => $gatewayName,
             ]);
+
+            }
 
             return [
                 'success'            => true,
@@ -70,11 +79,15 @@ class PaymentService
 
         // Si existe pago pendiente pero sin intent, eliminarlo
         if ($payment && !$payment->gateway_payment_intent_id) {
-            Log::info('Deleting incomplete payment record', [
+            if (config('app.debug')) {
+
+                Log::info('Deleting incomplete payment record', [
                 'payment_id' => $payment->payment_id,
                 'booking_id' => $booking->booking_id,
                 'gateway'    => $gatewayName,
             ]);
+
+            }
 
             $payment->delete();
             $payment = null;
@@ -96,11 +109,17 @@ class PaymentService
                 ],
             ]);
 
-            Log::info('Created new payment record', [
+            if (config('app.debug')) {
+
+
+                Log::info('Created new payment record', [
                 'payment_id' => $payment->payment_id,
                 'booking_id' => $booking->booking_id,
                 'gateway'    => $gatewayName,
             ]);
+
+
+            }
         }
 
         try {
@@ -133,12 +152,18 @@ class PaymentService
                 'gateway_response'          => $result->toArray(),
             ]);
 
-            Log::info('Payment intent created and stored', [
+            if (config('app.debug')) {
+
+
+                Log::info('Payment intent created and stored', [
                 'payment_id'          => $payment->payment_id,
                 'booking_id'          => $booking->booking_id,
                 'gateway'            => $gatewayName,
                 'payment_intent_id'  => $result->paymentIntentId,
             ]);
+
+
+            }
 
             return [
                 'success'           => true,
@@ -170,11 +195,15 @@ class PaymentService
         return DB::transaction(function () use ($payment, $gatewayResponse) {
             // Idempotencia: si ya se crearon bookings, no hacer nada más
             if ($payment->bookings_created) {
-                Log::info('Bookings already created for this payment, skipping duplicate creation', [
+                if (config('app.debug')) {
+
+                    Log::info('Bookings already created for this payment, skipping duplicate creation', [
                     'payment_id'          => $payment->payment_id,
                     'bookings_created_at' => $payment->bookings_created_at,
                     'booking_id'          => $payment->booking_id,
                 ]);
+
+                }
                 return true;
             }
 
@@ -199,11 +228,17 @@ class PaymentService
             $requireAdminConfirmation = config('booking.require_admin_confirmation', true);
             $bookingStatus            = $requireAdminConfirmation ? 'pending' : 'confirmed';
 
-            Log::info('Processing payment with booking status', [
+            if (config('app.debug')) {
+
+
+                Log::info('Processing payment with booking status', [
                 'payment_id'               => $payment->payment_id,
                 'booking_status'           => $bookingStatus,
                 'require_admin_confirmation' => $requireAdminConfirmation,
             ]);
+
+
+            }
 
             // Get cart snapshot from payment metadata or session
             $cartSnapshot = $payment->metadata['cart_snapshot'] ?? session('cart_snapshot');
@@ -213,10 +248,14 @@ class PaymentService
             // =================================================================
             // If we have a guest email but no user_id, create the user NOW.
             if (empty($cartSnapshot['user_id']) && !empty($cartSnapshot['guest_email'])) {
-                Log::info('Payment Success - Creating/Linking User for Guest Checkout', [
+                if (config('app.debug')) {
+
+                    Log::info('Payment Success - Creating/Linking User for Guest Checkout', [
                     'email' => $cartSnapshot['guest_email'],
                     'payment_id' => $payment->payment_id
                 ]);
+
+                }
 
                 try {
                     $guestService = app(\App\Services\GuestUserService::class);
@@ -243,7 +282,13 @@ class PaymentService
                             ->update(['user_id' => $userId]);
                     }
 
-                    Log::info('Guest User converted to Registered User successfully', ['user_id' => $userId]);
+                    if (config('app.debug')) {
+
+
+                        Log::info('Guest User converted to Registered User successfully', ['user_id' => $userId]);
+
+
+                    }
                 } catch (\Exception $e) {
                     Log::error('Failed to create user for guest payment. Booking will be created without user?!', [
                         'error' => $e->getMessage()
@@ -270,16 +315,24 @@ class PaymentService
                 if ($booking) {
                     if (!$requireAdminConfirmation) {
                         $booking->update(['status' => 'confirmed']);
-                        Log::info('Existing booking auto-confirmed after payment', [
+                        if (config('app.debug')) {
+
+                            Log::info('Existing booking auto-confirmed after payment', [
                             'booking_id' => $booking->booking_id,
                             'payment_id' => $payment->payment_id,
                         ]);
+
+                        }
                     } else {
-                        Log::info('Existing booking payment completed, awaiting admin confirmation', [
+                        if (config('app.debug')) {
+
+                            Log::info('Existing booking payment completed, awaiting admin confirmation', [
                             'booking_id' => $booking->booking_id,
                             'payment_id' => $payment->payment_id,
                             'status'     => 'pending',
                         ]);
+
+                        }
                     }
 
                     // Mark as processed
@@ -356,10 +409,16 @@ class PaymentService
                                 'updated_at'  => now(),
                             ]);
 
-                        Log::info('Updated terms_acceptances with booking_ref', [
+                        if (config('app.debug')) {
+
+
+                            Log::info('Updated terms_acceptances with booking_ref', [
                             'cart_id'     => $cartId,
                             'booking_id'  => $createdBookings->first()->booking_id,
                         ]);
+
+
+                        }
                     }
                 } catch (\Exception $e) {
                     Log::warning('Failed to update terms_acceptances booking_ref', [
@@ -369,12 +428,18 @@ class PaymentService
                     // No bloqueamos el flujo si falla la actualización
                 }
 
-                Log::info('Bookings created successfully after payment', [
+                if (config('app.debug')) {
+
+
+                    Log::info('Bookings created successfully after payment', [
                     'payment_id'  => $payment->payment_id,
                     'booking_count' => $createdBookings->count(),
                     'booking_ids' => $createdBookings->pluck('booking_id')->toArray(),
                     'status'      => $bookingStatus,
                 ]);
+
+
+                }
 
                 // Limpiar carrito y sesión
                 $this->cleanupAfterPayment($cartSnapshot);
@@ -399,16 +464,24 @@ class PaymentService
                 if ($booking) {
                     if (!$requireAdminConfirmation) {
                         $booking->update(['status' => 'confirmed']);
-                        Log::info('Existing booking auto-confirmed after payment', [
+                        if (config('app.debug')) {
+
+                            Log::info('Existing booking auto-confirmed after payment', [
                             'booking_id' => $booking->booking_id,
                             'payment_id' => $payment->payment_id,
                         ]);
+
+                        }
                     } else {
-                        Log::info('Existing booking payment completed, awaiting admin confirmation', [
+                        if (config('app.debug')) {
+
+                            Log::info('Existing booking payment completed, awaiting admin confirmation', [
                             'booking_id' => $booking->booking_id,
                             'payment_id' => $payment->payment_id,
                             'status'     => 'pending',
                         ]);
+
+                        }
                     }
 
                     // Evitar reprocesar
@@ -533,10 +606,16 @@ class PaymentService
                 'expires_at' => now(),
             ]);
 
-            Log::info('Cart cleared after successful payment', [
+            if (config('app.debug')) {
+
+
+                Log::info('Cart cleared after successful payment', [
                 'cart_id' => $cart->cart_id,
                 'user_id' => $userId,
             ]);
+
+
+            }
         }
 
         // Clear session data (including ALL guest cart data)
@@ -605,11 +684,17 @@ class PaymentService
                 }
             }
 
-            Log::info('Refund processed', [
+            if (config('app.debug')) {
+
+
+                Log::info('Refund processed', [
                 'payment_id'    => $payment->payment_id,
                 'refund_amount' => $refundAmount,
                 'refund_id'     => $result['refund_id'] ?? null,
             ]);
+
+
+            }
 
             return [
                 'success'   => true,

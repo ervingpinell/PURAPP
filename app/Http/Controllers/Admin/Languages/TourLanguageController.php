@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 use App\Models\TourLanguage;
 use Illuminate\Validation\Rule;
 
+/**
+ * TourLanguageController
+ *
+ * Handles tourlanguage operations.
+ */
 class TourLanguageController extends Controller
 {
     public function __construct()

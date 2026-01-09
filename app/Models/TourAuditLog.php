@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * TourAuditLog Model
+ *
+ * Tracks changes made to tours.
+ */
 class TourAuditLog extends Model
 {
     protected $table = 'tour_audit_logs';

@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SyncProviderReviews;
 use Illuminate\Http\Request;
 
+/**
+ * ReviewSyncController
+ *
+ * Handles reviewsync operations.
+ */
 class ReviewSyncController extends Controller
 {
     public function sync(Request $request, ?string $provider = null)

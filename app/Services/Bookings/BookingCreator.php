@@ -5,6 +5,11 @@ namespace App\Services\Bookings;
 use App\Models\{Booking, BookingDetail, Tour, Schedule, PromoCode};
 use Illuminate\Support\Facades\DB;
 
+/**
+ * BookingCreator
+ *
+ * Creates and manages booking records.
+ */
 class BookingCreator
 {
     public function __construct(

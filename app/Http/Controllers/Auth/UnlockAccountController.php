@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 
+/**
+ * UnlockAccountController
+ *
+ * Handles unlockaccount operations.
+ */
 class UnlockAccountController extends Controller
 {
     /**

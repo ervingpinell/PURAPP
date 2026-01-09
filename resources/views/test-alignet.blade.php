@@ -101,7 +101,7 @@
     </div>
 
     <div class="section">
-        <h3>✅ Verificaciones</h3>
+        <h3>OK Verificaciones</h3>
         <div class="param">
             <span class="key">Hash Length:</span>
             <span class="value">{{ strlen($paymentData['purchaseVerification'] ?? '') }} caracteres (debe ser 128)</span>

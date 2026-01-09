@@ -26,7 +26,7 @@ return [
 
     'booking_confirmed_subject' => 'Your booking (:reference) is confirmed',
     'booking_confirmed_title' => 'Booking Confirmed',
-    'booking_confirmed_message' => 'Your booking with :company has been successfully confirmed. Reference: :reference 🎉',
+    'booking_confirmed_message' => 'Your booking with :company has been successfully confirmed. Reference: :reference',
 
     'booking_cancelled_subject' => 'Your booking (:reference) was cancelled',
     'booking_cancelled_title' => 'Booking Cancellation',

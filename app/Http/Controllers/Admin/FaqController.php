@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\DB;
 use App\Services\Contracts\TranslatorInterface;
 use Exception;
 
+/**
+ * FaqController
+ *
+ * Manages FAQ display.
+ */
 class FaqController extends Controller
 {
     public function __construct()

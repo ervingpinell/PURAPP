@@ -21,6 +21,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * DashBoardController
+ *
+ * Displays admin dashboard statistics.
+ */
 class DashBoardController extends Controller
 {
     public function index(): View
@@ -135,22 +140,22 @@ class DashBoardController extends Controller
         $start = Carbon::now($tz)->toDateString();
         $end   = Carbon::now($tz)->addDays(30)->toDateString();
 
-        // ✅ Traemos TODO: booking completo + detail con categories
+        // Traemos TODO: booking completo + detail con categories
         $details = BookingDetail::with([
-            'booking', // ✅ Traer toda la info del booking
+            'booking', // Traer toda la info del booking
             'tour:tour_id,name',
             'schedule:schedule_id,start_time',
         ])
             ->whereHas('booking', fn($q) => $q->whereIn('status', ['confirmed', 'paid']))
             ->whereDate('tour_date', '>=', $start)
             ->whereDate('tour_date', '<=', $end)
-            ->get(); // ✅ Traer TODO, no solo campos específicos
+            ->get(); // Traer TODO, no solo campos específicos
 
         // Pre-caches de Tour y Schedule para evitar N+1
         $tourCache     = Tour::whereIn('tour_id', $details->pluck('tour_id')->unique())->get()->keyBy('tour_id');
         $scheduleCache = Schedule::whereIn('schedule_id', $details->pluck('schedule_id')->unique())->get()->keyBy('schedule_id');
 
-        // ✅ LOG temporal para debug
+        // LOG temporal para debug
         Log::info('[DASHBOARD] Processing capacity alerts', [
             'total_details' => $details->count(),
             'date_range' => [$start, $end],
@@ -169,11 +174,11 @@ class DashBoardController extends Controller
                     'date'        => $date,
                     'tour_name'   => optional($d->tour)->name ?? '—',
                     'used'        => 0,
-                    'detail_ids'  => [], // ✅ Para debug
+                    'detail_ids'  => [], // Para debug
                 ];
             }
 
-            // ✅ SUMAR categorías del JSON con mejor manejo
+            // SUMAR categorías del JSON con mejor manejo
             $cats = $d->categories;
 
             // Si es string, decodificar
@@ -181,7 +186,7 @@ class DashBoardController extends Controller
                 $cats = json_decode($cats, true);
             }
 
-            // ✅ LOG temporal para ver qué se está sumando
+            // LOG temporal para ver qué se está sumando
             $paxThisDetail = 0;
 
             if (is_array($cats) && !empty($cats)) {
@@ -192,9 +197,9 @@ class DashBoardController extends Controller
             }
 
             $buckets[$key]['used'] += $paxThisDetail;
-            $buckets[$key]['detail_ids'][] = $d->booking_detail_id; // ✅ Para debug
+            $buckets[$key]['detail_ids'][] = $d->booking_detail_id; // Para debug
 
-            // ✅ LOG cada detalle procesado (temporal, remover después)
+            // LOG cada detalle procesado (temporal, remover después)
             Log::debug('[DASHBOARD] Detail processed', [
                 'booking_detail_id' => $d->booking_detail_id,
                 'booking_id' => $d->booking_id,
@@ -205,7 +210,7 @@ class DashBoardController extends Controller
             ]);
         }
 
-        // ✅ LOG final de buckets
+        // LOG final de buckets
         Log::info('[DASHBOARD] Capacity buckets summary', [
             'total_buckets' => count($buckets),
             'buckets' => array_map(fn($b) => [
@@ -236,7 +241,7 @@ class DashBoardController extends Controller
             $remaining = $snap['blocked'] ? 0 : max(0, $max - $used - (int) $snap['held']);
             $pct = $max > 0 ? (int) floor(($used * 100) / $max) : 0;
 
-            // ✅ FILTRO: Solo alertas con ocupación >= 50%
+            // FILTRO: Solo alertas con ocupación >= 50%
             if ($pct < 50 && !$snap['blocked']) {
                 continue;
             }

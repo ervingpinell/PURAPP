@@ -10,6 +10,11 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
+/**
+ * HotelListController
+ *
+ * Handles hotellist operations.
+ */
 class HotelListController extends Controller
 {
     public function __construct()

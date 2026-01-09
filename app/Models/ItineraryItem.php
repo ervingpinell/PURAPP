@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * ItineraryItem Model
+ *
+ * Represents a single item/stop in an itinerary.
+ */
 class ItineraryItem extends Model
 {
     use HasFactory;

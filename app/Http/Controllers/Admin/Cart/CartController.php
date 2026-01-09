@@ -13,6 +13,11 @@ use App\Services\Bookings\{
     BookingValidationService
 };
 
+/**
+ * CartController
+ *
+ * Handles shopping cart operations.
+ */
 class CartController extends Controller
 {
     public function __construct(

@@ -145,7 +145,7 @@ $activeFilters = request()->hasAny([
 
     {{-- LEFT GROUP: Filters & Controls --}}
     <div class="d-flex flex-wrap align-items-center gap-2">
-      {{-- 🔍 Quick reference filter --}}
+      {{-- Quick reference filter --}}
       <form method="GET" action="{{ route('admin.bookings.index') }}" class="d-flex">
         {{-- Preserve parameters --}}
         <input type="hidden" name="view" value="{{ request('view', 'active') }}">

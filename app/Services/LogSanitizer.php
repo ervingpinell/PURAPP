@@ -2,7 +2,12 @@
 
 namespace App\Services;
 
-final class LogSanitizer
+final /**
+ * LogSanitizer
+ *
+ * Handles logsanitizer operations.
+ */
+class LogSanitizer
 {
     /**
      * Lista de claves sensibles que deben redactarse por completo.

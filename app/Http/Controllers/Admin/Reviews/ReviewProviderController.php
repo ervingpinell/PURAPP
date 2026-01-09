@@ -10,6 +10,11 @@ use App\Services\Reviews\ReviewAggregator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * ReviewProviderController
+ *
+ * Handles reviewprovider operations.
+ */
 class ReviewProviderController extends Controller
 {
     public function __construct()
@@ -75,7 +80,7 @@ class ReviewProviderController extends Controller
 
         Cache::flush();
 
-        // ⬅️ Redirige al listado
+        // Redirige al listado
         return redirect()
             ->route('admin.review-providers.index')
             ->with('ok', __('reviews.providers.messages.created'));
@@ -131,7 +136,7 @@ class ReviewProviderController extends Controller
 
         Cache::flush();
 
-        // ⬅️ Redirige al listado
+        // Redirige al listado
         return redirect()
             ->route('admin.review-providers.index')
             ->with('ok', __('reviews.providers.messages.updated'));

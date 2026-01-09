@@ -5,7 +5,12 @@ namespace App\Services\PaymentGateway;
 use App\Services\PaymentGateway\Contracts\PaymentGatewayInterface;
 use Illuminate\Support\Facades\Log;
 
-abstract class AbstractPaymentGateway implements PaymentGatewayInterface
+abstract /**
+ * AbstractPaymentGateway
+ *
+ * Handles abstractpaymentgateway operations.
+ */
+class AbstractPaymentGateway implements PaymentGatewayInterface
 {
     protected array $config;
     protected string $gatewayName;

@@ -1,5 +1,5 @@
 @component('mail::message')
-# ⚠️ Booking Expiring Soon
+# WARNING Booking Expiring Soon
 
 **Booking Reference:** {{ $booking->booking_reference }}
 **Customer:** {{ $booking->user->name }}

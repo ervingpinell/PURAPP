@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * ReviewReply Model
+ *
+ * Represents a reply to a customer review.
+ */
 class ReviewReply extends Model
 {
     protected $table = 'review_replies';

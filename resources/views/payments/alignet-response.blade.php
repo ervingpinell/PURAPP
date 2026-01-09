@@ -82,13 +82,13 @@
 <body>
     <div class="container">
         @if($type === 'success')
-        <div class="icon success">✅</div>
+        <div class="icon success">OK</div>
         <h2>{{ $message ?? 'Pago Exitoso' }}</h2>
         @elseif($type === 'cancel')
         <div class="icon cancel">🚫</div>
         <h2>{{ $message ?? 'Pago Cancelado' }}</h2>
         @else
-        <div class="icon error">❌</div>
+        <div class="icon error">ERROR</div>
         <h2>{{ $message ?? 'Error en el Pago' }}</h2>
         @endif
 

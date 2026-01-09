@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use App\Http\Controllers\Controller;
 
+/**
+ * RoleController
+ *
+ * Handles role operations.
+ */
 class RoleController extends Controller
 {
     public function __construct()

@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
 
+/**
+ * TourPrice Model
+ *
+ * Represents pricing for a tour by category.
+ */
 class TourPrice extends Model
 {
     use HasFactory;

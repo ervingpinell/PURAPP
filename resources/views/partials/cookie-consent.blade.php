@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Sincroniza con el servidor (setea gv_cookie_consent)
       await postConsent(url);
 
-      // ✅ Recarga SOLO si se aceptó (para inyectar GA/Pixel en el layout)
+      // Recarga SOLO si se aceptó (para inyectar GA/Pixel en el layout)
       if (action === 'accept') {
         setTimeout(() => window.location.reload(), 120);
       }

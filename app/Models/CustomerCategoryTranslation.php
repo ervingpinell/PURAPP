@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * CustomerCategoryTranslation Model
+ *
+ * Stores translated category names.
+ */
 class CustomerCategoryTranslation extends Model
 {
     protected $table = 'customer_category_translations';

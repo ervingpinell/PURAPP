@@ -10,7 +10,18 @@ class VerifyAlignetHash extends Command
                             {operationNumber : Operation number}
                             {amount : Amount in cents}';
 
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
     protected $description = 'Verify Alignet hash generation';
+
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
 
     public function handle()
     {
@@ -21,7 +32,7 @@ class VerifyAlignetHash extends Command
         $amount = $this->argument('amount');
         $currency = '840';
 
-        $this->info("🔍 Verificando hash de Alignet\n");
+        $this->info("Verifying Alignet hash\n");
 
         $string = $acquirerId . $commerceId . $operationNumber . $amount . $currency . $secretKey;
 
@@ -45,9 +56,9 @@ class VerifyAlignetHash extends Command
 
         // Verify length
         if (strlen($hash) !== 128) {
-            $this->error("❌ Hash length incorrect! Expected 128, got " . strlen($hash));
+            $this->error("Hash length incorrect! Expected 128, got " . strlen($hash));
         } else {
-            $this->info("✅ Hash length correct (128 characters)");
+            $this->info("Hash length correct (128 characters)");
         }
 
         return 0;

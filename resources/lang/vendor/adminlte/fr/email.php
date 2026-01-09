@@ -23,11 +23,11 @@ return [
     'state_updated' => 'Mise à jour',
     'state_pending' => 'En attente',
     'meeting_point' => 'Point de rencontre',
-    
+
 
     'booking_confirmed_subject' => 'Votre réservation (:reference) est confirmée',
     'booking_confirmed_title' => 'Réservation confirmée',
-    'booking_confirmed_message' => 'Votre réservation avec :company a bien été confirmée. Référence : :reference 🎉',
+    'booking_confirmed_message' => 'Votre réservation avec :company a bien été confirmée. Référence : :reference',
 
     'booking_cancelled_subject' => 'Votre réservation (:reference) a été annulée',
     'booking_cancelled_title' => 'Annulation de réservation',

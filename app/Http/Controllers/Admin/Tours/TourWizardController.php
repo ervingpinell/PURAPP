@@ -27,6 +27,11 @@ use App\Models\AmenityTranslation;
 use App\Models\CustomerCategoryTranslation;
 use Carbon\Carbon;
 
+/**
+ * TourWizardController
+ *
+ * Handles tourwizard operations.
+ */
 class TourWizardController extends Controller
 {
     protected DraftLimitService $draftLimit;

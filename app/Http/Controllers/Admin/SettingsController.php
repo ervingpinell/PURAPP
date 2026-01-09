@@ -7,6 +7,11 @@ use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * SettingsController
+ *
+ * Handles settings operations.
+ */
 class SettingsController extends Controller
 {
     /**

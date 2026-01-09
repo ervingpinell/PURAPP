@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Faq Model
+ *
+ * Represents a frequently asked question.
+ */
 class Faq extends Model
 {
     use HasFactory;

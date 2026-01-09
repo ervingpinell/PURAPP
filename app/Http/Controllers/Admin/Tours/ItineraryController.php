@@ -15,6 +15,11 @@ use App\Http\Requests\Tour\Itinerary\StoreItineraryRequest;
 use App\Http\Requests\Tour\Itinerary\UpdateItineraryRequest;
 use App\Http\Requests\Tour\Itinerary\AssignItineraryItemsRequest;
 
+/**
+ * ItineraryController
+ *
+ * Handles itinerary operations.
+ */
 class ItineraryController extends Controller
 {
     public function __construct()

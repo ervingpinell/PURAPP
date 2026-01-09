@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
+/**
+ * CustomerCategory Model
+ *
+ * Represents a customer category (Adult, Child, Senior, etc.).
+ */
 class CustomerCategory extends Model
 {
     use HasFactory;

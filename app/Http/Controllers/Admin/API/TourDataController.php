@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Tour;
 use Illuminate\Http\Request;
 
+/**
+ * TourDataController
+ *
+ * Handles tourdata operations.
+ */
 class TourDataController extends Controller
 {
     public function schedules(Tour $tour)

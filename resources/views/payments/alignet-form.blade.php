@@ -192,7 +192,7 @@
 
         @if(config('app.debug'))
         <div class="debug-info">
-            <h4>🔍 Debug Info (solo visible en modo debug)</h4>
+            <h4> Debug Info (solo visible en modo debug)</h4>
             <div class="debug-item"><strong>Acquirer ID:</strong> {{ $paymentData['acquirerId'] }}</div>
             <div class="debug-item"><strong>Commerce ID:</strong> {{ $paymentData['idCommerce'] }}</div>
             <div class="debug-item"><strong>Operation Number:</strong> {{ $paymentData['purchaseOperationNumber'] }}</div>
@@ -219,72 +219,158 @@
     <script type="text/javascript" src="{{ $paymentData['vpos2_script'] ?? $paymentData['base_url'] . 'VPOS2/js/modalcomercio.js' }}"></script>
 
     <script>
-        // 🔍 INTERCEPTOR DE DEBUG - Debe ejecutarse AL CARGAR LA PÁGINA
+        // INTERCEPTOR DE DEBUG - Debe ejecutarse AL CARGAR LA PÁGINA
         window.addEventListener('load', function() {
-            console.log('🔍 Verificando Alignet VPOS2...');
+            @if(config('app.debug'))
+            console.log('Verificando Alignet VPOS2...');
             console.log('AlignetVPOS2 disponible:', typeof AlignetVPOS2);
+            @endif
 
             const btnPay = document.getElementById('btn-pay');
             const loadingMsg = document.getElementById('loading-message');
             const form = document.getElementById('alignet_payment_form');
 
             if (typeof AlignetVPOS2 === 'undefined') {
-                console.error('❌ ERROR: El script de Alignet no se cargó correctamente');
+                @if(config('app.debug'))
+                console.error('ERROR: El script de Alignet no se cargó correctamente');
                 console.error('URL intentada: {{ $paymentData["vpos2_script"] ?? "N/A" }}');
+                @endif
 
                 btnPay.disabled = true;
                 btnPay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error al cargar módulo de pago';
 
-                alert('Error: No se pudo cargar el módulo de pago de Alignet. Por favor recargue la página.');
-            } else {
-                console.log('✅ Alignet VPOS2 cargado correctamente');
-                console.log('📦 Propiedades de AlignetVPOS2:', Object.keys(AlignetVPOS2));
-
-                loadingMsg.classList.remove('active');
-                btnPay.disabled = false;
-
-                // Guardar la función original
-                const originalOpenModal = AlignetVPOS2.openModal;
-
-                // Sobrescribir para capturar los datos
-                AlignetVPOS2.openModal = function(baseUrl) {
-                    console.log('🔍 DEBUGGING - Datos enviados a Alignet:');
-                    console.log('Base URL:', baseUrl);
-
-                    const formData = new FormData(form);
-                    const payload = {};
-
-                    console.log('Parámetros que se enviarán:');
-                    formData.forEach((value, key) => {
-                        payload[key] = value;
-                        console.log(`  ${key}: ${value}`);
-                    });
-
-                    // Enviar a backend para logging persistente
-                    fetch('/api/debug/alignet-request', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify({
-                            payload: payload,
-                            baseUrl: baseUrl,
-                            timestamp: new Date().toISOString()
-                        })
-                    }).catch(err => console.error('Debug log error:', err));
-
-                    // Llamar a la función original
-                    return originalOpenModal.call(this, baseUrl);
-                };
-
-                console.log('✅ Interceptor de Alignet activado');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de Configuración',
+                    text: 'No se pudo cargar el sistema de pagos. Por favor, recarga la página.',
+                    confirmButtonText: 'Recargar'
+                }).then(() => {
+                    window.location.reload();
+                });
+                return;
             }
+
+            @if(config('app.debug'))
+            console.log('Alignet VPOS2 cargado correctamente');
+            console.log('Propiedades de AlignetVPOS2:', Object.keys(AlignetVPOS2));
+            @endif
+
+            loadingMsg.classList.remove('active');
+            btnPay.disabled = false;
+
+            // Guardar la función original
+            const originalOpenModal = AlignetVPOS2.openModal;
+
+            // Sobrescribir para capturar los datos
+            AlignetVPOS2.openModal = function(baseUrl) {
+                @if(config('app.debug'))
+                console.log(' DEBUGGING - Datos enviados a Alignet:');
+                console.log('Base URL:', baseUrl);
+                @endif
+
+                const formData = new FormData(form);
+                const payload = {};
+
+                @if(config('app.debug'))
+                console.log('Parámetros que se enviarán:');
+                @endif
+                formData.forEach((value, key) => {
+                    payload[key] = value;
+                    @if(config('app.debug'))
+                    console.log(`  ${key}: ${value}`);
+                    @endif
+                });
+
+                // Enviar a backend para logging persistente
+                fetch('/api/debug/alignet-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        payload: payload,
+                        baseUrl: baseUrl,
+                        timestamp: new Date().toISOString()
+                    })
+                }).catch(err => console.error('Debug log error:', err));
+
+                // Llamar a la función original
+                return originalOpenModal.call(this, baseUrl);
+            };
+
+            // Configurar interceptor de respuesta
+            AlignetVPOS2.setResponseHandler(function(response) {
+                @if(config('app.debug'))
+                console.log('DEBUGGING - Alignet response received:', response);
+                @endif
+
+                const params = new URLSearchParams({
+                    acquirerId: '{{ $paymentData['
+                    acquirerId '] }}',
+                    idCommerce: '{{ $paymentData['
+                    idCommerce '] }}',
+                    purchaseOperationNumber: '{{ $paymentData['
+                    purchaseOperationNumber '] }}',
+                    purchaseAmount: '{{ $paymentData['
+                    purchaseAmount '] }}',
+                    purchaseCurrencyCode: '{{ $paymentData['
+                    purchaseCurrencyCode '] }}',
+                    language: '{{ $paymentData['
+                    language '] }}',
+                    shippingFirstName: '{{ $paymentData['
+                    shippingFirstName '] }}',
+                    shippingLastName: '{{ $paymentData['
+                    shippingLastName '] }}',
+                    shippingEmail: '{{ $paymentData['
+                    shippingEmail '] }}',
+                    shippingAddress: '{{ $paymentData['
+                    shippingAddress '] }}',
+                    shippingZIP: '{{ $paymentData['
+                    shippingZIP '] }}',
+                    shippingCity: '{{ $paymentData['
+                    shippingCity '] }}',
+                    shippingState: '{{ $paymentData['
+                    shippingState '] }}',
+                    shippingCountry: '{{ $paymentData['
+                    shippingCountry '] }}',
+                    userCommerce: '{{ $paymentData['
+                    userCommerce '] }}',
+                    userCodePayme: '{{ $paymentData['
+                    userCodePayme '] }}',
+                    descriptionProducts: '{{ $paymentData['
+                    descriptionProducts '] }}',
+                    programmingLanguage: '{{ $paymentData['
+                    programmingLanguage '] }}',
+                    reserved1: '{{ $paymentData['
+                    reserved1 '] }}',
+                    reserved2: '{{ $paymentData['
+                    reserved2 '] }}',
+                    reserved3: '{{ $paymentData['
+                    reserved3 '] }}',
+                    purchaseVerification: '{{ $paymentData['
+                    purchaseVerification '] }}'
+                });
+
+                @if(config('app.debug'))
+                console.log('Parámetros que se enviarán a la URL de respuesta:');
+                params.forEach((value, key) => {
+                    console.log(`  ${key}: ${value}`);
+                });
+                @endif
+
+                window.location.href = response.url + '?' + params.toString();
+            });
+
+            @if(config('app.debug'))
+            console.log('OK Interceptor de Alignet activado');
+            @endif
         });
 
         // Función para abrir el modal con validación
         function abrirModalAlignet() {
-            console.log('🚀 Intentando abrir modal de Alignet...');
+            @if(config('app.debug'))
+            console.log(' Intentando abrir modal de Alignet...');
 
             const btnPay = document.getElementById('btn-pay');
             const loadingMsg = document.getElementById('loading-message');
@@ -300,18 +386,18 @@
                 loadingMsg.classList.add('active');
 
                 const baseUrl = '{{ $paymentData["base_url"] ?? "" }}';
-                console.log('🔓 Abriendo modal con URL base:', baseUrl);
+                console.log('Abriendo modal con URL base:', baseUrl);
 
                 AlignetVPOS2.openModal(baseUrl);
 
-                console.log('✅ Modal invocado exitosamente');
+                console.log('OK Modal invocado exitosamente');
 
-                // 🔄 BREAKOUT: Polling de estado para evitar congelamiento
+                // BREAKOUT: Polling de estado para evitar congelamiento
                 // Si el navegador bloquea la redirección del iframe (X-Frame-Options/Sandbox),
                 // nosotros redirigimos manualmente desde aquí apenas detectamos el pago.
                 const paymentId = '{{ $paymentId ?? "" }}';
                 if (paymentId) {
-                    console.log('🔄 Iniciando monitor de estado para pago:', paymentId);
+                    console.log(' Iniciando monitor de estado para pago:', paymentId);
                     const statusInterval = setInterval(function() {
                         fetch('/api/payment/check-status/' + paymentId)
                             .then(res => res.json())
@@ -321,7 +407,7 @@
                                 // Caso 1: Pago Exitoso
                                 if (data.status === 'paid' && data.redirect_url) {
                                     clearInterval(statusInterval);
-                                    console.log('✅ Pago confirmado! Redirigiendo forzosamente...');
+                                    console.log('OK Pago confirmado! Redirigiendo forzosamente...');
                                     loadingMsg.innerHTML = '<i class="fas fa-check-circle"></i> ¡Pago Exitoso! Redirigiendo...';
                                     loadingMsg.classList.add('active');
 
@@ -336,7 +422,7 @@
                                 // Caso 2: Pago Fallido / Cancelado (Breakout para cancelaciones)
                                 else if (data.status === 'failed' || data.status === 'rejected' || data.status === 'cancelled') {
                                     clearInterval(statusInterval);
-                                    console.log('❌ Pago fallido/cancelado detectado. Saliendo...');
+                                    console.log('ERROR Pago fallido/cancelado detectado. Saliendo...');
                                     loadingMsg.innerHTML = '<i class="fas fa-times-circle"></i> Pago cancelado. Redirigiendo...';
                                     loadingMsg.classList.add('active');
 
@@ -359,7 +445,7 @@
                 }, 2000);
 
             } catch (error) {
-                console.error('❌ Error al abrir modal:', error);
+                console.error('ERROR Error al abrir modal:', error);
                 alert('Error al abrir el formulario de pago: ' + error.message);
 
                 btnPay.disabled = false;
@@ -370,7 +456,7 @@
         // ⏳ TIMEOUT DE SEGURIDAD (5 Minutos)
         const PAYMENT_TIMEOUT_MS = 300000;
         const timeoutTimer = setTimeout(() => {
-            console.error('❌ Alignet Payment Timeout (5 min limit reached)');
+            console.error('ERROR Alignet Payment Timeout (5 min limit reached)');
             const loadingMsg = document.getElementById('loading-message');
             const btnPay = document.getElementById('btn-pay');
 
@@ -392,7 +478,7 @@
             // Listen for storage events (when another tab/window signals payment completion)
             window.addEventListener('storage', function(e) {
                 if (e.key === 'alignet_payment_complete' && e.newValue === 'true') {
-                    console.log('🔄 Recibida señal de pago completado, cerrando modal...');
+                    console.log(' Recibida señal de pago completado, cerrando modal...');
                     clearTimeout(timeoutTimer); // Cancelar timeout
                     closeAlignetModal();
                     // Clear the flag
@@ -402,7 +488,7 @@
 
             // Also check on page load (in case we're on the same tab)
             if (localStorage.getItem('alignet_payment_complete') === 'true') {
-                console.log('🔄 Detectado pago completado al cargar, cerrando modal...');
+                console.log(' Detectado pago completado al cargar, cerrando modal...');
                 closeAlignetModal();
                 localStorage.removeItem('alignet_payment_complete');
             }
@@ -436,9 +522,9 @@
                     }
                 });
 
-                console.log('✅ Modal de Alignet cerrado');
+                console.log('OK Modal de Alignet cerrado');
             } catch (error) {
-                console.warn('⚠️ Error al cerrar modal:', error);
+                console.warn('WARNING Error al cerrar modal:', error);
             }
         }
     </script>

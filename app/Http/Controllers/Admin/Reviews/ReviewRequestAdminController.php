@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
+/**
+ * ReviewRequestAdminController
+ *
+ * Handles reviewrequestadmin operations.
+ */
 class ReviewRequestAdminController extends Controller
 {
     public function __construct()

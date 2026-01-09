@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * FaqTranslation Model
+ *
+ * Stores translated FAQ content.
+ */
 class FaqTranslation extends Model
 {
     protected $table = 'faq_translations';

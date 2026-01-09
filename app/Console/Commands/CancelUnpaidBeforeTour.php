@@ -46,7 +46,9 @@ class CancelUnpaidBeforeTour extends Command
 
         if ($bookingsToCancel->isEmpty()) {
             $this->info('No unpaid bookings to cancel.');
-            Log::info('[CancelBeforeTour] No bookings to cancel');
+            if (config('app.debug')) {
+                Log::info('[CancelBeforeTour] No bookings to cancel');
+            }
             return 0;
         }
 
@@ -76,21 +78,25 @@ class CancelUnpaidBeforeTour extends Command
                 }
 
                 $cancelledCount++;
-                $this->info("✓ Cancelled booking {$booking->booking_reference} (tour: {$tourDate})");
+                $this->info("Cancelled booking {$booking->booking_reference} (tour: {$tourDate})");
 
-                Log::info("[CancelBeforeTour] Booking cancelled", [
-                    'booking_id' => $booking->booking_id,
-                    'reference' => $booking->booking_reference,
-                    'tour_date' => $tourDate,
-                    'hours_before' => $hoursBeforeTour
-                ]);
+                if (config('app.debug')) {
+                    Log::info("[CancelBeforeTour] Booking cancelled", [
+                        'booking_id' => $booking->booking_id,
+                        'reference' => $booking->booking_reference,
+                        'tour_date' => $tourDate,
+                        'hours_before' => $hoursBeforeTour
+                    ]);
+                }
             } catch (\Exception $e) {
                 Log::error("[CancelBeforeTour] Failed to cancel booking #{$booking->booking_id}: {$e->getMessage()}");
             }
         }
 
-        $this->info("✓ Cancelled {$cancelledCount} unpaid bookings.");
-        Log::info("[CancelBeforeTour] Completed: {$cancelledCount} bookings cancelled");
+        $this->info("Cancelled {$cancelledCount} unpaid bookings.");
+        if (config('app.debug')) {
+            Log::info("[CancelBeforeTour] Completed: {$cancelledCount} bookings cancelled");
+        }
 
         return 0;
     }

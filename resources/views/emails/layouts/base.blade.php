@@ -345,8 +345,7 @@
           <!-- FOOTER -->
           <tr>
             <td class="email-footer">
-              <p style="margin:0 0 10px 0; font-size:13px; text-align:center;">
-                📧 <a href="mailto:{{ $supportEmail }}" class="email-footer-link" style="color:#3869d4; text-decoration:none; font-size:13px; font-weight:500;">{{ $supportEmail }}</a>
+              <p style="margin:0 0 10px 0; font-size:13px; text-align:center;"><a href="mailto:{{ $supportEmail }}" class="email-footer-link" style="color:#3869d4; text-decoration:none; font-size:13px; font-weight:500;">{{ $supportEmail }}</a>
                 &nbsp; | &nbsp;
                 📞 <a href="tel:{{ $phone }}" class="email-footer-link" style="color:#3869d4; text-decoration:none; font-size:13px; font-weight:500;">{{ $phone }}</a>
                 &nbsp; | &nbsp;

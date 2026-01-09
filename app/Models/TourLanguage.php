@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * TourLanguage Model
+ *
+ * Represents a language offered for a tour.
+ */
 class TourLanguage extends Model
 {
     use HasFactory;

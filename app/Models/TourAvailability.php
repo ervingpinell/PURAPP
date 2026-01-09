@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * TourAvailability Model
+ *
+ * Defines tour availability by day of week.
+ */
 class TourAvailability extends Model
 {
     use HasFactory;

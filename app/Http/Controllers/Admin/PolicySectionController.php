@@ -12,6 +12,11 @@ use App\Models\PolicySectionTranslation;
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\LoggerHelper;
 
+/**
+ * PolicySectionController
+ *
+ * Handles policysection operations.
+ */
 class PolicySectionController extends Controller
 {
     protected string $controller = 'PolicySectionController';

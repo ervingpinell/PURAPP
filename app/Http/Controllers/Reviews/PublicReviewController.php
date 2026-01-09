@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ReviewSubmittedNotification;
 
+/**
+ * PublicReviewController
+ *
+ * Handles publicreview operations.
+ */
 class PublicReviewController extends Controller
 {
     /**

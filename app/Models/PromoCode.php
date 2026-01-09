@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
+/**
+ * PromoCode Model
+ *
+ * Represents a promotional discount code.
+ */
 class PromoCode extends Model
 {
     protected $table = 'promo_codes';

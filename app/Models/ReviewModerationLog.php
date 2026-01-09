@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * ReviewModerationLog Model
+ *
+ * Tracks review moderation actions.
+ */
 class ReviewModerationLog extends Model
 {
     protected $fillable = ['review_id','admin_user_id','action','meta'];

@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Hash;
 use App\Notifications\EmailChangeVerificationNotification;
 use App\Models\User;
 
+/**
+ * ProfileController
+ *
+ * Manages user profile operations.
+ */
 class ProfileController extends Controller
 {
     /**

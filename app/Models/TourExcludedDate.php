@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * TourExcludedDate Model
+ *
+ * Represents dates when a tour is not available.
+ */
 class TourExcludedDate extends Model
 {
     protected $primaryKey = 'tour_excluded_date_id'; 

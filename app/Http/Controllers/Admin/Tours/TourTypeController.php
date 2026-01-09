@@ -13,6 +13,11 @@ use App\Http\Requests\Tour\TourType\UpdateTourTypeRequest;
 use App\Http\Requests\Tour\TourType\UpdateTourTypeTranslationRequest;
 use App\Http\Requests\Tour\TourType\ToggleTourTypeRequest;
 
+/**
+ * TourTypeController
+ *
+ * Handles tourtype operations.
+ */
 class TourTypeController extends Controller
 {
     public function __construct()

@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
+/**
+ * Taxable Model
+ *
+ * Polymorphic relationship for taxable entities.
+ */
 class Taxable extends Pivot
 {
     protected $table = 'taxables';

@@ -6,6 +6,11 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
+/**
+ * GuestUserService
+ *
+ * Handles guestuser operations.
+ */
 class GuestUserService
 {
     /**
@@ -67,10 +72,12 @@ class GuestUserService
             'email_verified_at' => now(), // Auto-verify guests
         ]);
 
-        \Log::info('[GuestUserService] Created guest user', [
+        \if (config('app.debug')) {
+    Log::info('[GuestUserService] Created guest user', [
             'user_id' => $guestUser->id,
             'email' => $guestUser->email,
         ]);
+}
 
         return $guestUser;
     }
@@ -93,10 +100,12 @@ class GuestUserService
             'password' => Hash::make($password),
         ]);
 
-        \Log::info('[GuestUserService] Converted guest to registered', [
+        \if (config('app.debug')) {
+    Log::info('[GuestUserService] Converted guest to registered', [
             'user_id' => $guestUser->id,
             'email' => $guestUser->email,
         ]);
+}
 
         return $guestUser->fresh();
     }

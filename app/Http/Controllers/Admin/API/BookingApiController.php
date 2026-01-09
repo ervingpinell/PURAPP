@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\PromoCode;
 use Illuminate\Http\Request;
 
+/**
+ * BookingApiController
+ *
+ * Handles bookingapi operations.
+ */
 class BookingApiController extends Controller
 {
     public function verifyPromo(Request $request)

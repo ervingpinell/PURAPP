@@ -14,6 +14,11 @@ use App\Http\Requests\Tour\ItineraryItem\StoreItineraryItemRequest;
 use App\Http\Requests\Tour\ItineraryItem\UpdateItineraryItemRequest;
 use App\Http\Requests\Tour\ItineraryItem\ToggleItineraryItemRequest;
 
+/**
+ * ItineraryItemController
+ *
+ * Handles itineraryitem operations.
+ */
 class ItineraryItemController extends Controller
 {
     public function __construct()

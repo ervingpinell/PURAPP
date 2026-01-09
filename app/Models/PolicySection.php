@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * PolicySection Model
+ *
+ * Represents a section within a policy.
+ */
 class PolicySection extends Model
 {
     use HasFactory;

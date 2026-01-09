@@ -6,6 +6,11 @@ use App\Models\Reports\BookingFact;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
+/**
+ * ReportQuery
+ *
+ * Handles reportquery operations.
+ */
 class ReportQuery
 {
     public function monthlySales(Carbon $from, Carbon $to, ?string $status = null): Collection

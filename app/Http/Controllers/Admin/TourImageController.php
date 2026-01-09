@@ -18,6 +18,11 @@ use Throwable;
 use Intervention\Image\Laravel\Facades\Image as Img;
 use Intervention\Image\Encoders\WebpEncoder;
 
+/**
+ * TourImageController
+ *
+ * Handles tourimage operations.
+ */
 class TourImageController extends Controller
 {
     /** List images for a tour. */

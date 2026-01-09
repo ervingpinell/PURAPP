@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Amenity Model
+ *
+ * Represents a tour amenity/feature (WiFi, AC, etc.).
+ */
 class Amenity extends Model
 {
     use HasFactory;

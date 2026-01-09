@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * ItineraryTranslation Model
+ *
+ * Stores translated itinerary content.
+ */
 class ItineraryTranslation extends Model
 {
     protected $table = 'itinerary_translations';

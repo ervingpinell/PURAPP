@@ -11,6 +11,11 @@ use Stripe\PaymentMethod;
 use Stripe\Webhook;
 use Stripe\Exception\ApiErrorException;
 
+/**
+ * StripeGateway
+ *
+ * Stripe payment gateway integration.
+ */
 class StripeGateway extends AbstractPaymentGateway
 {
     protected string $gatewayName = 'stripe';

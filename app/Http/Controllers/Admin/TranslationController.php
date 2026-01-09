@@ -27,6 +27,11 @@ use App\Models\TourTypeTranslation;
 use App\Models\PolicyTranslation;
 use App\Models\PolicySectionTranslation;
 
+/**
+ * TranslationController
+ *
+ * Handles translation operations.
+ */
 class TranslationController extends Controller
 {
     public function __construct()

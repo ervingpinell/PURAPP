@@ -33,6 +33,11 @@ use App\Http\Requests\Tour\Tour\StoreTourRequest;
 use App\Http\Requests\Tour\Tour\UpdateTourRequest;
 use App\Http\Requests\Tour\Tour\ToggleTourRequest;
 
+/**
+ * TourController
+ *
+ * Handles tour operations.
+ */
 class TourController extends Controller
 {
     public function __construct()

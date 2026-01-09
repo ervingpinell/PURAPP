@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * CartItem Model
+ *
+ * Represents an item in a shopping cart.
+ */
 class CartItem extends Model
 {
     use HasFactory;

@@ -540,7 +540,7 @@
             // Remove unchanged inputs
             $(toRemove).remove();
 
-            console.log(`✅ Submitting ${changedCount} changed settings (removed ${toRemove.length} unchanged inputs)`);
+            console.log(`OK Submitting ${changedCount} changed settings (removed ${toRemove.length} unchanged inputs)`);
         });
 
         // ==========================================

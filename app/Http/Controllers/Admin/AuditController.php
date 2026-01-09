@@ -9,6 +9,11 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * AuditController
+ *
+ * Handles audit operations.
+ */
 class AuditController extends Controller
 {
     /**

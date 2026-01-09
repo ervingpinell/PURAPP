@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * TourImage Model
+ *
+ * Represents an image for a tour.
+ */
 class TourImage extends Model
 {
     use HasFactory;

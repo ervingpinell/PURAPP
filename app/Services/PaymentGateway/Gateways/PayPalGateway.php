@@ -19,6 +19,11 @@ use PaypalServerSdkLib\Authentication\ClientCredentialsAuthCredentialsBuilder;
 use PaypalServerSdkLib\Environment;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * PayPalGateway
+ *
+ * PayPal payment gateway integration.
+ */
 class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInterface
 {
     protected string $gatewayName = 'paypal';
@@ -30,11 +35,17 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
     {
         parent::__construct($config);
 
-        Log::info('PayPalGateway: Initializing', [
+        if (config('app.debug')) {
+
+
+            Log::info('PayPalGateway: Initializing', [
             'config_keys' => array_keys($config),
             'enabled'     => $config['enabled'] ?? null,
             'mode'        => $config['mode'] ?? null,
         ]);
+
+
+        }
 
         // Validar config mínima
         $this->validateConfig(['client_id', 'client_secret', 'mode']);
@@ -44,10 +55,16 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
             ? Environment::PRODUCTION
             : Environment::SANDBOX;
 
-        Log::info('PayPalGateway: Environment selected', [
+        if (config('app.debug')) {
+
+
+            Log::info('PayPalGateway: Environment selected', [
             'mode'      => $this->config['mode'],
             'env_const' => $environment,
         ]);
+
+
+        }
 
         $this->client = PaypalServerSdkClientBuilder::init()
             ->clientCredentialsAuthCredentials(
@@ -62,7 +79,13 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
         $this->ordersController   = $this->client->getOrdersController();
         $this->paymentsController = $this->client->getPaymentsController();
 
-        Log::info('PayPalGateway: Client built successfully');
+        if (config('app.debug')) {
+
+
+            Log::info('PayPalGateway: Client built successfully');
+
+
+        }
     }
 
     public function createPaymentIntent(array $data): \App\Services\PaymentGateway\DTO\PaymentIntentResponse
@@ -75,11 +98,17 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
         $this->validateAmount($amount);
         $this->validateCurrency($currency);
 
-        Log::info('PayPalGateway:createPaymentIntent: incoming data', [
+        if (config('app.debug')) {
+
+
+            Log::info('PayPalGateway:createPaymentIntent: incoming data', [
             'amount'   => $amount,
             'currency' => $currency,
             'options'  => $options,
         ]);
+
+
+        }
 
         try {
             // ====== Monto ======
@@ -114,9 +143,15 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
             $orderRequest = new OrderRequest('CAPTURE', [$purchaseUnit]);
             $orderRequest->setApplicationContext($appContext);
 
-            Log::info('PayPalGateway:createPaymentIntent: built OrderRequest', [
+            if (config('app.debug')) {
+
+
+                Log::info('PayPalGateway:createPaymentIntent: built OrderRequest', [
                 'orderRequest' => json_decode(json_encode($orderRequest), true),
             ]);
+
+
+            }
 
             // ====== Call API ======
             $response = $this->ordersController->createOrder([
@@ -132,11 +167,17 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
                 ? $result
                 : json_decode(json_encode($result), true);
 
-            Log::info('PayPalGateway: createPaymentIntent raw result', [
+            if (config('app.debug')) {
+
+
+                Log::info('PayPalGateway: createPaymentIntent raw result', [
                 'raw_type' => gettype($result),
                 'keys'     => is_array($resultArray) ? array_keys($resultArray) : null,
                 'result'   => $resultArray,
             ]);
+
+
+            }
 
             // ====== ID, status, links ======
             $id =
@@ -168,9 +209,15 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
                 }
             }
 
-            Log::info('PayPalGateway:createPaymentIntent: extracted approval_url', [
+            if (config('app.debug')) {
+
+
+                Log::info('PayPalGateway:createPaymentIntent: extracted approval_url', [
                 'approval_url' => $approvalUrl,
             ]);
+
+
+            }
 
             if (!$id) {
                 Log::error('PayPalGateway: Unable to determine order ID from response', [
@@ -229,10 +276,14 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
 
     public function capturePayment(string $paymentIntentId, array $data = []): array
     {
-        Log::info('PayPalGateway:capturePayment: starting', [
+        if (config('app.debug')) {
+
+            Log::info('PayPalGateway:capturePayment: starting', [
             'paymentIntentId' => $paymentIntentId,
             'data'            => $data,
         ]);
+
+        }
 
         try {
             $response = $this->ordersController->captureOrder([
@@ -248,11 +299,17 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
                 ? $result
                 : json_decode(json_encode($result), true);
 
-            Log::info('PayPalGateway:capturePayment raw result', [
+            if (config('app.debug')) {
+
+
+                Log::info('PayPalGateway:capturePayment raw result', [
                 'raw_type' => gettype($result),
                 'keys'     => is_array($resultArray) ? array_keys($resultArray) : null,
                 'result'   => $resultArray,
             ]);
+
+
+            }
 
             $id     = $resultArray['id']     ?? null;
             $status = $resultArray['status'] ?? null;
@@ -269,7 +326,13 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
                 'raw'      => $resultArray,
             ];
 
-            Log::info('PayPalGateway:capturePayment normalized result', $normalized);
+            if (config('app.debug')) {
+
+
+                Log::info('PayPalGateway:capturePayment normalized result', $normalized);
+
+
+            }
 
             return $normalized;
         } catch (ApiException $e) {
@@ -308,11 +371,15 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
 
     public function refundPayment(string $transactionId, float $amount, array $data = []): array
     {
-        Log::info('PayPalGateway:refundPayment: starting', [
+        if (config('app.debug')) {
+
+            Log::info('PayPalGateway:refundPayment: starting', [
             'transactionId' => $transactionId,
             'amount'        => $amount,
             'data'          => $data,
         ]);
+
+        }
 
         try {
             $currency      = $data['currency'] ?? 'USD';
@@ -339,11 +406,17 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
                 ? $result
                 : json_decode(json_encode($result), true);
 
-            Log::info('PayPalGateway:refundPayment raw result', [
+            if (config('app.debug')) {
+
+
+                Log::info('PayPalGateway:refundPayment raw result', [
                 'raw_type' => gettype($result),
                 'keys'     => is_array($resultArray) ? array_keys($resultArray) : null,
                 'result'   => $resultArray,
             ]);
+
+
+            }
 
             $id     = $resultArray['id']     ?? null;
             $status = $resultArray['status'] ?? null;
@@ -354,7 +427,13 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
                 'raw'    => $resultArray,
             ];
 
-            Log::info('PayPalGateway:refundPayment normalized result', $normalized);
+            if (config('app.debug')) {
+
+
+                Log::info('PayPalGateway:refundPayment normalized result', $normalized);
+
+
+            }
 
             return $normalized;
         } catch (ApiException $e) {
@@ -393,9 +472,13 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
 
     public function getPaymentStatus(string $paymentIntentId): array
     {
-        Log::info('PayPalGateway:getPaymentStatus: starting', [
+        if (config('app.debug')) {
+
+            Log::info('PayPalGateway:getPaymentStatus: starting', [
             'paymentIntentId' => $paymentIntentId,
         ]);
+
+        }
 
         try {
             $response = $this->ordersController->getOrder(['id' => $paymentIntentId]);
@@ -408,11 +491,17 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
                 ? $result
                 : json_decode(json_encode($result), true);
 
-            Log::info('PayPalGateway:getPaymentStatus raw result', [
+            if (config('app.debug')) {
+
+
+                Log::info('PayPalGateway:getPaymentStatus raw result', [
                 'raw_type' => gettype($result),
                 'keys'     => is_array($resultArray) ? array_keys($resultArray) : null,
                 'result'   => $resultArray,
             ]);
+
+
+            }
 
             $rawStatus = $resultArray['status'] ?? null;
 
@@ -471,10 +560,14 @@ class PayPalGateway extends AbstractPaymentGateway implements PaymentGatewayInte
 
     public function handleWebhook(array $payload, ?string $signature = null): array
     {
-        Log::info('PayPal Webhook received', [
+        if (config('app.debug')) {
+
+            Log::info('PayPal Webhook received', [
             'payload'   => $payload,
             'signature' => $signature,
         ]);
+
+        }
 
         // TODO: verificación de firma PayPal
         return ['status' => 'processed'];

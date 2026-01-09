@@ -5,6 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
+/**
+ * Schedule Model
+ *
+ * Represents a time slot/schedule for tours.
+ * Tours can have multiple schedules (morning, afternoon, etc.).
+ *
+ * @property int $schedule_id Primary key
+ * @property string $start_time Start time (HH:MM:SS)
+ * @property string|null $end_time End time (HH:MM:SS)
+ * @property string|null $label Display label (e.g., "Morning Tour")
+ * @property bool $is_active Schedule active status
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection|Tour[] $tours
+ */
 class Schedule extends Model
 {
     protected $table = 'schedules';

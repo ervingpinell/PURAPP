@@ -21,11 +21,11 @@ class CleanOldDrafts extends Command
                             {--force : Forzar eliminación sin confirmación}';
 
     /**
-     * Descripción del comando
+     * The console command description.
      *
      * @var string
      */
-    protected $description = 'Elimina borradores de tours más antiguos que X días que no han sido completados';
+    protected $description = 'Delete tour drafts older than X days that have not been completed';
 
     /**
      * Execute the console command
@@ -36,7 +36,7 @@ class CleanOldDrafts extends Command
         $dryRun = $this->option('dry-run');
         $force = $this->option('force');
 
-        $this->info("🔍 Buscando borradores más antiguos que {$days} días...");
+        $this->info("Searching for drafts older than {$days} days...");
         $this->newLine();
 
         // Calcular fecha de corte
@@ -51,12 +51,12 @@ class CleanOldDrafts extends Command
         $count = $oldDrafts->count();
 
         if ($count === 0) {
-            $this->info('✓ No se encontraron borradores antiguos.');
+            $this->info('No old drafts found.');
             return Command::SUCCESS;
         }
 
         // Mostrar tabla con los drafts encontrados
-        $this->warn("⚠️  Se encontraron {$count} borrador(es):");
+        $this->warn("Found {$count} draft(s):");
         $this->newLine();
 
         $tableData = $oldDrafts->map(function ($draft) {
@@ -80,7 +80,7 @@ class CleanOldDrafts extends Command
 
         // Si es dry-run, solo mostrar y salir
         if ($dryRun) {
-            $this->info('🏃 Modo DRY-RUN: No se eliminará nada.');
+            $this->info('DRY-RUN Mode: Nothing will be deleted.');
             $this->info('   Ejecuta sin --dry-run para eliminar realmente.');
             return Command::SUCCESS;
         }
@@ -88,13 +88,13 @@ class CleanOldDrafts extends Command
         // Confirmación (a menos que sea --force)
         if (!$force) {
             if (!$this->confirm("¿Deseas eliminar estos {$count} borrador(es)?", false)) {
-                $this->info('❌ Operación cancelada.');
+                $this->info('Operation cancelled.');
                 return Command::SUCCESS;
             }
         }
 
         // Procesar eliminación
-        $this->info('🗑️  Eliminando borradores...');
+        $this->info('Deleting drafts...');
         $this->newLine();
 
         $progressBar = $this->output->createProgressBar($count);
@@ -156,12 +156,12 @@ class CleanOldDrafts extends Command
 
             // Resultados
             if ($deletedCount > 0) {
-                $this->info("✓ Se eliminaron {$deletedCount} borrador(es) exitosamente.");
+                $this->info("Successfully deleted {$deletedCount} draft(s).");
             }
 
             if (!empty($errors)) {
                 $this->newLine();
-                $this->error("⚠️  Hubo errores al eliminar " . count($errors) . " borrador(es):");
+                $this->error("Errors occurred while deleting " . count($errors) . " draft(s):");
                 $this->table(
                     ['ID', 'Nombre', 'Error'],
                     collect($errors)->map(fn($e) => [$e['tour_id'], $e['name'], $e['error']])->toArray()
@@ -170,18 +170,17 @@ class CleanOldDrafts extends Command
 
             // Log final
             $this->newLine();
-            $this->info("📊 Resumen:");
+            $this->info("Summary:");
             $this->info("   • Total encontrados: {$count}");
             $this->info("   • Eliminados: {$deletedCount}");
             $this->info("   • Errores: " . count($errors));
 
             return Command::SUCCESS;
-
         } catch (\Exception $e) {
             DB::rollBack();
 
             $this->newLine(2);
-            $this->error('❌ Error crítico durante la eliminación:');
+            $this->error('Critical error during deletion:');
             $this->error('   ' . $e->getMessage());
 
             return Command::FAILURE;

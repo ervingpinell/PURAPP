@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\{Auth, DB, Log, Mail};
 use Illuminate\Support\Str;
 use App\Services\Policies\PolicySnapshotService;
 
+/**
+ * PublicCheckoutController
+ *
+ * Handles guest checkout process.
+ */
 class PublicCheckoutController extends Controller
 {
     /** ===================== Helpers ===================== */

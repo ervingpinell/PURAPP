@@ -21,11 +21,11 @@ class NotifyPendingDrafts extends Command
                             {--dry-run : Simular sin enviar notificaciones}';
 
     /**
-     * Descripción del comando
+     * The console command description.
      *
      * @var string
      */
-    protected $description = 'Envía notificaciones a usuarios con drafts pendientes';
+    protected $description = 'Send notifications to users with pending drafts';
 
     /**
      * Execute the console command
@@ -35,7 +35,7 @@ class NotifyPendingDrafts extends Command
         $days = $this->option('days');
         $dryRun = $this->option('dry-run');
 
-        $this->info("📧 Buscando usuarios con drafts pendientes (más de {$days} días)...");
+        $this->info("Searching for users with pending drafts (older than {$days} days)...");
         $this->newLine();
 
         $cutoffDate = Carbon::now()->subDays($days);
@@ -52,11 +52,11 @@ class NotifyPendingDrafts extends Command
         $totalDrafts = $draftsByUser->flatten()->count();
 
         if ($usersCount === 0) {
-            $this->info('✓ No hay drafts pendientes que requieran notificación.');
+            $this->info('No pending drafts require notification.');
             return Command::SUCCESS;
         }
 
-        $this->warn("⚠️  Encontrados:");
+        $this->warn("Found:");
         $this->info("   • {$usersCount} usuario(s) con drafts pendientes");
         $this->info("   • {$totalDrafts} draft(s) en total");
         $this->newLine();
@@ -84,12 +84,12 @@ class NotifyPendingDrafts extends Command
         $this->newLine();
 
         if ($dryRun) {
-            $this->info('🏃 Modo DRY-RUN: No se enviarán notificaciones.');
+            $this->info('DRY-RUN Mode: No notifications will be sent.');
             return Command::SUCCESS;
         }
 
         // Enviar notificaciones
-        $this->info('📨 Enviando notificaciones...');
+        $this->info('Sending notifications...');
         $this->newLine();
 
         $progressBar = $this->output->createProgressBar($usersCount);
@@ -114,7 +114,6 @@ class NotifyPendingDrafts extends Command
                 $user->notify(new PendingDraftsReminder($drafts, $days));
 
                 $sentCount++;
-
             } catch (\Exception $e) {
                 $errors[] = [
                     'user_id' => $userId,
@@ -130,12 +129,12 @@ class NotifyPendingDrafts extends Command
 
         // Resultados
         if ($sentCount > 0) {
-            $this->info("✓ Se enviaron {$sentCount} notificación(es) exitosamente.");
+            $this->info("Successfully sent {$sentCount} notification(s).");
         }
 
         if (!empty($errors)) {
             $this->newLine();
-            $this->error("⚠️  Hubo errores al enviar " . count($errors) . " notificación(es):");
+            $this->error("Errors occurred while sending " . count($errors) . " notification(s):");
             $this->table(
                 ['User ID', 'Error'],
                 collect($errors)->map(fn($e) => [$e['user_id'], $e['error']])->toArray()
@@ -144,7 +143,7 @@ class NotifyPendingDrafts extends Command
 
         // Resumen final
         $this->newLine();
-        $this->info("📊 Resumen:");
+        $this->info("Summary:");
         $this->info("   • Usuarios notificados: {$sentCount}");
         $this->info("   • Errores: " . count($errors));
 

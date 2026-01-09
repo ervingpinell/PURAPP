@@ -27,6 +27,52 @@ use App\Models\{
     TourAuditLog
 };
 
+/**
+ * Tour Model
+ *
+ * Represents a tour/experience offered by the platform.
+ * Handles tour lifecycle, pricing, scheduling, capacity management, and draft/publish workflow.
+ *
+ * @property int $tour_id Primary key
+ * @property string $name Tour name
+ * @property string $slug URL-friendly slug (auto-generated)
+ * @property string|null $description Tour description
+ * @property int|null $tour_type_id Tour type/category
+ * @property int|null $duration_hours Duration in hours
+ * @property int|null $duration_minutes Duration in minutes
+ * @property int|null $base_capacity Default capacity per schedule
+ * @property float|null $base_price Base price (deprecated, use TourPrice)
+ * @property string|null $difficulty Difficulty level
+ * @property string|null $main_image Main tour image path
+ * @property bool $is_active Tour active status
+ * @property bool $is_draft Whether tour is in draft mode
+ * @property int|null $wizard_step Current wizard step (1-5)
+ * @property int|null $created_by_user_id User who created the tour
+ * @property int|null $last_edited_by_user_id User who last edited the tour
+ * @property \Carbon\Carbon|null $published_at When tour was published
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon|null $deleted_at Soft delete timestamp
+ *
+ * @property-read TourType|null $tourType
+ * @property-read \Illuminate\Database\Eloquent\Collection|TourLanguage[] $languages
+ * @property-read \Illuminate\Database\Eloquent\Collection|Amenity[] $amenities
+ * @property-read \Illuminate\Database\Eloquent\Collection|Amenity[] $excludedAmenities
+ * @property-read \Illuminate\Database\Eloquent\Collection|Schedule[] $schedules
+ * @property-read \Illuminate\Database\Eloquent\Collection|Schedule[] $activeSchedules
+ * @property-read \Illuminate\Database\Eloquent\Collection|TourAvailability[] $availabilities
+ * @property-read Itinerary|null $itinerary
+ * @property-read \Illuminate\Database\Eloquent\Collection|TourExcludedDate[] $excludedDates
+ * @property-read \Illuminate\Database\Eloquent\Collection|TourTranslation[] $translations
+ * @property-read \Illuminate\Database\Eloquent\Collection|TourImage[] $images
+ * @property-read \Illuminate\Database\Eloquent\Collection|TourPrice[] $prices
+ * @property-read \Illuminate\Database\Eloquent\Collection|Tax[] $taxes
+ * @property-read \Illuminate\Database\Eloquent\Collection|Booking[] $bookings
+ * @property-read User|null $creator
+ * @property-read User|null $lastEditor
+ * @property-read string $creator_name
+ * @property-read string $last_editor_name
+ */
 class Tour extends Model
 {
     use HasFactory, SoftDeletes;

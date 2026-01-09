@@ -33,8 +33,10 @@ class ProcessAutoCharges extends Command
     }
 
     /**
-     * Send payment reminders X days before tour date
-     * NO auto-charge - user must pay manually via payment link
+     * Send payment reminders X days before tour date.
+     * No auto-charge - user must pay manually via payment link.
+     *
+     * @return void
      */
     private function sendPaymentReminders()
     {
@@ -56,7 +58,9 @@ class ProcessAutoCharges extends Command
 
         if ($bookingsNeedingReminder->isEmpty()) {
             $this->info('No payment reminders to send.');
-            Log::info('[PaymentReminders] No bookings need reminders today');
+            if (config('app.debug')) {
+                Log::info('[PaymentReminders] No bookings need reminders today');
+            }
             return;
         }
 
@@ -77,20 +81,24 @@ class ProcessAutoCharges extends Command
                 }
 
                 $sentCount++;
-                $this->info("✓ Reminder sent for booking {$booking->booking_reference}");
+                $this->info("Reminder sent for booking {$booking->booking_reference}");
 
-                Log::info("[PaymentReminders] Sent reminder", [
-                    'booking_id' => $booking->booking_id,
-                    'reference' => $booking->booking_reference,
-                    'tour_date' => $booking->details->first()->tour_date ?? 'N/A',
-                    'days_until_tour' => $reminderDays
-                ]);
+                if (config('app.debug')) {
+                    Log::info("[PaymentReminders] Sent reminder", [
+                        'booking_id' => $booking->booking_id,
+                        'reference' => $booking->booking_reference,
+                        'tour_date' => $booking->details->first()->tour_date ?? 'N/A',
+                        'days_until_tour' => $reminderDays
+                    ]);
+                }
             } catch (\Exception $e) {
                 Log::error("[PaymentReminders] Failed for booking #{$booking->booking_id}: {$e->getMessage()}");
             }
         }
 
-        $this->info("✓ Successfully sent {$sentCount} payment reminders.");
-        Log::info("[PaymentReminders] Completed: {$sentCount} reminders sent");
+        $this->info("Successfully sent {$sentCount} payment reminders.");
+        if (config('app.debug')) {
+            Log::info("[PaymentReminders] Completed: {$sentCount} reminders sent");
+        }
     }
 }

@@ -9,6 +9,11 @@ use Symfony\Component\Mailer\Transport\AbstractTransport;
 use Symfony\Component\Mime\MessageConverter;
 use Symfony\Component\Mime\Address;
 
+/**
+ * GraphMailTransport
+ *
+ * Handles graphmailtransport operations.
+ */
 class GraphMailTransport extends AbstractTransport
 {
     protected GraphAuthService $authService;
@@ -138,13 +143,17 @@ class GraphMailTransport extends AbstractTransport
                 ->post($url, $payload);
 
             if ($response->successful()) {
-                Log::info('Graph Mail: Correo enviado exitosamente', [
+                if (config('app.debug')) {
+
+                    Log::info('Graph Mail: Correo enviado exitosamente', [
                     'from' => $this->senderUpn,
                     'to' => collect($payload['message']['toRecipients'] ?? [])
                         ->pluck('emailAddress.address')
                         ->implode(', '),
                     'subject' => $payload['message']['subject'] ?? '(No subject)',
                 ]);
+
+                }
                 return;
             }
 
@@ -159,7 +168,11 @@ class GraphMailTransport extends AbstractTransport
                     ->post($url, $payload);
 
                 if ($response->successful()) {
-                    Log::info('Graph Mail: Correo enviado en segundo intento');
+                    if (config('app.debug')) {
+
+                        Log::info('Graph Mail: Correo enviado en segundo intento');
+
+                    }
                     return;
                 }
             }

@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Setting Model
+ *
+ * Stores application settings as key-value pairs.
+ */
 class Setting extends Model
 {
     protected $fillable = [

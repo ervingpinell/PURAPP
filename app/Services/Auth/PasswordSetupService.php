@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * PasswordSetupService
+ *
+ * Handles passwordsetup operations.
+ */
 class PasswordSetupService
 {
     /**

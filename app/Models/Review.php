@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Review Model
+ *
+ * Represents a customer review for a tour.
+ */
 class Review extends Model
 {
     protected $fillable = [

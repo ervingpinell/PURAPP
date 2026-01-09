@@ -7,6 +7,11 @@ use App\Models\TourType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * TourTypeCoverPickerController
+ *
+ * Handles tourtypecoverpicker operations.
+ */
 class TourTypeCoverPickerController extends Controller
 {
     /**

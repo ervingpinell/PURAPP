@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
+/**
+ * CapacityApiController
+ *
+ * Handles capacityapi operations.
+ */
 class CapacityApiController extends Controller
 {
     /**

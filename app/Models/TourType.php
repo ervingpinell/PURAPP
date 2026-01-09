@@ -7,6 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Tour;
 use App\Models\TourTypeTranslation;
 
+/**
+ * TourType Model
+ *
+ * Represents a tour type/category.
+ */
 class TourType extends Model
 {
     use HasFactory;

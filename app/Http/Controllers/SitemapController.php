@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Response;
 
+/**
+ * SitemapController
+ *
+ * Generates XML sitemaps.
+ */
 class SitemapController extends Controller
 {
     public function sitemap(): Response

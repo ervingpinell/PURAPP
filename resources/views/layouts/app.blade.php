@@ -366,7 +366,7 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
         // Set flag to signal Alignet modal closure across tabs/windows
         try {
             localStorage.setItem('alignet_payment_complete', 'true');
-            console.log('🔔 Señal de cierre de modal Alignet establecida');
+            console.log(' Señal de cierre de modal Alignet establecida');
         } catch (e) {
             console.warn('No se pudo establecer señal de localStorage:', e);
         }

@@ -5,9 +5,9 @@ Here's your daily bookings summary:
 
 @component('mail::panel')
 **Summary:**
-- ✅ **Confirmed:** {{ $confirmedCount }} bookings
+- OK **Confirmed:** {{ $confirmedCount }} bookings
 - ⏳ **Pending:** {{ $pendingCount }} bookings
-- ❌ **Cancelled:** {{ $cancelledCount }} bookings
+- ERROR **Cancelled:** {{ $cancelledCount }} bookings
 @endcomponent
 
 **Total:** {{ $confirmedCount + $pendingCount + $cancelledCount }} bookings for today

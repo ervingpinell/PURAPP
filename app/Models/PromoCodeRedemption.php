@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * PromoCodeRedemption Model
+ *
+ * Tracks promo code usage per booking.
+ */
 class PromoCodeRedemption extends Model
 {
     protected $table = 'promo_code_redemptions';

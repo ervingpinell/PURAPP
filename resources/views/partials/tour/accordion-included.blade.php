@@ -29,7 +29,7 @@
         <div class="col-md-6">
           <ul class="list-unstyled">
             @foreach($tour->excludedAmenities as $ex)
-              <li>❌ {{ $ex->translated_name ?? $ex->name }}</li>
+              <li>ERROR {{ $ex->translated_name ?? $ex->name }}</li>
             @endforeach
           </ul>
         </div>

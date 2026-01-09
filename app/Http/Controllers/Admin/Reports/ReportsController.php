@@ -10,6 +10,11 @@ use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * ReportsController
+ *
+ * Handles reports operations.
+ */
 class ReportsController extends Controller
 {
     public function index(Request $request)

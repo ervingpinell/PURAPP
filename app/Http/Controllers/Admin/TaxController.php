@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Tax;
 use Illuminate\Http\Request;
 
+/**
+ * TaxController
+ *
+ * Handles tax operations.
+ */
 class TaxController extends Controller
 {
     public function __construct()

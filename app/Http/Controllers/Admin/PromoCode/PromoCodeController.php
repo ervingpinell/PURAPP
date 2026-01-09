@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PromoCode;
 
+/**
+ * PromoCodeController
+ *
+ * Handles promocode operations.
+ */
 class PromoCodeController extends Controller
 {
     public function index()

@@ -11,6 +11,11 @@ use App\Services\DeepLTranslator; // tu servicio
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * CustomerCategoryController
+ *
+ * Handles customercategory operations.
+ */
 class CustomerCategoryController extends Controller
 {
     public function __construct()

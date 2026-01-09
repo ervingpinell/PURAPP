@@ -6,6 +6,6 @@
 <body>
   <h1>¡Hola!</h1>
   <p>Este es un correo de prueba de Green Vacations.</p>
-  <p>Todo funciona correctamente 🚀.</p>
+  <p>Todo funciona correctamente.</p>
 </body>
 </html>

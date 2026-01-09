@@ -31,16 +31,16 @@ class GenerateTourSlugs extends Command
         $query = Tour::query();
 
         if (!$force) {
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->whereNull('slug')
-                  ->orWhere('slug', '');
+                    ->orWhere('slug', '');
             });
         }
 
         $tours = $query->get();
 
         if ($tours->isEmpty()) {
-            $this->info('✓ No hay tours para procesar.');
+            $this->info('No tours to process.');
             return Command::SUCCESS;
         }
 
@@ -65,7 +65,7 @@ class GenerateTourSlugs extends Command
 
         $bar->finish();
         $this->newLine(2);
-        $this->info("✓ {$updated} slugs generados correctamente");
+        $this->info("{$updated} slugs generated successfully");
 
         return Command::SUCCESS;
     }

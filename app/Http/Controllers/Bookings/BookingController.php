@@ -17,6 +17,11 @@ use App\Models\Tour;
 
 use App\Services\Bookings\{BookingCreator, BookingCapacityService};
 
+/**
+ * BookingController
+ *
+ * Handles booking management and display.
+ */
 class BookingController extends Controller
 {
     public function __construct(

@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * PolicyTranslation Model
+ *
+ * Stores translated policy content.
+ */
 class PolicyTranslation extends Model
 {
     protected $table = 'policies_translations';

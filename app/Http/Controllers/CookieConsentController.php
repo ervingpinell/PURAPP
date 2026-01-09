@@ -6,6 +6,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Http\Response;
 
+/**
+ * CookieConsentController
+ *
+ * Manages cookie consent preferences.
+ */
 class CookieConsentController extends Controller
 {
 public function accept(Request $request): Response

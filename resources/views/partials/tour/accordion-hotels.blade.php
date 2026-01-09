@@ -65,7 +65,7 @@
             ✔️ {{ __('adminlte::adminlte.pickup_valid') }}
           </div>
           <div id="pickupInvalidMsg" class="text-danger small mt-2 d-none">
-            ❌ {{ __('adminlte::adminlte.outside_area') }}
+            ERROR {{ __('adminlte::adminlte.outside_area') }}
           </div>
 
           <input type="hidden" name="selected_pickup_point" id="selectedPickupPoint" value="">
@@ -111,7 +111,7 @@
             @endforeach
           </ul>
 
-          {{-- 🔍 Detalles del punto seleccionado --}}
+          {{-- Detalles del punto seleccionado --}}
           <div id="meetingDetails" class="meeting-details-card d-none mt-3">
             <div class="d-flex align-items-start gap-2">
               <div class="icon bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;">
@@ -132,7 +132,7 @@
             ✔️ {{ __('adminlte::adminlte.meeting_valid') }}
           </div>
           <div id="meetingInvalidMsg" class="text-danger small mt-2 d-none">
-            ❌ {{ __('adminlte::adminlte.meetingpoint_other_notice')
+            ERROR {{ __('adminlte::adminlte.meetingpoint_other_notice')
                   ?: 'Has seleccionado un punto de encuentro personalizado. Contáctanos para confirmar disponibilidad y hora exacta.' }}
           </div>
 

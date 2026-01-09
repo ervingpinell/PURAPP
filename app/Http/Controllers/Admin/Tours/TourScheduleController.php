@@ -15,6 +15,11 @@ use App\Http\Requests\Tour\Schedule\AttachScheduleToTourRequest;
 use App\Http\Requests\Tour\Schedule\ToggleScheduleRequest;
 use App\Http\Requests\Tour\Schedule\ToggleScheduleAssignmentRequest;
 
+/**
+ * TourScheduleController
+ *
+ * Handles tourschedule operations.
+ */
 class TourScheduleController extends Controller
 {
     public function __construct()

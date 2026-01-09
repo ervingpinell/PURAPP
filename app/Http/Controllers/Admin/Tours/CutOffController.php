@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Tour;
 
+/**
+ * CutOffController
+ *
+ * Handles cutoff operations.
+ */
 class CutOffController extends Controller
 {
     public function edit(Request $request)

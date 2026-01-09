@@ -5,7 +5,12 @@ namespace App\Services;
 use Throwable;
 use Illuminate\Support\Facades\Log;
 
-final class LoggerHelper
+final /**
+ * LoggerHelper
+ *
+ * Handles loggerhelper operations.
+ */
+class LoggerHelper
 {
     private static function buildLogContext(
         string $controllerName,
@@ -45,7 +50,11 @@ final class LoggerHelper
         string $logMessage,
         array $extraContext = []
     ): void {
-        Log::info($logMessage, self::buildLogContext($controllerName, $actionName, $logMessage, $extraContext));
+        if (config('app.debug')) {
+
+            Log::info($logMessage, self::buildLogContext($controllerName, $actionName, $logMessage, $extraContext));
+
+        }
     }
 
     public static function warning(

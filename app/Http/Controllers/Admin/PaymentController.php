@@ -9,6 +9,11 @@ use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * PaymentController
+ *
+ * Manages payment processing and transactions.
+ */
 class PaymentController extends Controller
 {
     public function __construct(

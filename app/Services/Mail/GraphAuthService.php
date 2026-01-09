@@ -6,6 +6,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * GraphAuthService
+ *
+ * Handles graphauth operations.
+ */
 class GraphAuthService
 {
     protected string $tenantId;
@@ -59,7 +64,13 @@ class GraphAuthService
                 throw new \RuntimeException('Access token vacío en respuesta de Microsoft');
             }
 
-            Log::info('Graph API: Access token obtenido exitosamente');
+            if (config('app.debug')) {
+
+
+                Log::info('Graph API: Access token obtenido exitosamente');
+
+
+            }
 
             return $data['access_token'];
 

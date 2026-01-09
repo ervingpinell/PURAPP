@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\DB;
 use Exception;
 use App\Services\LoggerHelper;
 
+/**
+ * TourPriceController
+ *
+ * Handles tourprice operations.
+ */
 class TourPriceController extends Controller
 {
     public function __construct()
@@ -32,10 +37,10 @@ class TourPriceController extends Controller
     {
         $tour->load(['prices.category']);
 
-        // 🆕 Agrupar precios por periodos de fechas
+        // Agrupar precios por periodos de fechas
         $pricingPeriods = \App\Models\TourPrice::groupByPeriods($tour->prices);
 
-        // ✅ TODAS las categorías disponibles (la misma categoría puede tener múltiples precios con diferentes fechas)
+        // TODAS las categorías disponibles (la misma categoría puede tener múltiples precios con diferentes fechas)
         $availableCategories = CustomerCategory::active()
             ->ordered()
             ->get();

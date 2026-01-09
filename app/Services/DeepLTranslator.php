@@ -8,6 +8,11 @@ use DeepL\DeepLException;
 use DeepL\TooManyRequestsException;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * DeepLTranslator
+ *
+ * Handles deepltranslator operations.
+ */
 class DeepLTranslator implements TranslatorInterface
 {
     private ?DeepL $client = null;

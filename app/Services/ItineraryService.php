@@ -8,23 +8,39 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
+/**
+ * ItineraryService
+ *
+ * Handles itinerary operations.
+ */
 class ItineraryService
 {
+    /**
+     * Create an itinerary with its items.
+     *
+     * @param string $name Itinerary name
+     * @param array $items Array of items to add to the itinerary
+     * @param string|null $description Optional description
+     * @return Itinerary
+     * @throws Exception If no valid items are provided
+     */
     public function createWithItems(string $name, array $items, string $description = null): Itinerary
     {
         if (empty($items)) {
-            Log::error('❌ No se proporcionaron ítems válidos para el itinerario.', [
+            Log::error('No valid items provided for itinerary.', [
                 'name' => $name,
                 'description' => $description,
             ]);
-            throw new \Exception('No se proporcionaron ítems válidos para el itinerario.');
+            throw new \Exception('No valid items provided for itinerary.');
         }
 
-        Log::info('📌 Creando itinerario con ítems:', [
-            'name' => $name,
-            'description' => $description,
-            'items' => $items
-        ]);
+        if (config('app.debug')) {
+            Log::info('Creating itinerary with items:', [
+                'name' => $name,
+                'description' => $description,
+                'items' => $items
+            ]);
+        }
 
         return DB::transaction(function () use ($name, $items, $description) {
             $itinerary = Itinerary::create([

@@ -19,6 +19,11 @@ use App\Http\Requests\Tour\TourExcludedDate\StoreMultipleExcludedDatesRequest;
 use App\Http\Requests\Tour\TourExcludedDate\BlockAllRequest;
 use App\Http\Requests\Tour\TourExcludedDate\DestroySelectedExcludedDatesRequest;
 
+/**
+ * TourExcludedDateController
+ *
+ * Handles tourexcludeddate operations.
+ */
 class TourExcludedDateController extends Controller
 {
     public function __construct()

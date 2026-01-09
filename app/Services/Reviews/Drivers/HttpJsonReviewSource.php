@@ -10,6 +10,11 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * HttpJsonReviewSource
+ *
+ * Handles httpjsonreviewsource operations.
+ */
 class HttpJsonReviewSource implements ReviewSource
 {
     protected ?ReviewProvider $providerRow;

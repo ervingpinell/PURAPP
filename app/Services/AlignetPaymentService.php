@@ -7,6 +7,11 @@ use Illuminate\Support\Facades\Log;
 use SoapClient;
 use Exception;
 
+/**
+ * AlignetPaymentService
+ *
+ * Handles alignetpayment operations.
+ */
 class AlignetPaymentService
 {
     protected array $config;
@@ -35,10 +40,12 @@ class AlignetPaymentService
 
         $hash = hash('sha512', $string);
 
-        Log::info('Alignet Hash Generation', [
-            'string_to_hash' => $string,
-            'hash' => $hash
-        ]);
+        if (config('app.debug')) {
+            Log::info('Alignet Hash Generation', [
+                'string_to_hash' => $string,
+                'hash' => $hash
+            ]);
+        }
 
         return $hash;
     }
@@ -155,58 +162,60 @@ class AlignetPaymentService
             $paymentData['billingPhone'] = $paymentData['shippingPhone'];
         }
 
-        // 🔍 LOG MUY DETALLADO PARA DEBUG
+        // DETAILED DEBUG LOG FOR PAYMENT DATA
         $hashString = $this->config['acquirer_id'] . $this->config['commerce_id'] . $operationNumber . $amountCents . '840' . $this->config['secret_key'];
 
-        Log::channel('single')->info('🔍 ALIGNET DETAILED DEBUG - Payment Data Prepared', [
-            '=== BASIC INFO ===' => '',
-            'operation_number' => $operationNumber,
-            'amount_original' => $amount,
-            'amount_cents' => $amountCents,
-            'currency_code' => '840',
-            'environment' => $this->environment,
+        if (config('app.debug')) {
+            Log::channel('single')->info('ALIGNET DETAILED DEBUG - Payment Data Prepared', [
+                '=== BASIC INFO ===' => '',
+                'operation_number' => $operationNumber,
+                'amount_original' => $amount,
+                'amount_cents' => $amountCents,
+                'currency_code' => '840',
+                'environment' => $this->environment,
 
-            '=== CREDENTIALS ===' => '',
-            'acquirer_id' => $this->config['acquirer_id'],
-            'commerce_id' => $this->config['commerce_id'],
-            'secret_key_length' => strlen($this->config['secret_key'] ?? ''),
-            'secret_key_preview' => substr($this->config['secret_key'] ?? '', 0, 10) . '...',
-
-            '=== HASH GENERATION ===' => '',
-            'hash_string_components' => [
+                '=== CREDENTIALS ===' => '',
                 'acquirer_id' => $this->config['acquirer_id'],
                 'commerce_id' => $this->config['commerce_id'],
-                'operation_number' => $operationNumber,
-                'amount_cents' => $amountCents,
-                'currency' => '840',
-                'secret_key_appended' => 'YES',
-            ],
-            'concatenated_string_length' => strlen($hashString),
-            'concatenated_string_preview' => substr($hashString, 0, 50) . '...',
-            'generated_hash' => $paymentData['purchaseVerification'],
-            'hash_length' => strlen($paymentData['purchaseVerification']),
+                'secret_key_length' => strlen($this->config['secret_key'] ?? ''),
+                'secret_key_preview' => substr($this->config['secret_key'] ?? '', 0, 10) . '...',
 
-            '=== URLS ===' => '',
-            'base_url' => $paymentData['base_url'],
-            'vpos2_script' => $paymentData['vpos2_script'],
-            'url_response' => $paymentData['urlResponse'],
-            'timeout_response' => $paymentData['timeoutResponse'],
+                '=== HASH GENERATION ===' => '',
+                'hash_string_components' => [
+                    'acquirer_id' => $this->config['acquirer_id'],
+                    'commerce_id' => $this->config['commerce_id'],
+                    'operation_number' => $operationNumber,
+                    'amount_cents' => $amountCents,
+                    'currency' => '840',
+                    'secret_key_appended' => 'YES',
+                ],
+                'concatenated_string_length' => strlen($hashString),
+                'concatenated_string_preview' => substr($hashString, 0, 50) . '...',
+                'generated_hash' => $paymentData['purchaseVerification'],
+                'hash_length' => strlen($paymentData['purchaseVerification']),
 
-            '=== CUSTOMER DATA ===' => '',
-            'customer_email' => $paymentData['shippingEmail'],
-            'customer_name' => $paymentData['shippingFirstName'] . ' ' . $paymentData['shippingLastName'],
-            'customer_country' => $paymentData['shippingCountry'],
-            'customer_phone' => $paymentData['shippingPhone'] ?? 'N/A',
+                '=== URLS ===' => '',
+                'base_url' => $paymentData['base_url'],
+                'vpos2_script' => $paymentData['vpos2_script'],
+                'url_response' => $paymentData['urlResponse'],
+                'timeout_response' => $paymentData['timeoutResponse'],
 
-            '=== RESERVED FIELDS ===' => '',
-            'reserved1_booking_id' => $paymentData['reserved1'] ?? 'N/A',
-            'reserved2_payment_id' => $paymentData['reserved2'] ?? 'N/A',
+                '=== CUSTOMER DATA ===' => '',
+                'customer_email' => $paymentData['shippingEmail'],
+                'customer_name' => $paymentData['shippingFirstName'] . ' ' . $paymentData['shippingLastName'],
+                'customer_country' => $paymentData['shippingCountry'],
+                'customer_phone' => $paymentData['shippingPhone'] ?? 'N/A',
 
-            '=== FULL PAYLOAD ===' => '',
-            'complete_payment_data' => array_filter($paymentData, function ($key) {
-                return !in_array($key, ['base_url', 'vpos2_script']);
-            }, ARRAY_FILTER_USE_KEY),
-        ]);
+                '=== RESERVED FIELDS ===' => '',
+                'reserved1_booking_id' => $paymentData['reserved1'] ?? 'N/A',
+                'reserved2_payment_id' => $paymentData['reserved2'] ?? 'N/A',
+
+                '=== FULL PAYLOAD ===' => '',
+                'complete_payment_data' => array_filter($paymentData, function ($key) {
+                    return !in_array($key, ['base_url', 'vpos2_script']);
+                }, ARRAY_FILTER_USE_KEY),
+            ]);
+        }
 
         return $paymentData;
     }
@@ -261,10 +270,12 @@ class AlignetPaymentService
             ]);
 
             if ($response->successful()) {
-                Log::info('Alignet: Transaction query successful', [
-                    'operation_number' => $operationNumber,
-                    'response' => $response->json()
-                ]);
+                if (config('app.debug')) {
+                    Log::info('Alignet: Transaction query successful', [
+                        'operation_number' => $operationNumber,
+                        'response' => $response->json()
+                    ]);
+                }
                 return $response->json();
             }
 
@@ -316,11 +327,13 @@ class AlignetPaymentService
 
             $result = $client->RegisterCardHolder($params);
 
-            Log::info('Alignet Wallet: User registered', [
-                'email' => $email,
-                'code' => $result->ansCode ?? null,
-                'token' => $result->codAsoCardHolderWallet ?? null
-            ]);
+            if (config('app.debug')) {
+                Log::info('Alignet Wallet: User registered', [
+                    'email' => $email,
+                    'code' => $result->ansCode ?? null,
+                    'token' => $result->codAsoCardHolderWallet ?? null
+                ]);
+            }
 
             return [
                 'code' => $result->ansCode ?? null,

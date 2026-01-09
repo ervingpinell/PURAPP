@@ -10,6 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * CapacityController
+ *
+ * Handles capacity operations.
+ */
 class CapacityController extends Controller
 {
     protected BookingCapacityService $capacityService;
@@ -27,7 +32,7 @@ public function increase(Schedule $schedule, Request $request)
 {
     $data = $request->validate([
         'tour_id' => ['required', 'exists:tours,tour_id'],
-        'amount'  => ['required', 'integer', 'min:-999', 'max:999'], // ✅ Permite negativos
+        'amount'  => ['required', 'integer', 'min:-999', 'max:999'], // Permite negativos
         'date'    => ['required', 'date'],
     ]);
 
@@ -49,7 +54,7 @@ public function increase(Schedule $schedule, Request $request)
 
         // Desbloquear o incrementar/decrementar
         if ($wasBlocked || $currentMax === 0) {
-            $newMax = max($confirmed, $confirmed + (int)$data['amount']); // ✅ Mínimo = confirmados
+            $newMax = max($confirmed, $confirmed + (int)$data['amount']); // Mínimo = confirmados
 
             TourExcludedDate::where('tour_id', $tour->tour_id)
                 ->where('schedule_id', $schedule->schedule_id)
@@ -69,7 +74,7 @@ public function increase(Schedule $schedule, Request $request)
                 ]
             );
         } else {
-            $newMax = max($confirmed, $currentMax + (int)$data['amount']); // ✅ Permite sumar/restar
+            $newMax = max($confirmed, $currentMax + (int)$data['amount']); // Permite sumar/restar
 
             TourAvailability::updateOrCreate(
                 [

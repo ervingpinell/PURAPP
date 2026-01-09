@@ -118,7 +118,7 @@ if ($len <= 0) return 1;
                 $unitLabel = __('adminlte::adminlte.horas');
                 $durLabel = __('adminlte::adminlte.duration');
 
-                // ✅ NUEVO: Usar activePricesForDate para obtener SOLO UN PRECIO por categoría
+                // NUEVO: Usar activePricesForDate para obtener SOLO UN PRECIO por categoría
                 $activeCategories = $tour->activePricesForDate(now())
                 ->sortBy('category_id')
                 ->values();

@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * PasswordSetupToken Model
+ *
+ * Stores tokens for password setup links.
+ */
 class PasswordSetupToken extends Model
 {
     protected $fillable = [

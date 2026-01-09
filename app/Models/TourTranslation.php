@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * TourTranslation Model
+ *
+ * Stores translated tour content.
+ */
 class TourTranslation extends Model
 {
     protected $table = 'tour_translations';

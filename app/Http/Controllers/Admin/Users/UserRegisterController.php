@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * UserRegisterController
+ *
+ * Handles userregister operations.
+ */
 class UserRegisterController extends Controller
 {
     /**

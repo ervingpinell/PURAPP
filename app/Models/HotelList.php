@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * HotelList Model
+ *
+ * Represents a hotel for pickup/dropoff.
+ */
 class HotelList extends Model
 {
     use HasFactory;

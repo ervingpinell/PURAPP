@@ -13,7 +13,7 @@
 @stop
 
 @section('content')
-{{-- ✅ Filters --}}
+{{-- Filters --}}
 <div class="row mb-3 align-items-end justify-content-center">
   <div class="col-sm-2">
     <label for="filter-from" class="form-label">From</label>
@@ -40,10 +40,10 @@
   </div>
 </div>
 
-{{-- ✅ Calendar --}}
+{{-- Calendar --}}
 <div id="calendar"></div>
 
-{{-- ✅ Modal to edit booking --}}
+{{-- Modal to edit booking --}}
 <div class="modal fade" id="bookingModal" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <form id="bookingModalForm" method="POST">
@@ -156,9 +156,9 @@
         const status = arg.event.extendedProps.status || 'pending';
 
         const statusEmoji = {
-          confirmed: '✅',
-          pending: '⚠️',
-          cancelled: '❌'
+          confirmed: 'OK',
+          pending: 'WARNING',
+          cancelled: 'ERROR'
         };
         const statusText = `${statusEmoji[status] ?? ''} ${status}`;
 

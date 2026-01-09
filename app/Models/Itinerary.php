@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * Itinerary Model
+ *
+ * Represents a tour itinerary.
+ */
 class Itinerary extends Model
 {
     use HasFactory;

@@ -29,6 +29,11 @@ use App\Services\Bookings\{
     BookingValidationService
 };
 
+/**
+ * BookingController
+ *
+ * Handles booking management and display.
+ */
 class BookingController extends Controller
 {
     public function __construct(

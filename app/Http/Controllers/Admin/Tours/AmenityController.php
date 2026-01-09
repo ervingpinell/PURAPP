@@ -12,6 +12,11 @@ use App\Services\LoggerHelper;
 use App\Http\Requests\Tour\Amenity\StoreAmenityRequest;
 use App\Http\Requests\Tour\Amenity\UpdateAmenityRequest;
 
+/**
+ * AmenityController
+ *
+ * Handles amenity operations.
+ */
 class AmenityController extends Controller
 {
     public function __construct()

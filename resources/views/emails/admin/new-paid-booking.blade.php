@@ -1,5 +1,5 @@
 @component('mail::message')
-# ✅ New Paid Booking
+# OK New Paid Booking
 
 A new booking has been paid and confirmed!
 

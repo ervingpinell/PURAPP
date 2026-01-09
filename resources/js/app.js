@@ -282,7 +282,7 @@
         applyCount(Number(data.count || 0));
       } catch(e) {
         if (!(e && e.name === 'AbortError')) {
-          console.error('❌ Error al obtener la cantidad del carrito:', e);
+          console.error('ERROR: Failed to fetch cart count:', e);
         }
       } finally {
         inFlightCtrl = null;

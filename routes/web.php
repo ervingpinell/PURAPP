@@ -243,10 +243,10 @@ Route::middleware([SetLocale::class])->group(function () {
         // ============================
         // Home & Tours
         // ============================
-        // Ruta principal: /{locale}  -> es.home, en.home, etc.
+        // Main route: /{locale}  -> es.home, en.home, etc.
         Route::get('/', [HomeController::class, 'index'])->name('home');
 
-        // Alias opcional /{locale}/home, SIN name duplicado
+        // Optional alias /{locale}/home, WITHOUT duplicate name
         Route::get('/home', [HomeController::class, 'index']);
 
         Route::get('/tours', action: [HomeController::class, 'allTours'])->name('tours.index');
@@ -1114,7 +1114,8 @@ Route::middleware([SetLocale::class])->group(function () {
                 // TOUR TYPES
                 // ============================
                 Route::group(['middleware' => ['can:view-tour-types']], function () {
-                    // Rutas de gestión de traducciones (antes del resource)
+                    // Translation management routes (before resource)
+                    Route::get('translations/choose-locale', [TranslationController::class, 'chooseLocale'])->name('translations.choose-locale');
                     Route::get('tourtypes/{tourType}/translations', [TourTypeController::class, 'editTranslations'])
                         ->name('tourtypes.translations.edit');
                     Route::put('tourtypes/{tourType}/translations/{locale}', [TourTypeController::class, 'updateTranslation'])

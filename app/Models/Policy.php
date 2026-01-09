@@ -9,6 +9,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * Policy Model
+ *
+ * Represents a policy (cancellation, terms, etc.).
+ */
 class Policy extends Model
 {
     use HasFactory;

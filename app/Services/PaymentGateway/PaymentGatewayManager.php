@@ -7,6 +7,11 @@ use App\Services\PaymentGateway\Gateways\StripeGateway;
 use App\Services\PaymentGateway\Gateways\PayPalGateway;
 
 
+/**
+ * PaymentGatewayManager
+ *
+ * Handles paymentgatewaymanager operations.
+ */
 class PaymentGatewayManager
 {
     protected array $gateways = [];

@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Policy;
 use Illuminate\Http\Request;
 
+/**
+ * PoliciesController
+ *
+ * Displays policy pages.
+ */
 class PoliciesController extends Controller
 {
     /**

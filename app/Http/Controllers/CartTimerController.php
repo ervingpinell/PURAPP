@@ -6,6 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+/**
+ * CartTimerController
+ *
+ * Handles cart expiration timer.
+ */
 class CartTimerController extends Controller
 {
     /** POST /public/carts/refresh-expiry */

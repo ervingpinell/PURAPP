@@ -5,6 +5,11 @@ namespace App\Services\Bookings;
 use App\Models\Tour;
 use Illuminate\Support\Collection;
 
+/**
+ * BookingValidationService
+ *
+ * Validates booking data and business rules.
+ */
 class BookingValidationService
 {
     /**

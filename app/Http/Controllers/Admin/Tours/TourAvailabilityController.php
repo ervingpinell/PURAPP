@@ -13,6 +13,11 @@ use App\Http\Requests\Tour\TourAvailability\StoreTourAvailabilityRequest;
 use App\Http\Requests\Tour\TourAvailability\UpdateTourAvailabilityRequest;
 use Carbon\Carbon;
 
+/**
+ * TourAvailabilityController
+ *
+ * Handles touravailability operations.
+ */
 class TourAvailabilityController extends Controller
 {
     public function __construct()

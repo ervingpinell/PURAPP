@@ -4,6 +4,11 @@ namespace App\Services\Reviews;
 
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * ReviewsCacheManager
+ *
+ * Handles reviewscachemanager operations.
+ */
 class ReviewsCacheManager
 {
     private const PREFIX = 'reviews:';

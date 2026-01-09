@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * ReviewRequest Model
+ *
+ * Tracks review requests sent to customers.
+ */
 class ReviewRequest extends Model
 {
     protected $fillable = [

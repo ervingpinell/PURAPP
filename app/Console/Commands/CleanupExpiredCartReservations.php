@@ -86,14 +86,16 @@ class CleanupExpiredCartReservations extends Command
             });
         }
 
-        $this->info("✅ Cleaned {$cleaned} expired reservations");
-        $this->info("✅ Deleted {$bookingsDeleted} unpaid pending bookings");
+        $this->info("Cleaned {$cleaned} expired reservations");
+        $this->info("Deleted {$bookingsDeleted} unpaid pending bookings");
 
-        Log::info('Cart reservations cleanup completed', [
-            'reservations_cleaned' => $cleaned,
-            'bookings_deleted' => $bookingsDeleted,
-            'expiration_minutes' => $expirationMinutes,
-        ]);
+        if (config('app.debug')) {
+            Log::info('Cart reservations cleanup completed', [
+                'reservations_cleaned' => $cleaned,
+                'bookings_deleted' => $bookingsDeleted,
+                'expiration_minutes' => $expirationMinutes,
+            ]);
+        }
 
         return Command::SUCCESS;
     }

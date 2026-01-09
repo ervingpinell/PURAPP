@@ -6,6 +6,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Cart Model
+ *
+ * Represents a shopping cart for tour bookings.
+ * Handles cart expiration, pricing calculations, and guest/user carts.
+ *
+ * @property int $cart_id Primary key
+ * @property int|null $user_id User who owns the cart (null for guest carts)
+ * @property bool $is_active Cart active status
+ * @property \Carbon\Carbon|null $expires_at Cart expiration timestamp
+ * @property string|null $guest_email Guest email for guest carts
+ * @property string|null $guest_name Guest name for guest carts
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection|CartItem[] $items
+ * @property-read User|null $user
+ */
 class Cart extends Model
 {
     use HasFactory;

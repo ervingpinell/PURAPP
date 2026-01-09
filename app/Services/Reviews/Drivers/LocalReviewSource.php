@@ -6,6 +6,11 @@ use App\Models\Review;
 use App\Models\ReviewProvider;
 use App\Services\Reviews\Drivers\Contracts\ReviewSource;
 
+/**
+ * LocalReviewSource
+ *
+ * Handles localreviewsource operations.
+ */
 class LocalReviewSource implements ReviewSource
 {
     protected int $minStars = 0;

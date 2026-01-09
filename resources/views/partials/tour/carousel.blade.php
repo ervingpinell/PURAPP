@@ -63,7 +63,7 @@
 #tourLightbox.show .modal-dialog{
   display: flex;
   align-items: center;
-  min-height: 100dvh;               /* ✅ clave para iPad/iOS */
+  min-height: 100dvh;               /* OK clave para iPad/iOS */
 }
 
 @supports not (height: 100dvh){
