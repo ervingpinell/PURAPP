@@ -1,0 +1,40 @@
+/* Breadcrumbs Styling */
+.breadcrumb {
+  background-color: transparent;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+  color: #6c757d;
+  padding: 0 0.5rem;
+}
+
+.breadcrumb-item a {
+  color: #0f5132;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+  color: #0a3622;
+  text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+  color: #6c757d;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+  
+  .breadcrumb-item + .breadcrumb-item::before {
+    padding: 0 0.3rem;
+  }
+}

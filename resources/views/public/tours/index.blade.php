@@ -7,11 +7,36 @@
 @vite(entrypoints: [
 'resources/css/home.css',
 'resources/css/tours-index.css',
+'resources/css/breadcrumbs.css',
 ])
 @endpush
 
 @section('content')
 <div class="container tours-index-page" id="tours-page">
+  {{-- Breadcrumbs --}}
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{{ url('/') }}">{{ __('adminlte::adminlte.home') }}</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        {{ __('adminlte::adminlte.tours') }}
+      </li>
+    </ol>
+  </nav>
+  @php
+  use App\Helpers\SchemaHelper;
+  $breadcrumbItems = [
+  ['name' => __('adminlte::adminlte.home'), 'url' => url('/')],
+  ['name' => __('adminlte::adminlte.tours')],
+  ];
+  $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
+  @endphp
+  <script type="application/ld+json">
+    {
+      !!json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!
+    }
+  </script>
   {{-- HEADER --}}
   <div class="tours-index-header mb-2">
     <div>

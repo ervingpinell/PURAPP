@@ -27,6 +27,7 @@
     "paypal/paypal-server-sdk": "^1.1",
     "phpoffice/phpspreadsheet": "^1.29",
     "spatie/laravel-permission": "^6.23",
+    "spatie/laravel-sitemap": "^7.3",
     "stichoza/google-translate-php": "^5.3",
     "stripe/stripe-php": "^19.0"
   },

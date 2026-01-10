@@ -73,7 +73,7 @@ if ($len <= 0) return 1;
     {{-- Tarjeta del tipo (HOME) --}}
     <div class="tour-card" style="cursor:pointer"
       data-bs-toggle="modal" data-bs-target="#modal-{{ $slugKey }}">
-      <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $translatedTitle }}">
+      <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $translatedTitle }}" loading="lazy">
       <div class="card-body d-flex flex-column h-100 p-3">
         <h5 class="card-title mb-2">{{ $translatedTitle }}</h5>
 
@@ -162,7 +162,7 @@ if ($len <= 0) return 1;
                     </div>
 
                     {{-- Imagen grande --}}
-                    <img src="{{ $tourCover }}" class="tour-image" alt="{{ $tour->getTranslatedName() }}">
+                    <img src="{{ $tourCover }}" class="tour-image" alt="{{ $tour->getTranslatedName() }}" loading="lazy">
 
                     {{-- Título + Precio principal --}}
                     @php

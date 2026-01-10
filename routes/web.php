@@ -98,6 +98,8 @@ Route::get('/robots.txt', function (): Response {
         'Disallow: /bookings/',
         'Disallow: /user/',
         'Disallow: /api/',
+        '',
+        'Sitemap: ' . url('sitemap.xml'),
         'Disallow: /reviews/embed/',
         'Allow: /',
         'Sitemap: ' . rtrim(config('app.url'), '/') . '/sitemap.xml',
@@ -256,6 +258,9 @@ Route::middleware([SetLocale::class])->group(function () {
         // Contact
         // ============================
         Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+
+        // FAQ
+        Route::view('/faq', 'public.faq')->name('faq');
         Route::post('/contact', [HomeController::class, 'sendContact'])
             ->middleware('throttle:sensitive')
             ->name('contact.send');
