@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use App\Services\LoggerHelper;
 
 /**
  * SettingsController
@@ -79,6 +80,8 @@ class SettingsController extends Controller
                 ->withErrors($errors)
                 ->with('warning', "Se actualizaron {$updated} configuraciones, pero hubo errores en algunas.");
         }
+
+        LoggerHelper::mutated('SettingsController', 'update', 'Setting', null, ['updated_count' => $updated]);
 
         return redirect()
             ->route('admin.settings.index')

@@ -8,6 +8,9 @@ use App\Models\Setting;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Services\LoggerHelper;
+
+
 
 /**
  * PaymentController
@@ -23,6 +26,7 @@ class PaymentController extends Controller
     /**
      * Display a listing of payments
      */
+
     public function index(Request $request)
     {
         // Include soft-deleted bookings so payments remain visible
@@ -133,14 +137,13 @@ class PaymentController extends Controller
                 'refunded_by' => auth()->id(),
             ]);
 
+            LoggerHelper::mutated('PaymentController', 'refund', 'Payment', $payment->payment_id, ['amount' => $amount, 'reason' => $request->reason]);
+
             return redirect()
                 ->route('admin.payments.show', $payment)
                 ->with('success', __('Refund processed successfully. Amount: $' . number_format($amount, 2)));
         } catch (\Exception $e) {
-            Log::error('Admin refund failed', [
-                'payment_id' => $payment->payment_id,
-                'error' => $e->getMessage(),
-            ]);
+            LoggerHelper::exception('PaymentController', 'refund', 'Payment', $payment->payment_id, $e);
 
             return redirect()
                 ->back()

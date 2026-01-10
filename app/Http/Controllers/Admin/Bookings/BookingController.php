@@ -28,6 +28,7 @@ use App\Services\Bookings\{
     BookingPricingService,
     BookingValidationService
 };
+use App\Services\LoggerHelper;
 
 /**
  * BookingController
@@ -446,16 +447,9 @@ class BookingController extends Controller
                 throw $e; // Re-throw other runtime exceptions
             }
 
-            \Log::info('BookingCreator returned successfully', [
-                'booking_id' => $booking->booking_id,
-                'reference' => $booking->booking_reference
-            ]);
+            LoggerHelper::mutated('BookingController', 'store', 'Booking', $booking->booking_id);
         } catch (\Throwable $e) {
-            \Log::error('Admin booking store error (create): ' . $e->getMessage(), [
-                'trace'    => $e->getTraceAsString(),
-                'user_id'  => $request->input('user_id'),
-                'tour_id'  => $request->input('tour_id'),
-            ]);
+            LoggerHelper::exception('BookingController', 'store', 'Booking', null, $e);
 
             return back()->withInput()->with('error', __('m_bookings.bookings.errors.create'));
         }
@@ -471,10 +465,7 @@ class BookingController extends Controller
                 $booking
             );
         } catch (\Throwable $e) {
-            \Log::error('Customer booking email failed', [
-                'booking_id' => $booking->booking_id,
-                'error' => $e->getMessage()
-            ]);
+            LoggerHelper::exception('BookingController', 'store_email', 'Booking', $booking->booking_id, $e);
         }
 
         // Send admin notification email (separate, without password setup)
@@ -487,10 +478,7 @@ class BookingController extends Controller
                     $booking
                 );
             } catch (\Throwable $e) {
-                \Log::error('Admin booking email failed', [
-                    'booking_id' => $booking->booking_id,
-                    'error' => $e->getMessage()
-                ]);
+                LoggerHelper::exception('BookingController', 'store_admin_email', 'Booking', $booking->booking_id, $e);
             }
         }
 
@@ -657,10 +645,7 @@ class BookingController extends Controller
                         : \Mail::to($notify)->queue($adminMail);
                 }
             } catch (\Throwable $e) {
-                \Log::warning('Booking email failed (admin cart)', [
-                    'booking_id' => $booking->booking_id,
-                    'error' => $e->getMessage()
-                ]);
+                LoggerHelper::exception('BookingController', 'storeFromCart', 'Booking', $booking->booking_id, $e);
             }
         }
 
@@ -903,7 +888,7 @@ class BookingController extends Controller
             }
 
             DB::commit();
-            \Log::info("Booking updated successfully: #{$booking->booking_id} by user ID: " . auth()->id());
+            LoggerHelper::mutated('BookingController', 'update', 'Booking', $booking->booking_id);
 
             // Email (cliente + admins)
             $this->dispatchMail(new \App\Mail\BookingUpdatedMail($booking), optional($booking->user)->email);
@@ -912,8 +897,7 @@ class BookingController extends Controller
                 ->with('success', __('m_bookings.bookings.success.updated'));
         } catch (\Throwable $e) {
             DB::rollBack();
-            \Log::error("Error updating booking #{$booking->booking_id}: " . $e->getMessage());
-            \Log::error($e->getTraceAsString());
+            LoggerHelper::exception('BookingController', 'update', 'Booking', $booking->booking_id, $e);
             return back()->withInput()
                 ->with('showEditModal', $booking->booking_id)
                 ->with('error', __('m_bookings.bookings.errors.update'));
@@ -1007,7 +991,7 @@ class BookingController extends Controller
             $booking->status = $new;
             $booking->save();
 
-            \Log::info("Booking #{$booking->booking_id} status changed from '{$old}' to '{$new}' by user ID: " . auth()->id());
+            LoggerHelper::mutated('BookingController', 'updateStatus', 'Booking', $booking->booking_id, ['old_status' => $old, 'new_status' => $new]);
 
             // Email por estatus
             $mailable = match ($new) {
@@ -1026,7 +1010,7 @@ class BookingController extends Controller
 
             return back()->with('success', __("m_bookings.bookings.success.{$messageKey}"));
         } catch (\Throwable $e) {
-            \Log::error("Error updating booking status for booking #{$booking->booking_id}: " . $e->getMessage());
+            LoggerHelper::exception('BookingController', 'updateStatus', 'Booking', $booking->booking_id, $e);
             return back()->with('error', __('m_bookings.bookings.errors.status_update_failed'));
         }
     }
@@ -1042,13 +1026,12 @@ class BookingController extends Controller
             $booking->deleted_by = auth()->id();
             $booking->save();
             $booking->delete(); // This triggers soft delete
-
-            Log::info("Booking soft deleted: #{$id} ({$ref}) by user ID: " . auth()->id());
+            LoggerHelper::mutated('BookingController', 'destroy', 'Booking', $id);
 
             return redirect()->route('admin.bookings.index')
                 ->with('success', __('m_bookings.bookings.success.deleted'));
         } catch (\Throwable $e) {
-            Log::error("Soft delete error #{$booking->booking_id}: " . $e->getMessage());
+            LoggerHelper::exception('BookingController', 'destroy', 'Booking', $booking->booking_id, $e);
             return back()->with('error', __('m_bookings.bookings.errors.delete'));
         }
     }
@@ -1067,12 +1050,12 @@ class BookingController extends Controller
             $booking->save();
             $booking->restore();
 
-            Log::info("Booking restored: #{$booking->booking_id} ({$booking->booking_reference}) by user ID: " . auth()->id());
+            LoggerHelper::mutated('BookingController', 'restore', 'Booking', $booking->booking_id);
 
             return redirect()->route('admin.bookings.index', ['view' => 'active'])
                 ->with('success', __('m_bookings.bookings.trash.booking_restored'));
         } catch (\Throwable $e) {
-            Log::error("Restore error for booking #{$id}: " . $e->getMessage());
+            LoggerHelper::exception('BookingController', 'restore', 'Booking', $id, $e);
             return back()->with('error', __('Failed to restore booking.'));
         }
     }
@@ -1139,14 +1122,14 @@ class BookingController extends Controller
 
             DB::commit();
 
-            Log::warning("Booking PERMANENTLY deleted: #{$bookingId} ({$ref}) by user ID: " . auth()->id() . " - Payment records preserved with snapshot in metadata");
+            LoggerHelper::mutated('BookingController', 'forceDelete', 'Booking', $bookingId, ['context' => 'PERMANENTLY deleted, payments preserved']);
 
             // Redirect back to trash tab
             return redirect()->route('admin.bookings.index', ['view' => 'trash'])
                 ->with('success', __('m_bookings.bookings.trash.booking_force_deleted'));
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error("Force delete error for booking #{$id}: " . $e->getMessage());
+            LoggerHelper::exception('BookingController', 'forceDelete', 'Booking', $id, $e);
             return back()->with('error', __('m_bookings.bookings.trash.force_delete_failed'));
         }
     }
@@ -1531,10 +1514,8 @@ class BookingController extends Controller
             // Regenerate payment token (invalidates old link)
             $newToken = $booking->regeneratePaymentToken();
 
-            \Log::info('Payment link regenerated', [
-                'booking_id' => $booking->booking_id,
-                'admin_user_id' => auth()->id(),
-                'token_preview' => substr($newToken, 0, 8) . '...',
+            LoggerHelper::mutated('BookingController', 'regeneratePaymentLink', 'Booking', $booking->booking_id, [
+                'token_preview' => substr($newToken, 0, 8) . '...'
             ]);
 
             $url = $booking->getPaymentUrl();
@@ -1545,7 +1526,7 @@ class BookingController extends Controller
                 'message' => __('m_bookings.bookings.payment_link_regenerated') ?? 'Payment link regenerated successfully'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error regenerating payment link: ' . $e->getMessage());
+            LoggerHelper::exception('BookingController', 'regeneratePaymentLink', 'Booking', $booking->booking_id, $e);
             return response()->json([
                 'success' => false,
                 'message' => 'Error regenerating link'
@@ -1611,7 +1592,7 @@ class BookingController extends Controller
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            \Log::error('Error validating capacity: ' . $e->getMessage());
+            LoggerHelper::exception('BookingController', 'validateCapacity', 'Booking', null, $e);
             return response()->json([
                 'success' => false,
                 'message' => 'Error validating capacity'
@@ -1680,9 +1661,7 @@ class BookingController extends Controller
         $booking->extension_count = ($booking->extension_count ?? 0) + 1;
         $booking->save();
 
-        Log::info('[ExtendBooking] Booking extended', [
-            'booking_id' => $booking->booking_id,
-            'reference' => $booking->booking_reference,
+        LoggerHelper::mutated('BookingController', 'extendBooking', 'Booking', $booking->booking_id, [
             'hours' => $hours,
             'old_expiry' => $oldExpiry,
             'new_expiry' => $newExpiry,
@@ -1694,10 +1673,7 @@ class BookingController extends Controller
             // TODO: Create ExtendedBookingMail
             // Mail::to($booking->user->email)->send(new ExtendedBookingMail($booking, $hours));
         } catch (\Exception $e) {
-            Log::error('[ExtendBooking] Failed to send email', [
-                'error' => $e->getMessage(),
-                'booking_id' => $booking->booking_id
-            ]);
+            LoggerHelper::exception('BookingController', 'extendBooking', 'Booking', $booking->booking_id, $e);
         }
 
         return back()->with('success', __('Booking extended by :hours hours', ['hours' => $hours]));
@@ -1721,21 +1697,14 @@ class BookingController extends Controller
         $booking->notes = ($booking->notes ?? '') . $note;
         $booking->save();
 
-        Log::info('[CancelUnpaid] Booking cancelled by admin', [
-            'booking_id' => $booking->booking_id,
-            'reference' => $booking->booking_reference,
-            'admin_id' => auth()->id()
-        ]);
+        LoggerHelper::mutated('BookingController', 'cancelUnpaid', 'Booking', $booking->booking_id);
 
         // Send cancellation email
         try {
             Mail::to($booking->user->email)
                 ->send(new \App\Mail\BookingCancelledExpiry($booking));
         } catch (\Exception $e) {
-            Log::error('[CancelUnpaid] Failed to send cancellation email', [
-                'error' => $e->getMessage(),
-                'booking_id' => $booking->booking_id
-            ]);
+            LoggerHelper::exception('BookingController', 'cancelUnpaid', 'Booking', $booking->booking_id, $e);
         }
 
         return back()->with('success', __('Booking cancelled successfully'));

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 // Imports para traducciones
 use App\Services\Contracts\TranslatorInterface;
 use App\Models\MeetingPointTranslation;
+use App\Services\LoggerHelper;
 
 /**
  * MeetingPointSimpleController
@@ -57,6 +58,8 @@ class MeetingPointSimpleController extends Controller
 
         // 🔹 Solo en CREATE: Genera/actualiza traducciones con DeepL
         $this->syncTranslations($mp, $translator);
+
+        LoggerHelper::mutated('MeetingPointSimpleController', 'store', 'MeetingPoint', $mp->id);
 
         return redirect()->route('admin.meetingpoints.index')
             ->with('success', 'Punto creado y traducciones generadas correctamente.');
@@ -120,6 +123,10 @@ class MeetingPointSimpleController extends Controller
             ]);
         }
 
+
+
+        LoggerHelper::mutated('MeetingPointSimpleController', 'update', 'MeetingPoint', $meetingpoint->id);
+
         return back()->with('success', 'Cambios guardados. Traducción actualizada para: ' . $data['locale'] . ' (sin DeepL).');
     }
 
@@ -128,12 +135,15 @@ class MeetingPointSimpleController extends Controller
         $meetingpoint->is_active = ! $meetingpoint->is_active;
         $meetingpoint->save();
 
+        LoggerHelper::mutated('MeetingPointSimpleController', 'toggle', 'MeetingPoint', $meetingpoint->id, ['is_active' => $meetingpoint->is_active]);
+
         return back()->with('success', $meetingpoint->is_active ? 'Activado.' : 'Desactivado.');
     }
 
     public function destroy(MeetingPoint $meetingpoint)
     {
         $meetingpoint->delete();
+        LoggerHelper::mutated('MeetingPointSimpleController', 'destroy', 'MeetingPoint', $meetingpoint->id);
         return back()->with('success', 'Eliminado correctamente.');
     }
 

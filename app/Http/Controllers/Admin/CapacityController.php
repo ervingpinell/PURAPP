@@ -8,7 +8,7 @@ use App\Services\Bookings\BookingCapacityService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use App\Services\LoggerHelper;
 
 /**
  * CapacityController
@@ -28,94 +28,91 @@ class CapacityController extends Controller
      * AUMENTAR capacidad (incremento relativo)
      * Body: { amount:int, date:"Y-m-d", tour_id:int }
      */
-public function increase(Schedule $schedule, Request $request)
-{
-    $data = $request->validate([
-        'tour_id' => ['required', 'exists:tours,tour_id'],
-        'amount'  => ['required', 'integer', 'min:-999', 'max:999'], // Permite negativos
-        'date'    => ['required', 'date'],
-    ]);
+    public function increase(Schedule $schedule, Request $request)
+    {
+        $data = $request->validate([
+            'tour_id' => ['required', 'exists:tours,tour_id'],
+            'amount'  => ['required', 'integer', 'min:-999', 'max:999'], // Permite negativos
+            'date'    => ['required', 'date'],
+        ]);
 
-    $tour = Tour::findOrFail($data['tour_id']);
-    $date = Carbon::parse($data['date'])->toDateString();
+        $tour = Tour::findOrFail($data['tour_id']);
+        $date = Carbon::parse($data['date'])->toDateString();
 
-    try {
-        DB::beginTransaction();
+        try {
+            DB::beginTransaction();
 
-        $override = TourAvailability::where('tour_id', $tour->tour_id)
-            ->where('schedule_id', $schedule->schedule_id)
-            ->where('date', $date)
-            ->first();
-
-        $wasBlocked = $override && $override->is_blocked;
-        $snapshot = $this->capacityService->capacitySnapshot($tour, $schedule, $date);
-        $confirmed = (int)$snapshot['confirmed'];
-        $currentMax = (int)$snapshot['max'];
-
-        // Desbloquear o incrementar/decrementar
-        if ($wasBlocked || $currentMax === 0) {
-            $newMax = max($confirmed, $confirmed + (int)$data['amount']); // Mínimo = confirmados
-
-            TourExcludedDate::where('tour_id', $tour->tour_id)
+            $override = TourAvailability::where('tour_id', $tour->tour_id)
                 ->where('schedule_id', $schedule->schedule_id)
-                ->whereDate('start_date', $date)
-                ->delete();
+                ->where('date', $date)
+                ->first();
 
-            TourAvailability::updateOrCreate(
-                [
-                    'tour_id'     => $tour->tour_id,
-                    'schedule_id' => $schedule->schedule_id,
-                    'date'        => $date,
-                ],
-                [
-                    'is_active'    => true,
-                    'is_blocked'   => false,
-                    'max_capacity' => $newMax,
-                ]
-            );
-        } else {
-            $newMax = max($confirmed, $currentMax + (int)$data['amount']); // Permite sumar/restar
+            $wasBlocked = $override && $override->is_blocked;
+            $snapshot = $this->capacityService->capacitySnapshot($tour, $schedule, $date);
+            $confirmed = (int)$snapshot['confirmed'];
+            $currentMax = (int)$snapshot['max'];
 
-            TourAvailability::updateOrCreate(
-                [
-                    'tour_id'     => $tour->tour_id,
-                    'schedule_id' => $schedule->schedule_id,
-                    'date'        => $date,
-                ],
-                [
-                    'is_active'    => true,
-                    'is_blocked'   => false,
-                    'max_capacity' => $newMax,
-                ]
-            );
+            // Desbloquear o incrementar/decrementar
+            if ($wasBlocked || $currentMax === 0) {
+                $newMax = max($confirmed, $confirmed + (int)$data['amount']); // Mínimo = confirmados
+
+                TourExcludedDate::where('tour_id', $tour->tour_id)
+                    ->where('schedule_id', $schedule->schedule_id)
+                    ->whereDate('start_date', $date)
+                    ->delete();
+
+                TourAvailability::updateOrCreate(
+                    [
+                        'tour_id'     => $tour->tour_id,
+                        'schedule_id' => $schedule->schedule_id,
+                        'date'        => $date,
+                    ],
+                    [
+                        'is_active'    => true,
+                        'is_blocked'   => false,
+                        'max_capacity' => $newMax,
+                    ]
+                );
+            } else {
+                $newMax = max($confirmed, $currentMax + (int)$data['amount']); // Permite sumar/restar
+
+                TourAvailability::updateOrCreate(
+                    [
+                        'tour_id'     => $tour->tour_id,
+                        'schedule_id' => $schedule->schedule_id,
+                        'date'        => $date,
+                    ],
+                    [
+                        'is_active'    => true,
+                        'is_blocked'   => false,
+                        'max_capacity' => $newMax,
+                    ]
+                );
+            }
+
+            DB::commit();
+
+            $updated = $this->capacityService->capacitySnapshot($tour, $schedule, $date);
+            $pct = $updated['max'] > 0 ? (int)floor(($updated['confirmed'] * 100) / $updated['max']) : 0;
+
+            return response()->json([
+                'ok'           => true,
+                'used'         => $updated['confirmed'],
+                'max_capacity' => $updated['max'],
+                'remaining'    => $updated['available'],
+                'pct'          => $pct,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            LoggerHelper::exception('CapacityController', 'increase', 'TourAvailability', $tour->tour_id, $e);
+
+            return response()->json([
+                'ok'      => false,
+                'message' => 'No se pudo aumentar la capacidad',
+                'error'   => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
         }
-
-        DB::commit();
-
-        $updated = $this->capacityService->capacitySnapshot($tour, $schedule, $date);
-        $pct = $updated['max'] > 0 ? (int)floor(($updated['confirmed'] * 100) / $updated['max']) : 0;
-
-        return response()->json([
-            'ok'           => true,
-            'used'         => $updated['confirmed'],
-            'max_capacity' => $updated['max'],
-            'remaining'    => $updated['available'],
-            'pct'          => $pct,
-        ]);
-
-    } catch (\Throwable $e) {
-        DB::rollBack();
-        Log::error('[CAPACITY] increase() failed', [
-            'error' => $e->getMessage(),
-        ]);
-
-        return response()->json([
-            'ok'      => false,
-            'message' => 'No se pudo aumentar la capacidad',
-            'error'   => config('app.debug') ? $e->getMessage() : null,
-        ], 500);
     }
-}
 
     /**
      * VER DETALLES (próximos 30 días o fecha específica)
@@ -158,9 +155,8 @@ public function increase(Schedule $schedule, Request $request)
             }
 
             return response()->json(['ok' => true, 'data' => $rows]);
-
         } catch (\Throwable $e) {
-            Log::error('[CAPACITY] show() failed', ['error' => $e->getMessage()]);
+            LoggerHelper::exception('CapacityController', 'show', 'Tour', $tour->tour_id, $e);
 
             return response()->json([
                 'ok'      => false,
@@ -231,8 +227,7 @@ public function increase(Schedule $schedule, Request $request)
 
             $snap = $this->capacityService->capacitySnapshot($tour, $schedule, $date);
 
-            Log::info('[CAPACITY] block() ok', [
-                'tour_id'     => $tour->tour_id,
+            LoggerHelper::mutated('CapacityController', 'block', 'TourExcludedDate', $tour->tour_id, [
                 'schedule_id' => $schedule->schedule_id,
                 'date'        => $date,
             ]);
@@ -244,10 +239,9 @@ public function increase(Schedule $schedule, Request $request)
                 'remaining'    => 0,
                 'pct'          => 100,
             ]);
-
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('[CAPACITY] block() failed', ['error' => $e->getMessage()]);
+            LoggerHelper::exception('CapacityController', 'block', 'TourExcludedDate', null, $e);
 
             return response()->json([
                 'ok'      => false,

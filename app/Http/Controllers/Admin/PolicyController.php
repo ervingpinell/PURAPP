@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Policy;
 use App\Models\PolicyTranslation;
 use App\Services\Contracts\TranslatorInterface;
+use App\Services\LoggerHelper;
 
 /**
  * PolicyController
@@ -120,6 +121,10 @@ class PolicyController extends Controller
             }
         }
 
+
+
+        LoggerHelper::mutated('PolicyController', 'store', 'Policy', $policy->policy_id);
+
         return back()->with('success', 'm_config.policies.created');
     }
 
@@ -219,6 +224,10 @@ class PolicyController extends Controller
             }
         }
 
+
+
+        LoggerHelper::mutated('PolicyController', 'update', 'Policy', $policy->policy_id);
+
         return back()->with('success', 'm_config.policies.updated');
     }
 
@@ -227,6 +236,8 @@ class PolicyController extends Controller
     {
         $policy = Policy::where('policy_id', $policyId)->firstOrFail();
         $policy->update(['is_active' => ! $policy->is_active]);
+
+        LoggerHelper::mutated('PolicyController', 'toggle', 'Policy', $policy->policy_id, ['is_active' => $policy->is_active]);
 
         return back()->with(
             'success',
@@ -244,6 +255,8 @@ class PolicyController extends Controller
         $policy = Policy::where('policy_id', $policyId)->firstOrFail();
         $policy->delete(); // Soft delete
 
+        LoggerHelper::mutated('PolicyController', 'destroy', 'Policy', $policy->policy_id);
+
         return redirect()
             ->route('admin.policies.index', ['status' => 'archived'])
             ->with('success', 'm_config.policies.moved_to_trash');
@@ -259,6 +272,8 @@ class PolicyController extends Controller
             ->firstOrFail();
 
         $policy->restore();
+
+        LoggerHelper::mutated('PolicyController', 'restore', 'Policy', $policy->policy_id);
 
         return redirect()
             ->route('admin.policies.index')
@@ -286,6 +301,8 @@ class PolicyController extends Controller
         }
 
         $policy->forceDelete();
+
+        LoggerHelper::mutated('PolicyController', 'forceDestroy', 'Policy', $policyId);
 
         return redirect()
             ->route('admin.policies.index', ['status' => 'archived'])

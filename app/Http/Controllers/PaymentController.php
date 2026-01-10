@@ -11,8 +11,8 @@ use App\Services\PaymentService;
 use App\Models\Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Services\LoggerHelper;
 use App\Models\Policy;
 use App\Models\PolicySection;
 
@@ -301,7 +301,7 @@ class PaymentController extends Controller
         // Save to session
         session(['cart_snapshot' => $cartSnapshot]);
 
-        Log::info('Payment accessed via token', [
+        LoggerHelper::info('PaymentController', 'showByToken', 'Payment accessed via token', [
             'token_preview' => substr($token, 0, 8) . '...',
             'booking_id' => $booking->booking_id,
             'total' => $booking->total,
@@ -409,7 +409,7 @@ class PaymentController extends Controller
             $op = $operation === 'add' ? 1 : -1;
             $total = max(0, round($total + $op * $adjustment, 2));
 
-            Log::info('Payment Total - Applied Snapshot Promo:', [
+            LoggerHelper::info('PaymentController', 'calculateTotalFromSnapshot', 'Applied Snapshot Promo', [
                 'code' => $promoData['code'] ?? 'N/A',
                 'adjustment' => $adjustment,
                 'operation' => $operation,
@@ -433,7 +433,7 @@ class PaymentController extends Controller
                     ? $total + $discount
                     : $total - $discount;
 
-                Log::info('Payment Total - Applied DB Promo:', [
+                LoggerHelper::info('PaymentController', 'calculateTotalFromSnapshot', 'Applied DB Promo', [
                     'code' => $promo->code,
                     'discount' => $discount,
                     'operation' => $promo->operation,
@@ -452,7 +452,7 @@ class PaymentController extends Controller
 
     public function initiate(Request $request)
     {
-        Log::info('Payment Initiate - Request received', [
+        LoggerHelper::info('PaymentController', 'initiate', 'Request received', [
             'gateway' => $request->input('gateway'),
             'user_id' => Auth::id(),
             'session_id' => session()->getId(),
@@ -490,7 +490,7 @@ class PaymentController extends Controller
             if ($payment->gateway_payment_intent_id) {
                 $existingResponse = $payment->gateway_response ?? [];
 
-                Log::info('Reusing existing payment intent', [
+                LoggerHelper::info('PaymentController', 'initiate', 'Reusing existing payment intent', [
                     'payment_id' => $payment->payment_id,
                     'gateway' => $gateway,
                     'booking_id' => $bookingId,
@@ -516,7 +516,7 @@ class PaymentController extends Controller
             }
 
             // Log whether we're creating a new payment or updating an existing one
-            Log::info('Processing payment intent', [
+            LoggerHelper::info('PaymentController', 'initiate', 'Processing payment intent', [
                 'payment_id' => $payment->payment_id,
                 'is_new' => $payment->wasRecentlyCreated ?? false,
                 'gateway' => $gateway,
@@ -595,8 +595,7 @@ class PaymentController extends Controller
                         ]
                     );
                 } catch (\Exception $e) {
-                    Log::error('Failed to record terms acceptance in payment initiate', [
-                        'error' => $e->getMessage(),
+                    LoggerHelper::exception('PaymentController', 'initiate', 'TermsAcceptance', null, $e, [
                         'booking_id' => $bookingId
                     ]);
                 }
@@ -734,10 +733,11 @@ class PaymentController extends Controller
                 'gateway_response'          => $result->toArray(),
             ]);
 
-            Log::info('Gateway intent created successfully', [
+            LoggerHelper::info('PaymentController', 'initiate', 'Gateway intent created successfully', [
                 'gateway' => $gateway,
                 'payment_id' => $payment->payment_id,
                 'booking_id' => $bookingId,
+                'intent_id'  => $result->paymentIntentId, // Explicitly log the intent ID
             ]);
 
             // Store payment ID in session for guest status polling
@@ -757,10 +757,7 @@ class PaymentController extends Controller
                 'reused'        => false,
             ]);
         } catch (\Exception $e) {
-            Log::error('Payment Initiate Error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            LoggerHelper::exception('PaymentController', 'initiate', 'Payment', null, $e);
 
             return response()->json([
                 'success' => false,
@@ -825,7 +822,7 @@ class PaymentController extends Controller
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            Log::error('Failed to record terms acceptance via AJAX', ['error' => $e->getMessage()]);
+            LoggerHelper::exception('PaymentController', 'recordTerms', 'TermsAcceptance', null, $e);
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
@@ -883,7 +880,7 @@ class PaymentController extends Controller
         $existingPayment = $query->orderByDesc('created_at')->first();
 
         if ($existingPayment) {
-            Log::info('Found existing valid payment intent', [
+            LoggerHelper::info('PaymentController', 'findOrCreatePaymentIntent', 'Found existing valid payment intent', [
                 'payment_id' => $existingPayment->payment_id,
                 'gateway' => $gateway,
                 'booking_id' => $bookingId,
@@ -911,7 +908,7 @@ class PaymentController extends Controller
             ],
         ]);
 
-        Log::info('Created new payment intent', [
+        LoggerHelper::info('PaymentController', 'findOrCreatePaymentIntent', 'Created new payment intent', [
             'payment_id' => $payment->payment_id,
             'gateway' => $gateway,
             'booking_id' => $bookingId,
@@ -990,7 +987,7 @@ class PaymentController extends Controller
                 if ($booking->user) {
                     $svc = app(\App\Services\Auth\PasswordSetupService::class);
 
-                    \Illuminate\Support\Facades\Log::info('PaymentController Debug', [
+                    LoggerHelper::info('PaymentController', 'confirm', 'PaymentController Debug', [
                         'user_id' => $booking->user_id,
                         'needs_setup' => $svc->needsPasswordSetup($booking->user),
                         'password_len' => strlen($booking->user->password ?? ''),
@@ -1000,12 +997,10 @@ class PaymentController extends Controller
                         try {
                             $tokenData = $svc->generateSetupToken($booking->user);
                             $passwordSetupUrl = route('password.setup.show', ['token' => $tokenData['plain_token']]);
-                            \Illuminate\Support\Facades\Log::info('Generated Setup URL: ' . $passwordSetupUrl);
+                            // LoggerHelper::info('PaymentController', 'confirm', 'Generated Setup URL'); // Kept concise
                         } catch (\Exception $e) {
-                            Log::error('Failed to generate password setup token for confirmation view', [
-                                'booking_id' => $booking->booking_id,
-                                'error' => $e->getMessage(),
-                                'trace' => $e->getTraceAsString()
+                            LoggerHelper::exception('PaymentController', 'confirm', 'PasswordSetup', null, $e, [
+                                'booking_id' => $booking->booking_id
                             ]);
                         }
                     }
@@ -1016,9 +1011,7 @@ class PaymentController extends Controller
 
             return back()->with('error', 'Payment not successful');
         } catch (\Exception $e) {
-            Log::error('Payment confirmation failed', [
-                'error' => $e->getMessage()
-            ]);
+            LoggerHelper::exception('PaymentController', 'confirm', 'Payment', 'intent:' . $intentId, $e);
 
             return back()->with('error', 'Error confirming payment');
         }
@@ -1356,7 +1349,7 @@ class PaymentController extends Controller
             // Fallback: Try to regenerate IF we have a booking (Old logic fallback)
             // But if we don't have a booking, we fail.
             if (!$booking) {
-                Log::error('Alignet payment data missing in gateway_response and no booking to regenerate', ['payment_id' => $payment->payment_id]);
+                LoggerHelper::exception('PaymentController', 'showAlignetPaymentForm', 'Payment', $payment->payment_id, new \Exception('Payment data missing in gateway_response'));
                 abort(500, 'Payment data missing');
             }
 
@@ -1385,7 +1378,7 @@ class PaymentController extends Controller
      */
     public function handleAlignetResponse(Request $request)
     {
-        Log::info('Alignet Response Received', $request->all());
+        LoggerHelper::info('PaymentController', 'handleAlignetResponse', 'Received', $request->all());
 
         // Get authorization result first
         $authResult = $request->input('authorizationResult');
@@ -1400,13 +1393,13 @@ class PaymentController extends Controller
             $alignetService = app(\App\Services\AlignetPaymentService::class);
 
             if (!$alignetService->validateResponse($request->all())) {
-                Log::error('Alignet: Invalid response signature', $request->all());
+                LoggerHelper::exception('PaymentController', 'handleAlignetResponse', 'Payment', $paymentId ?? ($operationNumber ?? 'unknown'), new \Exception('Invalid response signature'), $request->all());
                 return redirect()->route('payment.error')
                     ->with('error', __('m_checkout.payment.invalid_response'));
             }
         } else {
             // Log non-successful transactions without hash validation
-            Log::warning('Alignet: Transaction not successful', [
+            LoggerHelper::warning('PaymentController', 'handleAlignetResponse', 'Transaction not successful', [
                 'authResult' => $authResult,
                 'errorCode' => $request->input('errorCode'),
                 'errorMessage' => $request->input('errorMessage'),
@@ -1421,9 +1414,8 @@ class PaymentController extends Controller
         if ($paymentId) {
             $payment = Payment::find($paymentId);
             if ($payment) {
-                Log::info('Alignet: Found payment by ID', [
+                LoggerHelper::info('PaymentController', 'handleAlignetResponse', 'Found payment by ID', [
                     'payment_id' => $paymentId,
-                    'booking_id' => $payment->booking_id,
                 ]);
             }
         }
@@ -1435,7 +1427,7 @@ class PaymentController extends Controller
                 ->first();
 
             if ($payment) {
-                Log::info('Alignet: Found payment by operation number', [
+                LoggerHelper::info('PaymentController', 'handleAlignetResponse', 'Found payment by operation number', [
                     'operation_number' => $operationNumber,
                     'payment_id' => $payment->payment_id,
                 ]);
@@ -1444,7 +1436,7 @@ class PaymentController extends Controller
 
         // Priority 3: Create new payment (last resort)
         if (!$payment) {
-            Log::warning('Alignet: Creating new payment record', [
+            LoggerHelper::warning('PaymentController', 'handleAlignetResponse', 'Creating new payment record', [
                 'operation_number' => $operationNumber,
                 'booking_id' => $bookingId,
                 'payment_id_from_reserved2' => $paymentId,
@@ -1480,7 +1472,7 @@ class PaymentController extends Controller
         ]);
 
         if ($authResult === '00') {
-            Log::info('Processing successful payment', [
+            LoggerHelper::info('PaymentController', 'handleAlignetResponse', 'Processing successful payment', [
                 'payment_id' => $payment->payment_id,
                 'auth_result' => $authResult,
             ]);
@@ -1490,7 +1482,7 @@ class PaymentController extends Controller
                 // limpieza de sesión (incluyendo promo codes) y correos.
                 $success = $this->paymentService->handleSuccessfulPayment($payment, $request->all());
 
-                Log::info('handleSuccessfulPayment result', [
+                LoggerHelper::info('PaymentController', 'handleAlignetResponse', 'handleSuccessfulPayment result', [
                     'success' => $success,
                     'payment_id' => $payment->payment_id,
                 ]);
@@ -1529,7 +1521,7 @@ class PaymentController extends Controller
                             now()->addMinutes(5)
                         );
 
-                        Log::info('Generated payment return token for successful payment', [
+                        LoggerHelper::info('PaymentController', 'handleAlignetResponse', 'Generated payment return token', [
                             'user_id' => $user->user_id,
                             'payment_id' => $payment->payment_id,
                         ]);
@@ -1540,17 +1532,13 @@ class PaymentController extends Controller
                     // Guest user - direct redirect
                     return redirect($redirectUrl)->with('success', $successMessage);
                 } else {
-                    Log::warning('handleSuccessfulPayment returned false', [
+                    LoggerHelper::warning('PaymentController', 'handleAlignetResponse', 'handleSuccessfulPayment returned false', [
                         'payment_id' => $payment->payment_id,
                         'auth_result' => $authResult,
                     ]);
                 }
             } catch (\Exception $e) {
-                Log::error('Alignet handling failed', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                    'payment_id' => $payment->payment_id,
-                ]);
+                LoggerHelper::exception('PaymentController', 'handleAlignetResponse', 'Payment', $payment->payment_id, $e);
                 // Fallthrough to error page
             }
         }
@@ -1566,10 +1554,10 @@ class PaymentController extends Controller
                 if ($cart && $cart->is_active) {
                     // Refresh cart expiration to give user more time
                     $cart->refreshExpiry();
-                    Log::info('Cart expiration refreshed after payment failure', ['cart_id' => $cartId]);
+                    // LoggerHelper::info('PaymentController', 'handleAlignetResponse', 'Cart expiration refreshed', ['cart_id' => $cartId]);
                 }
             } catch (\Exception $e) {
-                Log::warning('Failed to refresh cart expiration', ['error' => $e->getMessage()]);
+                // Silent fail or low level log
             }
         }
 
@@ -1598,7 +1586,7 @@ class PaymentController extends Controller
         // Combine friendly message with debug info
         $fullMessage = "{$friendlyMessage} {$debugInfo}";
 
-        Log::info('Alignet payment failed - User-friendly message', [
+        LoggerHelper::info('PaymentController', 'handleAlignetResponse', 'Payment failed - User-friendly message', [
             'error_code' => $errorCode,
             'auth_result' => $authResult,
             'technical_message' => $errorMessage,
@@ -1624,7 +1612,7 @@ class PaymentController extends Controller
                 now()->addMinutes(5)
             );
 
-            Log::info('Generated payment return token for session restoration', [
+            LoggerHelper::info('PaymentController', 'handleAlignetResponse', 'Generated payment return token for session restoration', [
                 'user_id' => $user->user_id,
                 'payment_id' => $payment->payment_id,
                 'token_preview' => substr($token, 0, 10) . '...',
@@ -1667,7 +1655,7 @@ class PaymentController extends Controller
         $data = \Illuminate\Support\Facades\Cache::get("payment_return_token:{$token}");
 
         if (!$data) {
-            Log::warning('Invalid or expired payment return token', [
+            LoggerHelper::warning('PaymentController', 'restoreSession', 'Invalid or expired payment return token', [
                 'token_preview' => substr($token, 0, 10) . '...'
             ]);
 
@@ -1685,7 +1673,7 @@ class PaymentController extends Controller
             // Login without triggering events (to avoid notifications)
             \Illuminate\Support\Facades\Auth::login($user, true);
 
-            Log::info('User session restored after payment redirect', [
+            LoggerHelper::info('PaymentController', 'paymentReturnRestore', 'User session restored after payment redirect', [
                 'user_id' => $user->user_id,
                 'payment_id' => $data['payment_id'] ?? null,
             ]);
@@ -1703,7 +1691,7 @@ class PaymentController extends Controller
         }
 
         // If user not found, redirect to cart
-        Log::warning('User not found for payment return token', [
+        LoggerHelper::warning('PaymentController', 'paymentReturnRestore', 'User not found for payment return token', [
             'user_id' => $data['user_id'] ?? null,
         ]);
 

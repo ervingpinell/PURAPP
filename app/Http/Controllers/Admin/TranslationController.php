@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\LoggerHelper;
 use Exception;
 
 // Base models
@@ -439,6 +440,8 @@ class TranslationController extends Controller
                 }
             });
 
+            LoggerHelper::mutated('TranslationController', 'update', $type, $id, ['locale' => $locale]);
+
             return redirect()
                 ->route('admin.translations.edit', [
                     'type'        => $type,
@@ -447,6 +450,7 @@ class TranslationController extends Controller
                 ])
                 ->with('success', __('m_config.translations.updated_success'));
         } catch (Exception $e) {
+            LoggerHelper::exception('TranslationController', 'update', $type, $id, $e);
             Log::error('Translations update failed', [
                 'type'   => $type,
                 'id'     => $id,

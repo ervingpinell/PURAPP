@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Users;
 
 use App\Models\Role;
+use App\Services\LoggerHelper;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use App\Http\Controllers\Controller;
@@ -89,12 +90,14 @@ class RoleController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        Role::create([
+        $role = Role::create([
             'name' => $validated['role_name'],
             'description' => $validated['description'],
             'guard_name' => 'web',
             'is_active' => true,
         ]);
+
+        LoggerHelper::mutated('RoleController', 'store', 'Role', $role->id);
 
         return redirect()->back()->with('success', 'Rol creado correctamente.');
     }
@@ -119,6 +122,8 @@ class RoleController extends Controller
             'description' => $validated['description'],
         ]);
 
+        LoggerHelper::mutated('RoleController', 'update', 'Role', $role->id);
+
         return redirect()->route('admin.roles.index')->with('success', 'Rol actualizado correctamente.');
     }
 
@@ -133,6 +138,8 @@ class RoleController extends Controller
         }
         $role->is_active = ! $role->is_active;
         $role->save();
+
+        LoggerHelper::mutated('RoleController', 'toggle', 'Role', $role->id, ['is_active' => $role->is_active]);
 
         $msg = $role->is_active ? 'Rol activado correctamente.' : 'Rol desactivado correctamente.';
         return redirect()->back()->with('success', $msg);
@@ -150,6 +157,7 @@ class RoleController extends Controller
 
         try {
             $role->delete();
+            LoggerHelper::mutated('RoleController', 'destroy', 'Role', $id);
             return redirect()->route('admin.roles.index')
                 ->with('success', 'Rol eliminado correctamente.');
         } catch (QueryException $e) {
@@ -162,9 +170,11 @@ class RoleController extends Controller
                 );
             }
 
+            LoggerHelper::exception('RoleController', 'destroy', 'Role', $id, $e);
             return redirect()->back()->with('error', 'No se pudo eliminar el rol. Detalle: ' . $e->getMessage());
         }
     }
+
     public function permissions($id)
     {
         $role = Role::findOrFail($id);
@@ -230,6 +240,8 @@ class RoleController extends Controller
         // Sincronizamos los permisos enviados desde el formulario
         // Si no se envía ninguno, se quitan todos (sync con array vacío)
         $role->syncPermissions($request->get('permissions', []));
+
+        LoggerHelper::mutated('RoleController', 'updatePermissions', 'Role', $role->id);
 
         return redirect()->route('admin.roles.index')
             ->with('success', 'Permisos actualizados correctamente para el rol ' . $role->name);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\PromoCode;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\PromoCode;
+use App\Services\LoggerHelper;
 
 /**
  * PromoCodeController
@@ -100,6 +101,8 @@ class PromoCodeController extends Controller
 
         $promo->save();
 
+        LoggerHelper::mutated('PromoCodeController', 'store', 'PromoCode', $promo->id);
+
         return redirect()
             ->route('admin.promoCodes.index')
             ->with('success', __('m_config.promocode.messages.created_success'));
@@ -107,7 +110,10 @@ class PromoCodeController extends Controller
 
     public function destroy(PromoCode $promo)
     {
+        $id = $promo->id; // Capture ID before deletion
         $promo->delete();
+
+        LoggerHelper::mutated('PromoCodeController', 'destroy', 'PromoCode', $id);
 
         return redirect()
             ->route('admin.promoCodes.index')
@@ -299,6 +305,8 @@ class PromoCodeController extends Controller
         }
 
         $promo->save();
+
+        LoggerHelper::mutated('PromoCodeController', 'updateOperation', 'PromoCode', $promo->id, ['operation' => $promo->operation]);
 
         return back()->with('success', __('m_config.promocode.messages.operation_updated'));
     }

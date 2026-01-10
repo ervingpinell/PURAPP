@@ -5,7 +5,8 @@ namespace App\Services;
 use Throwable;
 use Illuminate\Support\Facades\Log;
 
-final /**
+final
+/**
  * LoggerHelper
  *
  * Handles loggerhelper operations.
@@ -23,7 +24,8 @@ class LoggerHelper
             'action'     => $actionName,
             'entity'     => $extraContext['entity']    ?? null,
             'entity_id'  => $extraContext['entity_id'] ?? null,
-            'user_id'    => $extraContext['user_id']   ?? auth()->id(),
+            'user_id'    => $extraContext['user_id']   ?? (auth()->check() ? auth()->id() : null), // Ensure it handles non-authenticated contexts gracefully if reachable
+            'ip'         => request()->ip(),
         ];
 
         // Evitamos duplicar datos ya normalizados
@@ -53,7 +55,6 @@ class LoggerHelper
         if (config('app.debug')) {
 
             Log::info($logMessage, self::buildLogContext($controllerName, $actionName, $logMessage, $extraContext));
-
         }
     }
 

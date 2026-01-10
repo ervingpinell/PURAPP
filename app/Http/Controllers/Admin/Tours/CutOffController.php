@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Models\Tour;
+use App\Services\LoggerHelper;
 
 /**
  * CutOffController
@@ -67,7 +68,7 @@ class CutOffController extends Controller
             $result1 = setting_update('booking.cutoff_hour', $data['cutoff_hour']);
             $result2 = setting_update('booking.lead_days',   (int) $data['lead_days']);
 
-            Log::info('CutOffController@update settings updated', [
+            LoggerHelper::mutated('CutOffController', 'update', 'Setting', 'global_cutoff', [
                 'cutoff_hour_updated' => $result1,
                 'lead_days_updated' => $result2,
             ]);
@@ -75,13 +76,10 @@ class CutOffController extends Controller
             return redirect()->route('admin.tours.cutoff.edit', ['tab' => 'global'])
                 ->with('success', __('m_config.cut-off.actions.save_global'));
         } catch (\Illuminate\Validation\ValidationException $ve) {
-            Log::warning('CutOffController@update validation', ['errors' => $ve->errors()]);
+            LoggerHelper::validationFailed('CutOffController', 'update', $ve->errors());
             throw $ve;
         } catch (\Throwable $e) {
-            Log::error('CutOffController@update error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            LoggerHelper::exception('CutOffController', 'update', 'Setting', 'global_cutoff', $e);
             return redirect()->route('admin.tours.cutoff.edit', ['tab' => 'global'])
                 ->with('error', __('m_config.cut-off.flash.error_title'));
         }
@@ -104,15 +102,17 @@ class CutOffController extends Controller
             $tour->lead_days   = ($data['lead_days']   !== null && $data['lead_days']   !== '') ? (int) $data['lead_days'] : null;
             $tour->save();
 
+            LoggerHelper::mutated('CutOffController', 'updateTourOverrides', 'Tour', $tour->tour_id, ['cutoff_hour' => $tour->cutoff_hour, 'lead_days' => $tour->lead_days]);
+
             $tab = $request->boolean('from_summary') ? 'summary' : 'tour';
 
             return redirect()->route('admin.tours.cutoff.edit', ['tab' => $tab])
                 ->with('success', __('m_config.cut-off.actions.save_tour'));
         } catch (\Illuminate\Validation\ValidationException $ve) {
-            Log::warning('CutOffController@updateTourOverrides validation', ['errors' => $ve->errors()]);
+            LoggerHelper::validationFailed('CutOffController', 'updateTourOverrides', $ve->errors());
             throw $ve;
         } catch (\Throwable $e) {
-            Log::error('CutOffController@updateTourOverrides error', ['error' => $e->getMessage()]);
+            LoggerHelper::exception('CutOffController', 'updateTourOverrides', 'Tour', $request->input('tour_id'), $e);
             $tab = $request->boolean('from_summary') ? 'summary' : 'tour';
             return redirect()->route('admin.tours.cutoff.edit', ['tab' => $tab])
                 ->with('error', __('m_config.cut-off.flash.error_title'));
@@ -147,15 +147,17 @@ class CutOffController extends Controller
                 $payload
             );
 
+            LoggerHelper::mutated('CutOffController', 'updateScheduleOverrides', 'ScheduleTour', $data['schedule_id'], ['tour_id' => $data['tour_id'], 'payload' => $payload]);
+
             $tab = $request->boolean('from_summary') ? 'summary' : 'schedule';
 
             return redirect()->route('admin.tours.cutoff.edit', ['tab' => $tab])
                 ->with('success', __('m_config.cut-off.actions.save_schedule'));
         } catch (\Illuminate\Validation\ValidationException $ve) {
-            Log::warning('CutOffController@updateScheduleOverrides validation', ['errors' => $ve->errors()]);
+            LoggerHelper::validationFailed('CutOffController', 'updateScheduleOverrides', $ve->errors());
             throw $ve;
         } catch (\Throwable $e) {
-            Log::error('CutOffController@updateScheduleOverrides error', ['error' => $e->getMessage()]);
+            LoggerHelper::exception('CutOffController', 'updateScheduleOverrides', 'ScheduleTour', $data['schedule_id'] ?? null, $e);
             $tab = $request->boolean('from_summary') ? 'summary' : 'schedule';
             return redirect()->route('admin.tours.cutoff.edit', ['tab' => $tab])
                 ->with('error', __('m_config.cut-off.flash.error_title'));

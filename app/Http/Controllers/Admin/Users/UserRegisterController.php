@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Cache;
+use App\Services\LoggerHelper;
 
 /**
  * UserRegisterController
@@ -132,6 +133,8 @@ class UserRegisterController extends Controller
             $role = \Spatie\Permission\Models\Role::findOrFail($request->role_id);
             $user->syncRoles([$role->name]);
 
+            LoggerHelper::mutated('UserRegisterController', 'store', 'User', $user->user_id);
+
             return redirect()
                 ->route('admin.users.index')
                 ->with('success', __('adminlte::adminlte.user_registered_successfully'))
@@ -236,6 +239,8 @@ class UserRegisterController extends Controller
 
         $user->save();
 
+        LoggerHelper::mutated('UserRegisterController', 'update', 'User', $user->user_id);
+
         return redirect()
             ->route('admin.users.index')
             ->with('success', __('adminlte::adminlte.user_updated_successfully'))
@@ -250,6 +255,8 @@ class UserRegisterController extends Controller
         $user = User::findOrFail($id);
         $user->status = ! (bool) $user->status;
         $user->save();
+
+        LoggerHelper::mutated('UserRegisterController', 'destroy', 'User', $user->user_id, ['status' => $user->status]);
 
         $mensaje = $user->status
             ? ['tipo' => 'activado',     'texto' => __('adminlte::adminlte.user_reactivated_successfully')]
@@ -269,6 +276,8 @@ class UserRegisterController extends Controller
         $user->is_locked = true;
         $user->save();
 
+        LoggerHelper::mutated('UserRegisterController', 'lock', 'User', $user->user_id);
+
         // Limpia contadores de negocio por si venía con intentos
         RateLimiter::clear('login-fails:' . $user->getKey());
 
@@ -282,6 +291,8 @@ class UserRegisterController extends Controller
     {
         $user->is_locked = false;
         $user->save();
+
+        LoggerHelper::mutated('UserRegisterController', 'unlock', 'User', $user->user_id);
 
         // Limpia contadores de fallos (negocio) y throttles (email|ip)
         RateLimiter::clear('login-fails:' . $user->getKey());
@@ -303,6 +314,7 @@ class UserRegisterController extends Controller
     {
         if (empty($user->email_verified_at)) {
             $user->forceFill(['email_verified_at' => now()])->save();
+            LoggerHelper::mutated('UserRegisterController', 'markVerified', 'User', $user->user_id);
         }
 
         return back()->with('success', __('m_users.user_marked_verified') ?? 'Usuario marcado como verificado.');
@@ -317,6 +329,8 @@ class UserRegisterController extends Controller
         $user->two_factor_recovery_codes = null;
         $user->two_factor_confirmed_at = null;
         $user->save();
+
+        LoggerHelper::mutated('UserRegisterController', 'disable2FA', 'User', $user->user_id);
 
         return back()->with('success', '2FA desactivado exitosamente para ' . $user->full_name);
     }

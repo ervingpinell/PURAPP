@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\Contracts\TranslatorInterface;
 use Exception;
+use App\Services\LoggerHelper;
 
 /**
  * FaqController
@@ -72,10 +73,15 @@ class FaqController extends Controller
                 }
             });
 
+
+
+            LoggerHelper::mutated('FaqController', 'store', 'Faq', null);
+
             return redirect()
                 ->route('admin.faqs.index')
                 ->with('success', 'm_config.faq.created_success');
         } catch (Exception $e) {
+            LoggerHelper::exception('FaqController', 'store', 'Faq', null, $e);
             return back()
                 ->withInput()
                 ->with('error', 'm_config.faq.unexpected_error');
@@ -95,10 +101,13 @@ class FaqController extends Controller
                 'answer'   => $request->string('answer')->trim(),
             ]);
 
+            LoggerHelper::mutated('FaqController', 'update', 'Faq', $faq->faq_id);
+
             return redirect()
                 ->route('admin.faqs.index')
                 ->with('success', 'm_config.faq.updated_success');
         } catch (Exception $e) {
+            LoggerHelper::exception('FaqController', 'update', 'Faq', $faq->faq_id, $e);
             return back()
                 ->withInput()
                 ->with('error', 'm_config.faq.unexpected_error');
@@ -110,10 +119,13 @@ class FaqController extends Controller
         try {
             $faq->delete();
 
+            LoggerHelper::mutated('FaqController', 'destroy', 'Faq', $faq->faq_id);
+
             return redirect()
                 ->route('admin.faqs.index')
                 ->with('success', 'm_config.faq.deleted_success');
         } catch (Exception $e) {
+            LoggerHelper::exception('FaqController', 'destroy', 'Faq', $faq->faq_id, $e);
             return back()
                 ->with('error', 'm_config.faq.unexpected_error');
         }
@@ -129,10 +141,13 @@ class FaqController extends Controller
                 ? 'm_config.faq.activated_success'
                 : 'm_config.faq.deactivated_success';
 
+            LoggerHelper::mutated('FaqController', 'toggleStatus', 'Faq', $faq->faq_id, ['is_active' => $faq->is_active]);
+
             return redirect()
                 ->route('admin.faqs.index')
                 ->with('success', $key);
         } catch (Exception $e) {
+            LoggerHelper::exception('FaqController', 'toggleStatus', 'Faq', $faq->faq_id, $e);
             return back()
                 ->with('error', 'm_config.faq.unexpected_error');
         }

@@ -412,7 +412,9 @@ class TourController extends Controller
                     }
                 } catch (\Exception $e) {
                     // Log pero no fallar si las traducciones fallan
-                    \Log::warning('Translation failed', ['error' => $e->getMessage()]);
+                    LoggerHelper::warning($this->controller, 'store', 'Translation failed', [
+                        'error' => $e->getMessage()
+                    ]);
                 }
 
                 LoggerHelper::mutated($this->controller, 'store', 'tour', $tour->tour_id, [
@@ -596,7 +598,9 @@ class TourController extends Controller
                         );
                     }
                 } catch (\Exception $e) {
-                    \Log::warning('Translation update failed', ['error' => $e->getMessage()]);
+                    LoggerHelper::warning($this->controller, 'update', 'Translation update failed', [
+                        'error' => $e->getMessage()
+                    ]);
                 }
 
                 LoggerHelper::mutated($this->controller, 'update', 'tour', $tour->tour_id, [
@@ -764,7 +768,7 @@ class TourController extends Controller
                     TourAuditLog::where('tour_id', $tour->tour_id)->delete();
                 } catch (\Throwable $e) {
                     // Si algo falla, lo dejamos registrar pero no rompemos el flujo
-                    \Log::warning('No se pudieron borrar los tour_audit_logs antes del purge', [
+                    LoggerHelper::warning($this->controller, 'purge', 'Failed to delete tour_audit_logs', [
                         'tour_id' => $tour->tour_id,
                         'error'   => $e->getMessage(),
                     ]);
@@ -777,8 +781,7 @@ class TourController extends Controller
             });
 
             // Log normal de Laravel (archivo de logs)
-            \Log::info('Tour purged (hard delete)', [
-                'tour_id'   => $tourIdSnapshot,
+            LoggerHelper::mutated($this->controller, 'purge(hard)', 'tour', $tourIdSnapshot, [
                 'tour_name' => $tourNameSnapshot,
                 'user_id'   => $userId,
             ]);

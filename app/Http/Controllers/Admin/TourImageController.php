@@ -17,6 +17,7 @@ use Throwable;
 // === WebP (Intervention Image) ===
 use Intervention\Image\Laravel\Facades\Image as Img;
 use Intervention\Image\Encoders\WebpEncoder;
+use App\Services\LoggerHelper;
 
 /**
  * TourImageController
@@ -177,6 +178,8 @@ class TourImageController extends Controller
                 $feedback .= ' ' . __('m_tours.image.upload_truncated');
             }
 
+            LoggerHelper::mutated('TourImageController', 'store', 'Tour', $tour->tour_id, ['count' => $createdCount]);
+
             return back()->with('swal', [
                 'icon'  => $createdCount > 0 ? 'success' : 'info',
                 'title' => $createdCount > 0 ? __('m_tours.image.done') : __('m_tours.image.notice'),
@@ -220,6 +223,8 @@ class TourImageController extends Controller
             ]);
 
             $image->update($data);
+
+            LoggerHelper::mutated('TourImageController', 'update', 'TourImage', $image->id);
 
             return back()->with('swal', [
                 'icon'  => 'success',
@@ -277,6 +282,8 @@ class TourImageController extends Controller
                 }
             }
 
+            LoggerHelper::mutated('TourImageController', 'destroy', 'TourImage', $image->id);
+
             return back()->with('swal', [
                 'icon'  => 'success',
                 'title' => __('m_tours.image.deleted'),
@@ -319,6 +326,8 @@ class TourImageController extends Controller
                 }
             });
 
+            LoggerHelper::mutated('TourImageController', 'reorder', 'Tour', $tour->tour_id);
+
             return $this->reorderResponse($request, true, __('m_tours.image.order_saved'));
         } catch (Throwable $e) {
             Log::error('Image reorder failed', [
@@ -354,6 +363,8 @@ class TourImageController extends Controller
                 TourImage::where('tour_id', $tour->tour_id)->update(['is_cover' => false]);
                 $image->update(['is_cover' => true]);
             });
+
+            LoggerHelper::mutated('TourImageController', 'setCover', 'TourImage', $image->id);
 
             return back()->with('swal', [
                 'icon'  => 'success',
@@ -523,6 +534,8 @@ class TourImageController extends Controller
             TourImage::whereIn('id', $images->pluck('id'))->delete();
         });
 
+        LoggerHelper::mutated('TourImageController', 'bulkDestroy', 'Tour', $tour->tour_id, ['count' => $images->count()]);
+
         return back()->with('swal', [
             'icon'  => 'success',
             'title' => __('m_tours.image.deleted'),
@@ -561,6 +574,8 @@ class TourImageController extends Controller
             // Borrar registros
             TourImage::where('tour_id', $tour->getKey())->delete();
         });
+
+        LoggerHelper::mutated('TourImageController', 'destroyAll', 'Tour', $tour->tour_id);
 
         return back()->with('swal', [
             'icon'  => 'success',

@@ -10,6 +10,7 @@ use App\Http\Requests\Tour\CustomerCategory\StoreCustomerCategoryRequest;
 use App\Services\DeepLTranslator; // tu servicio
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\LoggerHelper;
 
 /**
  * CustomerCategoryController
@@ -92,6 +93,8 @@ class CustomerCategoryController extends Controller
             }
         });
 
+        LoggerHelper::mutated('CustomerCategoryController', 'store', 'CustomerCategory', null);
+
         return redirect()
             ->route('admin.customer_categories.index')
             ->with('success', 'Categoría creada exitosamente.');
@@ -164,6 +167,8 @@ class CustomerCategoryController extends Controller
             }
         });
 
+        LoggerHelper::mutated('CustomerCategoryController', 'update', 'CustomerCategory', $category->category_id);
+
         return redirect()
             ->route('admin.customer_categories.index')
             ->with('success', 'Categoría actualizada exitosamente.');
@@ -172,12 +177,14 @@ class CustomerCategoryController extends Controller
     public function toggle(CustomerCategory $category)
     {
         $category->update(['is_active' => !$category->is_active]);
+        LoggerHelper::mutated('CustomerCategoryController', 'toggle', 'CustomerCategory', $category->category_id, ['is_active' => $category->is_active]);
         return back()->with('success', 'Estado actualizado exitosamente.');
     }
 
     public function destroy(CustomerCategory $category)
     {
         $category->delete();
+        LoggerHelper::mutated('CustomerCategoryController', 'destroy', 'CustomerCategory', $category->category_id);
         return redirect()
             ->route('admin.customer_categories.index')
             ->with('success', 'Categoría eliminada exitosamente.');

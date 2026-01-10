@@ -124,6 +124,17 @@ class TourTypeCoverPickerController extends Controller
         // Persistir ruta relativa
         $tourType->update(['cover_path' => $dir . '/' . $filename]);
 
+        \App\Services\LoggerHelper::mutated(
+            'TourTypeCoverPickerController',
+            'updateCover',
+            'tour_type',
+            $tourType->tour_type_id,
+            [
+                'cover_path' => $dir . '/' . $filename,
+                'user_id'    => optional($request->user())->getAuthIdentifier(),
+            ]
+        );
+
         return back()->with('swal', [
             'icon'  => 'success',
             'title' => 'Cover actualizado',

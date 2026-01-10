@@ -7,6 +7,7 @@ use App\Models\TourType;
 use App\Models\Tour;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\LoggerHelper;
 
 /**
  * TourOrderController
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\DB;
  */
 class TourOrderController extends Controller
 {
+    protected string $controller = 'TourOrderController';
+
     public function index(Request $request)
     {
         // Lista para el <select> de categorías
@@ -62,46 +65,59 @@ class TourOrderController extends Controller
 
     public function save(Request $request, TourType $tourType)
     {
-        $data = $request->validate([
-            'order'   => ['required', 'array', 'min:1'],
-            'order.*' => ['integer', 'distinct'], // IDs de tour en el orden deseado
-        ]);
+        try {
+            $data = $request->validate([
+                'order'   => ['required', 'array', 'min:1'],
+                'order.*' => ['integer', 'distinct'], // IDs de tour en el orden deseado
+            ]);
 
-        $order = $data['order'];
+            $order = $data['order'];
 
-        DB::transaction(function () use ($order, $tourType) {
-            // Limitar a tours que realmente pertenecen a esa categoría
-            $validIds = Tour::where('tour_type_id', $tourType->tour_type_id)
-                ->whereIn('tour_id', $order)
-                ->pluck('tour_id')
-                ->all();
+            DB::transaction(function () use ($order, $tourType) {
+                // Limitar a tours que realmente pertenecen a esa categoría
+                $validIds = Tour::where('tour_type_id', $tourType->tour_type_id)
+                    ->whereIn('tour_id', $order)
+                    ->pluck('tour_id')
+                    ->all();
 
-            // Reasignar posiciones secuenciales
-            foreach ($order as $idx => $tourId) {
-                if (!in_array($tourId, $validIds, true)) {
-                    continue;
+                // Reasignar posiciones secuenciales
+                foreach ($order as $idx => $tourId) {
+                    if (!in_array($tourId, $validIds, true)) {
+                        continue;
+                    }
+
+                    DB::table('tour_type_tour_order')->updateOrInsert(
+                        [
+                            'tour_type_id' => $tourType->tour_type_id,
+                            'tour_id'      => $tourId,
+                        ],
+                        [
+                            'position'   => $idx + 1,
+                            'updated_at' => now(),
+                            'created_at' => now(),
+                        ]
+                    );
                 }
 
-                DB::table('tour_type_tour_order')->updateOrInsert(
-                    [
-                        'tour_type_id' => $tourType->tour_type_id,
-                        'tour_id'      => $tourId,
-                    ],
-                    [
-                        'position'   => $idx + 1,
-                        'updated_at' => now(),
-                        'created_at' => now(),
-                    ]
-                );
-            }
+                // (Opcional) Limpiar filas de tours que ya no están en esta categoría
+                DB::table('tour_type_tour_order')
+                    ->where('tour_type_id', $tourType->tour_type_id)
+                    ->whereNotIn('tour_id', $validIds)
+                    ->delete();
+            });
 
-            // (Opcional) Limpiar filas de tours que ya no están en esta categoría
-            DB::table('tour_type_tour_order')
-                ->where('tour_type_id', $tourType->tour_type_id)
-                ->whereNotIn('tour_id', $validIds)
-                ->delete();
-        });
+            LoggerHelper::mutated($this->controller, 'save', 'TourType', $tourType->tour_type_id, [
+                'order_count' => count($order),
+                'user_id'     => optional($request->user())->getAuthIdentifier(),
+            ]);
 
-        return response()->json(['ok' => true]);
+            return response()->json(['ok' => true]);
+        } catch (\Exception $e) {
+            LoggerHelper::exception($this->controller, 'save', 'TourType', $tourType->tour_type_id, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return response()->json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 }

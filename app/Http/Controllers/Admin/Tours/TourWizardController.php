@@ -111,7 +111,11 @@ class TourWizardController extends Controller
         if ($tour->is_draft) {
             $step = $tour->current_step ?? 1;
 
-            LoggerHelper::info(...);
+            LoggerHelper::info($this->controller ?? 'TourWizardController', 'edit', 'Redirecting to wizard step', [
+                'tour_id' => $tour->tour_id,
+                'step'    => $step,
+                'user_id' => $userId
+            ]);
 
             return redirect()->route('admin.tours.wizard.step', [
                 'tour' => $tour,
@@ -120,7 +124,10 @@ class TourWizardController extends Controller
         }
 
         // Si ya está publicado, ir al resumen (paso 6)
-        LoggerHelper::info(...);
+        LoggerHelper::info($this->controller ?? 'TourWizardController', 'edit', 'Redirecting to wizard summary', [
+            'tour_id' => $tour->tour_id,
+            'user_id' => $userId
+        ]);
 
         return redirect()->route('admin.tours.wizard.step', [
             'tour' => $tour,
@@ -1471,7 +1478,7 @@ class TourWizardController extends Controller
      */
     public function quickStoreCategory(Request $request, TranslatorInterface $translator)
     {
-        Log::info('quickStoreCategory: Start', $request->all());
+        LoggerHelper::info('TourWizardController', 'quickStoreCategory', 'Start', $request->all());
 
         // if (!$request->ajax() && !$request->wantsJson()) {
         //     Log::warning('quickStoreCategory: Not AJAX/JSON request');
@@ -1506,9 +1513,11 @@ class TourWizardController extends Controller
                 ],
                 'is_active' => ['nullable', 'boolean'],
             ]);
-            Log::info('quickStoreCategory: Validation passed', $data);
+            LoggerHelper::info('TourWizardController', 'quickStoreCategory', 'Validation passed', $data);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('quickStoreCategory: Validation failed', $e->errors());
+            LoggerHelper::warning('TourWizardController', 'quickStoreCategory', 'Validation failed', [
+                'errors' => $e->errors()
+            ]);
             throw $e;
         }
 
@@ -1516,22 +1525,20 @@ class TourWizardController extends Controller
 
         // Slug is now provided by the user
         $slug = $data['slug'];
-        Log::info('quickStoreCategory: Using provided slug', ['slug' => $slug]);
+        LoggerHelper::info('TourWizardController', 'quickStoreCategory', 'Using provided slug', ['slug' => $slug]);
 
         try {
             $category = DB::transaction(function () use ($data, $slug, $translator) {
-                Log::info('quickStoreCategory: Creating category base');
+                // LoggerHelper::info('TourWizardController', 'quickStoreCategory', 'Creating category base');
                 $category = \App\Models\CustomerCategory::create([
                     'slug'      => $slug,
                     'age_from'  => $data['age_from'],
                     'age_to'    => $data['age_to'], // Can be null
                     'is_active' => $data['is_active'] ?? true,
                 ]);
-                Log::info('quickStoreCategory: Category base created', ['id' => $category->category_id]);
 
-                Log::info('quickStoreCategory: Translating name');
+                // LoggerHelper::info('TourWizardController', 'quickStoreCategory', 'Translating name');
                 $nameTr = $translator->translateAll($data['name']);
-                Log::info('quickStoreCategory: Translations received', $nameTr);
 
                 foreach (supported_locales() as $locale) {
                     CustomerCategoryTranslation::create([
@@ -1540,7 +1547,6 @@ class TourWizardController extends Controller
                         'name'        => $nameTr[$locale] ?? $data['name'],
                     ]);
                 }
-                Log::info('quickStoreCategory: Translations saved');
 
                 return $category;
             });
@@ -1560,7 +1566,7 @@ class TourWizardController extends Controller
 
             $ageLabel = $category->age_from . ' - ' . $category->age_to;
 
-            Log::info('quickStoreCategory: Success', ['id' => $category->category_id]);
+            LoggerHelper::info('TourWizardController', 'quickStoreCategory', 'Success', ['id' => $category->category_id]);
 
             return response()->json([
                 'id'        => $category->category_id,
@@ -1570,7 +1576,7 @@ class TourWizardController extends Controller
                 'message'   => __('m_tours.prices.quick_category.created_ok'),
             ], 201);
         } catch (\Exception $e) {
-            Log::error('quickStoreCategory: Exception caught', [
+            LoggerHelper::exception('TourWizardController', 'quickStoreCategory', 'customer_category', null, $e, [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
