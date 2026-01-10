@@ -1,34 +1,32 @@
 @php
-  use Illuminate\Support\Str;
+use Illuminate\Support\Str;
 
-  $variant        = $variant        ?? 'floating'; // 'floating' | 'inline'
-  $phone          = preg_replace('/\D+/', '', $phone ?? '50624791471');
-  $defaultMsg     = $defaultMsg     ?? __('adminlte::adminlte.whatsapp_placeholder');
-  $buttonClass    = $buttonClass    ?? 'btn btn-success';
-  $containerClass = $containerClass ?? '';
-  $widgetId       = $widgetId       ?? 'wsw_'.Str::random(6);
+$variant = $variant ?? 'floating'; // 'floating' | 'inline'
+$phone = preg_replace('/\D+/', '', $phone ?? '50624791471');
+$defaultMsg = $defaultMsg ?? __('adminlte::adminlte.whatsapp_placeholder');
+$buttonClass = $buttonClass ?? 'btn btn-success';
+$containerClass = $containerClass ?? '';
+$widgetId = $widgetId ?? 'wsw_'.Str::random(6);
 
-  $startsOpen = $variant === 'false';
+$startsOpen = false; // Widget inicia cerrado
 @endphp
 
 <div
   id="{{ $widgetId }}"
   x-data="{ isOpen: @json($startsOpen), message: '' }"
   x-cloak
-  class="{{ $containerClass }} @if($variant === 'floating') whatsapp-widget z-50 position-fixed bottom-0 end-0 m-3 @endif"
->
+  class="{{ $containerClass }} @if($variant === 'floating') whatsapp-widget z-50 position-fixed bottom-0 end-0 m-3 @endif">
   {{-- Panel --}}
   <div
-    @if($variant === 'floating')
-      x-show="isOpen"
-      x-transition
-      class="whatsapp-panel bg-white border rounded shadow"
-      style="width:300px;"
+    @if($variant==='floating' )
+    x-show="isOpen"
+    x-transition
+    class="whatsapp-panel bg-white border rounded shadow"
+    style="width:300px;"
     @else
-      class="whatsapp-inline bg-white border rounded shadow p-0"
+    class="whatsapp-inline bg-white border rounded shadow p-0"
     @endif
-    role="dialog" aria-modal="false" aria-label="WhatsApp"
-  >
+    role="dialog" aria-modal="false" aria-label="WhatsApp">
     {{-- Header --}}
     <div class="whatsapp-header bg-success text-white d-flex justify-content-between align-items-center px-3 py-2 rounded-top">
       <div class="d-flex align-items-center gap-2">
@@ -42,9 +40,9 @@
       </div>
 
       @if($variant === 'floating')
-        <button type="button" class="btn btn-sm text-white" @click="isOpen = false" aria-label="Cerrar">
-          <i class="fas fa-times"></i>
-        </button>
+      <button type="button" class="btn btn-sm text-white" @click="isOpen = false" aria-label="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
       @endif
     </div>
 
@@ -58,8 +56,7 @@
         x-model="message"
         class="form-control mb-2"
         rows="3"
-        placeholder="{{ __('adminlte::adminlte.whatsapp_placeholder') }}"
-      ></textarea>
+        placeholder="{{ __('adminlte::adminlte.whatsapp_placeholder') }}"></textarea>
 
       <button
         type="button"
@@ -76,8 +73,7 @@
             isOpen = @json($variant === 'inline' ? true : false);
             message = '';
           }
-        "
-      >
+        ">
         <i class="fas fa-paper-plane me-2"></i>{{ __('adminlte::adminlte.whatsapp_button') }}
       </button>
 
@@ -97,20 +93,19 @@
 
   {{-- Botón flotante --}}
   @if($variant === 'floating')
-    <button
-      type="button"
-      class="whatsapp-float-btn btn btn-success rounded-circle shadow-lg d-flex align-items-center justify-content-center"
-      style="width:60px;height:60px;"
-      aria-label="Abrir WhatsApp"
-      @click="isOpen = !isOpen"
-    >
-      <template x-if="isOpen">
-        <i class="fas fa-times fa-lg"></i>
-      </template>
-      <template x-if="!isOpen">
-        <i class="fab fa-whatsapp fa-lg"></i>
-      </template>
-    </button>
+  <button
+    type="button"
+    class="whatsapp-float-btn btn btn-success rounded-circle shadow-lg d-flex align-items-center justify-content-center"
+    style="width:60px;height:60px;"
+    aria-label="Abrir WhatsApp"
+    @click="isOpen = !isOpen">
+    <template x-if="isOpen">
+      <i class="fas fa-times fa-lg"></i>
+    </template>
+    <template x-if="!isOpen">
+      <i class="fab fa-whatsapp fa-lg"></i>
+    </template>
+  </button>
   @endif
 
   {{-- Fallback sin JS: link directo (no visible si Alpine corre por x-cloak) --}}
