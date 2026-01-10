@@ -113,9 +113,37 @@
       <a href="https://github.com/ervingpinell" target="_blank" rel="noopener" class="text-white text-decoration-underline">Erving Pinell</a>
       &amp;
       <a href="https://github.com/AxlPaniagua" target="_blank" rel="noopener" class="text-white text-decoration-underline">Axel Paniagua</a>.
+      <span class="mx-2">|</span>
+      <a href="#" id="cookie-settings-link" class="text-white text-decoration-underline">
+        {{ __('adminlte::adminlte.cookies.change_preferences') }}
+      </a>
     </div>
   </div>
 </footer>
+
+<script>
+  // Link para abrir modal de preferencias de cookies
+  document.getElementById('cookie-settings-link')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const modal = document.getElementById('cookie-modal');
+    if (modal) {
+      modal.classList.add('active');
+
+      // Cargar preferencias actuales
+      fetch('{{ route("cookies.preferences") }}')
+        .then(res => res.json())
+        .then(prefs => {
+          if (prefs) {
+            document.getElementById('cookie-functional').checked = prefs.functional || false;
+            document.getElementById('cookie-analytics').checked = prefs.analytics || false;
+            document.getElementById('cookie-marketing').checked = prefs.marketing || false;
+          }
+        })
+        .catch(e => console.error('Failed to load preferences:', e));
+    }
+  });
+</script>
+
 
 @push('scripts')
 <script>

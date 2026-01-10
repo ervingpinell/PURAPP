@@ -139,44 +139,49 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
 
     @stack('styles')
 
-    {{-- GA / Pixel solo si hay consentimiento --}}
-    @if ($isProd && $cookiesOk)
-        @if (!empty($gaId))
-        <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-        <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-        <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag() {
-                dataLayer.push(arguments);
-            }
-            gtag('js', new Date());
-            gtag('config', '{{ $gaId }}', {
-                'anonymize_ip': true
-            });
-        </script>
-        @endif
+    {{-- GA / Pixel solo si hay consentimiento granular --}}
+    @php
+        $analyticsAllowed = cookie_allowed('analytics');
+        $marketingAllowed = cookie_allowed('marketing');
+    @endphp
 
-        @if (!empty($pixelId))
-        <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
-        <script>
-            !function(f,b,e,v,n,t,s) {
-                if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                n.queue=[];t=b.createElement(e);t.async=!0;
-                t.src=v;s=b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t,s)
-            }(window, document,'script',
-            'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '{{ $pixelId }}');
-            fbq('track', 'PageView');
-        </script>
-        <noscript>
-            <img height="1" width="1" style="display:none"
-                src="https://www.facebook.com/tr?id={{ $pixelId }}&ev=PageView&noscript=1" />
-        </noscript>
-        @endif
+    {{-- Google Analytics - solo si se permite analytics --}}
+    @if ($isProd && $analyticsAllowed && !empty($gaId))
+    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+        gtag('js', new Date());
+        gtag('config', '{{ $gaId }}', {
+            'anonymize_ip': true
+        });
+    </script>
+    @endif
+
+    {{-- Facebook Pixel - solo si se permite marketing --}}
+    @if ($isProd && $marketingAllowed && !empty($pixelId))
+    <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
+    <script>
+        !function(f,b,e,v,n,t,s) {
+            if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)
+        }(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '{{ $pixelId }}');
+        fbq('track', 'PageView');
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+            src="https://www.facebook.com/tr?id={{ $pixelId }}&ev=PageView&noscript=1" />
+    </noscript>
     @endif
 
     {{-- JSON-LD --}}

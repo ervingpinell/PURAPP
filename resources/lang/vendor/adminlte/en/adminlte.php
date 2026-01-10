@@ -567,4 +567,31 @@ return [
     'quantities' => 'Quantities',
     'quantitiesHelp' => 'Adjust quantities as needed. You can leave categories you don\'t use at 0.',
     'no_tours_found' => 'No tours found.',
+    // COOKIES (Cookie Consent)
+    'cookies' => [
+        'banner_aria' => 'Cookie notice',
+        'title' => 'We use cookies',
+        'message' => 'This site uses cookies to improve your experience. You can accept all, reject non-essential ones, or customize your preferences.',
+        'accept_all' => 'Accept all',
+        'reject' => 'Reject',
+        'customize' => 'Customize',
+        'customize_title' => 'Customize cookies',
+        'save_preferences' => 'Save preferences',
+        'change_preferences' => 'Cookie preferences',
+        'close' => 'Close',
+        'always_active' => 'Always active',
+        'learn_more' => 'Learn more about cookies',
+
+        'essential' => 'Essential cookies',
+        'essential_desc' => 'Necessary for the basic functioning of the site (login, cart, security)',
+
+        'functional' => 'Functional cookies',
+        'functional_desc' => 'Remember your preferences such as language, currency or theme',
+
+        'analytics' => 'Analytics cookies',
+        'analytics_desc' => 'Help us understand how you use the site to improve it (Google Analytics)',
+
+        'marketing' => 'Marketing cookies',
+        'marketing_desc' => 'Allow us to show you relevant ads and measure campaigns (Facebook Pixel)',
+    ],
 ];

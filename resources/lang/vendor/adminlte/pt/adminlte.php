@@ -566,4 +566,33 @@ return [
     'quantities' => 'Quantidades',
     'quantitiesHelp' => 'Ajuste as quantidades conforme necessário. Você pode deixar em 0 as categorias que não usar.',
     'no_tours_found' => 'Nenhum passeio encontrado.',
+
+    // COOKIES (Cookie Consent)
+    'cookies' => [
+        'banner_aria' => 'Aviso de cookies',
+        'title' => 'Usamos cookies',
+        'message' => 'Este site usa cookies para melhorar sua experiência. Você pode aceitar todos, rejeitar os não essenciais ou personalizar suas preferências.',
+        'accept_all' => 'Aceitar todos',
+        'reject' => 'Rejeitar',
+        'customize' => 'Personalizar',
+        'customize_title' => 'Personalizar cookies',
+        'save_preferences' => 'Salvar preferências',
+        'change_preferences' => 'Preferências de cookies',
+        'close' => 'Fechar',
+        'always_active' => 'Sempre ativos',
+        'learn_more' => 'Saiba mais sobre cookies',
+
+        'essential' => 'Cookies essenciais',
+        'essential_desc' => 'Necessários para o funcionamento básico do site (login, carrinho, segurança)',
+
+        'functional' => 'Cookies funcionais',
+        'functional_desc' => 'Lembram suas preferências como idioma, moeda ou tema',
+
+        'analytics' => 'Cookies analíticos',
+        'analytics_desc' => 'Nos ajudam a entender como você usa o site para melhorá-lo (Google Analytics)',
+
+        'marketing' => 'Cookies de marketing',
+        'marketing_desc' => 'Permitem mostrar anúncios relevantes e medir campanhas (Facebook Pixel)',
+    ],
 ];
+

@@ -1452,6 +1452,14 @@ Route::post('/cookies/reject', [CookieConsentController::class, 'reject'])
     ->name('cookies.reject')
     ->middleware('throttle:preferences');
 
+Route::post('/cookies/customize', [CookieConsentController::class, 'customize'])
+    ->name('cookies.customize')
+    ->middleware('throttle:preferences');
+
+Route::get('/cookies/preferences', [CookieConsentController::class, 'getPreferences'])
+    ->name('cookies.preferences');
+
+
 // ============================
 // PASSWORD SETUP (Guest to Registered User)
 // ============================

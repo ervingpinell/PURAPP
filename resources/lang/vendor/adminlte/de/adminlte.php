@@ -565,4 +565,32 @@ return [
     'quantities' => 'Mengen',
     'quantitiesHelp' => 'Passen Sie die Mengen nach Bedarf an. Sie können nicht verwendete Kategorien auf 0 belassen.',
     'no_tours_found' => 'Keine Touren gefunden.',
+
+    // COOKIES (Cookie Consent)
+    'cookies' => [
+        'banner_aria' => 'Cookie-Hinweis',
+        'title' => 'Wir verwenden Cookies',
+        'message' => 'Diese Website verwendet Cookies, um Ihre Erfahrung zu verbessern. Sie können alle akzeptieren, nicht wesentliche ablehnen oder Ihre Einstellungen anpassen.',
+        'accept_all' => 'Alle akzeptieren',
+        'reject' => 'Ablehnen',
+        'customize' => 'Anpassen',
+        'customize_title' => 'Cookies anpassen',
+        'save_preferences' => 'Einstellungen speichern',
+        'change_preferences' => 'Cookie-Einstellungen',
+        'close' => 'Schließen',
+        'always_active' => 'Immer aktiv',
+        'learn_more' => 'Mehr über Cookies erfahren',
+
+        'essential' => 'Wesentliche Cookies',
+        'essential_desc' => 'Notwendig für die Grundfunktionen der Website (Login, Warenkorb, Sicherheit)',
+
+        'functional' => 'Funktionale Cookies',
+        'functional_desc' => 'Speichern Ihre Einstellungen wie Sprache, Währung oder Theme',
+
+        'analytics' => 'Analytische Cookies',
+        'analytics_desc' => 'Helfen uns zu verstehen, wie Sie die Website nutzen, um sie zu verbessern (Google Analytics)',
+
+        'marketing' => 'Marketing-Cookies',
+        'marketing_desc' => 'Ermöglichen es uns, Ihnen relevante Anzeigen zu zeigen und Kampagnen zu messen (Facebook Pixel)',
+    ],
 ];

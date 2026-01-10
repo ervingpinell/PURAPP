@@ -562,4 +562,32 @@ return [
     'quantities' => 'Quantités',
     'quantitiesHelp' => 'Ajustez les quantités selon vos besoins. Vous pouvez laisser à 0 les catégories que vous n\'utilisez pas.',
     'no_tours_found' => 'Aucun tour trouvé.',
+
+    // COOKIES (Cookie Consent)
+    'cookies' => [
+        'banner_aria' => 'Avis sur les cookies',
+        'title' => 'Nous utilisons des cookies',
+        'message' => 'Ce site utilise des cookies pour améliorer votre expérience. Vous pouvez tout accepter, refuser les cookies non essentiels ou personnaliser vos préférences.',
+        'accept_all' => 'Tout accepter',
+        'reject' => 'Refuser',
+        'customize' => 'Personnaliser',
+        'customize_title' => 'Personnaliser les cookies',
+        'save_preferences' => 'Enregistrer les préférences',
+        'change_preferences' => 'Préférences des cookies',
+        'close' => 'Fermer',
+        'always_active' => 'Toujours actifs',
+        'learn_more' => 'En savoir plus sur les cookies',
+
+        'essential' => 'Cookies essentiels',
+        'essential_desc' => 'Nécessaires au fonctionnement de base du site (connexion, panier, sécurité)',
+
+        'functional' => 'Cookies fonctionnels',
+        'functional_desc' => 'Mémorisent vos préférences telles que la langue, la devise ou le thème',
+
+        'analytics' => 'Cookies analytiques',
+        'analytics_desc' => 'Nous aident à comprendre comment vous utilisez le site pour l\'améliorer (Google Analytics)',
+
+        'marketing' => 'Cookies marketing',
+        'marketing_desc' => 'Permettent de vous montrer des publicités pertinentes et de mesurer les campagnes (Facebook Pixel)',
+    ],
 ];

@@ -244,3 +244,54 @@ if (! function_exists('cdn')) {
         return $base . '/' . $path;
     }
 }
+
+if (!function_exists('cookie_allowed')) {
+    /**
+     * Verifica si una categoría específica de cookie está permitida
+     * 
+     * @param string $category Categoría: 'essential', 'functional', 'analytics', 'marketing'
+     * @return bool
+     */
+    function cookie_allowed(string $category): bool
+    {
+        // Essential cookies are always allowed
+        if ($category === 'essential') {
+            return true;
+        }
+        
+        // Try to get from session first (faster)
+        $preferences = session('cookie_preferences');
+        
+        if (!$preferences) {
+            // Try to read from cookie
+            $cookie = request()->cookie('gv_cookie_consent');
+            
+            if (!$cookie) {
+                return false;
+            }
+            
+            // Legacy format: '1' or '0'
+            if ($cookie === '1') {
+                return true;
+            }
+            
+            if ($cookie === '0') {
+                return $category === 'essential';
+            }
+            
+            // Granular format: JSON
+            if (is_string($cookie)) {
+                $preferences = json_decode($cookie, true);
+                if (is_array($preferences)) {
+                    session(['cookie_preferences' => $preferences]);
+                }
+            }
+        }
+        
+        if (!is_array($preferences)) {
+            return false;
+        }
+        
+        return $preferences[$category] ?? false;
+    }
+}
