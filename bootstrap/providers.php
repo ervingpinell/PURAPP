@@ -6,6 +6,6 @@ return [
     App\Providers\HorizonServiceProvider::class,
     App\Providers\RateLimitServiceProvider::class,
     App\Providers\ReviewsServiceProvider::class,
+    App\Providers\TelescopeServiceProvider::class,
     App\Providers\VoltServiceProvider::class,
-    App\Providers\RateLimitServiceProvider::class,
 ];

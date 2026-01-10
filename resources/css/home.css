@@ -751,7 +751,7 @@
 .category-row {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center; /* Centrar verticalmente */
     padding: 0.5rem 0;
     border-bottom: 1px solid #f8f9fa;
     text-align: left; /* Alinear a la izquierda en desktop y mobile */
