@@ -13,40 +13,42 @@ use Illuminate\Http\Response;
  */
 class CookieConsentController extends Controller
 {
-public function accept(Request $request): Response
-{
-    $request->session()->put('cookies.accepted', true);
+    public function accept(Request $request): Response
+    {
+        $request->session()->put('cookies.accepted', true);
+        $request->session()->put('cookies.accepted_at', now()->toIso8601String());
 
-    Cookie::queue(cookie(
-        name:     'gv_cookie_consent',
-        value:    '1',
-        minutes:  60 * 24 * 365,
-        path:     '/',
-        domain:   config('session.domain'),
-        secure:   (bool) config('session.secure', false),
-        httpOnly: false,
-        raw:      false,
-        sameSite: config('session.same_site', 'lax')
-    ));
+        Cookie::queue(cookie(
+            name: 'gv_cookie_consent',
+            value: '1',
+            minutes: 60 * 24 * 365,
+            path: '/',
+            domain: config('session.domain'),
+            secure: (bool) config('session.secure', false),
+            httpOnly: true,  // ✅ Proteger contra XSS
+            raw: false,
+            sameSite: config('session.same_site', 'lax')  // ✅ Alinear con sesión (none para Alignet)
+        ));
 
-    return response()->noContent();
-}
+        return response()->noContent();
+    }
 
 
     public function reject(Request $request): Response
     {
         $request->session()->forget('cookies.accepted');
+        $request->session()->put('cookies.rejected_at', now()->toIso8601String());
 
         Cookie::queue(cookie(
-            name:     'gv_cookie_consent',
-            value:    '0',
-            minutes:  60 * 24 * 365,
-            path:     '/',
-            domain:   config('session.domain'),
-            secure:   (bool) config('session.secure', false),
-            httpOnly: false,
-            raw:      false,
-            sameSite: config('session.same_site', 'lax')
+            name: 'gv_cookie_consent',
+            value: '0',
+            minutes: 60 * 24 * 365,
+            path: '/',
+            domain: config('session.domain'),
+            secure: (bool) config('session.secure', false),
+            httpOnly: true,  // ✅ Proteger contra XSS
+            raw: false,
+            sameSite: config('session.same_site', 'lax')  // ✅ Alinear con sesión (none para Alignet)
         ));
 
         return response()->noContent();

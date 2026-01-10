@@ -7,10 +7,10 @@ $appLocale = str_replace('_','-', app()->getLocale() ?? 'es');
 $ASSET_ROOT = rtrim(asset(''), '/');
 
 $pageTitle = trim($__env->yieldContent('title') ?? '');
-$fullTitle = 'GV | ' . ($pageTitle !== '' ? $pageTitle : 'Green Vacations CR');
+$fullTitle = config('company.brand_name') . ' | ' . ($pageTitle !== '' ? $pageTitle : config('company.short_name'));
 
 $metaDescSlot = $__env->yieldContent('meta_description');
-$metaDesc = $metaDescSlot ?: 'Descubre los mejores tours sostenibles en La Fortuna y Arenal con Green Vacations Costa Rica. Reserva tu aventura con responsabilidad ecológica.';
+$metaDesc = $metaDescSlot ?: config('company.seo.meta_description');
 
 $isProd = app()->environment('production');
 
@@ -74,7 +74,7 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
 
     <title>{{ $fullTitle }}</title>
     <meta name="description" content="{{ $metaDesc }}">
-    <meta name="keywords" content="tours Costa Rica, turismo ecológico, La Fortuna, Arenal, viajes sostenibles, Green Vacations CR">
+    <meta name="keywords" content="{{ config('company.seo.meta_keywords') }}">
     <link rel="canonical" href="{{ url()->current() }}">
 
     {{-- Alternate hreflangs --}}
@@ -91,7 +91,7 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
     <meta property="og:image" content="{{ $ASSET_ROOT }}/images/og-image.jpg">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Green Vacations Costa Rica">
+    <meta property="og:site_name" content="{{ config('company.name') }}">
     <meta property="og:locale" content="{{ $appLocale }}">
 
     <meta name="twitter:card" content="summary_large_image">
@@ -147,22 +147,27 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
         <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
         <script>
             window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
+            function gtag() {
+                dataLayer.push(arguments);
+            }
             gtag('js', new Date());
-            gtag('config', '{{ $gaId }}', { 'anonymize_ip': true });
+            gtag('config', '{{ $gaId }}', {
+                'anonymize_ip': true
+            });
         </script>
         @endif
 
         @if (!empty($pixelId))
         <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
         <script>
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            !function(f,b,e,v,n,t,s) {
+                if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                n.queue=[];t=b.createElement(e);t.async=!0;
+                t.src=v;s=b.getElementsByTagName(e)[0];
+                s.parentNode.insertBefore(t,s)
+            }(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '{{ $pixelId }}');
             fbq('track', 'PageView');
@@ -179,16 +184,16 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
     {!! json_encode([
         '@context' => 'https://schema.org',
         '@type' => 'TravelAgency',
-        'name' => 'Green Vacations Costa Rica',
+        'name' => config('company.name'),
         'url' => url('/'),
         'logo' => $ASSET_ROOT.'/images/logo.png',
         'sameAs' => [
-            'https://www.facebook.com/greenvacationscr',
-            'https://www.instagram.com/greenvacationscr',
+            config('company.social.facebook'),
+            config('company.social.instagram'),
         ],
         'address' => [
             '@type' => 'PostalAddress',
-            'addressLocality' => 'La Fortuna',
+            'addressLocality' => config('company.address.city'),
             'addressRegion' => 'Alajuela',
             'addressCountry' => 'CR',
         ],
@@ -240,7 +245,9 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
                 const url = document.querySelector('meta[name="cart-count-url"]')?.getAttribute('content');
                 if (!url) return;
                 try {
-                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    const res = await fetch(url, {
+                        headers: { 'Accept': 'application/json' }
+                    });
                     if (res.status === 401) {
                         setBadge(0);
                         return;
@@ -257,82 +264,82 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
 
     {{-- Global Cart Countdown System --}}
     @auth
-    @php
-        $userCart = auth()->user()->cart()->where('is_active', true)->latest('cart_id')->first();
-        $hasActiveCart = $userCart && $userCart->items()->count() > 0;
-    @endphp
+        @php
+            $userCart = auth()->user()->cart()->where('is_active', true)->latest('cart_id')->first();
+            $hasActiveCart = $userCart && $userCart->items()->count() > 0;
+        @endphp
 
-    @if ($hasActiveCart)
-    <script>
-        (function() {
-            const expiresAtStr = @json($userCart->expires_at);
-            const totalMinutes = @json($userCart->expiryMinutes());
+        @if ($hasActiveCart)
+        <script>
+            (function() {
+                const expiresAtStr = @json($userCart->expires_at);
+                const totalMinutes = @json($userCart->expiryMinutes());
 
-            if (!expiresAtStr) return;
+                if (!expiresAtStr) return;
 
-            let serverExpires = new Date(expiresAtStr).getTime();
-            const totalSeconds = totalMinutes * 60;
+                let serverExpires = new Date(expiresAtStr).getTime();
+                const totalSeconds = totalMinutes * 60;
 
-            window.cartCountdown = {
-                getRemainingSeconds: () => Math.max(0, Math.ceil((serverExpires - Date.now()) / 1000)),
-                getTotalSeconds: () => totalSeconds,
-                getExpiresAt: () => new Date(serverExpires),
-                isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
-            };
-        })();
-    </script>
-    @endif
+                window.cartCountdown = {
+                    getRemainingSeconds: () => Math.max(0, Math.ceil((serverExpires - Date.now()) / 1000)),
+                    getTotalSeconds: () => totalSeconds,
+                    getExpiresAt: () => new Date(serverExpires),
+                    isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+                };
+            })();
+        </script>
+        @endif
     @endauth
 
     {{-- cartCountdown para invitados --}}
     @guest
-    @php
-        $guestCartCreated = session('guest_cart_created_at');
-        $hasGuestCart = !empty(session('guest_cart_items')) && $guestCartCreated;
-    @endphp
+        @php
+            $guestCartCreated = session('guest_cart_created_at');
+            $hasGuestCart = !empty(session('guest_cart_items')) && $guestCartCreated;
+        @endphp
 
-    @if($hasGuestCart)
-    <script>
-        (function() {
-            const createdAt = @json($guestCartCreated);
-            const expiryMinutes = {{ \App\Models\Setting::getValue('cart.expiration_minutes', 30) }};
-            if (!createdAt) return;
+        @if($hasGuestCart)
+        <script>
+            (function() {
+                const createdAt = @json($guestCartCreated);
+                const expiryMinutes = {{ \App\Models\Setting::getValue('cart.expiration_minutes', 30) }};
+                if (!createdAt) return;
 
-            const created = new Date(createdAt).getTime();
-            const expires = created + (expiryMinutes * 60 * 1000);
-            const totalSeconds = expiryMinutes * 60;
+                const created = new Date(createdAt).getTime();
+                const expires = created + (expiryMinutes * 60 * 1000);
+                const totalSeconds = expiryMinutes * 60;
 
-            window.cartCountdown = {
-                getRemainingSeconds: () => Math.max(0, Math.ceil((expires - Date.now()) / 1000)),
-                getTotalSeconds: () => totalSeconds,
-                getExpiresAt: () => new Date(expires),
-                isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
-            };
+                window.cartCountdown = {
+                    getRemainingSeconds: () => Math.max(0, Math.ceil((expires - Date.now()) / 1000)),
+                    getTotalSeconds: () => totalSeconds,
+                    getExpiresAt: () => new Date(expires),
+                    isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+                };
 
-            let hasReloaded = false;
-            const expireUrl = '{{ route("public.guest-carts.expire") }}';
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const homeUrl = '{{ route(app()->getLocale() . ".home") }}';
+                let hasReloaded = false;
+                const expireUrl = '{{ route("public.guest-carts.expire") }}';
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                const homeUrl = '{{ route(app()->getLocale() . ".home") }}';
 
-            const checkExpiration = () => {
-                if (window.cartCountdown.isExpired() && !hasReloaded) {
-                    hasReloaded = true;
-                    fetch(expireUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken
-                        }
-                    }).finally(() => {
-                        window.location.href = homeUrl;
-                    });
-                }
-            };
+                const checkExpiration = () => {
+                    if (window.cartCountdown.isExpired() && !hasReloaded) {
+                        hasReloaded = true;
+                        fetch(expireUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            }
+                        }).finally(() => {
+                            window.location.href = homeUrl;
+                        });
+                    }
+                };
 
-            setInterval(checkExpiration, 5000);
-        })();
-    </script>
-    @endif
+                setInterval(checkExpiration, 5000);
+            })();
+        </script>
+        @endif
     @endguest
 
     {{-- Theme-color dinámico según footer --}}
@@ -366,7 +373,7 @@ $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
         // Set flag to signal Alignet modal closure across tabs/windows
         try {
             localStorage.setItem('alignet_payment_complete', 'true');
-            console.log(' Señal de cierre de modal Alignet establecida');
+            console.log('✅ Señal de cierre de modal Alignet establecida');
         } catch (e) {
             console.warn('No se pudo establecer señal de localStorage:', e);
         }

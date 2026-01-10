@@ -19,7 +19,7 @@
   <div class="footer-main-content">
     <div class="footer-brand d-none d-md-block">
       <img src="{{ asset('images/logoCompanyWhite.png') }}"
-        alt="Green Vacations"
+        alt="{{ config('company.short_name') }}"
         decoding="async"
         fetchpriority="low" />
       <p>{{ __('adminlte::adminlte.footer_text') }}</p>
@@ -90,24 +90,24 @@
       <p class="mb-2">
         <i class="fas fa-map-marker-alt me-2"></i>
         <a href="{{ $mapUrl }}" target="_blank" rel="noopener" class="text-white text-decoration-none">
-          La Fortuna, San Carlos, Costa Rica
+          {{ config('company.address.city') }}, {{ config('company.address.state') }}, {{ config('company.address.country') }}
         </a>
       </p>
       <p>
         <i class="fas fa-phone me-2"></i>
-        <a href="tel:+50624791471" class="text-white text-decoration-none">(+506) 2479 1471</a>
+        <a href="tel:{{ str_replace(' ', '', config('company.phone')) }}" class="text-white text-decoration-none">{{ config('company.phone') }}</a>
       </p>
       <p>
         <i class="fas fa-envelope me-2"></i>
-        <a href="mailto:info@greenvacationscr.com" class="text-white text-decoration-none">
-          info@greenvacationscr.com
+        <a href="mailto:{{ config('company.email') }}" class="text-white text-decoration-none">
+          {{ config('company.email') }}
         </a>
       </p>
     </div>
   </div>
 
   <div class="footer-bottom text-center">
-    &copy; {{ date('Y') }} Green Vacations Costa Rica. {{ __('adminlte::adminlte.rights_reserved') }}
+    &copy; {{ date('Y') }} {{ config('company.name') }}. {{ __('adminlte::adminlte.rights_reserved') }}
     <div class="small opacity-75 mt-1">
       Developed by
       <a href="https://github.com/ervingpinell" target="_blank" rel="noopener" class="text-white text-decoration-underline">Erving Pinell</a>

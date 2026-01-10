@@ -133,17 +133,17 @@
 
             <p class="mb-2">
               <i class="fas fa-map-marker-alt me-2 text-success"></i>
-              La Fortuna, San Carlos, Costa Rica
+              {{ config('company.address.city') }}, {{ config('company.address.state') }}, {{ config('company.address.country') }}
             </p>
 
             <p class="mb-2">
               <i class="fas fa-phone me-2 text-success"></i>
-              (+506) 2479 1471
+              {{ config('company.phone') }}
             </p>
 
             <p class="mb-3">
               <i class="fas fa-envelope me-2 text-success"></i>
-              <a href="mailto:info@greenvacationscr.com">info@greenvacationscr.com</a>
+              <a href="mailto:{{ config('company.email') }}">{{ config('company.email') }}</a>
             </p>
 
             <h5 class="mt-4">
@@ -157,7 +157,7 @@
               @include('partials.ws-widget', [
               'variant' => 'inline',
               'buttonClass' => 'btn btn-outline-success',
-              'phone' => '50624791471',
+              'phone' => config('company.phone_raw'),
               ])
             </div>
           </div>
@@ -206,7 +206,7 @@
     @endif
 
     // Mostrar SweetAlert si hay errores de validación del servidor
-    @if($errors -> any())
+    @if($errors - > any())
     Swal.fire({
       icon: 'error',
       title: '{{ __('

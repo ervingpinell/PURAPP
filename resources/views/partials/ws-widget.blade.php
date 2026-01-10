@@ -2,7 +2,7 @@
 use Illuminate\Support\Str;
 
 $variant = $variant ?? 'floating'; // 'floating' | 'inline'
-$phone = preg_replace('/\D+/', '', $phone ?? '50624791471');
+$phone = preg_replace('/\D+/', '', $phone ?? config('company.phone_raw'));
 $defaultMsg = $defaultMsg ?? __('adminlte::adminlte.whatsapp_placeholder');
 $buttonClass = $buttonClass ?? 'btn btn-success';
 $containerClass = $containerClass ?? '';

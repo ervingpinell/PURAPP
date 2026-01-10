@@ -28,15 +28,15 @@ class SyncCookieConsent
 
                         // Seteamos la oficial por 1 año
                         Cookie::queue(cookie(
-                            name:     'gv_cookie_consent',
-                            value:    $current,
-                            minutes:  60 * 24 * 365,
-                            path:     '/',
-                            domain:   config('session.domain'),
-                            secure:   (bool) config('session.secure', false),
-                            httpOnly: false,
-                            raw:      false,
-                            sameSite: config('session.same_site', 'lax')
+                            name: 'gv_cookie_consent',
+                            value: $current,
+                            minutes: 60 * 24 * 365,
+                            path: '/',
+                            domain: config('session.domain'),
+                            secure: (bool) config('session.secure', false),
+                            httpOnly: true,  // ✅ Proteger contra XSS
+                            raw: false,
+                            sameSite: config('session.same_site', 'lax')  // ✅ Alinear con sesión
                         ));
 
                         break;
@@ -48,8 +48,8 @@ class SyncCookieConsent
             foreach ($legacyNames as $name) {
                 if ($request->cookies->has($name)) {
                     Cookie::queue(Cookie::forget(
-                        name:   $name,
-                        path:   '/',
+                        name: $name,
+                        path: '/',
                         domain: config('session.domain')
                     ));
                 }
