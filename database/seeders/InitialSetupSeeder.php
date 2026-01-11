@@ -74,93 +74,136 @@ class InitialSetupSeeder extends Seeder
             );
         }
 
-        // Tour Types
+        // Tour Types (with translations)
         $tourTypes = [
             [
-                'name'        => 'Día completo',
-                'description' => 'La opción perfecta para personas que buscan una experiencia completa en un solo día',
-                'duration'    => '6 a 9 horas',
                 'is_active'   => true,
+                'translations' => [
+                    'es' => [
+                        'name' => 'Día completo',
+                        'description' => 'La opción perfecta para personas que buscan una experiencia completa en un solo día',
+                        'duration' => '8 Horas',
+                    ],
+                    'en' => [
+                        'name' => 'Full Day',
+                        'description' => 'The perfect option for people looking for a complete experience in a single day',
+                        'duration' => '8 Hours',
+                    ],
+                ],
             ],
             [
-                'name'        => 'Medio día',
-                'description' => 'Tours ideales para una aventura rápida para quienes tienen poco tiempo o quieren realizar otras actividades en la tarde.',
-                'duration'    => '2 a 4 horas',
                 'is_active'   => true,
+                'translations' => [
+                    'es' => [
+                        'name' => 'Medio día',
+                        'description' => 'Tours ideales para una aventura rápida para quienes tienen poco tiempo o quieren realizar otras actividades en la tarde.',
+                        'duration' => '4 horas',
+                    ],
+                    'en' => [
+                        'name' => 'Half Day',
+                        'description' => 'Ideal tours for a quick adventure for those with little time or who want to do other activities in the afternoon.',
+                        'duration' => '4 Hours',
+                    ],
+                ],
             ],
         ];
 
-        foreach ($tourTypes as $type) {
-            TourType::updateOrCreate(
-                ['name' => $type['name']],
-                array_merge($type, ['created_at' => $now, 'updated_at' => $now])
-            );
+        foreach ($tourTypes as $typeData) {
+            $translations = $typeData['translations'];
+            unset($typeData['translations']);
+
+            // Create tour type with only is_active
+            $type = TourType::create(array_merge($typeData, ['created_at' => $now, 'updated_at' => $now]));
+
+            // Create translations
+            foreach ($translations as $locale => $trans) {
+                DB::table('tour_type_translations')->insert([
+                    'tour_type_id' => $type->tour_type_id,
+                    'locale' => $locale,
+                    'name' => $trans['name'],
+                    'description' => $trans['description'],
+                    'duration' => $trans['duration'] ?? null,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]);
+            }
         }
 
-        // Itinerary Items
+        // Itinerary Items (with translations)
         $itineraryItems = [
             [
-                'title' => 'Arenal 1968 Volcano View and Lava Trails',
-                'description' => 'Caminata por los senderos de lava del Volcán Arenal con vistas espectaculares.',
                 'is_active' => true,
+                'translations' => [
+                    'es' => [
+                        'title' => 'Arenal 1968 Volcano View and Lava Trails',
+                        'description' => 'Caminata por los senderos de lava del Volcán Arenal con vistas espectaculares.',
+                    ],
+                    'en' => [
+                        'title' => 'Arenal 1968 Volcano View and Lava Trails',
+                        'description' => 'Hike through the Arenal Volcano lava trails with spectacular views.',
+                    ],
+                ],
             ],
             [
-                'title' => 'La Fortuna Waterfall',
-                'description' => 'Visita a la impresionante cascada La Fortuna de 70 metros de altura.',
                 'is_active' => true,
-            ],
-            [
-                'title' => 'Soda Fortuna',
-                'description' => 'Almuerzo típico costarricense en restaurante local.',
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Mistico Park',
-                'description' => 'Recorrido por puentes colgantes en el dosel del bosque tropical.',
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Safari Put in',
-                'description' => 'Punto de inicio del safari flotante en el río Peñas Blancas.',
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Peñas Blancas River',
-                'description' => 'Recorrido en balsa por el río observando vida silvestre.',
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Portón del Río',
-                'description' => 'Punto de salida del safari flotante.',
-                'is_active' => true,
+                'translations' => [
+                    'es' => [
+                        'title' => 'La Fortuna Waterfall',
+                        'description' => 'Visita a la impresionante cascada La Fortuna de 70 metros de altura.',
+                    ],
+                    'en' => [
+                        'title' => 'La Fortuna Waterfall',
+                        'description' => 'Visit the impressive 70-meter high La Fortuna waterfall.',
+                    ],
+                ],
             ],
         ];
 
-        foreach ($itineraryItems as $item) {
-            ItineraryItem::updateOrCreate(
-                ['title' => $item['title']],
-                array_merge($item, ['created_at' => $now, 'updated_at' => $now])
-            );
+        foreach ($itineraryItems as $itemData) {
+            $translations = $itemData['translations'];
+            unset($itemData['translations']);
+
+            $item = ItineraryItem::create(array_merge($itemData, ['created_at' => $now, 'updated_at' => $now]));
+
+            foreach ($translations as $locale => $trans) {
+                DB::table('itinerary_item_translations')->insert(
+                    array_merge($trans, [
+                        'item_id' => $item->item_id,
+                        'locale' => $locale,
+                        'created_at' => $now,
+                        'updated_at' => $now
+                    ])
+                );
+            }
         }
 
-        // Amenities
+        // Amenities (with translations)
         $amenities = [
-            'Agua Embotellada',
-            'Guía Bilingüe',
-            'Transporte',
-            'Tickets de entradas',
-            'Almuerzo',
-            'Snack',
-            'Equipo óptico',
-            'Desayuno',
-            'Bebidas Alcohólicas',
+            ['es' => 'Agua Embotellada', 'en' => 'Bottled Water'],
+            ['es' => 'Guía Bilingüe', 'en' => 'Bilingual Guide'],
+            ['es' => 'Transporte', 'en' => 'Transportation'],
+            ['es' => 'Tickets de entradas', 'en' => 'Entrance Tickets'],
+            ['es' => 'Almuerzo', 'en' => 'Lunch'],
+            ['es' => 'Snack', 'en' => 'Snack'],
+            ['es' => 'Equipo óptico', 'en' => 'Optical Equipment'],
         ];
 
-        foreach ($amenities as $name) {
-            Amenity::updateOrCreate(
-                ['name' => $name],
-                ['is_active' => true, 'created_at' => $now, 'updated_at' => $now]
-            );
+        foreach ($amenities as $amenityTrans) {
+            $amenity = Amenity::create([
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now
+            ]);
+
+            foreach ($amenityTrans as $locale => $name) {
+                DB::table('amenity_translations')->insert([
+                    'amenity_id' => $amenity->amenity_id,
+                    'locale' => $locale,
+                    'name' => $name,
+                    'created_at' => $now,
+                    'updated_at' => $now
+                ]);
+            }
         }
 
         $this->command->info('✅ Initial setup completed successfully');

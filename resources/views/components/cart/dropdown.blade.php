@@ -355,6 +355,16 @@ return asset('images/volcano.png');
             <div class="mini-cart-meta">
               <i class="far fa-calendar-alt"></i>
               <span>{{ \Carbon\Carbon::parse($guestItem['tour_date'])->format('d/M/Y') }}</span>
+              @php
+              $schedule = isset($guestItem['schedule_id']) ? \App\Models\Schedule::find($guestItem['schedule_id']) : null;
+              @endphp
+              @if($schedule)
+              <i class="fas fa-clock" style="margin-left:6px;"></i>
+              <span>
+                {{ \Carbon\Carbon::parse($schedule->start_time)->format('g:i A') }}
+                – {{ \Carbon\Carbon::parse($schedule->end_time)->format('g:i A') }}
+              </span>
+              @endif
             </div>
 
             @if($itemCats->isNotEmpty())

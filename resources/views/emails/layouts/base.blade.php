@@ -18,8 +18,9 @@
   $supportEmail = config('mail.reply_to.address');
   $phone = config('app.company_phone');
 
-  // Logo: servido desde CDN (versión optimizada para email)
-  $logoUrl = cdn('logos/brand-logo-white-email.png');
+  // Logo: embedded as base64 for reliable display in all email clients
+  $logoUrl = \App\Helpers\EmailHelper::getEmbeddedLogo();
+  $logoDimensions = \App\Helpers\EmailHelper::getLogoEmailDimensions();
   @endphp
 
   <title>{{ $viewTitle ?? $brand }}</title>
@@ -323,15 +324,14 @@
         <!-- Container table -->
         <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%;">
 
-          <!-- HEADER -->
           <tr>
             <td class="email-header" style="background-color:#0f2419; padding:20px; text-align:center;">
               <img src="{{ $logoUrl }}"
                 alt="{{ $brand }}"
-                width="240"
-                height="140"
+                width="{{ $logoDimensions['width'] }}"
+                height="{{ $logoDimensions['height'] }}"
                 border="0"
-                style="display:block; margin:0 auto; width:240px; height:140px; max-width:100%; border:0; outline:none; text-decoration:none;">
+                style="display:block; margin:0 auto; width:{{ $logoDimensions['width'] }}px; height:{{ $logoDimensions['height'] }}px; max-width:100%; border:0; outline:none; text-decoration:none;">
             </td>
           </tr>
 

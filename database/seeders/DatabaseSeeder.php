@@ -15,13 +15,19 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PermissionsSeeder::class,
             RolesAndUsersSeeder::class,
+            TaxSeeder::class,
+            SettingsSeeder::class,
+            PayLaterSettingsSeeder::class,
             InitialSetupSeeder::class,
             ToursSeeder::class,
             ItinerariesSeeder::class,
             FaqSeeder::class,
-            AssignViatorCodesSeeder::class,
+            ReviewProviderSeeder::class,
+            // AssignViatorCodesSeeder::class, // Commented out - viator_code field was removed
             PoliciesSeeder::class,
             TranslationSeeder::class,
+            MeetingPointsSeeder::class,
+            EmailTemplateSeeder::class,
         ]);
     }
 }

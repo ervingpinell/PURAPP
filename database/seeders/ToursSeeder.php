@@ -82,6 +82,25 @@ class ToursSeeder extends Seeder
             return $itinerary->itinerary_id;
         };
 
+        // Helper para crear tour con traducción en español
+        $createTour = function (string $name, string $overview, array $tourData) use ($now): Tour {
+            // Add name and overview to tourData since columns still exist in DB
+            $tourData['name'] = $name;
+            $tourData['overview'] = $overview;
+
+            $tour = Tour::create($tourData);
+
+            // Create Spanish translation
+            TourTranslation::create([
+                'tour_id' => $tour->tour_id,
+                'locale' => 'es',
+                'name' => $name,
+                'overview' => $overview,
+            ]);
+
+            return $tour;
+        };
+
         // === HORARIOS COMPARTIDOS ===
         $sharedAmId  = $scheduleId('07:30', '11:30', 'AM');
         $sharedPmId  = $scheduleId('13:00', '16:30', 'PM');
@@ -97,9 +116,7 @@ class ToursSeeder extends Seeder
             ['title' => 'Regreso', 'description' => 'Vuelta al hotel']
         ]);
 
-        $volcano = Tour::create([
-            'name'         => 'Caminata al Volcán Arenal',
-            'overview'     => 'Descubre el Parque Nacional Volcán Arenal...',
+        $volcano = $createTour('Caminata al Volcán Arenal', 'Descubre el Parque Nacional Volcán Arenal...', [
             'length'       => 4,
             'max_capacity' => 12,
             'group_size'   => 12,
@@ -147,9 +164,7 @@ class ToursSeeder extends Seeder
             ['title' => 'Regreso', 'description' => 'Vuelta al hotel']
         ]);
 
-        $safari = Tour::create([
-            'name'         => 'Safari Flotante',
-            'overview'     => 'Navega por el río Peñas Blancas...',
+        $safari = $createTour('Safari Flotante', 'Navega por el río Peñas Blancas...', [
             'length'       => 4,
             'max_capacity' => 12,
             'group_size'   => 12,
@@ -194,9 +209,7 @@ class ToursSeeder extends Seeder
             ['title' => 'Regreso', 'description' => 'Vuelta al hotel']
         ]);
 
-        $hanging = Tour::create([
-            'name'         => 'Puentes Colgantes',
-            'overview'     => 'Disfruta de un emocionante encuentro cercano con la vida silvestre...',
+        $hanging = $createTour('Puentes Colgantes', 'Disfruta de un emocionante encuentro cercano con la vida silvestre...', [
             'length'       => 4,
             'max_capacity' => 12,
             'group_size'   => 12,
@@ -243,9 +256,7 @@ class ToursSeeder extends Seeder
             ['title' => 'Regreso', 'description' => 'Vuelta al hotel']
         ]);
 
-        $nature = Tour::create([
-            'name'         => 'Nature Lover Combo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo + Caminata al Volcán Arenal)',
-            'overview'     => 'Combina tres actividades llenas de aventura...',
+        $nature = $createTour('Nature Lover Combo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo + Caminata al Volcán Arenal)', 'Combina tres actividades llenas de aventura...', [
             'length'       => 9,
             'max_capacity' => 12,
             'group_size'   => 12,
@@ -291,9 +302,7 @@ class ToursSeeder extends Seeder
             ['title' => 'Regreso', 'description' => 'Vuelta']
         ]);
 
-        $minicombo1 = Tour::create([
-            'name'         => 'Minicombo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo)',
-            'overview'     => 'Descubre las atracciones naturales...',
+        $minicombo1 = $createTour('Minicombo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo)', 'Descubre las atracciones naturales...', [
             'length'       => 6,
             'max_capacity' => 12,
             'group_size'   => 12,
@@ -338,9 +347,7 @@ class ToursSeeder extends Seeder
             ['title' => 'Regreso', 'description' => 'Vuelta']
         ]);
 
-        $minicombo2 = Tour::create([
-            'name'         => 'Minicombo 2 (Caminata al Volcán Arenal + Catarata de La Fortuna + Almuerzo)',
-            'overview'     => 'Si has venido a Costa Rica por sus increíbles volcanes...',
+        $minicombo2 = $createTour('Minicombo 2 (Caminata al Volcán Arenal + Catarata de La Fortuna + Almuerzo)', 'Si has venido a Costa Rica por sus increíbles volcanes...', [
             'length'       => 6,
             'max_capacity' => 12,
             'group_size'   => 12,
@@ -385,9 +392,7 @@ class ToursSeeder extends Seeder
             ['title' => 'Regreso', 'description' => 'Vuelta']
         ]);
 
-        $minicombo3 = Tour::create([
-            'name'         => 'Minicombo 3 (Safari Flotante + Catarata de La Fortuna + Almuerzo)',
-            'overview'     => 'La Catarata La Fortuna, con sus 70 metros...',
+        $minicombo3 = $createTour('Minicombo 3 (Safari Flotante + Catarata de La Fortuna + Almuerzo)', 'La Catarata La Fortuna, con sus 70 metros...', [
             'length'       => 6,
             'max_capacity' => 12,
             'group_size'   => 12,
@@ -422,15 +427,16 @@ class ToursSeeder extends Seeder
                 'updated_at' => $now,
             ]);
         }
-        foreach ([7, 8, 9] as $a) {
-            DB::table('excluded_amenity_tour')->insert([
-                'tour_id' => $minicombo3->tour_id,
-                'amenity_id' => $a,
-                'is_active' => true,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-        }
+        // Excluded amenities commented out - only 7 amenities exist in InitialSetupSeeder
+        // foreach ([7, 8, 9] as $a) {
+        //     DB::table('excluded_amenity_tour')->insert([
+        //         'tour_id' => $minicombo3->tour_id,
+        //         'amenity_id' => $a,
+        //         'is_active' => true,
+        //         'created_at' => $now,
+        //         'updated_at' => $now,
+        //     ]);
+        // }
 
         $this->command->info('✅ Tours seeded successfully with itineraries, schedules and correct pricing');
     }

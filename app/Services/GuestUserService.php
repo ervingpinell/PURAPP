@@ -4,7 +4,8 @@ namespace App\Services;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Str;
+use Illuminate\Support\Facades\Log;
 
 /**
  * GuestUserService
@@ -33,14 +34,16 @@ class GuestUserService
 
         if ($existingGuest) {
             // Update info if needed (phone might have changed)
+            $parts = explode(' ', $data['name'], 2);
             $existingGuest->update([
-                'full_name' => $data['name'],
-                'phone' => $data['phone'] ?? $existingGuest->phone,
-                'address' => $data['address'] ?? $existingGuest->address,
-                'city' => $data['city'] ?? $existingGuest->city,
-                'state' => $data['state'] ?? $existingGuest->state,
-                'zip' => $data['zip'] ?? $existingGuest->zip,
-                'country' => $data['country'] ?? $existingGuest->country,
+                'first_name' => $parts[0],
+                'last_name'  => $parts[1] ?? '',
+                'phone'      => $data['phone'] ?? $existingGuest->phone,
+                'address'    => $data['address'] ?? $existingGuest->address,
+                'city'       => $data['city'] ?? $existingGuest->city,
+                'state'      => $data['state'] ?? $existingGuest->state,
+                'zip'        => $data['zip'] ?? $existingGuest->zip,
+                'country'    => $data['country'] ?? $existingGuest->country,
             ]);
 
             return $existingGuest;
@@ -58,9 +61,14 @@ class GuestUserService
         }
 
         // Create new guest user
+        $parts = explode(' ', $data['name'], 2);
+        $firstName = $parts[0] ?? '';
+        $lastName = $parts[1] ?? '';
+
         $guestUser = User::create([
-            'full_name' => $data['name'],
             'email' => $data['email'],
+            'first_name' => $firstName,
+            'last_name' => $lastName,
             'phone' => $data['phone'] ?? null,
             'address' => $data['address'] ?? null,
             'city' => $data['city'] ?? null,
@@ -68,16 +76,16 @@ class GuestUserService
             'zip' => $data['zip'] ?? null,
             'country' => $data['country'] ?? null,
             'is_guest' => true,
-            'password' => null,
+            'password' => Hash::make(Str::random(16)), // Guests get a random password
             'email_verified_at' => now(), // Auto-verify guests
         ]);
 
-        \if (config('app.debug')) {
-    Log::info('[GuestUserService] Created guest user', [
-            'user_id' => $guestUser->id,
-            'email' => $guestUser->email,
-        ]);
-}
+        if (config('app.debug')) {
+            Log::info('[GuestUserService] Created guest user', [
+                'user_id' => $guestUser->id,
+                'email' => $guestUser->email,
+            ]);
+        }
 
         return $guestUser;
     }
@@ -100,12 +108,12 @@ class GuestUserService
             'password' => Hash::make($password),
         ]);
 
-        \if (config('app.debug')) {
-    Log::info('[GuestUserService] Converted guest to registered', [
-            'user_id' => $guestUser->id,
-            'email' => $guestUser->email,
-        ]);
-}
+        if (config('app.debug')) {
+            Log::info('[GuestUserService] Converted guest to registered', [
+                'user_id' => $guestUser->id,
+                'email' => $guestUser->email,
+            ]);
+        }
 
         return $guestUser->fresh();
     }

@@ -40,7 +40,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property string $password Hashed password
  * @property string $first_name User's first name
  * @property string $last_name User's last name
- * @property string $full_name Full name (first + last)
+ * @property-read string $full_name Full name (first + last) - MUTATOR/ACCESSOR
  * @property string|null $country_code Phone country code
  * @property string|null $phone Phone number
  * @property string|null $locale Preferred locale (en, es, fr, pt, de)
@@ -94,7 +94,8 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
      * Asignación masiva
      */
     protected $fillable = [
-        'full_name',
+        'first_name',
+        'last_name',
         'email',
         'password',
         'status',
@@ -147,6 +148,21 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
     }
 
     // ...
+
+    // Accessor for full_name (lectura)
+    public function getFullNameAttribute(): string
+    {
+        return trim($this->first_name . ' ' . $this->last_name);
+    }
+
+    // Mutator for full_name (escritura - safety net)
+    public function setFullNameAttribute($value)
+    {
+        $parts = explode(' ', $value, 2);
+        $this->first_name = $parts[0];
+        $this->last_name  = $parts[1] ?? '';
+        // No setear attributes['full_name'] para evitar error de columna inexistente
+    }
 
     // Fortify/Notifications suelen leer ->name; mapeamos a full_name
     public function name(): Attribute

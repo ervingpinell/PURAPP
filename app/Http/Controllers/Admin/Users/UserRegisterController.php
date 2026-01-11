@@ -119,8 +119,13 @@ class UserRegisterController extends Controller
                     : $phoneDigits;
             }
 
+            $parts = explode(' ', trim($request->full_name), 2);
+            $firstName = $parts[0];
+            $lastName  = $parts[1] ?? '';
+
             $user = User::create([
-                'full_name'    => trim($request->full_name),
+                'first_name'   => $firstName,
+                'last_name'    => $lastName,
                 'email'        => mb_strtolower(trim($request->email)),
                 'password'     => Hash::make($request->password),
                 'status'       => true,
@@ -206,8 +211,10 @@ class UserRegisterController extends Controller
             }
         }
 
-        $user->full_name = trim($request->full_name);
-        $user->email     = mb_strtolower(trim($request->email));
+        $parts = explode(' ', trim($request->full_name), 2);
+        $user->first_name = $parts[0];
+        $user->last_name  = $parts[1] ?? '';
+        $user->email      = mb_strtolower(trim($request->email));
 
         // Usar Spatie para asignar rol en lugar de role_id
         $role = \Spatie\Permission\Models\Role::findOrFail($request->role_id);

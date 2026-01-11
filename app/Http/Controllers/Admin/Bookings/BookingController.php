@@ -155,7 +155,7 @@ class BookingController extends Controller
 
         // Case-insensitive check for 'customer' role using relationship
         $customers = User::whereHas('roles', fn($q) => $q->whereRaw('LOWER(name) = ?', ['customer']))
-            ->orderBy('full_name')
+            ->orderBy('first_name')->orderBy('last_name')
             ->get();
 
         $hotels = HotelList::where('is_active', true)->orderBy('name')->get();
@@ -190,7 +190,7 @@ class BookingController extends Controller
             ->orderBy('name')
             ->get();
 
-        $users         = User::where('is_active', true)->orderBy('full_name')->get();
+        $users         = User::where('is_active', true)->orderBy('first_name')->orderBy('last_name')->get();
         $hotels        = HotelList::where('is_active', true)->orderBy('name')->get();
         $meetingPoints = MeetingPoint::where('is_active', true)->orderBy('name')->get();
 

@@ -99,7 +99,10 @@ class ProfileController extends Controller
         $newEmail = mb_strtolower(trim($validated['email']));
 
         // Datos básicos - construir full_name desde first_name + last_name
-        $user->full_name = trim($validated['first_name']) . ' ' . trim($validated['last_name']);
+        // La tabla ahora tiene first_name y last_name separados
+        $user->first_name = trim($validated['first_name']);
+        $user->last_name  = trim($validated['last_name']);
+
         $user->address   = trim($validated['address']);
         $user->city      = trim($validated['city']);
         $user->state     = trim($validated['state']);

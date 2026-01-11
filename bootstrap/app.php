@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'public.readonly' => \App\Http\Middleware\PublicReadOnly::class,
             'throttle.cart'   => \App\Http\Middleware\ThrottleCartActions::class,  // 🆕 Anti-bot
             'alignet.cors'    => \App\Http\Middleware\AlignetCorsMiddleware::class, // 💳 Alignet CORS
+            'recaptcha'       => \App\Http\Middleware\VerifyRecaptcha::class,      // 🤖 Anti-bot reCAPTCHA
             // Spatie Permission middleware
             'role'            => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission'      => \Spatie\Permission\Middleware\PermissionMiddleware::class,

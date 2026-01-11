@@ -87,9 +87,9 @@ class Tour extends Model
     protected $appends = ['images', 'cover_image_url'];
 
     protected $fillable = [
-        'name',
+        'name',  // TODO: Remove after migration drops this column
         'slug',
-        'overview',
+        'overview',  // TODO: Remove after migration drops this column
         'length',
         'max_capacity',
         'group_size',
@@ -144,8 +144,9 @@ class Tour extends Model
         parent::boot();
 
         static::creating(function ($tour) {
-            // Si no viene slug, generarlo
-            if (empty($tour->slug)) {
+            // Si no viene slug Y existe name, generarlo
+            // (Con translations, el name puede no existir en el modelo)
+            if (empty($tour->slug) && !empty($tour->name)) {
                 $tour->slug = static::generateUniqueSlug($tour->name);
             }
 
@@ -165,7 +166,7 @@ class Tour extends Model
 
         static::updating(function ($tour) {
             // Solo regenerar si el nombre cambió Y el usuario no proveyó un slug personalizado
-            if ($tour->isDirty('name') && !$tour->isDirty('slug')) {
+            if ($tour->isDirty('name') && !$tour->isDirty('slug') && !empty($tour->name)) {
                 $tour->slug = static::generateUniqueSlug($tour->name, $tour->tour_id);
             }
 

@@ -55,12 +55,12 @@ TXT;
                 ]
             );
 
-            // ==== Secciones (identificadas por name "clave interna") ====
+            // ==== Secciones (identificadas por policy_id + sort_order) ====
 
             // Cookies
             $cookies = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'cookies'],
-                ['sort_order' => 1, 'is_active' => true]
+                ['policy_id' => $terms->policy_id, 'sort_order' => 1],
+                ['is_active' => true]
             );
 
             $cookiesContent = <<<'TXT'
@@ -75,8 +75,8 @@ TXT;
 
             // License
             $license = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'license'],
-                ['sort_order' => 2, 'is_active' => true]
+                ['policy_id' => $terms->policy_id, 'sort_order' => 2],
+                ['is_active' => true]
             );
 
             $licenseContent = <<<'TXT'
@@ -98,8 +98,8 @@ TXT;
 
             // Comments
             $comments = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'comments'],
-                ['sort_order' => 3, 'is_active' => true]
+                ['policy_id' => $terms->policy_id, 'sort_order' => 3],
+                ['is_active' => true]
             );
 
             $commentsContent = <<<'TXT'
@@ -123,8 +123,8 @@ TXT;
 
             // Hyperlinks to our content
             $links = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'hyperlinks-to-our-content'],
-                ['sort_order' => 4, 'is_active' => true]
+                ['policy_id' => $terms->policy_id, 'sort_order' => 4],
+                ['is_active' => true]
             );
 
             $linksContent = <<<'TXT'
@@ -144,8 +144,8 @@ TXT;
 
             // Frames
             $frames = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'frames'],
-                ['sort_order' => 5, 'is_active' => true]
+                ['policy_id' => $terms->policy_id, 'sort_order' => 5],
+                ['is_active' => true]
             );
 
             $framesContent = <<<'TXT'
@@ -159,8 +159,8 @@ TXT;
 
             // Content liability
             $contentResp = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'content-liability'],
-                ['sort_order' => 6, 'is_active' => true]
+                ['policy_id' => $terms->policy_id, 'sort_order' => 6],
+                ['is_active' => true]
             );
 
             $contentRespContent = <<<'TXT'
@@ -174,8 +174,8 @@ TXT;
 
             // Reservation of rights
             $rights = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'reservation-of-rights'],
-                ['sort_order' => 7, 'is_active' => true]
+                ['policy_id' => $terms->policy_id, 'sort_order' => 7],
+                ['is_active' => true]
             );
 
             $rightsContent = <<<'TXT'
@@ -189,8 +189,8 @@ TXT;
 
             // Removal of links
             $removeLinks = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'removal-of-links'],
-                ['sort_order' => 8, 'is_active' => true]
+                ['policy_id' => $terms->policy_id, 'sort_order' => 8],
+                ['is_active' => true]
             );
 
             $removeLinksContent = <<<'TXT'
@@ -204,8 +204,8 @@ TXT;
 
             // Disclaimer
             $disclaimer = PolicySection::updateOrCreate(
-                ['policy_id' => $terms->policy_id, 'name' => 'disclaimer'],
-                ['sort_order' => 9, 'is_active' => true]
+                ['policy_id' => $terms->policy_id, 'sort_order' => 9],
+                ['is_active' => true]
             );
 
             $disclaimerContent = <<<'TXT'

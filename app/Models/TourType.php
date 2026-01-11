@@ -151,13 +151,32 @@ class TourType extends Model
         foreach ($candidates as $cand) {
             // Primero intentar match exacto
             if (isset($byExact[$cand])) {
-                return $byExact[$cand];
+                $tr = $byExact[$cand];
+                if (!empty($tr->name)) {
+                    return $tr;
+                }
             }
 
             // Luego intentar por idioma base
             $lang = explode('-', $cand)[0];
             if (isset($byLang[$lang])) {
-                return $byLang[$lang];
+                $tr = $byLang[$lang];
+                if (!empty($tr->name)) {
+                    return $tr;
+                }
+            }
+        }
+
+        // Si fallan todos los candidatos, intentar devolver cualquiera que tenga contenido (por ejemplo, ES)
+        // Esto es un "hard fallback" a cualquier cosa útil.
+        if (isset($byExact['es']) && !empty($byExact['es']->name)) {
+            return $byExact['es'];
+        }
+
+        // Iterar sobre todos para encontrar el primero con nombre
+        foreach ($translations as $tr) {
+            if (!empty($tr->name)) {
+                return $tr;
             }
         }
 
@@ -245,12 +264,13 @@ class TourType extends Model
     }
 
     /**
-     * Scope para cargar traducciones de un locale específico.
-     * Útil para optimizar queries.
+     * Scope para cargar traducciones.
+     * Modificado: carga TODAS las traducciones para que el fallback funcione.
      */
     public function scopeWithTranslation($query, ?string $locale = null)
     {
-        $locale = $locale ?? app()->getLocale();
-        return $query->with(['translations' => fn($q) => $q->where('locale', $locale)]);
+        // No filtramos por locale aquí para permitir que translate()
+        // tenga acceso a los idiomas de fallback (es, en) si el principal falta.
+        return $query->with('translations');
     }
 }

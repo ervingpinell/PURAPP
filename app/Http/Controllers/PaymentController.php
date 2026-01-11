@@ -1324,14 +1324,48 @@ class PaymentController extends Controller
 
         // Check permissions
         if ($booking) {
-            if (Auth::check() && Auth::id() !== $booking->user_id && !Auth::user()->hasRole('admin')) {
-                abort(403, 'Unauthorized to pay for this booking');
+            // For authenticated users: verify ownership or admin role
+            if (Auth::check()) {
+                if (Auth::id() !== $booking->user_id && !Auth::user()->hasRole('admin')) {
+                    abort(403, 'Unauthorized to pay for this booking');
+                }
+            } else {
+                // For guests: verify via session (guest_payment_id or cart_snapshot)
+                $sessionPaymentId = session('guest_payment_id');
+                $cartSnapshot = session('cart_snapshot');
+
+                $isGuestOwner = ($sessionPaymentId == $payment->payment_id) ||
+                    ($cartSnapshot && isset($cartSnapshot['cart_id']) &&
+                        ($payment->metadata['cart_snapshot']['cart_id'] ?? null) == $cartSnapshot['cart_id']);
+
+                if (!$isGuestOwner) {
+                    LoggerHelper::warning('PaymentController', 'showAlignetPaymentForm', 'Guest unauthorized access attempt', [
+                        'payment_id' => $payment->payment_id,
+                        'session_payment_id' => $sessionPaymentId,
+                        'has_cart_snapshot' => !empty($cartSnapshot),
+                    ]);
+                    abort(403, 'Unauthorized to pay for this payment');
+                }
             }
         } else {
             // Cart payment (no booking yet)
-            // If payment has user_id, check ownership
-            if ($payment->user_id && Auth::check() && Auth::id() !== $payment->user_id && !Auth::user()->hasRole('admin')) {
-                abort(403, 'Unauthorized to pay for this payment');
+            if ($payment->user_id) {
+                // Payment has a user_id - check authenticated ownership
+                if (Auth::check() && Auth::id() !== $payment->user_id && !Auth::user()->hasRole('admin')) {
+                    abort(403, 'Unauthorized to pay for this payment');
+                }
+            } else {
+                // Guest payment (user_id is null) - verify session ownership
+                if (!Auth::check()) {
+                    $sessionPaymentId = session('guest_payment_id');
+                    if ($sessionPaymentId != $payment->payment_id) {
+                        LoggerHelper::warning('PaymentController', 'showAlignetPaymentForm', 'Guest cart payment unauthorized', [
+                            'payment_id' => $payment->payment_id,
+                            'session_payment_id' => $sessionPaymentId,
+                        ]);
+                        abort(403, 'Unauthorized to pay for this payment');
+                    }
+                }
             }
         }
 

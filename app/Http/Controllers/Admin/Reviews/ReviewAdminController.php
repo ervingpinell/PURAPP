@@ -24,66 +24,66 @@ class ReviewAdminController extends Controller
     /**
      * Listado + filtros.
      */
-// app/Http/Controllers/Admin/Reviews/ReviewAdminController.php
+    // app/Http/Controllers/Admin/Reviews/ReviewAdminController.php
 
-public function index(Request $request)
-{
-    $this->authorize('viewAny', Review::class);
+    public function index(Request $request)
+    {
+        $this->authorize('viewAny', Review::class);
 
-    $reviewsTable  = (new Review())->getTable();
-    $bookingsTable = (new \App\Models\Booking())->getTable();
+        $reviewsTable  = (new Review())->getTable();
+        $bookingsTable = (new \App\Models\Booking())->getTable();
 
-    $hasReviewBkId    = Schema::hasColumn($reviewsTable, 'booking_id');
-    $hasBookingRefCol = Schema::hasColumn($bookingsTable, 'booking_reference');
+        $hasReviewBkId    = Schema::hasColumn($reviewsTable, 'booking_id');
+        $hasBookingRefCol = Schema::hasColumn($bookingsTable, 'booking_reference');
 
-    // Eager-load dinámico para evitar N+1
-    $with = ['user:user_id,full_name,email'];
-    if ($hasReviewBkId) {
-        $with['booking'] = function ($q) use ($hasBookingRefCol) {
-            $cols = ['booking_id'];
-            if ($hasBookingRefCol) $cols[] = 'booking_reference';
-            $q->select($cols);
-        };
+        // Eager-load dinámico para evitar N+1
+        $with = ['user:user_id,first_name,last_name,email'];
+        if ($hasReviewBkId) {
+            $with['booking'] = function ($q) use ($hasBookingRefCol) {
+                $cols = ['booking_id'];
+                if ($hasBookingRefCol) $cols[] = 'booking_reference';
+                $q->select($cols);
+            };
+        }
+
+        $q = Review::query()
+            ->where('provider', 'local')           // <- SOLO locales
+            ->with($with)
+            ->withCount('replies')                 // cuántas respuestas
+            ->withMax('replies', 'created_at');    // fecha de última respuesta
+
+        // Filtros (para locales)
+        if ($st  = $request->get('status'))  $q->where('status', $st);
+        if ($tid = $request->get('tour_id')) $q->where('tour_id', (int) $tid);
+        if ($stars = $request->get('stars')) $q->where('rating', (int) $stars);
+
+        // Búsqueda libre (incluye booking_reference si existe)
+        if ($qstr = trim((string) $request->get('q'))) {
+            $q->where(function ($w) use ($qstr, $hasReviewBkId, $hasBookingRefCol) {
+                $w->where('title', 'ilike', "%{$qstr}%")
+                    ->orWhere('body', 'ilike', "%{$qstr}%")
+                    ->orWhere('author_name', 'ilike', "%{$qstr}%");
+
+                if ($hasReviewBkId && $hasBookingRefCol) {
+                    $w->orWhereHas('booking', function ($bq) use ($qstr) {
+                        $bq->where('booking_reference', 'ilike', "%{$qstr}%");
+                    });
+                }
+            });
+        }
+
+        // Filtro: respondido (yes/no)
+        if ($request->filled('responded')) {
+            $resp = $request->get('responded');
+            if ($resp === 'yes')      $q->has('replies');
+            elseif ($resp === 'no')   $q->doesntHave('replies');
+        }
+
+        $reviews = $q->orderByDesc('id')->paginate(25)->withQueryString();
+
+        // Nota: ya no pasamos $providers al Blade
+        return view('admin.reviews.index', compact('reviews'));
     }
-
-    $q = Review::query()
-        ->where('provider', 'local')           // <- SOLO locales
-        ->with($with)
-        ->withCount('replies')                 // cuántas respuestas
-        ->withMax('replies', 'created_at');    // fecha de última respuesta
-
-    // Filtros (para locales)
-    if ($st  = $request->get('status'))  $q->where('status', $st);
-    if ($tid = $request->get('tour_id')) $q->where('tour_id', (int) $tid);
-    if ($stars = $request->get('stars')) $q->where('rating', (int) $stars);
-
-    // Búsqueda libre (incluye booking_reference si existe)
-    if ($qstr = trim((string) $request->get('q'))) {
-        $q->where(function ($w) use ($qstr, $hasReviewBkId, $hasBookingRefCol) {
-            $w->where('title', 'ilike', "%{$qstr}%")
-              ->orWhere('body', 'ilike', "%{$qstr}%")
-              ->orWhere('author_name', 'ilike', "%{$qstr}%");
-
-            if ($hasReviewBkId && $hasBookingRefCol) {
-                $w->orWhereHas('booking', function ($bq) use ($qstr) {
-                    $bq->where('booking_reference', 'ilike', "%{$qstr}%");
-                });
-            }
-        });
-    }
-
-    // Filtro: respondido (yes/no)
-    if ($request->filled('responded')) {
-        $resp = $request->get('responded');
-        if ($resp === 'yes')      $q->has('replies');
-        elseif ($resp === 'no')   $q->doesntHave('replies');
-    }
-
-    $reviews = $q->orderByDesc('id')->paginate(25)->withQueryString();
-
-    // Nota: ya no pasamos $providers al Blade
-    return view('admin.reviews.index', compact('reviews'));
-}
 
 
     /**
@@ -111,14 +111,14 @@ public function index(Request $request)
         $this->authorize('create', Review::class);
 
         $validated = $request->validate([
-            'tour_id'     => ['required','integer','min:1'],
-            'rating'      => ['required','integer','min:1','max:5'],
-            'title'       => ['nullable','string','max:150'],
-            'body'        => ['required','string','min:5','max:5000'],
-            'author_name' => ['nullable','string','max:100'],
-            'language'    => ['nullable','string','max:10'],
-            'status'      => ['nullable', Rule::in(['pending','published','hidden','flagged'])],
-            'is_public'   => ['nullable','boolean'],
+            'tour_id'     => ['required', 'integer', 'min:1'],
+            'rating'      => ['required', 'integer', 'min:1', 'max:5'],
+            'title'       => ['nullable', 'string', 'max:150'],
+            'body'        => ['required', 'string', 'min:5', 'max:5000'],
+            'author_name' => ['nullable', 'string', 'max:100'],
+            'language'    => ['nullable', 'string', 'max:10'],
+            'status'      => ['nullable', Rule::in(['pending', 'published', 'hidden', 'flagged'])],
+            'is_public'   => ['nullable', 'boolean'],
         ]);
 
         $data = [
@@ -162,13 +162,13 @@ public function index(Request $request)
         $this->authorize('update', $review);
 
         $validated = $request->validate([
-            'rating'      => ['required','integer','min:1','max:5'],
-            'title'       => ['nullable','string','max:150'],
-            'body'        => ['required','string','min:5','max:5000'],
-            'author_name' => ['nullable','string','max:100'],
-            'language'    => ['nullable','string','max:10'],
-            'status'      => ['nullable', Rule::in(['pending','published','hidden','flagged'])],
-            'is_public'   => ['nullable','boolean'],
+            'rating'      => ['required', 'integer', 'min:1', 'max:5'],
+            'title'       => ['nullable', 'string', 'max:150'],
+            'body'        => ['required', 'string', 'min:5', 'max:5000'],
+            'author_name' => ['nullable', 'string', 'max:100'],
+            'language'    => ['nullable', 'string', 'max:10'],
+            'status'      => ['nullable', Rule::in(['pending', 'published', 'hidden', 'flagged'])],
+            'is_public'   => ['nullable', 'boolean'],
         ]);
 
         $payload = [
@@ -216,26 +216,26 @@ public function index(Request $request)
     /**
      * Publicar (status=published, is_public=true).
      */
-public function publish(Review $review)
-{
-    $this->authorize('update', $review);
+    public function publish(Review $review)
+    {
+        $this->authorize('update', $review);
 
-    $min = (int) config('reviews.min_public_rating', 1);
-    if ($min > 1 && (int) $review->rating < $min) {
-        return back()->with('error', __('reviews.admin.messages.publish_min_rating', [
-            'rating' => $review->rating,
-            'min'    => $min,
-        ]));
+        $min = (int) config('reviews.min_public_rating', 1);
+        if ($min > 1 && (int) $review->rating < $min) {
+            return back()->with('error', __('reviews.admin.messages.publish_min_rating', [
+                'rating' => $review->rating,
+                'min'    => $min,
+            ]));
+        }
+
+        if (Schema::hasColumn($review->getTable(), 'status'))   $review->status   = 'published';
+        if (Schema::hasColumn($review->getTable(), 'is_public')) $review->is_public = true;
+
+        $review->save();
+        $this->touchReviewsRevision();
+
+        return back()->with('ok', __('reviews.admin.messages.published'));
     }
-
-    if (Schema::hasColumn($review->getTable(), 'status'))   $review->status   = 'published';
-    if (Schema::hasColumn($review->getTable(), 'is_public')) $review->is_public = true;
-
-    $review->save();
-    $this->touchReviewsRevision();
-
-    return back()->with('ok', __('reviews.admin.messages.published'));
-}
 
 
     /**
@@ -284,15 +284,15 @@ public function publish(Review $review)
         $this->authorize('update', Review::class);
 
         $request->validate([
-            'action' => ['required', Rule::in(['publish','hide','flag','delete'])],
-            'ids'    => ['required','array','min:1'],
+            'action' => ['required', Rule::in(['publish', 'hide', 'flag', 'delete'])],
+            'ids'    => ['required', 'array', 'min:1'],
             'ids.*'  => ['integer'],
         ]);
 
         $ids    = array_map('intval', (array) $request->input('ids', []));
         $action = (string) $request->input('action');
 
-        $items = Review::whereIn('id', $ids)->where('provider','local')->get();
+        $items = Review::whereIn('id', $ids)->where('provider', 'local')->get();
         $count = 0;
 
         foreach ($items as $r) {
@@ -302,21 +302,29 @@ public function publish(Review $review)
                 case 'publish':
                     if (Schema::hasColumn($r->getTable(), 'status'))    $r->status    = 'published';
                     if (Schema::hasColumn($r->getTable(), 'is_public')) $r->is_public = true;
-                    $r->save(); $count++; break;
+                    $r->save();
+                    $count++;
+                    break;
 
                 case 'hide':
                     if (Schema::hasColumn($r->getTable(), 'status'))    $r->status    = 'hidden';
                     if (Schema::hasColumn($r->getTable(), 'is_public')) $r->is_public = false;
-                    $r->save(); $count++; break;
+                    $r->save();
+                    $count++;
+                    break;
 
                 case 'flag':
                     if (Schema::hasColumn($r->getTable(), 'status'))    $r->status    = 'flagged';
                     if (Schema::hasColumn($r->getTable(), 'is_public')) $r->is_public = false;
-                    $r->save(); $count++; break;
+                    $r->save();
+                    $count++;
+                    break;
 
                 case 'delete':
                     $this->authorize('delete', $r);
-                    $r->delete(); $count++; break;
+                    $r->delete();
+                    $count++;
+                    break;
             }
         }
 

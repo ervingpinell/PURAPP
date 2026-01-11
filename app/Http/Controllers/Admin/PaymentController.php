@@ -66,7 +66,7 @@ class PaymentController extends Controller
                         ->where('booking_reference', 'like', "%{$search}%")
                         ->orWhereHas('user', function ($uq) use ($search) {
                             $uq->where('email', 'like', "%{$search}%")
-                                ->orWhere('full_name', 'like', "%{$search}%");
+                                ->orWhereRaw("CONCAT(first_name, ' ', last_name) ILIKE ?", ["%{$search}%"]);
                         });
                 });
             });

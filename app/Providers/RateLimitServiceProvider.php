@@ -114,5 +114,55 @@ class RateLimitServiceProvider extends ServiceProvider
         RateLimiter::for('public', function (Request $request) {
             return Limit::perMinute(100)->by($request->ip());
         });
+
+        // 🔒 Strict rate limiter for guest checkout (anti-bot)
+        RateLimiter::for('guest-checkout', function (Request $request) {
+            // If authenticated, use normal limits
+            if ($request->user()) {
+                return Limit::perMinute(10)->by($request->user()->id);
+            }
+
+            // For guests, much stricter with dual limits
+            return [
+                Limit::perMinute(3)->by($request->ip())
+                    ->response(function (Request $request, array $headers) {
+                        return response()->json([
+                            'message' => 'Demasiados intentos de checkout. Por favor espera antes de intentar nuevamente.',
+                            'retry_after' => $headers['Retry-After'] ?? 60
+                        ], 429, $headers);
+                    }),
+                Limit::perHour(10)->by($request->ip())
+                    ->response(function (Request $request, array $headers) {
+                        return response()->json([
+                            'message' => 'Has excedido el límite de checkouts por hora. Por favor intenta más tarde.',
+                            'retry_after' => $headers['Retry-After'] ?? 3600
+                        ], 429, $headers);
+                    }),
+            ];
+        });
+
+        // 🔒 Strict rate limiter for payment initiation (anti-bot)
+        RateLimiter::for('payment-initiate', function (Request $request) {
+            if ($request->user()) {
+                return Limit::perMinute(5)->by($request->user()->id);
+            }
+
+            return [
+                Limit::perMinute(2)->by($request->ip())
+                    ->response(function (Request $request, array $headers) {
+                        return response()->json([
+                            'message' => 'Demasiados intentos de pago. Por favor espera un momento.',
+                            'retry_after' => $headers['Retry-After'] ?? 60
+                        ], 429, $headers);
+                    }),
+                Limit::perHour(5)->by($request->ip())
+                    ->response(function (Request $request, array $headers) {
+                        return response()->json([
+                            'message' => 'Has excedido el límite de intentos de pago por hora.',
+                            'retry_after' => $headers['Retry-After'] ?? 3600
+                        ], 429, $headers);
+                    }),
+            ];
+        });
     }
 }

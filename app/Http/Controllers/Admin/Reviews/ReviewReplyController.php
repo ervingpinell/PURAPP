@@ -100,8 +100,8 @@ class ReviewReplyController extends Controller
         $this->authorize('view', $review);
 
         $review->load([
-            'replies' => fn ($q) => $q->orderBy('created_at'),
-            'user:user_id,full_name,email',
+            'replies' => fn($q) => $q->orderBy('created_at'),
+            'user:user_id,first_name,last_name,email',
             'booking.tour',
         ]);
 
@@ -174,8 +174,8 @@ class ReviewReplyController extends Controller
         // 4) Última ReviewRequest del mismo user/tour
         if (!$email) {
             $rr = ReviewRequest::query()
-                ->when($review->user_id, fn ($q) => $q->where('user_id', $review->user_id))
-                ->when($review->tour_id, fn ($q) => $q->where('tour_id', $review->tour_id))
+                ->when($review->user_id, fn($q) => $q->where('user_id', $review->user_id))
+                ->when($review->tour_id, fn($q) => $q->where('tour_id', $review->tour_id))
                 ->orderByDesc('created_at')
                 ->first();
             if ($rr && $rr->email) {
@@ -205,8 +205,8 @@ class ReviewReplyController extends Controller
 
         if (!$name) {
             $rr = ReviewRequest::query()
-                ->when($review->user_id, fn ($q) => $q->where('user_id', $review->user_id))
-                ->when($review->tour_id, fn ($q) => $q->where('tour_id', $review->tour_id))
+                ->when($review->user_id, fn($q) => $q->where('user_id', $review->user_id))
+                ->when($review->tour_id, fn($q) => $q->where('tour_id', $review->tour_id))
                 ->orderByDesc('created_at')
                 ->first();
             if ($rr) {

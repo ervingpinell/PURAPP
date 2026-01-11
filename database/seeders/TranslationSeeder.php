@@ -57,7 +57,7 @@ class TranslationSeeder extends Seeder
     protected function clearTranslations(): void
     {
         // Limpieza completa de tablas regulares
-        TourTypeTranslation::truncate();
+        // TourTypeTranslation::truncate(); // Handled in translateTourTypes
         TourTranslation::truncate();
         ItineraryTranslation::truncate();
         ItineraryItemTranslation::truncate();
@@ -147,14 +147,58 @@ class TranslationSeeder extends Seeder
 
     protected function translateTourTypes(TranslatorInterface $translator): void
     {
-        $this->translateCollection(
-            TourType::where('is_active', true)->get(),
-            ['name', 'description', 'duration'],
-            TourTypeTranslation::class,
-            'tour_type_id',
-            $translator
-        );
-        $this->command?->info('🏷️ Tour types translated.');
+        $tourTypes = TourType::where('is_active', true)->get();
+
+        foreach ($tourTypes as $tourType) {
+            // Source is typically Spanish for fallback
+            $sourceTranslation = $tourType->translations->firstWhere('locale', 'es')
+                ?? $tourType->translations->firstWhere('locale', 'en');
+
+            if (!$sourceTranslation) {
+                continue;
+            }
+
+            $sourceName = $sourceTranslation->name;
+            $sourceDesc = $sourceTranslation->description;
+            // Duration is non-translatable text usually, but we keep it sync if needed, 
+            // though InitialSetupSeeder sets it for ES/EN. 
+            // If we want to carry it over to other languages as-is or translate:
+            $sourceDuration = $sourceTranslation->duration;
+
+            foreach ($this->locales as $locale) {
+                // If translation exists and has a name, skip (preserve manual edits)
+                $existing = $tourType->translations->firstWhere('locale', $locale);
+                if ($existing && !empty($existing->name)) {
+                    continue;
+                }
+
+                // If existing is ES or EN, we definitely skip if it has data (already covered above)
+                // but just double check to be safe
+                if (($locale === 'es' || $locale === 'en') && $existing) {
+                    continue;
+                }
+
+                $targetLocale = $this->normalizeLocaleForTranslation($locale);
+
+                // Translate
+                $nameTr = $translator->translate($sourceName, $targetLocale);
+                $descTr = $translator->translate($sourceDesc, $targetLocale);
+                // Duration usually numerical + word. Let's simple-copy or translate if simple.
+                // For now, let's copy it or attempt translate if it's text.
+                $durTr  = $sourceDuration ? $translator->translate($sourceDuration, $targetLocale) : null;
+
+                TourTypeTranslation::updateOrCreate(
+                    ['tour_type_id' => $tourType->tour_type_id, 'locale' => $locale],
+                    [
+                        'name' => $nameTr,
+                        'description' => $descTr,
+                        'duration' => $durTr
+                    ]
+                );
+            }
+        }
+
+        $this->command?->info('🏷️ Tour types translated (gaps filled, existing preserved).');
     }
 
     protected function translateTours(TranslatorInterface $translator): void

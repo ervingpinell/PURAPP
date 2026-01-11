@@ -239,6 +239,10 @@ class PermissionsSeeder extends Seeder
             'edit-tour-prices' => 'Editar precios de tours',
             'publish-tour-prices' => 'Publicar precios de tours',
             'delete-tour-prices' => 'Eliminar precios de tours',
+
+            // Email Templates
+            'view-email-templates' => 'Ver plantillas de email',
+            'edit-email-templates' => 'Editar plantillas de email',
         ];
 
         // Crear todos los permisos
@@ -431,6 +435,9 @@ class PermissionsSeeder extends Seeder
             'edit-tour-prices',
             'publish-tour-prices',
             'delete-tour-prices',
+            // Email Templates
+            'view-email-templates',
+            'edit-email-templates',
             // Settings (legacy key removed)
         ];
 

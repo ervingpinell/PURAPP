@@ -223,7 +223,7 @@ Route::post('/payment/record-terms', [\App\Http\Controllers\PaymentController::c
     ->name('payment.record-terms');
 
 Route::post('/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])
-    ->middleware('throttle:payment')
+    ->middleware(['throttle:payment-initiate', 'recaptcha:payment'])
     ->name('payment.initiate');
 
 /*
@@ -442,7 +442,7 @@ Route::middleware([SetLocale::class])->group(function () {
     // ------------------------------
     Route::get('/checkout', [PublicCheckoutController::class, 'show'])->name('public.checkout.show');
     Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])
-        ->middleware('throttle:payment')
+        ->middleware(['throttle:guest-checkout', 'recaptcha:checkout'])
         ->name('public.checkout.process');
     Route::post('/checkout/accept-terms', [PublicCheckoutController::class, 'acceptTerms'])
         ->middleware('throttle:payment')
@@ -466,12 +466,12 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::get('/payment/error', [\App\Http\Controllers\PaymentController::class, 'error'])->name('payment.error');
     Route::get('/payment/{payment}/status', [\App\Http\Controllers\PaymentController::class, 'status'])->name('payment.status');
 
-    // Alignet payment routes
+    // Alignet payment routes (accessible to guests)
     Route::get('/payment/alignet/{payment}', [\App\Http\Controllers\PaymentController::class, 'showAlignetPaymentForm'])
-        ->middleware(['auth', 'alignet.cors'])
+        ->middleware(['alignet.cors'])
         ->name('payment.alignet');
     Route::get('/payment/alignet/query/{operationNumber}', [\App\Http\Controllers\PaymentController::class, 'queryAlignetTransaction'])
-        ->middleware('auth')
+        ->middleware('throttle:10,1')
         ->name('payment.alignet.query');
 
     // Alignet Webhook Callback (Server-to-Server or Browser Post/Redirect)
@@ -678,6 +678,14 @@ Route::middleware([SetLocale::class])->group(function () {
                     $notification = new \App\Notifications\EmailChangeVerificationNotification($token, $locale);
                     return $notification->toMail($user);
                 })->name('email-change');
+            });
+
+            // ============================
+            // EMAIL PREVIEW SYSTEM
+            // ============================
+            Route::prefix('email-preview')->name('email-preview.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\Admin\EmailPreviewController::class, 'index'])->name('index');
+                Route::get('/{type}', [\App\Http\Controllers\Admin\EmailPreviewController::class, 'show'])->name('show');
             });
 
             // ============================
@@ -1420,6 +1428,26 @@ Route::middleware([SetLocale::class])->group(function () {
                             ->middleware('throttle:sensitive')
                             ->name('update');
                         Route::post('/change-editing-locale', [TranslationController::class, 'changeEditingLocale'])->name('change-editing-locale');
+                    });
+                });
+
+                // ============================
+                // EMAIL TEMPLATES
+                // ============================
+                Route::group(['middleware' => ['can:view-email-templates']], function () {
+                    Route::prefix('email-templates')->name('email-templates.')->group(function () {
+                        Route::get('/', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'index'])->name('index');
+                        Route::get('/{template}/edit', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'edit'])
+                            ->middleware('can:edit-email-templates')
+                            ->name('edit');
+                        Route::put('/{template}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'update'])
+                            ->middleware(['can:edit-email-templates', 'throttle:sensitive'])
+                            ->name('update');
+                        Route::post('/{template}/toggle', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'toggle'])
+                            ->middleware('can:edit-email-templates')
+                            ->name('toggle');
+                        Route::get('/{template}/preview', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'preview'])
+                            ->name('preview');
                     });
                 });
 

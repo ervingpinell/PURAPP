@@ -41,9 +41,10 @@ class RolesAndUsersSeeder extends Seeder
         $erving = User::updateOrCreate(
             ['email' => 'ervingpinell@gmail.com'],
             array_merge([
-                'full_name' => 'Erving Pinell',
-                'password'  => Hash::make('-erving1234'), // Se actualizará la contraseña si se corre el seeder
-                'phone'     => '+50624791471',
+                'first_name' => 'Erving',
+                'last_name'  => 'Pinell',
+                'password'   => Hash::make('-erving1234'), // Se actualizará la contraseña si se corre el seeder
+                'phone'      => '+50624791471',
                 'is_super_admin' => true,
             ], $commonAddress)
         );
@@ -53,9 +54,10 @@ class RolesAndUsersSeeder extends Seeder
         $ervingAlt = User::updateOrCreate(
             ['email' => 'ervingpinell01@gmail.com'],
             array_merge([
-                'full_name' => 'Erving Pinell Alt',
-                'password'  => Hash::make('-erving1234'),
-                'phone'     => '+50624791471',
+                'first_name' => 'Erving',
+                'last_name'  => 'Pinell Alt',
+                'password'   => Hash::make('-erving1234'),
+                'phone'      => '+50624791471',
                 'is_super_admin' => true,
             ], $commonAddress)
         );
@@ -65,9 +67,10 @@ class RolesAndUsersSeeder extends Seeder
         $green = User::updateOrCreate(
             ['email' => 'info@greenvacationscr.com'],
             array_merge([
-                'full_name' => 'Green Vacations',
-                'password'  => Hash::make('Green1974*'),
-                'phone'     => '+50624791471',
+                'first_name' => 'Green',
+                'last_name'  => 'Vacations',
+                'password'   => Hash::make('Green1974*'),
+                'phone'      => '+50624791471',
                 'is_super_admin' => false,
             ], $commonAddress)
         );

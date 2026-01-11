@@ -71,33 +71,37 @@ return new class extends Migration
         ");
 
         // 4) (Opcional) backfill de snapshots existentes usando Eloquent
-        \App\Models\Booking::with('tour')
-            ->whereNotNull('tour_id')
-            ->where(function ($q) {
-                $q->whereNull('tour_name_snapshot')
-                    ->orWhere('tour_name_snapshot', '');
-            })
-            ->chunk(100, function ($bookings) {
-                foreach ($bookings as $booking) {
-                    if ($booking->tour) {
-                        $booking->update(['tour_name_snapshot' => $booking->tour->name]);
+        // Skip if tables are empty (fresh migration)
+        $bookingCount = DB::table('bookings')->count();
+        if ($bookingCount > 0) {
+            \App\Models\Booking::with('tour')
+                ->whereNotNull('tour_id')
+                ->where(function ($q) {
+                    $q->whereNull('tour_name_snapshot')
+                        ->orWhere('tour_name_snapshot', '');
+                })
+                ->chunk(100, function ($bookings) {
+                    foreach ($bookings as $booking) {
+                        if ($booking->tour) {
+                            $booking->update(['tour_name_snapshot' => $booking->tour->name]);
+                        }
                     }
-                }
-            });
+                });
 
-        \App\Models\BookingDetail::with('tour')
-            ->whereNotNull('tour_id')
-            ->where(function ($q) {
-                $q->whereNull('tour_name_snapshot')
-                    ->orWhere('tour_name_snapshot', '');
-            })
-            ->chunk(100, function ($details) {
-                foreach ($details as $detail) {
-                    if ($detail->tour) {
-                        $detail->update(['tour_name_snapshot' => $detail->tour->name]);
+            \App\Models\BookingDetail::with('tour')
+                ->whereNotNull('tour_id')
+                ->where(function ($q) {
+                    $q->whereNull('tour_name_snapshot')
+                        ->orWhere('tour_name_snapshot', '');
+                })
+                ->chunk(100, function ($details) {
+                    foreach ($details as $detail) {
+                        if ($detail->tour) {
+                            $detail->update(['tour_name_snapshot' => $detail->tour->name]);
+                        }
                     }
-                }
-            });
+                });
+        }
 
         // 5) Recrear la vista (si existía)
         if ($this->viewSql) {
