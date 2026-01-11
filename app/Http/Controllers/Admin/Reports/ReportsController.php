@@ -3,17 +3,19 @@
 namespace App\Http\Controllers\Admin\Reports;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use App\Models\BookingDetail;
 use App\Models\Tour;
 use App\Models\TourLanguage;
+use App\Models\CustomerCategory;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 /**
  * ReportsController
  *
- * Handles reports operations.
+ * Handles sales and booking reports using Eloquent queries.
  */
 class ReportsController extends Controller
 {
@@ -38,92 +40,107 @@ class ReportsController extends Controller
 
         $status = $request->input('status'); // paid|confirmed|completed|cancelled|pending|null
 
-        // Filtros múltiples
+        // Multiple filters
         $tourIds = collect((array) $request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array) $request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
-        // ====== Catálogos para selects ======
+        // ====== Catalogs for selects ======
         $toursMap = Tour::pluck('name', 'tour_id');
         $langsMap = TourLanguage::pluck('name', 'tour_language_id');
 
-        // ====== KPIs ======
-        $factsQ = $this->baseFactsQuery($from, $to, $groupBy, $status, $tourIds, $langIds);
+        // ====== Base Query ======
+        $baseQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, $tourIds, $langIds);
 
-        $kpisRow = (clone $factsQ)->selectRaw("
-            COALESCE(SUM(detail_total),0) AS revenue,
-            COUNT(DISTINCT booking_id)    AS bookings,
-            COALESCE(SUM(adults_qty + kids_qty),0) AS pax
-        ")->first();
+        // ====== KPIs ======
+        // Get all details to calculate PAX from categories JSON
+        $allDetails = (clone $baseQuery)->select('booking_details.categories')->get();
+        $totalPax = $allDetails->sum(function ($detail) {
+            $cats = is_string($detail->categories) ? json_decode($detail->categories, true) : $detail->categories;
+            return collect($cats ?? [])->sum(fn($c) => (int)($c['quantity'] ?? 0));
+        });
+
+        $kpisData = (clone $baseQuery)
+            ->selectRaw('
+                SUM(booking_details.total) as revenue,
+                COUNT(DISTINCT bookings.booking_id) as bookings
+            ')
+            ->first();
 
         $kpis = [
-            'revenue'  => (float) ($kpisRow->revenue ?? 0),
-            'bookings' => (int)   ($kpisRow->bookings ?? 0),
-            'pax'      => (int)   ($kpisRow->pax ?? 0),
-            'atv'      => ($kpisRow->bookings ?? 0) ? round($kpisRow->revenue / max(1, $kpisRow->bookings), 2) : 0,
+            'revenue'  => (float) ($kpisData->revenue ?? 0),
+            'bookings' => (int)   ($kpisData->bookings ?? 0),
+            'pax'      => (int)   $totalPax,
+            'atv'      => ($kpisData->bookings ?? 0) ? round($kpisData->revenue / max(1, $kpisData->bookings), 2) : 0,
         ];
 
-        // ====== Top Tours (por ingresos) ======
-        $topTours = (clone $factsQ)
-            ->selectRaw("tour_id,
-                     SUM(detail_total) AS revenue,
-                     COUNT(DISTINCT booking_id) AS bookings,
-                     SUM(adults_qty + kids_qty) AS pax")
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('tour_language_id', $langIds))
-            ->groupBy('tour_id')
+        // ====== Top Tours (by revenue) ======
+        $topToursRaw = (clone $baseQuery)
+            ->selectRaw('
+                tours.tour_id,
+                tours.name as tour_name,
+                SUM(booking_details.total) as revenue,
+                COUNT(DISTINCT bookings.booking_id) as bookings
+            ')
+            ->groupBy('tours.tour_id', 'tours.name')
             ->orderByDesc('revenue')
             ->limit(10)
-            ->get()
-            ->map(function ($row) use ($toursMap) {
-                $row->tour_name = (string) ($toursMap[$row->tour_id] ?? ('#' . $row->tour_id));
-                return $row;
-            });
-
-        // ====== Confirmadas (sólo estatus 'confirmed' en rango y filtros) ======
-        // Tomamos desde v_booking_facts para consistencia y luego contamos bookings únicos.
-        $confirmedBookings = DB::table('v_booking_facts as vf')
-            ->when(
-                $groupBy === 'tour_date',
-                fn($q) => $q->whereBetween('vf.tour_date', [$from, $to]),
-                fn($q) => $q->whereBetween('vf.booking_date', [$from, $to])
-            )
-            ->where('vf.status', 'confirmed')
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('vf.tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('vf.tour_language_id', $langIds))
-            ->distinct('vf.booking_id')->count('vf.booking_id');
-
-        // ====== Pendientes (widget) ======
-        // Reescrito 100% contra v_booking_facts (sin adult/kid price/qty legacy).
-        $pendingBase = DB::table('v_booking_facts as vf')
-            ->join('bookings as b', 'b.booking_id', '=', 'vf.booking_id')
-            ->leftJoin('tours as t', 't.tour_id', '=', 'vf.tour_id')
-            ->leftJoin('users as u', 'u.user_id', '=', 'b.user_id')
-            ->where('vf.status', 'pending')
-            ->when(
-                $groupBy === 'tour_date',
-                fn($q) => $q->whereBetween('vf.tour_date', [$from, $to]),
-                fn($q) => $q->whereBetween('vf.booking_date', [$from, $to])
-            )
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('vf.tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('vf.tour_language_id', $langIds));
-
-        $pendingCount = (clone $pendingBase)->distinct('vf.booking_id')->count('vf.booking_id');
-
-        $pendingItems = (clone $pendingBase)
-            ->selectRaw("
-            vf.booking_id,
-            b.booking_reference,
-            MIN(vf.tour_date)                         AS tour_date,
-            MIN(vf.booking_date)                      AS booking_date,
-            COALESCE(SUM(vf.detail_total), 0)         AS total,
-            COALESCE(SUM(vf.adults_qty + vf.kids_qty), 0) AS pax,
-            MIN(u.email)                              AS customer_email,
-            MIN(t.name)                               AS tour_name
-        ")
-            ->groupBy('vf.booking_id', 'b.booking_reference')
-            ->orderByRaw('MIN(vf.booking_date) ASC NULLS LAST')
-            ->limit(8)
             ->get();
+
+        // Calculate PAX for each tour
+        $topTours = $topToursRaw->map(function ($tour) use ($from, $to, $groupBy, $status, $tourIds, $langIds) {
+            $tourQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, [$tour->tour_id], $langIds);
+            $details = $tourQuery->select('booking_details.categories')->get();
+            $tour->pax = $details->sum(function ($detail) {
+                $cats = is_string($detail->categories) ? json_decode($detail->categories, true) : $detail->categories;
+                return collect($cats ?? [])->sum(fn($c) => (int)($c['quantity'] ?? 0));
+            });
+            return $tour;
+        });
+
+        // ====== Confirmed Bookings ======
+        $confirmedBookings = (clone $baseQuery)
+            ->where('bookings.status', 'confirmed')
+            ->distinct('bookings.booking_id')
+            ->count('bookings.booking_id');
+
+        // ====== Pending Bookings Widget ======
+        $pendingQuery = $this->buildBaseQuery($from, $to, $groupBy, 'pending', $tourIds, $langIds);
+
+        $pendingCount = (clone $pendingQuery)
+            ->distinct('bookings.booking_id')
+            ->count('bookings.booking_id');
+
+        $pendingItems = (clone $pendingQuery)
+            ->selectRaw('
+                bookings.booking_id,
+                bookings.booking_reference,
+                MIN(booking_details.tour_date) as tour_date,
+                bookings.created_at as booking_date,
+                bookings.total,
+                users.email as customer_email,
+                tours.name as tour_name
+            ')
+            ->leftJoin('users', 'users.user_id', '=', 'bookings.user_id')
+            ->groupBy(
+                'bookings.booking_id',
+                'bookings.booking_reference',
+                'bookings.created_at',
+                'bookings.total',
+                'users.email',
+                'tours.name'
+            )
+            ->orderBy('bookings.created_at', 'asc')
+            ->limit(8)
+            ->get()
+            ->map(function ($item) {
+                // Calculate PAX from booking details categories
+                $details = BookingDetail::where('booking_id', $item->booking_id)->get();
+                $item->pax = $details->sum(function ($detail) {
+                    $cats = is_string($detail->categories) ? json_decode($detail->categories, true) : $detail->categories;
+                    return collect($cats ?? [])->sum(fn($c) => (int)($c['quantity'] ?? 0));
+                });
+                return $item;
+            });
 
         return view('admin.reports.index', compact(
             'from',
@@ -141,12 +158,11 @@ class ReportsController extends Controller
         ));
     }
 
-
     public function chartMonthlySales(Request $request)
     {
         // === inputs ===
-        $groupBy = $request->input('group_by', 'booking_date'); // booking_date|tour_date
-        $period  = $request->input('period', 'month');          // day|week|month
+        $groupBy = $request->input('group_by', 'booking_date');
+        $period  = $request->input('period', 'month');
         $from    = Carbon::parse($request->input('from', now()->copy()->startOfYear()))->startOfDay();
         $to      = Carbon::parse($request->input('to', now()))->endOfDay();
         $status  = $request->input('status');
@@ -155,64 +171,51 @@ class ReportsController extends Controller
         $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         // === base ===
-        $factsQ = $this->baseFactsQuery($from, $to, $groupBy, $status, $tourIds, $langIds);
+        $baseQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, $tourIds, $langIds);
 
-        // === bucket & label SQL (PostgreSQL) ===
-        $dateCol = $groupBy === 'tour_date' ? 'tour_date' : 'booking_date';
+        // === Determine date column and format ===
+        $dateColumn = $groupBy === 'tour_date' ? 'bookings.tour_date' : 'bookings.created_at';
 
         if ($period === 'day') {
-            $bucketExpr = "to_char({$dateCol}, 'YYYY-MM-DD')";
+            $dateFormat = 'Y-m-d';
             $step = 'day';
         } elseif ($period === 'week') {
-            // ISO week
-            $bucketExpr = "to_char(date_trunc('week', {$dateCol}), 'IYYY-IW')";
+            $dateFormat = 'o-W'; // ISO week
             $step = 'week';
         } else { // month
-            $bucketExpr = "to_char(date_trunc('month', {$dateCol}), 'YYYY-MM')";
+            $dateFormat = 'Y-m';
             $step = 'month';
         }
 
-        $rows = (clone $factsQ)
-            ->selectRaw("$bucketExpr as bucket,
-                         COALESCE(SUM(detail_total),0) AS revenue,
-                         COUNT(DISTINCT booking_id)    AS bookings,
-                         COALESCE(SUM(adults_qty + kids_qty),0) AS pax")
+        // Get raw data
+        $rawData = (clone $baseQuery)
+            ->selectRaw("
+                DATE_FORMAT({$dateColumn}, ?) as bucket,
+                SUM(booking_details.total) as revenue,
+                COUNT(DISTINCT bookings.booking_id) as bookings
+            ", [$this->getMySQLDateFormat($period)])
             ->groupBy('bucket')
             ->orderBy('bucket')
             ->get()
             ->keyBy('bucket');
 
-        // === construir eje completo con ceros ===
+        // === Build complete axis with zeros ===
         $labels = [];
         $seriesRevenue = [];
         $seriesBookings = [];
-        $seriesPax = [];
 
         $cursorStart = (clone $from);
         if ($step === 'month') $cursorStart->startOfMonth();
-        if ($step === 'week')  $cursorStart->startOfWeek(); // ISO (lunes)
+        if ($step === 'week')  $cursorStart->startOfWeek();
 
         $periodIter = CarbonPeriod::create($cursorStart, "1 {$step}", $to);
 
         foreach ($periodIter as $d) {
-            if ($step === 'day') {
-                $label = $d->format('Y-m-d');
-            } elseif ($step === 'week') {
-                $label = $d->isoFormat('GGGG-[W]WW'); // ej: 2025-W44
-            } else {
-                $label = $d->format('Y-m');
-            }
+            $label = $d->format($dateFormat);
+            $labels[] = $label;
 
-            // Normalizar label para que coincida con SQL (semana)
-            $sqlKey = $label;
-            if ($step === 'week') {
-                $sqlKey = $d->isoFormat('GGGG-[W]WW'); // coincide con IYYY-IW
-            }
-
-            $labels[]         = $label;
-            $seriesRevenue[]  = isset($rows[$sqlKey]) ? round((float)$rows[$sqlKey]->revenue, 2) : 0;
-            $seriesBookings[] = isset($rows[$sqlKey]) ? (int)$rows[$sqlKey]->bookings : 0;
-            $seriesPax[]      = isset($rows[$sqlKey]) ? (int)$rows[$sqlKey]->pax : 0;
+            $seriesRevenue[]  = isset($rawData[$label]) ? round((float)$rawData[$label]->revenue, 2) : 0;
+            $seriesBookings[] = isset($rawData[$label]) ? (int)$rawData[$label]->bookings : 0;
         }
 
         return response()->json([
@@ -220,7 +223,6 @@ class ReportsController extends Controller
             'series' => [
                 'revenue'  => $seriesRevenue,
                 'bookings' => $seriesBookings,
-                'pax'      => $seriesPax,
             ]
         ]);
     }
@@ -235,23 +237,23 @@ class ReportsController extends Controller
         $tourIds = collect((array)$request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
-        $factsQ = $this->baseFactsQuery($from, $to, $groupBy, $status, $tourIds, $langIds);
+        $baseQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, $tourIds, $langIds);
 
-        $rows = (clone $factsQ)
-            ->selectRaw("tour_language_id,
-                     COALESCE(SUM(detail_total),0) AS revenue,
-                     COUNT(DISTINCT booking_id)    AS bookings")
-            ->when(!empty($langIds), fn($q) => $q->whereIn('tour_language_id', $langIds))
-            ->groupBy('tour_language_id')
+        $rows = (clone $baseQuery)
+            ->selectRaw('
+                booking_details.tour_language_id,
+                tour_languages.name as language_name,
+                SUM(booking_details.total) as revenue,
+                COUNT(DISTINCT bookings.booking_id) as bookings
+            ')
+            ->leftJoin('tour_languages', 'tour_languages.tour_language_id', '=', 'booking_details.tour_language_id')
+            ->groupBy('booking_details.tour_language_id', 'tour_languages.name')
             ->orderByDesc('revenue')
             ->get();
 
-        // Mapear IDs -> nombres
-        $names = TourLanguage::pluck('name', 'tour_language_id');
-
         return response()->json([
             'keys'   => $rows->pluck('tour_language_id'),
-            'labels' => $rows->map(fn($r) => (string)($names[$r->tour_language_id] ?? ("#" . $r->tour_language_id))),
+            'labels' => $rows->pluck('language_name')->map(fn($name) => $name ?? 'N/A'),
             'series' => [
                 'revenue'  => $rows->pluck('revenue')->map(fn($v) => round((float)$v, 2)),
                 'bookings' => $rows->pluck('bookings')->map(fn($v) => (int)$v),
@@ -259,19 +261,44 @@ class ReportsController extends Controller
         ]);
     }
 
+    /**
+     * Build base query for reports
+     */
+    private function buildBaseQuery(Carbon $from, Carbon $to, string $groupBy, ?string $status, array $tourIds, array $langIds)
+    {
+        $dateColumn = $groupBy === 'tour_date' ? 'bookings.tour_date' : 'bookings.created_at';
+
+        $query = BookingDetail::query()
+            ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
+            ->join('tours', 'tours.tour_id', '=', 'booking_details.tour_id')
+            ->whereBetween($dateColumn, [$from, $to]);
+
+        if ($status) {
+            $query->where('bookings.status', $status);
+        }
+
+        if (!empty($tourIds)) {
+            $query->whereIn('booking_details.tour_id', $tourIds);
+        }
+
+        if (!empty($langIds)) {
+            $query->whereIn('booking_details.tour_language_id', $langIds);
+        }
+
+        return $query;
+    }
 
     /**
-     * Base query sobre v_booking_facts con filtros comunes.
+     * Get MySQL date format string for period
      */
-    private function baseFactsQuery(Carbon $from, Carbon $to, string $groupBy, ?string $status, array $tourIds, array $langIds)
+    private function getMySQLDateFormat(string $period): string
     {
-        $dateCol = $groupBy === 'tour_date' ? 'tour_date' : 'booking_date';
-
-        return DB::table('v_booking_facts')
-            ->when($status, fn($q) => $q->where('status', $status))
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('tour_language_id', $langIds))
-            ->whereBetween($dateCol, [$from, $to]);
+        return match ($period) {
+            'day' => '%Y-%m-%d',
+            'week' => '%x-%v', // ISO week
+            'month' => '%Y-%m',
+            default => '%Y-%m',
+        };
     }
 
     /**
@@ -285,75 +312,114 @@ class ReportsController extends Controller
      */
     public function byCategory(Request $request)
     {
-        $groupBy = $request->string('group_by')->isNotEmpty()
-            ? $request->string('group_by')->toString()
-            : 'booking_date';
-
-        $period = $request->string('period')->isNotEmpty()
-            ? $request->string('period')->toString()
-            : 'month';
-
-        $from = $request->filled('from')
+        $from = $request->input('from')
             ? Carbon::parse($request->input('from'))->startOfDay()
-            : Carbon::now()->copy()->startOfYear();
+            : Carbon::now()->startOfMonth();
 
-        $to = $request->filled('to')
+        $to = $request->input('to')
             ? Carbon::parse($request->input('to'))->endOfDay()
             : Carbon::now()->endOfDay();
 
         $status = $request->input('status');
+        $tourIds = array_filter((array) $request->input('tour_id', []));
+        $langIds = array_filter((array) $request->input('tour_language_id', []));
+        $categoryIds = array_filter((array) $request->input('category_id', []));
 
-        $tourIds = collect((array) $request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $langIds = collect((array) $request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $categoryIds = collect((array) $request->input('category_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $groupBy = $request->input('group_by', 'booking_date');
+        $dateColumn = $groupBy === 'tour_date' ? 'booking_details.tour_date' : 'bookings.created_at';
 
-        // Catalogs
-        $toursMap = \App\Models\Tour::pluck('name', 'tour_id');
-        $langsMap = \App\Models\TourLanguage::pluck('name', 'tour_language_id');
-        $categoriesMap = \App\Models\CustomerCategory::with('translations')
-            ->get()
-            ->mapWithKeys(fn($cat) => [$cat->category_id => $cat->translated]);
+        // Get all customer categories for mapping
+        $categoriesMap = CustomerCategory::pluck('name', 'category_id')->toArray();
 
-        // Base query on category facts
-        $dateCol = $groupBy === 'tour_date' ? 'tour_date' : 'booking_date';
+        // Fetch booking details with categories JSON
+        $bookingDetails = BookingDetail::query()
+            ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
+            ->join('tours', 'tours.tour_id', '=', 'booking_details.tour_id')
+            ->whereBetween($dateColumn, [$from, $to])
+            ->when($status, fn($q) => $q->where('bookings.status', $status))
+            ->when(!empty($tourIds), fn($q) => $q->whereIn('booking_details.tour_id', $tourIds))
+            ->when(!empty($langIds), fn($q) => $q->whereIn('booking_details.tour_language_id', $langIds))
+            ->select(
+                'booking_details.booking_detail_id',
+                'booking_details.categories',
+                'booking_details.price',
+                'bookings.booking_id',
+                'bookings.total'
+            )
+            ->get();
 
-        $categoryQuery = DB::table('v_booking_category_facts')
-            ->when($status, fn($q) => $q->where('status', $status))
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('tour_language_id', $langIds))
-            ->when(!empty($categoryIds), fn($q) => $q->whereIn('category_id', $categoryIds))
-            ->whereBetween($dateCol, [$from, $to]);
+        // Parse categories and aggregate stats
+        $categoryStats = collect();
+        $totalRevenue = 0;
+        $totalQuantity = 0;
+        $bookingIds = collect();
 
-        // Aggregate by category
-        $categoryStats = (clone $categoryQuery)
-            ->selectRaw("
-                category_id,
-                category_slug,
-                SUM(quantity) AS total_quantity,
-                SUM(line_total) AS total_revenue,
-                AVG(unit_price) AS avg_unit_price,
-                COUNT(DISTINCT booking_id) AS bookings_count
-            ")
-            ->groupBy('category_id', 'category_slug')
-            ->orderByDesc('total_revenue')
-            ->get()
-            ->map(function ($stat) use ($categoriesMap) {
-                $stat->category_name = $categoriesMap[$stat->category_id] ?? ucfirst(str_replace(['_', '-'], ' ', $stat->category_slug));
-                return $stat;
-            });
+        foreach ($bookingDetails as $detail) {
+            $categories = is_string($detail->categories)
+                ? json_decode($detail->categories, true)
+                : $detail->categories;
+
+            if (!is_array($categories)) {
+                continue;
+            }
+
+            foreach ($categories as $cat) {
+                $categoryId = $cat['category_id'] ?? null;
+                $quantity = (int)($cat['quantity'] ?? 0);
+                $price = (float)($cat['price'] ?? 0);
+
+                if (!$categoryId || $quantity <= 0) {
+                    continue;
+                }
+
+                // Filter by category if specified
+                if (!empty($categoryIds) && !in_array($categoryId, $categoryIds)) {
+                    continue;
+                }
+
+                $revenue = $price * $quantity;
+                $totalRevenue += $revenue;
+                $totalQuantity += $quantity;
+                $bookingIds->push($detail->booking_id);
+
+                // Aggregate by category
+                if (!$categoryStats->has($categoryId)) {
+                    $categoryStats->put($categoryId, [
+                        'category_id' => $categoryId,
+                        'category_name' => $categoriesMap[$categoryId] ?? "Category #{$categoryId}",
+                        'total_quantity' => 0,
+                        'total_revenue' => 0,
+                        'bookings_count' => collect(),
+                        'prices' => collect(),
+                    ]);
+                }
+
+                $stat = $categoryStats->get($categoryId);
+                $stat['total_quantity'] += $quantity;
+                $stat['total_revenue'] += $revenue;
+                $stat['bookings_count']->push($detail->booking_id);
+                $stat['prices']->push($price);
+                $categoryStats->put($categoryId, $stat);
+            }
+        }
+
+        // Finalize stats
+        $categoryStats = $categoryStats->map(function ($stat) {
+            return (object)[
+                'category_id' => $stat['category_id'],
+                'category_name' => $stat['category_name'],
+                'total_quantity' => $stat['total_quantity'],
+                'total_revenue' => round($stat['total_revenue'], 2),
+                'bookings_count' => $stat['bookings_count']->unique()->count(),
+                'avg_unit_price' => $stat['prices']->avg() ?? 0,
+            ];
+        })->sortByDesc('total_revenue')->values();
 
         // KPIs
         $kpis = [
-            'total_revenue' => (float) $categoryStats->sum('total_revenue'),
-            'total_quantity' => (int) $categoryStats->sum('total_quantity'),
-            'total_bookings' => (int) DB::table('v_booking_category_facts')
-                ->when($status, fn($q) => $q->where('status', $status))
-                ->when(!empty($tourIds), fn($q) => $q->whereIn('tour_id', $tourIds))
-                ->when(!empty($langIds), fn($q) => $q->whereIn('tour_language_id', $langIds))
-                ->when(!empty($categoryIds), fn($q) => $q->whereIn('category_id', $categoryIds))
-                ->whereBetween($dateCol, [$from, $to])
-                ->distinct('booking_id')
-                ->count('booking_id'),
+            'total_revenue' => round($totalRevenue, 2),
+            'total_quantity' => $totalQuantity,
+            'total_bookings' => $bookingIds->unique()->count(),
             'categories_count' => $categoryStats->count(),
         ];
 
@@ -361,70 +427,14 @@ class ReportsController extends Controller
             'from',
             'to',
             'status',
-            'groupBy',
-            'period',
             'categoryStats',
             'kpis',
-            'toursMap',
-            'langsMap',
             'categoriesMap',
             'tourIds',
             'langIds',
-            'categoryIds'
+            'categoryIds',
+            'groupBy'
         ));
-    }
-
-    /**
-     * Chart: Category trends over time
-     */
-    public function chartCategoryTrends(Request $request)
-    {
-        $groupBy = $request->input('group_by', 'booking_date');
-        $period = $request->input('period', 'month');
-        $from = Carbon::parse($request->input('from', now()->copy()->startOfYear()))->startOfDay();
-        $to = Carbon::parse($request->input('to', now()))->endOfDay();
-        $status = $request->input('status');
-
-        $tourIds = collect((array)$request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $categoryIds = collect((array)$request->input('category_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-
-        $dateCol = $groupBy === 'tour_date' ? 'tour_date' : 'booking_date';
-        $bucketCol = $period === 'day' ? 'day_bucket' : ($period === 'week' ? 'week_bucket' : 'month_bucket');
-        if ($groupBy === 'tour_date') {
-            $bucketCol = 'tour_' . $bucketCol;
-        }
-
-        $rows = DB::table('v_booking_category_facts')
-            ->when($status, fn($q) => $q->where('status', $status))
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('tour_language_id', $langIds))
-            ->when(!empty($categoryIds), fn($q) => $q->whereIn('category_id', $categoryIds))
-            ->whereBetween($dateCol, [$from, $to])
-            ->selectRaw("
-                {$bucketCol} as bucket,
-                category_id,
-                category_name,
-                SUM(quantity) as quantity,
-                SUM(line_total) as revenue
-            ")
-            ->groupBy($bucketCol, 'category_id', 'category_name')
-            ->orderBy($bucketCol)
-            ->get()
-            ->groupBy('category_id');
-
-        // Build series per category
-        $series = [];
-        foreach ($rows as $categoryId => $categoryRows) {
-            $categoryName = $categoryRows->first()->category_name;
-            $series[$categoryName] = [
-                'labels' => $categoryRows->pluck('bucket')->map(fn($d) => (string)$d)->values(),
-                'revenue' => $categoryRows->pluck('revenue')->map(fn($v) => round((float)$v, 2))->values(),
-                'quantity' => $categoryRows->pluck('quantity')->map(fn($v) => (int)$v)->values(),
-            ];
-        }
-
-        return response()->json($series);
     }
 
     /**
@@ -440,102 +450,49 @@ class ReportsController extends Controller
         $tourIds = collect((array)$request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
-        $dateCol = $groupBy === 'tour_date' ? 'tour_date' : 'booking_date';
+        $dateColumn = $groupBy === 'tour_date' ? 'bookings.tour_date' : 'bookings.created_at';
 
-        $rows = DB::table('v_booking_category_facts')
-            ->when($status, fn($q) => $q->where('status', $status))
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('tour_language_id', $langIds))
-            ->whereBetween($dateCol, [$from, $to])
-            ->selectRaw("
-                category_name,
-                SUM(line_total) as revenue,
-                SUM(quantity) as quantity
-            ")
-            ->groupBy('category_name')
+        $query = BookingDetail::query()
+            ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
+            ->join('booking_detail_categories', 'booking_detail_categories.booking_detail_id', '=', 'booking_details.booking_detail_id')
+            ->join('customer_categories', 'customer_categories.category_id', '=', 'booking_detail_categories.category_id')
+            ->whereBetween($dateColumn, [$from, $to]);
+
+        if ($status) {
+            $query->where('bookings.status', $status);
+        }
+
+        if (!empty($tourIds)) {
+            $query->whereIn('booking_details.tour_id', $tourIds);
+        }
+
+        if (!empty($langIds)) {
+            $query->whereIn('booking_details.tour_language_id', $langIds);
+        }
+
+        // Get category names with translations
+        $categoriesMap = CustomerCategory::with('translations')
+            ->get()
+            ->mapWithKeys(fn($cat) => [$cat->category_id => $cat->translated]);
+
+        $rows = $query
+            ->selectRaw('
+                customer_categories.category_id,
+                SUM(booking_detail_categories.price * booking_detail_categories.quantity) as revenue,
+                SUM(booking_detail_categories.quantity) as quantity
+            ')
+            ->groupBy('customer_categories.category_id')
             ->orderByDesc('revenue')
-            ->get();
+            ->get()
+            ->map(function ($row) use ($categoriesMap) {
+                $row->category_name = $categoriesMap[$row->category_id] ?? "Category #{$row->category_id}";
+                return $row;
+            });
 
         return response()->json([
             'labels' => $rows->pluck('category_name'),
             'revenue' => $rows->pluck('revenue')->map(fn($v) => round((float)$v, 2)),
             'quantity' => $rows->pluck('quantity')->map(fn($v) => (int)$v),
         ]);
-    }
-
-    /**
-     * Export categories to Excel (Power BI optimized)
-     */
-    public function exportCategoriesExcel(Request $request)
-    {
-        $data = $this->getCategoryExportData($request);
-
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\CategoryReportExport($data),
-            'category-report-' . now()->format('Y-m-d') . '.xlsx'
-        );
-    }
-
-    /**
-     * Export categories to CSV (Power BI optimized)
-     */
-    public function exportCategoriesCsv(Request $request)
-    {
-        $data = $this->getCategoryExportData($request);
-
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\CategoryReportExport($data),
-            'category-report-' . now()->format('Y-m-d') . '.csv',
-            \Maatwebsite\Excel\Excel::CSV
-        );
-    }
-
-    /**
-     * Get category data for export
-     */
-    private function getCategoryExportData(Request $request): array
-    {
-        $groupBy = $request->input('group_by', 'booking_date');
-        $from = Carbon::parse($request->input('from', now()->copy()->startOfYear()))->startOfDay();
-        $to = Carbon::parse($request->input('to', now()))->endOfDay();
-        $status = $request->input('status');
-
-        $tourIds = collect((array)$request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $categoryIds = collect((array)$request->input('category_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-
-        $dateCol = $groupBy === 'tour_date' ? 'tour_date' : 'booking_date';
-
-        $rows = DB::table('v_booking_category_facts as vcf')
-            ->join('bookings as b', 'b.booking_id', '=', 'vcf.booking_id')
-            ->leftJoin('tours as t', 't.tour_id', '=', 'vcf.tour_id')
-            ->leftJoin('tour_languages as tl', 'tl.tour_language_id', '=', 'vcf.tour_language_id')
-            ->when($status, fn($q) => $q->where('vcf.status', $status))
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('vcf.tour_id', $tourIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('vcf.tour_language_id', $langIds))
-            ->when(!empty($categoryIds), fn($q) => $q->whereIn('vcf.category_id', $categoryIds))
-            ->whereBetween("vcf.{$dateCol}", [$from, $to])
-            ->selectRaw("
-                vcf.booking_id,
-                vcf.booking_reference,
-                vcf.booking_date,
-                vcf.tour_date,
-                vcf.status,
-                t.name as tour_name,
-                tl.name as language_name,
-                vcf.category_id,
-                vcf.category_name,
-                vcf.category_slug,
-                vcf.quantity,
-                vcf.unit_price,
-                vcf.line_total,
-                vcf.month_bucket as booking_month,
-                vcf.tour_month_bucket as tour_month
-            ")
-            ->orderBy('vcf.booking_date', 'desc')
-            ->get()
-            ->toArray();
-
-        return $rows;
     }
 }

@@ -73,6 +73,7 @@ return [
         'tour_settings' => 'Tour Settings',
         'general' => 'General',
         'taxes' => 'Taxes',
+        'email_templates' => 'Email Templates',
         'app_settings' => 'App Settings',
         'app' => 'App',
         'operations' => 'Operations',

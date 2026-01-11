@@ -18,7 +18,7 @@ $consentCookie = request()->cookie('gv_cookie_consent');
 $hasConsent = !is_null($consentCookie);
 $cookiesOk = ($consentCookie === '1') || (bool) session('cookies.accepted', false);
 
-$gaId = config('services.google.analytics_id');
+$gaId = config('services.google.analytics_id') ?: 'G-VZNMJV1T29';
 $pixelId = config('services.meta.pixel_id');
 
 $themeColor = $__env->yieldContent('theme_color') ?: '#0f2419';
@@ -26,28 +26,28 @@ $isHome = request()->routeIs('home');
 
 // Safe localized routes with fallbacks
 $homeEs = (function_exists('localized_route') && RouteFacade::has('home'))
-    ? localized_route('home', 'es')
-    : url('/');
+? localized_route('home', 'es')
+: url('/');
 $homeEn = (function_exists('localized_route') && RouteFacade::has('home'))
-    ? localized_route('home', 'en')
-    : url('/en');
+? localized_route('home', 'en')
+: url('/en');
 $homeFr = (function_exists('localized_route') && RouteFacade::has('home'))
-    ? localized_route('home', 'fr')
-    : url('/fr');
+? localized_route('home', 'fr')
+: url('/fr');
 $homeDe = (function_exists('localized_route') && RouteFacade::has('home'))
-    ? localized_route('home', 'de')
-    : url('/de');
+? localized_route('home', 'de')
+: url('/de');
 $homePt = (function_exists('localized_route') && RouteFacade::has('home'))
-    ? localized_route('home', 'pt_BR')
-    : url('/pt');
+? localized_route('home', 'pt_BR')
+: url('/pt');
 
 // Cart count route with safe fallback
 if (RouteFacade::has('cart.count')) {
-    $cartCountUrl = route('cart.count');
+$cartCountUrl = route('cart.count');
 } elseif (RouteFacade::has('cart.count.public')) {
-    $cartCountUrl = route('cart.count.public');
+$cartCountUrl = route('cart.count.public');
 } else {
-    $cartCountUrl = url('/cart/count');
+$cartCountUrl = url('/cart/count');
 }
 
 // Determine body classes dynamically
@@ -55,20 +55,20 @@ $bodyClasses = [];
 
 // Add class based on route
 if (request()->routeIs('public.checkout.show')) {
-    $bodyClasses[] = 'checkout-page';
+$bodyClasses[] = 'checkout-page';
 } elseif (request()->routeIs('payment.process')) {
-    $bodyClasses[] = 'payment-page';
+$bodyClasses[] = 'payment-page';
 }
 
 // Add home class if needed
 if ($isHome) {
-    $bodyClasses[] = 'is-home';
+$bodyClasses[] = 'is-home';
 }
 
 // Add additional classes from section
 $additionalBodyClass = trim($__env->yieldContent('body_class') ?? '');
 if ($additionalBodyClass) {
-    $bodyClasses[] = $additionalBodyClass;
+$bodyClasses[] = $additionalBodyClass;
 }
 
 $bodyClassString = implode(' ', array_unique(array_filter($bodyClasses)));
@@ -79,43 +79,43 @@ $marketingAllowed = function_exists('cookie_allowed') ? cookie_allowed('marketin
 
 // Schema.org JSON-LD seguro usando json_encode
 $schemaOrg = [
-    '@context' => 'https://schema.org',
-    '@type' => 'TravelAgency',
-    'name' => config('company.name'),
-    'image' => asset('images/logo.png'),
-    'description' => $metaDesc,
-    '@id' => url('/'),
-    'url' => url('/'),
-    'telephone' => config('company.phone', '+506-8888-8888'),
-    'email' => config('company.email', 'info@greenvacationscr.com'),
-    'address' => [
-        '@type' => 'PostalAddress',
-        'streetAddress' => config('company.address.street', 'La Fortuna, San Carlos'),
-        'addressLocality' => config('company.address.city', 'La Fortuna'),
-        'addressRegion' => config('company.address.state', 'Alajuela'),
-        'postalCode' => config('company.address.postal_code', '21007'),
-        'addressCountry' => config('company.address.country_code', 'CR')
-    ],
-    'geo' => [
-        '@type' => 'GeoCoordinates',
-        'latitude' => config('company.map.latitude', '10.4678'),
-        'longitude' => config('company.map.longitude', '-84.6427')
-    ],
-    'openingHoursSpecification' => [
-        [
-            '@type' => 'OpeningHoursSpecification',
-            'dayOfWeek' => [
-                'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-            ],
-            'opens' => '07:00',
-            'closes' => '22:00'
-        ]
-    ],
-    'sameAs' => [
-        'https://www.facebook.com/GreenVacationsCR',
-        'https://www.instagram.com/greenvacationscr'
-    ],
-    'priceRange' => '$$'
+'@context' => 'https://schema.org',
+'@type' => 'TravelAgency',
+'name' => config('company.name'),
+'image' => asset('images/logo.png'),
+'description' => $metaDesc,
+'@id' => url('/'),
+'url' => url('/'),
+'telephone' => config('company.phone', '+506-8888-8888'),
+'email' => config('company.email', 'info@greenvacationscr.com'),
+'address' => [
+'@type' => 'PostalAddress',
+'streetAddress' => config('company.address.street', 'La Fortuna, San Carlos'),
+'addressLocality' => config('company.address.city', 'La Fortuna'),
+'addressRegion' => config('company.address.state', 'Alajuela'),
+'postalCode' => config('company.address.postal_code', '21007'),
+'addressCountry' => config('company.address.country_code', 'CR')
+],
+'geo' => [
+'@type' => 'GeoCoordinates',
+'latitude' => config('company.map.latitude', '10.4678'),
+'longitude' => config('company.map.longitude', '-84.6427')
+],
+'openingHoursSpecification' => [
+[
+'@type' => 'OpeningHoursSpecification',
+'dayOfWeek' => [
+'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+],
+'opens' => '07:00',
+'closes' => '22:00'
+]
+],
+'sameAs' => [
+'https://www.facebook.com/GreenVacationsCR',
+'https://www.instagram.com/greenvacationscr'
+],
+'priceRange' => '$$'
 ];
 @endphp
 <html lang="{{ $appLocale }}">
@@ -157,7 +157,9 @@ $schemaOrg = [
 
     {{-- LocalBusiness Schema usando json_encode seguro --}}
     <script type="application/ld+json">
-    {!! json_encode($schemaOrg, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
+        {
+            !!json_encode($schemaOrg, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!
+        }
     </script>
 
     {{-- Favicon / PWA --}}
@@ -174,7 +176,13 @@ $schemaOrg = [
     @if ($isHome)
     <style>
         html {
-            background-color: {{ $themeColor }};
+            background-color: {
+                    {
+                    $themeColor
+                }
+            }
+
+            ;
         }
 
         @supports (padding: max(0px)) {
@@ -192,28 +200,27 @@ $schemaOrg = [
     @stack('meta')
 
     @vite([
-        'resources/js/app.js',
-        'resources/css/gv.css',
-        'resources/css/app.css',
-        'resources/css/checkout.css'
+    'resources/js/app.js',
+    'resources/css/gv.css',
+    'resources/css/app.css',
+    'resources/css/checkout.css'
     ])
 
     @stack('styles')
 
-    {{-- Google Analytics - only if analytics is allowed --}}
-    @if ($isProd && $analyticsAllowed && !empty($gaId))
-    <link rel="preconnect" href="https://www.google-analytics.com" crossorigin>
-    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    {{-- Google Analytics --}}
+    @if (!empty($gaId))
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId }}"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
+
         function gtag() {
             dataLayer.push(arguments);
         }
         gtag('js', new Date());
-        gtag('config', '{{ $gaId }}', {
-            'anonymize_ip': true
-        });
+
+        gtag('config', '{{ $gaId }}');
     </script>
     @endif
 
@@ -221,21 +228,30 @@ $schemaOrg = [
     @if ($isProd && $marketingAllowed && !empty($pixelId))
     <link rel="preconnect" href="https://connect.facebook.net" crossorigin>
     <script>
-        !function(f,b,e,v,n,t,s) {
-            if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-            n.queue=[];t=b.createElement(e);t.async=!0;
-            t.src=v;s=b.getElementsByTagName(e)[0];
-            s.parentNode.insertBefore(t,s)
-        }(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
+        ! function(f, b, e, v, n, t, s) {
+            if (f.fbq) return;
+            n = f.fbq = function() {
+                n.callMethod ?
+                    n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+            };
+            if (!f._fbq) f._fbq = n;
+            n.push = n;
+            n.loaded = !0;
+            n.version = '2.0';
+            n.queue = [];
+            t = b.createElement(e);
+            t.async = !0;
+            t.src = v;
+            s = b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t, s)
+        }(window, document, 'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
         fbq('init', '{{ $pixelId }}');
         fbq('track', 'PageView');
     </script>
     <noscript>
         <img height="1" width="1" style="display:none"
-             src="https://www.facebook.com/tr?id={{ $pixelId }}&ev=PageView&noscript=1" />
+            src="https://www.facebook.com/tr?id={{ $pixelId }}&ev=PageView&noscript=1" />
     </noscript>
     @endif
 
@@ -270,34 +286,36 @@ $schemaOrg = [
 
     {{-- Cart badge --}}
     <script>
-    (function() {
-        const setBadge = (n) => {
-            document.querySelectorAll('.cart-count-badge').forEach(el => {
-                el.textContent = n;
-                el.style.display = n > 0 ? 'inline-block' : 'none';
-            });
-        };
-        window.setCartCount = setBadge;
-
-        const fetchAndSet = async () => {
-            const url = document.querySelector('meta[name="cart-count-url"]')?.getAttribute('content');
-            if (!url) return;
-            try {
-                const res = await fetch(url, {
-                    headers: { 'Accept': 'application/json' }
+        (function() {
+            const setBadge = (n) => {
+                document.querySelectorAll('.cart-count-badge').forEach(el => {
+                    el.textContent = n;
+                    el.style.display = n > 0 ? 'inline-block' : 'none';
                 });
-                if (res.status === 401) {
-                    setBadge(0);
-                    return;
-                }
-                const data = await res.json();
-                if (typeof data?.count !== 'undefined') setBadge(Number(data.count || 0));
-            } catch (_) {}
-        };
+            };
+            window.setCartCount = setBadge;
 
-        fetchAndSet();
-        window.addEventListener('cart:changed', fetchAndSet);
-    })();
+            const fetchAndSet = async () => {
+                const url = document.querySelector('meta[name="cart-count-url"]')?.getAttribute('content');
+                if (!url) return;
+                try {
+                    const res = await fetch(url, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (res.status === 401) {
+                        setBadge(0);
+                        return;
+                    }
+                    const data = await res.json();
+                    if (typeof data?.count !== 'undefined') setBadge(Number(data.count || 0));
+                } catch (_) {}
+            };
+
+            fetchAndSet();
+            window.addEventListener('cart:changed', fetchAndSet);
+        })();
     </script>
 
     {{-- Global Cart Countdown System --}}
@@ -309,22 +327,22 @@ $schemaOrg = [
 
     @if ($hasActiveCart)
     <script>
-    (function() {
-        const expiresAtStr = @json($userCart->expires_at);
-        const totalMinutes = @json($userCart->expiryMinutes());
+        (function() {
+            const expiresAtStr = @json($userCart -> expires_at);
+            const totalMinutes = @json($userCart -> expiryMinutes());
 
-        if (!expiresAtStr) return;
+            if (!expiresAtStr) return;
 
-        let serverExpires = new Date(expiresAtStr).getTime();
-        const totalSeconds = totalMinutes * 60;
+            let serverExpires = new Date(expiresAtStr).getTime();
+            const totalSeconds = totalMinutes * 60;
 
-        window.cartCountdown = {
-            getRemainingSeconds: () => Math.max(0, Math.ceil((serverExpires - Date.now()) / 1000)),
-            getTotalSeconds: () => totalSeconds,
-            getExpiresAt: () => new Date(serverExpires),
-            isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
-        };
-    })();
+            window.cartCountdown = {
+                getRemainingSeconds: () => Math.max(0, Math.ceil((serverExpires - Date.now()) / 1000)),
+                getTotalSeconds: () => totalSeconds,
+                getExpiresAt: () => new Date(serverExpires),
+                isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+            };
+        })();
     </script>
     @endif
     @endauth
@@ -343,69 +361,76 @@ $schemaOrg = [
 
     @if ($hasGuestCart)
     <script>
-    (function() {
-        const createdAt = @json($guestCartCreated);
-        const expiryMinutes = {{ \App\Models\Setting::getValue('cart.expiration_minutes', 30) }};
-        if (!createdAt) return;
+        (function() {
+            const createdAt = @json($guestCartCreated);
+            const expiryMinutes = {
+                {
+                    \
+                    App\ Models\ Setting::getValue('cart.expiration_minutes', 30)
+                }
+            };
+            if (!createdAt) return;
 
-        const created = new Date(createdAt).getTime();
-        const expires = created + (expiryMinutes * 60 * 1000);
-        const totalSeconds = expiryMinutes * 60;
+            const created = new Date(createdAt).getTime();
+            const expires = created + (expiryMinutes * 60 * 1000);
+            const totalSeconds = expiryMinutes * 60;
 
-        window.cartCountdown = {
-            getRemainingSeconds: () => Math.max(0, Math.ceil((expires - Date.now()) / 1000)),
-            getTotalSeconds: () => totalSeconds,
-            getExpiresAt: () => new Date(expires),
-            isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
-        };
+            window.cartCountdown = {
+                getRemainingSeconds: () => Math.max(0, Math.ceil((expires - Date.now()) / 1000)),
+                getTotalSeconds: () => totalSeconds,
+                getExpiresAt: () => new Date(expires),
+                isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+            };
 
-        let hasReloaded = false;
-        const expireUrl = '{{ route("public.guest-carts.expire") }}';
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-        const homeUrl = '{{ $guestHomeUrl }}';
+            let hasReloaded = false;
+            const expireUrl = '{{ route("public.guest-carts.expire") }}';
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            const homeUrl = '{{ $guestHomeUrl }}';
 
-        const checkExpiration = () => {
-            if (window.cartCountdown.isExpired() && !hasReloaded) {
-                hasReloaded = true;
-                fetch(expireUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                }).finally(() => {
-                    window.location.href = homeUrl;
-                });
-            }
-        };
+            const checkExpiration = () => {
+                if (window.cartCountdown.isExpired() && !hasReloaded) {
+                    hasReloaded = true;
+                    fetch(expireUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        }
+                    }).finally(() => {
+                        window.location.href = homeUrl;
+                    });
+                }
+            };
 
-        setInterval(checkExpiration, 5000);
-    })();
+            setInterval(checkExpiration, 5000);
+        })();
     </script>
     @endif
     @endguest
 
     {{-- Dynamic theme-color based on footer --}}
     <script>
-    (function() {
-        const meta = document.querySelector('#themeColorMeta');
-        if (!meta) return;
+        (function() {
+            const meta = document.querySelector('#themeColorMeta');
+            if (!meta) return;
 
-        const TOP_COLOR = '{{ $themeColor }}';
-        const FOOTER_COLOR = '{{ $themeColor }}';
+            const TOP_COLOR = '{{ $themeColor }}';
+            const FOOTER_COLOR = '{{ $themeColor }}';
 
-        const footer = document.querySelector('.footer-nature');
-        if (!footer) return;
+            const footer = document.querySelector('.footer-nature');
+            if (!footer) return;
 
-        const onScroll = () => {
-            const rect = footer.getBoundingClientRect();
-            const nearFooter = rect.top < (window.innerHeight * 1.2);
-            meta.setAttribute('content', nearFooter ? FOOTER_COLOR : TOP_COLOR);
-        };
+            const onScroll = () => {
+                const rect = footer.getBoundingClientRect();
+                const nearFooter = rect.top < (window.innerHeight * 1.2);
+                meta.setAttribute('content', nearFooter ? FOOTER_COLOR : TOP_COLOR);
+            };
 
-        document.addEventListener('scroll', onScroll, { passive: true });
-        onScroll();
-    })();
+            document.addEventListener('scroll', onScroll, {
+                passive: true
+            });
+            onScroll();
+        })();
     </script>
 
     @stack('scripts')

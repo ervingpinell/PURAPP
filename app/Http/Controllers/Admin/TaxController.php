@@ -21,7 +21,32 @@ use App\Services\LoggerHelper;
  */
 class TaxController extends Controller
 {
-    // ...
+    /**
+     * Display a listing of taxes
+     */
+    public function index()
+    {
+        $taxes = Tax::orderBy('sort_order')->orderBy('name')->get();
+
+        return view('admin.taxes.index', compact('taxes'));
+    }
+
+    /**
+     * Show the form for creating a new tax
+     */
+    public function create()
+    {
+        return view('admin.taxes.create');
+    }
+
+    /**
+     * Show the form for editing the specified tax
+     */
+    public function edit(Tax $tax)
+    {
+        return view('admin.taxes.edit', compact('tax'));
+    }
+
 
     public function store(Request $request)
     {

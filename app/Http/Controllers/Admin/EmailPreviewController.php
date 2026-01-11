@@ -174,13 +174,21 @@ class EmailPreviewController extends Controller
             'taxes' => 19.50,
             'total' => 169.50,
             'notes' => 'Sample booking for email preview',
+            'tour_language_id' => 1, // Required field
+            'checkout_token' => 'preview-token-' . time(),
+            'checkout_token_expires_at' => now()->addHours(48),
         ]);
 
-        // Mock user
+        // Mark as existing to prevent save attempts
+        $booking->exists = true;
+
+        // Mock user with password to prevent token generation
         $booking->setRelation('user', new User([
+            'user_id' => 99999,
             'name' => 'John Doe',
             'email' => 'preview@example.com',
             'phone' => '+506 1234 5678',
+            'password' => 'dummy-hash', // Prevents password setup token generation
         ]));
 
         return $booking;

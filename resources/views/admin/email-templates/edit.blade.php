@@ -48,9 +48,9 @@
                                     class="form-control"
                                     name="locales[{{ $index }}][subject]"
                                     value="{{ old("locales.{$index}.subject", $content?->subject) }}"
-                                    placeholder="Email subject (use {{variables}} for dynamic content)"
+                                    placeholder="Email subject (use @{{variables}} for dynamic content)"
                                     required>
-                                <small class="text-muted">Use variables like {{customer_name}}, {{booking_reference}}</small>
+                                <small class="text-muted">Use variables like @{{customer_name}}, @{{booking_reference}}</small>
                             </div>
 
                             @if($content && $content->content)
@@ -106,7 +106,7 @@
                         @foreach($variables as $var => $description)
                         <div class="list-group-item">
                             <code class="variable-code" style="cursor: pointer;" title="Click to copy">
-                                {{'{{'}}{{ $var }}{{'}}'}}
+                                @{{ {{ $var }} }}
                             </code>
                             <br>
                             <small class="text-muted">{{ $description }}</small>
@@ -146,53 +146,14 @@
             });
         });
 
-        // Preview functionality
+        // Preview functionality - open in new window
         $('#preview-btn').click(function() {
             const activeTab = $('.tab-pane.active');
             const locale = activeTab.attr('id').replace('locale-', '');
 
-            $.get(`{{ route('admin.email-templates.preview', $template) }}?locale=${locale}`)
-                .done(function(response) {
-                    // Show preview in modal
-                    const modal = `
-                    <div class="modal fade" id="preview-modal" tabindex="-1">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Email Preview (${locale.toUpperCase()})</h5>
-                                    <button type="button" class="close" data-dismiss="modal">
-                                        <span>&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="alert alert-info">
-                                        <strong>Subject:</strong> ${response.subject}
-                                    </div>
-                                    <hr>
-                                    <div class="preview-content">
-                                        ${Object.entries(response.sections).map(([key, value]) => `
-                                            <div class="mb-3">
-                                                <strong>${key.replace(/_/g, ' ')}:</strong>
-                                                <p>${value}</p>
-                                            </div>
-                                        `).join('')}
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                    $('#preview-modal').remove();
-                    $('body').append(modal);
-                    $('#preview-modal').modal('show');
-                })
-                .fail(function() {
-                    toastr.error('Failed to load preview');
-                });
+            // Open preview in new window
+            const previewUrl = `{{ route('admin.email-templates.preview', $template) }}?locale=${locale}`;
+            window.open(previewUrl, 'EmailPreview', 'width=800,height=600,scrollbars=yes,resizable=yes');
         });
     });
 </script>

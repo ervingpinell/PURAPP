@@ -1432,8 +1432,9 @@ Route::middleware([SetLocale::class])->group(function () {
                 });
 
                 // ============================
-                // EMAIL TEMPLATES
+                // EMAIL TEMPLATES - DEPRECATED (Moved to Blade templates)
                 // ============================
+                /*
                 Route::group(['middleware' => ['can:view-email-templates']], function () {
                     Route::prefix('email-templates')->name('email-templates.')->group(function () {
                         Route::get('/', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'index'])->name('index');
@@ -1450,6 +1451,7 @@ Route::middleware([SetLocale::class])->group(function () {
                             ->name('preview');
                     });
                 });
+                */
 
                 // ============================
                 // REPORTS
@@ -1468,6 +1470,37 @@ Route::middleware([SetLocale::class])->group(function () {
                         // 🆕 Exports
                         Route::get('/export/categories-excel', [ReportsController::class, 'exportCategoriesExcel'])->name('export.categories.excel');
                         Route::get('/export/categories-csv', [ReportsController::class, 'exportCategoriesCsv'])->name('export.categories.csv');
+
+                        // 📊 NEW DASHBOARDS
+                        // Sales Dashboard
+                        Route::get('/sales', [\App\Http\Controllers\Admin\Reports\SalesReportController::class, 'index'])->name('sales');
+                        Route::get('/sales/chart/revenue-trend', [\App\Http\Controllers\Admin\Reports\SalesReportController::class, 'chartRevenueTrend'])->name('sales.chart.revenue-trend');
+                        Route::get('/sales/chart/payment-method', [\App\Http\Controllers\Admin\Reports\SalesReportController::class, 'chartRevenueByPaymentMethod'])->name('sales.chart.payment-method');
+                        Route::get('/sales/chart/language', [\App\Http\Controllers\Admin\Reports\SalesReportController::class, 'chartRevenueByLanguage'])->name('sales.chart.language');
+                        Route::get('/sales/chart/comparison', [\App\Http\Controllers\Admin\Reports\SalesReportController::class, 'chartDailyComparison'])->name('sales.chart.comparison');
+
+                        // Tours Dashboard
+                        Route::get('/tours', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'index'])->name('tours');
+                        Route::get('/tours/chart/top-revenue', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartTopToursByRevenue'])->name('tours.chart.top-revenue');
+                        Route::get('/tours/chart/top-bookings', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartTopToursByBookings'])->name('tours.chart.top-bookings');
+                        Route::get('/tours/chart/performance-matrix', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartTourPerformanceMatrix'])->name('tours.chart.performance-matrix');
+                        Route::get('/tours/chart/tour-type', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartBookingsByTourType'])->name('tours.chart.tour-type');
+                        Route::get('/tours/chart/capacity', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartCapacityUtilization'])->name('tours.chart.capacity');
+
+                        // Customer Analytics Dashboard
+                        Route::get('/customers', [\App\Http\Controllers\Admin\Reports\CustomerReportController::class, 'index'])->name('customers');
+                        Route::get('/customers/chart/geographic', [\App\Http\Controllers\Admin\Reports\CustomerReportController::class, 'chartGeographicDistribution'])->name('customers.chart.geographic');
+                        Route::get('/customers/chart/top-countries', [\App\Http\Controllers\Admin\Reports\CustomerReportController::class, 'chartTopCountries'])->name('customers.chart.top-countries');
+                        Route::get('/customers/chart/growth', [\App\Http\Controllers\Admin\Reports\CustomerReportController::class, 'chartCustomerGrowth'])->name('customers.chart.growth');
+                        Route::get('/customers/chart/new-vs-returning', [\App\Http\Controllers\Admin\Reports\CustomerReportController::class, 'chartNewVsReturning'])->name('customers.chart.new-vs-returning');
+                        Route::get('/customers/chart/cities', [\App\Http\Controllers\Admin\Reports\CustomerReportController::class, 'chartCustomersByCity'])->name('customers.chart.cities');
+
+                        // Time Analysis Dashboard
+                        Route::get('/time-analysis', [\App\Http\Controllers\Admin\Reports\TimeAnalysisController::class, 'index'])->name('time-analysis');
+                        Route::get('/time-analysis/chart/day-of-week', [\App\Http\Controllers\Admin\Reports\TimeAnalysisController::class, 'chartBookingsByDayOfWeek'])->name('time-analysis.chart.day-of-week');
+                        Route::get('/time-analysis/chart/hour', [\App\Http\Controllers\Admin\Reports\TimeAnalysisController::class, 'chartBookingsByHour'])->name('time-analysis.chart.hour');
+                        Route::get('/time-analysis/chart/seasonality', [\App\Http\Controllers\Admin\Reports\TimeAnalysisController::class, 'chartMonthlySeasonality'])->name('time-analysis.chart.seasonality');
+                        Route::get('/time-analysis/chart/heatmap', [\App\Http\Controllers\Admin\Reports\TimeAnalysisController::class, 'chartHeatmap'])->name('time-analysis.chart.heatmap');
                     });
                 });
             });

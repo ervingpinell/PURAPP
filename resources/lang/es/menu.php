@@ -76,6 +76,7 @@ return [
         'app_settings' => 'Configuración de la app',
         'app' => 'App',
         'taxes' => 'Impuestos',
+        'email_templates' => 'Plantillas de Correo',
         'operations' => 'Operaciones',
         'management' => 'Administración',
         'users_management' => 'Gestión de Usuarios',

@@ -77,9 +77,6 @@ class EmailTemplateController extends Controller
         ]);
     }
 
-    /**
-     * Preview template with sample data.
-     */
     public function preview(Request $request, EmailTemplate $template)
     {
         $locale = $request->input('locale', 'es');
@@ -97,20 +94,25 @@ class EmailTemplateController extends Controller
             'total_amount' => '$150.00',
             'subtotal' => '$125.00',
             'taxes' => '$25.00',
-            'payment_url' => route('payment.show'),
-            'booking_url' => '#',
+            'payment_url' => env('WEB_URL', config('app.url')) . '/payment',
+            'booking_url' => env('WEB_URL', config('app.url')) . '/booking',
             'company_name' => 'Green Vacations CR',
             'support_email' => config('mail.reply_to.address'),
             'company_phone' => env('COMPANY_PHONE'),
-            'app_url' => config('app.url'),
+            'app_url' => env('WEB_URL', config('app.url')),
         ];
 
         $rendered = $this->templateService->render($template->template_key, $locale, $sampleData);
 
         if (!$rendered) {
-            return response()->json(['error' => 'Template not found or inactive'], 404);
+            abort(404, 'Template not found or inactive');
         }
 
-        return response()->json($rendered);
+        // Pass sections as individual variables for the email layout
+        $sections = $rendered['sections'];
+
+        return view('emails.preview', array_merge([
+            'subject' => $rendered['subject'],
+        ], $sections));
     }
 }

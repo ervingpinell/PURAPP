@@ -3,9 +3,14 @@
 @section('title', 'Email Templates')
 
 @section('content_header')
-<h1>
-    <i class="fas fa-envelope-open-text"></i> Email Templates
-</h1>
+<div class="d-flex justify-content-between align-items-center">
+    <h1>
+        <i class="fas fa-envelope-open-text"></i> Email Templates
+    </h1>
+    <a href="{{ route('admin.email-preview.index') }}" class="btn btn-info" target="_blank">
+        <i class="fas fa-eye"></i> Preview All Emails
+    </a>
+</div>
 @stop
 
 @section('content')
@@ -88,7 +93,7 @@
             </div>
             <div class="card-body">
                 <ul class="mb-0">
-                    <li>Use variables like <code>{{customer_name}}</code> for dynamic content</li>
+                    <li>Use variables like <code>@{{ customer_name }}</code> for dynamic content</li>
                     <li>Edit content for each language separately</li>
                     <li>Preview changes before saving</li>
                     <li>Inactive templates will use default Blade templates</li>

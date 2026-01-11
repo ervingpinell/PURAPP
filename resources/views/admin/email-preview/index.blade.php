@@ -159,15 +159,40 @@
 
 @section('css')
 <style>
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        padding: 15px 20px;
+        background-color: transparent !important;
+    }
+
     .list-group-item a {
-        display: block;
-        color: #333;
-        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        color: #ffffff !important;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        padding: 10px 15px;
+        font-size: 15px;
+        font-weight: 500;
+        border-radius: 5px;
     }
 
     .list-group-item a:hover {
-        color: #007bff;
-        padding-left: 10px;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: #4fc3f7 !important;
+        transform: translateX(5px);
+    }
+
+    .list-group-item a i {
+        font-size: 14px;
+        margin-right: 12px;
+        min-width: 20px;
+    }
+
+    .card-header h3 {
+        font-size: 16px;
+        font-weight: 600;
     }
 </style>
 @stop

@@ -72,7 +72,8 @@ return [
         'general' => 'Allgemein',
         'review_settings' => 'Bewertungseinstellungen',
         'tour_settings' => 'Tour-Einstellungen',
-        'taxes' => 'Steuerarten',
+        'taxes' => 'Steuern',
+        'email_templates' => 'E-Mail-Vorlagen',
         'app_settings' => 'App-Einstellungen',
         'app' => 'App',
 ];

@@ -582,6 +582,12 @@ return [
                     'can'   => 'view-tours', // Visibility via view
                     'trans' => true,
                 ],
+                [
+                    'text'  => 'Email Previews',
+                    'route' => 'admin.email-preview.index',
+                    'icon'  => 'fas fa-eye',
+                    'can'   => 'view-email-templates',
+                ],
             ],
         ],
 

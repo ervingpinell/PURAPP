@@ -75,5 +75,6 @@ return [
         'tour_settings' => 'Paramètres des circuits',
         'app_settings' => 'Paramètres de l\'app',
         'app' => 'App',
-        'taxes' => 'Impuestos',
+        'taxes' => 'Taxes',
+        'email_templates' => 'Modèles d\'Email',
 ];

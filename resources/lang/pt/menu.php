@@ -75,4 +75,5 @@ return [
     'app_settings' => 'Configurações de App',
     'app' => 'App',
     'taxes' => 'Impostos',
+    'email_templates' => 'Modelos de Email',
 ];

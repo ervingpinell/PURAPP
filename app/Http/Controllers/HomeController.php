@@ -317,88 +317,95 @@ class HomeController extends Controller
 
     private function loadTypeMeta(string $loc, string $fb): Collection
     {
-        return TourType::active()
-            ->withTranslation()
-            ->get()
-            ->map(function ($type) use ($loc, $fb) {
-                $tr = $this->pickTranslation($type->translations, $loc, $fb);
-                return [
-                    'id'          => $type->tour_type_id,
-                    'title'       => $tr->name ?? '',
-                    'duration'    => $tr->duration ?? '',
-                    'description' => $tr->description ?? '',
-                    'cover_url'   => $type->cover_url,
-                ];
-            })
-            ->sortBy('title')
-            ->keyBy('id');
+        $cacheKey = "home_type_meta:{$loc}";
+        return Cache::remember($cacheKey, 3600, function () use ($loc, $fb) {
+            return TourType::active()
+                ->withTranslation()
+                ->get()
+                ->map(function ($type) use ($loc, $fb) {
+                    $tr = $this->pickTranslation($type->translations, $loc, $fb);
+                    return [
+                        'id'          => $type->tour_type_id,
+                        'title'       => $tr->name ?? '',
+                        'duration'    => $tr->duration ?? '',
+                        'description' => $tr->description ?? '',
+                        'cover_url'   => $type->cover_url,
+                    ];
+                })
+                ->sortBy('title')
+                ->keyBy('id');
+        });
     }
 
     private function loadActiveToursWithTranslations(string $loc, string $fb): Collection
     {
-        return Tour::query()
-            ->with([
-                'tourType:tour_type_id',
-                'tourType.translations',
-                'translations',
-                'coverImage',
-                // 👇 Aquí también cargamos translations de la categoría
-                'prices' => function ($q) {
-                    $q->where('is_active', true)
-                        ->whereHas('category', fn($cq) => $cq->where('is_active', true))
-                        ->with(['category.translations'])
-                        ->orderBy('category_id');
-                }
-            ])
-            ->leftJoin('tour_type_tour_order as o', function ($join) {
-                $join->on('o.tour_id', '=', 'tours.tour_id')
-                    ->on('o.tour_type_id', '=', 'tours.tour_type_id');
-            })
-            ->where('tours.is_active', true)
-            ->orderBy('tours.tour_type_id')
-            ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
-            ->orderBy('o.position')
-            ->orderBy('tours.name')
-            ->get([
-                'tours.tour_id',
-                'tours.name',
-                'tours.slug',
-                'tours.tour_type_id',
-                'tours.length',
-                'tours.max_capacity',
-            ])
-            ->map(function ($tour) use ($loc, $fb) {
-                $tr = $this->pickTranslation($tour->translations, $loc, $fb);
-                $tour->translated_name     = $tr->name ?? $tour->name;
-                $tour->translated_overview = $tr->overview ?? $tour->overview;
-                $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
+        $cacheKey = "home_active_tours:{$loc}";
+        return Cache::remember($cacheKey, 3600, function () use ($loc, $fb) {
+            return Tour::query()
+                ->with([
+                    'tourType:tour_type_id',
+                    'tourType.translations',
+                    'translations',
+                    'coverImage',
+                    // 👇 Aquí también cargamos translations de la categoría
+                    'prices' => function ($q) {
+                        $q->where('is_active', true)
+                            ->whereHas('category', fn($cq) => $cq->where('is_active', true))
+                            ->with(['category.translations'])
+                            ->orderBy('category_id');
+                    }
+                ])
+                ->leftJoin('tour_type_tour_order as o', function ($join) {
+                    $join->on('o.tour_id', '=', 'tours.tour_id')
+                        ->on('o.tour_type_id', '=', 'tours.tour_type_id');
+                })
+                ->where('tours.is_active', true)
+                ->orderBy('tours.tour_type_id')
+                ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('o.position')
+                ->orderBy('tours.name')
+                ->get([
+                    'tours.tour_id',
+                    'tours.name',
+                    'tours.slug',
+                    'tours.tour_type_id',
+                    'tours.length',
+                    'tours.max_capacity',
+                    'tours.overview', // Needed for optimization
+                ])
+                ->map(function ($tour) use ($loc, $fb) {
+                    $tr = $this->pickTranslation($tour->translations, $loc, $fb);
+                    $tour->translated_name     = $tr->name ?? $tour->name;
+                    $tour->translated_overview = $tr->overview ?? $tour->overview;
+                    $tour->tour_type_id_group  = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
 
-                // Filtrar precios activos con categorías activas
-                $activePrices = $tour->prices->filter(function ($price) {
-                    return $price->is_active &&
-                        $price->category &&
-                        $price->category->is_active;
+                    // Filtrar precios activos con categorías activas
+                    $activePrices = $tour->prices->filter(function ($price) {
+                        return $price->is_active &&
+                            $price->category &&
+                            $price->category->is_active;
+                    });
+
+                    // Precio mínimo para mostrar en listados
+                    $tour->min_price = $activePrices->min('price') ?? 0;
+
+                    // Legacy: buscar adult/kid por slug para compatibilidad
+                    $adultPrice = $activePrices->first(function ($p) {
+                        $slug = $p->category->slug ?? '';
+                        return in_array($slug, ['adult', 'adulto', 'adults']);
+                    });
+
+                    $kidPrice = $activePrices->first(function ($p) {
+                        $slug = $p->category->slug ?? '';
+                        return in_array($slug, ['kid', 'nino', 'child', 'kids', 'children']);
+                    });
+
+                    $tour->setAttribute('preview_adult_price', $adultPrice ? (float)$adultPrice->price : $tour->min_price);
+                    $tour->setAttribute('preview_kid_price',   $kidPrice   ? (float)$kidPrice->price   : null);
+
+                    return $tour;
                 });
-
-                // Precio mínimo para mostrar en listados
-                $tour->min_price = $activePrices->min('price') ?? 0;
-
-                // Legacy: buscar adult/kid por slug para compatibilidad
-                $adultPrice = $activePrices->first(function ($p) {
-                    $slug = $p->category->slug ?? '';
-                    return in_array($slug, ['adult', 'adulto', 'adults']);
-                });
-
-                $kidPrice = $activePrices->first(function ($p) {
-                    $slug = $p->category->slug ?? '';
-                    return in_array($slug, ['kid', 'nino', 'child', 'kids', 'children']);
-                });
-
-                $tour->setAttribute('preview_adult_price', $adultPrice ? (float)$adultPrice->price : $tour->min_price);
-                $tour->setAttribute('preview_kid_price',   $kidPrice   ? (float)$kidPrice->price   : null);
-
-                return $tour;
-            });
+        });
     }
 
     private function computeTourBlocks(Tour $tour): array

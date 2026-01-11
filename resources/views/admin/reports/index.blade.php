@@ -636,7 +636,7 @@
 
   {{-- ===== REPORT TYPES CARDS ===== --}}
   <div class="card-elevated p-3 mb-3">
-    <h5 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Report Types</h5>
+    <h5 class="mb-3"><i class="fas fa-chart-bar me-2"></i>📊 Report Dashboards</h5>
     <div class="row g-3">
       {{-- Overview Report --}}
       <div class="col-12 col-md-6 col-xl-4">
@@ -654,11 +654,95 @@
         </div>
       </div>
 
+      {{-- Sales Analytics --}}
+      <div class="col-12 col-md-6 col-xl-4">
+        <a href="{{ route('admin.reports.sales', request()->all()) }}" class="text-decoration-none">
+          <div class="report-type-card clickable">
+            <div class="report-icon bg-gradient-primary">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="report-content">
+              <h6 class="report-title">Sales Analytics</h6>
+              <p class="report-desc">Revenue by payment method, language, and trends</p>
+              <div class="report-badge badge-new">
+                <i class="fas fa-star me-1"></i> New!
+              </div>
+            </div>
+            <div class="report-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      {{-- Tours Performance --}}
+      <div class="col-12 col-md-6 col-xl-4">
+        <a href="{{ route('admin.reports.tours', request()->all()) }}" class="text-decoration-none">
+          <div class="report-type-card clickable">
+            <div class="report-icon" style="background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);">
+              <i class="fas fa-route"></i>
+            </div>
+            <div class="report-content">
+              <h6 class="report-title">Tours Performance</h6>
+              <p class="report-desc">Top tours, capacity utilization, and tour types</p>
+              <div class="report-badge badge-new">
+                <i class="fas fa-star me-1"></i> New!
+              </div>
+            </div>
+            <div class="report-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      {{-- Customer Analytics --}}
+      <div class="col-12 col-md-6 col-xl-4">
+        <a href="{{ route('admin.reports.customers', request()->all()) }}" class="text-decoration-none">
+          <div class="report-type-card clickable">
+            <div class="report-icon" style="background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="report-content">
+              <h6 class="report-title">Customer Analytics</h6>
+              <p class="report-desc">Geographic distribution, CLV, and customer growth</p>
+              <div class="report-badge badge-new">
+                <i class="fas fa-star me-1"></i> New!
+              </div>
+            </div>
+            <div class="report-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      {{-- Time Analysis --}}
+      <div class="col-12 col-md-6 col-xl-4">
+        <a href="{{ route('admin.reports.time-analysis', request()->all()) }}" class="text-decoration-none">
+          <div class="report-type-card clickable">
+            <div class="report-icon" style="background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="report-content">
+              <h6 class="report-title">Time Analysis</h6>
+              <p class="report-desc">Peak hours, day patterns, and seasonality trends</p>
+              <div class="report-badge badge-new">
+                <i class="fas fa-star me-1"></i> New!
+              </div>
+            </div>
+            <div class="report-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </div>
+        </a>
+      </div>
+
       {{-- Category Report --}}
       <div class="col-12 col-md-6 col-xl-4">
         <a href="{{ route('admin.reports.by-category', request()->all()) }}" class="text-decoration-none">
           <div class="report-type-card clickable">
-            <div class="report-icon bg-gradient-primary">
+            <div class="report-icon" style="background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);">
               <i class="fas fa-chart-pie"></i>
             </div>
             <div class="report-content">
@@ -673,22 +757,6 @@
             </div>
           </div>
         </a>
-      </div>
-
-      {{-- Coming Soon: Advanced Analytics --}}
-      <div class="col-12 col-md-6 col-xl-4">
-        <div class="report-type-card disabled">
-          <div class="report-icon bg-secondary">
-            <i class="fas fa-brain"></i>
-          </div>
-          <div class="report-content">
-            <h6 class="report-title">Advanced Analytics</h6>
-            <p class="report-desc">Predictive insights and forecasting</p>
-            <div class="report-badge badge-soon">
-              <i class="fas fa-clock me-1"></i> Coming Soon
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -894,13 +962,21 @@
       from: '{{ $from->toDateString() }}',
       to: '{{ $to->toDateString() }}',
       status: '{{ $status }}',
-      group_by: '{{ request('group_by', $groupBy ?? "booking_date") }}',
-      period: '{{ request('period', $period ?? "month") }}',
+      group_by: '{{ request('
+      group_by ', $groupBy ?? "booking_date") }}',
+      period: '{{ request('
+      period ', $period ?? "month") }}',
     });
-    @php $tSel = collect((array) request('tour_id', []))->map(fn($v) => (int) $v)->all(); @endphp
-    @php $lSel = collect((array) request('tour_language_id', []))->map(fn($v) => (int) $v)->all(); @endphp
-    ({!! json_encode($tSel) !!}).forEach(v => p.append('tour_id[]', v));
-    ({!! json_encode($lSel) !!}).forEach(v => p.append('tour_language_id[]', v));
+    @php $tSel = collect((array) request('tour_id', [])) -> map(fn($v) => (int) $v) -> all();
+    @endphp
+    @php $lSel = collect((array) request('tour_language_id', [])) -> map(fn($v) => (int) $v) -> all();
+    @endphp
+      ({
+        !!json_encode($tSel) !!
+      }).forEach(v => p.append('tour_id[]', v));
+    ({
+      !!json_encode($lSel) !!
+    }).forEach(v => p.append('tour_language_id[]', v));
 
     // Textos traducidos usados en JS
     const i18n = {
