@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __('adminlte::adminlte.contact_us'))
+@section('meta_title', __('adminlte::adminlte.meta.contact_title'))
+@section('meta_description', __('adminlte::adminlte.meta.contact_description'))
 
 @push('styles')
 @vite(['resources/css/contact.css'])

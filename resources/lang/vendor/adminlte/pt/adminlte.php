@@ -594,5 +594,13 @@ return [
         'marketing' => 'Cookies de marketing',
         'marketing_desc' => 'Permitem mostrar anúncios relevantes e medir campanhas (Facebook Pixel)',
     ],
-];
 
+    'meta' => [
+        'home_title' => 'Green Vacations Costa Rica | Tours e Aventuras em La Fortuna',
+        'home_description' => 'Explore os melhores tours em La Fortuna e Vulcão Arenal. Aventuras sustentáveis, caminhadas e mais com Green Vacations Costa Rica.',
+        'tours_title' => 'Tours e Atividades em La Fortuna | Green Vacations',
+        'tours_description' => 'Descubra nossa seleção de tours em La Fortuna. De caminhadas no vulcão a atividades aquáticas. Reserve sua aventura hoje!',
+        'contact_title' => 'Contate-nos | Green Vacations Costa Rica',
+        'contact_description' => 'Tem perguntas? Entre em contato para planejar sua viagem à Costa Rica. Estamos aqui para ajudar com sua reserva de tours e transporte.',
+    ],
+];

@@ -6,8 +6,14 @@ use Illuminate\Support\Facades\Route as RouteFacade;
 $appLocale = str_replace('_', '-', app()->getLocale() ?? 'es');
 $ASSET_ROOT = rtrim(asset(''), '/');
 
+$metaTitle = trim($__env->yieldContent('meta_title') ?? '');
 $pageTitle = trim($__env->yieldContent('title') ?? '');
+
+if ($metaTitle) {
+$fullTitle = $metaTitle;
+} else {
 $fullTitle = config('company.brand_name') . ' | ' . ($pageTitle !== '' ? $pageTitle : config('company.short_name'));
+}
 
 $metaDescSlot = $__env->yieldContent('meta_description');
 $metaDesc = $metaDescSlot ?: config('company.seo.meta_description');

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __('adminlte::adminlte.home'))
+@section('meta_title', __('adminlte::adminlte.meta.home_title'))
+@section('meta_description', __('adminlte::adminlte.meta.home_description'))
 
 @push('meta')
 <meta name="robots" content="index, follow">

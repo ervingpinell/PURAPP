@@ -1,6 +1,8 @@
 {{-- resources/views/public/tours/index.blade.php --}}
 @extends('layouts.app')
 
+@section('meta_title', __('adminlte::adminlte.meta.tours_title'))
+@section('meta_description', __('adminlte::adminlte.meta.tours_description'))
 @section('title', __('adminlte::adminlte.tours_index_title'))
 
 @push('styles')
