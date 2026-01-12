@@ -337,80 +337,116 @@ return $v !== $key ? $v : $fallback;
     color: #0a3d24;
   }
 
-  /* Responsive */
+  /* ===== RESPONSIVE ===== */
   @media (max-width: 768px) {
     .cookie-banner {
-      padding: 12px;
-      font-size: 0.85rem;
+      padding: 16px 12px;
+      font-size: 0.9rem;
     }
 
     .cookie-banner .container {
       flex-direction: column;
       align-items: stretch;
-      gap: 12px;
+      gap: 16px;
     }
 
-    .cookie-banner .copy h4,
+    .cookie-banner .copy {
+      flex: 1 1 auto;
+    }
+
     .cookie-banner .copy strong {
-      font-size: 1rem;
+      font-size: 1.1rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .cookie-banner .copy .mt-1 {
+      line-height: 1.5;
     }
 
     .cookie-banner .actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
     }
 
-    /* Make the acceptance button full width on a new row if needed, 
-       or just let them flow. 
-       Let's try a grid where "Customize" and "Reject" share a row, 
-       and "Accept" takes a full row or they all stack compactly. 
-       
-       Better approach for compactness: 
-       Customize | Reject
-       Accept All (Full Width)
-    */
-
     .cookie-banner .btn {
-      padding: 8px 12px;
-      font-size: 0.85rem;
-      border-radius: 6px;
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      border-radius: 8px;
+      min-height: 48px;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      white-space: normal;
-      /* Allow text wrapping if needed */
-      line-height: 1.2;
-      min-height: 44px;
-      /* Touch target size */
+      white-space: nowrap;
+      line-height: 1.3;
     }
 
-    /* Specific layout: Customize and Reject side by side, Accept full width below */
+    /* Order for better UX: Accept first, then Customize, then Reject */
+    .cookie-accept {
+      order: 1;
+    }
+
     .cookie-customize {
-      grid-column: 1 / 2;
+      order: 2;
     }
 
     .cookie-reject {
-      grid-column: 2 / 3;
+      order: 3;
     }
-
-    .cookie-accept {
-      grid-column: 1 / -1;
-    }
-
-    /* Full width */
 
     .cookie-modal {
-      padding: 10px;
+      padding: 0;
       align-items: flex-end;
-      /* Bottom sheet feel */
     }
 
     .cookie-modal-content {
-      max-height: 85vh;
-      border-radius: 16px 16px 0 0;
+      max-height: 90vh;
+      border-radius: 20px 20px 0 0;
       margin-bottom: 0;
+      width: 100%;
+    }
+
+    .cookie-modal-header {
+      padding: 16px;
+    }
+
+    .cookie-modal-header h3 {
+      font-size: 1.1rem;
+    }
+
+    .cookie-modal-body {
+      padding: 16px;
+    }
+
+    .cookie-category {
+      padding: 12px;
+    }
+
+    .cookie-modal-footer {
+      padding: 16px;
+    }
+
+    .cookie-modal-footer .btn {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cookie-banner {
+      font-size: 0.85rem;
+    }
+
+    .cookie-banner .copy strong {
+      font-size: 1rem;
+    }
+
+    .cookie-banner .btn {
+      font-size: 0.9rem;
+      padding: 12px 16px;
     }
   }
 </style>
@@ -426,14 +462,14 @@ return $v !== $key ? $v : $fallback;
     </div>
 
     <div class="actions">
-      <button type="button" class="btn cookie-reject" data-cookie-action="reject">
-        {{ $t('cookies.reject', 'Rechazar') }}
+      <button type="button" class="btn cookie-accept" data-cookie-action="accept">
+        {{ $t('cookies.accept_all', 'Aceptar todas') }}
       </button>
       <button type="button" class="btn cookie-customize" data-cookie-action="customize">
         {{ $t('cookies.customize', 'Personalizar') }}
       </button>
-      <button type="button" class="btn cookie-accept" data-cookie-action="accept">
-        {{ $t('cookies.accept_all', 'Aceptar todas') }}
+      <button type="button" class="btn cookie-reject" data-cookie-action="reject">
+        {{ $t('cookies.reject', 'Rechazar') }}
       </button>
     </div>
   </div>
