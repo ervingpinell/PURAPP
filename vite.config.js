@@ -27,6 +27,7 @@ export default defineConfig({
                 'resources/css/reviews-carousel.css',
                 'resources/css/homereviews.css',
                 'resources/css/reviews.css',
+                'resources/css/breadcrumbs.css',
                 'resources/css/reviews-embed.css',
                 'resources/css/contact.css',
                 'resources/css/policies.css',
