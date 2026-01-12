@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('reviews', function (Blueprint $table) {
-            // Add provider_review_id to track external review IDs
-            $table->string('provider_review_id')->nullable()->after('provider');
+        if (!Schema::hasColumn('reviews', 'provider_review_id')) {
+            Schema::table('reviews', function (Blueprint $table) {
+                // Add provider_review_id to track external review IDs
+                $table->string('provider_review_id')->nullable()->after('provider');
 
-            // Add unique constraint to prevent duplicate external reviews
-            $table->unique(['provider', 'provider_review_id'], 'provider_review_unique');
+                // Add unique constraint to prevent duplicate external reviews
+                $table->unique(['provider', 'provider_review_id'], 'provider_review_unique');
 
-            // Add index for faster lookups
-            $table->index('provider_review_id');
-        });
+                // Add index for faster lookups
+                $table->index('provider_review_id');
+            });
+        }
     }
 
     /**

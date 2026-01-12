@@ -1128,7 +1128,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 Route::group(['middleware' => ['can:view-tour-types']], function () {
                     // Translation management routes (before resource)
-                    Route::get('translations/choose-locale', [TranslationController::class, 'chooseLocale'])->name('translations.choose-locale');
+
                     Route::get('tourtypes/{tourType}/translations', [TourTypeController::class, 'editTranslations'])
                         ->name('tourtypes.translations.edit');
                     Route::put('tourtypes/{tourType}/translations/{locale}', [TourTypeController::class, 'updateTranslation'])
