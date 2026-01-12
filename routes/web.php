@@ -137,8 +137,26 @@ if (!function_exists('localizedRoutes')) {
 | Root -> locale redirect
 |--------------------------------------------------------------------------
 */
-Route::get('/', function () {
-    $locale = session('locale', config('routes.default_locale', 'es'));
+Route::get('/', function (\Illuminate\Http\Request $request) {
+    // 1. Session check
+    if (session()->has('locale')) {
+        return redirect('/' . session('locale'));
+    }
+
+    // 2. Define supported locales
+    $default = config('routes.default_locale', 'es');
+    $supported = array_keys(config('routes.locales', ['es' => []]));
+
+    // Ensure default is first in supported list (fallback behavior of getPreferredLanguage)
+    if (($key = array_search($default, $supported)) !== false) {
+        unset($supported[$key]);
+        array_unshift($supported, $default);
+    }
+
+    // 3. Detect preferred language
+    // getPreferredLanguage returns the most preferred language from the array, or the first one if no match
+    $locale = $request->getPreferredLanguage($supported);
+
     return redirect("/{$locale}");
 });
 

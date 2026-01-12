@@ -339,25 +339,78 @@ return $v !== $key ? $v : $fallback;
 
   /* Responsive */
   @media (max-width: 768px) {
+    .cookie-banner {
+      padding: 12px;
+      font-size: 0.85rem;
+    }
+
     .cookie-banner .container {
       flex-direction: column;
       align-items: stretch;
+      gap: 12px;
+    }
+
+    .cookie-banner .copy h4,
+    .cookie-banner .copy strong {
+      font-size: 1rem;
     }
 
     .cookie-banner .actions {
-      justify-content: stretch;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
 
+    /* Make the acceptance button full width on a new row if needed, 
+       or just let them flow. 
+       Let's try a grid where "Customize" and "Reject" share a row, 
+       and "Accept" takes a full row or they all stack compactly. 
+       
+       Better approach for compactness: 
+       Customize | Reject
+       Accept All (Full Width)
+    */
+
     .cookie-banner .btn {
-      flex: 1;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      white-space: normal;
+      /* Allow text wrapping if needed */
+      line-height: 1.2;
+      min-height: 44px;
+      /* Touch target size */
     }
+
+    /* Specific layout: Customize and Reject side by side, Accept full width below */
+    .cookie-customize {
+      grid-column: 1 / 2;
+    }
+
+    .cookie-reject {
+      grid-column: 2 / 3;
+    }
+
+    .cookie-accept {
+      grid-column: 1 / -1;
+    }
+
+    /* Full width */
 
     .cookie-modal {
       padding: 10px;
+      align-items: flex-end;
+      /* Bottom sheet feel */
     }
 
     .cookie-modal-content {
-      max-height: 95vh;
+      max-height: 85vh;
+      border-radius: 16px 16px 0 0;
+      margin-bottom: 0;
     }
   }
 </style>
