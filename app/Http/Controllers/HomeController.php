@@ -265,6 +265,7 @@ class HomeController extends Controller
                 'prices.category.translations',
                 'itinerary.items.translations',
                 'tourType.translations',
+                'translations',
             ]);
 
         // Filtro por texto
@@ -285,7 +286,12 @@ class HomeController extends Controller
         $tours = $query
             ->orderBy('name')
             ->paginate(12)
-            ->withQueryString();
+            ->withQueryString()
+            ->through(function ($tour) use ($loc, $fb) {
+                $tr = $this->pickTranslation($tour->translations, $loc, $fb);
+                $tour->translated_name = $tr->name ?? $tour->name;
+                return $tour;
+            });
 
         // =========================
         // CATEGORÍAS PARA EL SELECT
