@@ -17,7 +17,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('first_name')->after('id')->nullable();
+            $table->string('first_name')->after('user_id')->nullable();
             $table->string('last_name')->after('first_name')->nullable();
         });
 
@@ -30,7 +30,7 @@ return new class extends Migration
 
             // Should update directly to avoid potential model events or validation if applicable, 
             // but standard save is usually fine here. Using DB update for safety against model changes.
-            \DB::table('users')->where('id', $user->id)->update([
+            \DB::table('users')->where('user_id', $user->user_id)->update([
                 'first_name' => $first_name,
                 'last_name' => $last_name
             ]);
@@ -51,14 +51,14 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('full_name')->after('id')->nullable();
+            $table->string('full_name')->after('user_id')->nullable();
         });
 
         // Restore full_name
         $users = \App\Models\User::all();
         foreach ($users as $user) {
             $full_name = trim($user->first_name . ' ' . $user->last_name);
-            \DB::table('users')->where('id', $user->id)->update([
+            \DB::table('users')->where('user_id', $user->user_id)->update([
                 'full_name' => $full_name
             ]);
         }

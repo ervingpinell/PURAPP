@@ -200,7 +200,7 @@ Route::get('/cart/count', [PublicCartController::class, 'count'])
 */
 Route::prefix('webhooks/payment')->name('webhooks.payment.')->group(function () {
     Route::post('/stripe', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'stripe'])->name('stripe');
-    Route::post('/alignet', [\App\Http\Controllers\PaymentController::class, 'handleAlignetResponse'])->name('alignet');
+    // Alignet webhook is defined below with CORS middleware
 });
 
 /*
