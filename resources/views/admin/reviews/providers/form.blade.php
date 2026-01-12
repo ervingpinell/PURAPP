@@ -90,13 +90,7 @@ $minStars = (int) old('min_stars', data_get($provider->settings, 'min_stars', 0)
           <input type="number" name="cache_ttl_sec" class="form-control" min="60" max="86400"
             value="{{ old('cache_ttl_sec',$provider->cache_ttl_sec ?? 3600) }}">
         </div>
-      </div>
 
-      {{-- === LOCAL === --}}
-      @if($isLocal)
-      <hr>
-      <h5>Opciones de proveedor local</h5>
-      <div class="form-row">
         <div class="col-md-3 mb-3">
           <label>{{ __('provider.min_stars') }}</label>
           <select name="min_stars" class="form-control">
@@ -109,6 +103,12 @@ $minStars = (int) old('min_stars', data_get($provider->settings, 'min_stars', 0)
           <small class="text-muted">{{ __('provider.min_stars_help') }}</small>
         </div>
       </div>
+
+      {{-- === LOCAL === --}}
+      @if($isLocal)
+      <hr>
+      <h5>Opciones de proveedor local</h5>
+      {{-- (Empty if we moved everything out, but leaving header just in case other local fields exist or will exist) --}}
       @endif
 
       {{-- === EXTERNOS === --}}
@@ -183,7 +183,7 @@ $minStars = (int) old('min_stars', data_get($provider->settings, 'min_stars', 0)
 @section('js')
 <script>
   // Toggle advanced settings visibility
-  document.getElementById('showAdvanced')?.addEventListener('change', function() {
+  document.getElementById('showAdvancedSettings')?.addEventListener('change', function() {
     const advancedDiv = document.getElementById('advancedSettings');
     if (advancedDiv) {
       advancedDiv.style.display = this.checked ? 'block' : 'none';

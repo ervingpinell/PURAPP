@@ -76,7 +76,6 @@ class HomeController extends Controller
             $meetingPoints = MeetingPoint::active()
                 ->with('translations')
                 ->orderByRaw('sort_order IS NULL, sort_order ASC')
-                ->orderBy('name')
                 ->get();
 
             // 6) Hotels para el formulario de reserva
@@ -480,12 +479,11 @@ class HomeController extends Controller
     {
         $base = MeetingPoint::active()
             ->with('translations')
-            ->orderByRaw('sort_order IS NULL, sort_order ASC')
-            ->orderBy('name');
+            ->orderByRaw('sort_order IS NULL, sort_order ASC');
 
         return $full
-            ? $base->get(['id', 'name', 'pickup_time', 'description', 'map_url'])
-            : $base->get(['id', 'name', 'pickup_time', 'description']);
+            ? $base->get(['id', 'pickup_time', 'map_url'])
+            : $base->get(['id', 'pickup_time']);
     }
 
     private function pickTranslation($translations, string $locale, string $fallback)

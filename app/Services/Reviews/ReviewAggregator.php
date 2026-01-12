@@ -45,6 +45,23 @@ class ReviewAggregator
             }
         }
 
+        // 🟢 Filtro Global: Rating Mínimo (ej: 4 o más)
+        // Ahora usamos configuración por proveedor (settings['min_stars'])
+        $minRatings = $this->getMinRatingMap();
+        $globalMin  = (int) config('reviews.min_public_rating', 4);
+
+        $rows = $rows->filter(function ($r) use ($minRatings, $globalMin) {
+            $provider = strtolower($r['provider'] ?? '');
+
+            // Si el proveedor tiene configuración específica, usarla
+            if (array_key_exists($provider, $minRatings)) {
+                return $r['rating'] >= $minRatings[$provider];
+            }
+
+            // Fallback: usar default global
+            return $r['rating'] >= $globalMin;
+        });
+
         // Deduplicación única por clave
         $rows = $rows->unique(fn($r) => $this->makeUniqueKey($r));
 
@@ -128,8 +145,8 @@ class ReviewAggregator
         // Sino, hash por contenido
         return $provider . '#' . md5(
             mb_strtolower(trim($r['body'] ?? '')) . '|' .
-            mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
-            trim($r['date'] ?? '')
+                mb_strtolower(trim($r['author_name'] ?? '')) . '|' .
+                trim($r['date'] ?? '')
         );
     }
 
@@ -179,7 +196,8 @@ class ReviewAggregator
         $fallback = config('app.fallback_locale', 'es');
 
         // IDs únicos que necesitan nombres
-        $needNames = $reviews->filter(fn($r) =>
+        $needNames = $reviews->filter(
+            fn($r) =>
             !empty($r['tour_id']) && empty($r['tour_name'])
         )->pluck('tour_id')->unique()->values();
 
@@ -217,6 +235,20 @@ class ReviewAggregator
                 $r['tour_name'] = $tourNames[(int)$r['tour_id']] ?? '';
             }
             return $r;
+        });
+    }
+    private function getMinRatingMap(): array
+    {
+        // Cachear resultado (ReviewProviderController hace flush)
+        return \Illuminate\Support\Facades\Cache::remember('review_providers_min_stars', 3600, function () {
+            return DB::table('review_providers')
+                ->get(['slug', 'settings'])
+                ->mapWithKeys(function ($p) {
+                    $s = is_string($p->settings) ? json_decode($p->settings, true) : (array) $p->settings;
+                    // Default 0 (todas) si no está definido en settings
+                    return [$p->slug => (int) ($s['min_stars'] ?? 0)];
+                })
+                ->all();
         });
     }
 }

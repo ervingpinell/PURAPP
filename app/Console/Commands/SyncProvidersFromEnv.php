@@ -138,9 +138,37 @@ class SyncProvidersFromEnv extends Command
             $settings['headers'][$apiKeyHeader] = '{env:' . $prefix . '_API_KEY}';
         }
 
-        // Add Accept header with version for Viator API
+        // Specific configuration for Viator
         if ($slug === 'viator') {
+            $settings['method'] = 'POST';
             $settings['headers']['Accept'] = 'application/json;version=2.0';
+            $settings['headers']['Content-Type'] = 'application/json';
+            $settings['headers']['Accept-Language'] = 'en-US'; // Default language for API response
+
+            // Viator requires a JSON body with productCode and other params
+            $settings['payload'] = [
+                'productCode' => '{product_code}',
+                'count'       => 10,
+                'start'       => 1,
+                'provider'    => 'VIATOR',
+                'sortBy'      => 'MOST_RECENT',
+            ];
+
+            // Override default map for Viator's specific response structure
+            $settings['map'] = [
+                'id'          => 'reviewId',
+                'rating'      => 'rating',
+                'title'       => 'title',
+                'body'        => 'text',
+                'author_name' => [
+                    'viatorConsumerName',
+                    'consumerName',
+                    'userNickname',
+                    'userName'
+                ],
+                'date'        => 'publishedDate',
+                'language'    => 'language',
+            ];
         }
 
         // Preserve existing product_map if provider already exists

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class MeetingPointTranslation extends Model
 {
-    protected $guarded = []; 
+    protected $fillable = ['meeting_point_id', 'locale', 'name', 'description', 'instructions'];
     public function meetingPoint(): BelongsTo
     {
         return $this->belongsTo(MeetingPoint::class);

@@ -68,6 +68,9 @@ class ReviewProviderController extends Controller
         // Build settings from simplified form fields or advanced JSON
         $settings = $this->buildSettings($data);
 
+        // 🟢 Guardar min_stars común para todos
+        $settings['min_stars'] = (int) ($data['min_stars'] ?? 0);
+
         $data['settings']  = $settings;
         $data['indexable'] = (bool) ($data['indexable'] ?? false);
         $data['is_active'] = (bool) ($data['is_active'] ?? true);
@@ -108,13 +111,9 @@ class ReviewProviderController extends Controller
             $provider->is_system = true;
             $provider->is_active = true;
 
-            // Ajuste de min_stars desde el formulario (sin exponer/usar JSON)
+            // Ajuste de min_stars desde el formulario
             $settings = is_array($provider->settings) ? $provider->settings : [];
-            $min      = isset($data['min_stars']) ? (int) $data['min_stars'] : (int) ($settings['min_stars'] ?? 0);
-            $settings['min_stars'] = max(0, min(5, $min));
-            $provider->settings    = $settings;
-
-            // Ignoramos cualquier "settings" genérico que llegue del request para "local"
+            // (La asignación final de min_stars se hace abajo común a todos)
         }
         // === BLOQUE: proveedor EXTERNO (http_json) ===
         else {
@@ -123,8 +122,12 @@ class ReviewProviderController extends Controller
 
             // Build settings from simplified form fields or advanced JSON
             $settings = $this->buildSettings($data, $provider->settings ?? []);
-            $provider->settings = $settings;
         }
+
+        // 🟢 Guardar min_stars común para todos
+        $min = isset($data['min_stars']) ? (int) $data['min_stars'] : (int) ($settings['min_stars'] ?? 0);
+        $settings['min_stars'] = max(0, min(5, $min));
+        $provider->settings = $settings;
 
         $provider->save();
 

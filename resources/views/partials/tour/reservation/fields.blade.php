@@ -201,7 +201,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
                 data-time="{{ $mp->pickup_time ?? '' }}"
                 data-url="{{ $mp->map_url ?? $mp->url ?? '' }}"
                 {{ $isSelected($mp->id,$oldMeeting) }}>
-                {{ $mpName }}{{ $mp->pickup_time ? ' — '.$mp->pickup_time : '' }}
+                {{ $mpName }}
             </option>
             @endforeach
         </select>
@@ -211,7 +211,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
         {{-- Info dinámica --}}
         <div id="meetingPointInfo" class="meeting-info card card-body bg-light border rounded small d-none mt-2">
             <div id="mpDesc" class="mp-desc mb-2"></div>
-            <div id="mpTime" class="mp-time text-muted mb-2"></div>
+            <!-- Pickup time removed as requested -->
             <a id="mpLink" class="btn btn-sm btn-outline-success d-none" href="#" target="_blank" rel="noopener">
                 <i class="fas fa-map me-1"></i> {{ $tr('adminlte::adminlte.open_map','Ver ubicación') }}
             </a>
@@ -571,12 +571,10 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
                 return;
             }
             const desc = opt.dataset.desc || '';
-            const theTime = opt.dataset.time || '';
             const url = opt.dataset.url || '';
             mpDesc.textContent = desc;
             mpDesc.classList.toggle('d-none', !desc);
-            mpTime.textContent = theTime ? `⏰ ${theTime}` : '';
-            mpTime.classList.toggle('d-none', !theTime);
+
             if (url) {
                 mpLink.href = url;
                 mpLink.classList.remove('d-none');

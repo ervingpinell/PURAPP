@@ -16,9 +16,7 @@ class MeetingPoint extends Model
     protected $primaryKey = 'id';
 
     protected $fillable = [
-        'name',
         'pickup_time',
-        'description',
         'map_url',
         'sort_order',
         'is_active',
@@ -40,8 +38,7 @@ class MeetingPoint extends Model
     public function scopeOrdered($q)
     {
         // Primero los que tienen sort_order definido, luego por nombre
-        return $q->orderByRaw('sort_order IS NULL, sort_order ASC')
-                 ->orderBy('name', 'asc');
+        return $q->orderByRaw('sort_order IS NULL, sort_order ASC');
     }
 
     /* ----------------------------------------
@@ -71,7 +68,23 @@ class MeetingPoint extends Model
             ? $this->translations->firstWhere('locale', $short)
             : $this->translations()->where('locale', $short)->first();
 
-        return $t?->{$field} ?? $this->{$field};
+        if ($t) {
+            return $t->{$field};
+        }
+
+        // Si no existe traducción, intentamos fallback al locale por defecto (es)
+        $fallback = config('app.fallback_locale', 'es');
+        if ($short !== $fallback) {
+            $tFallback = $this->relationLoaded('translations')
+                ? $this->translations->firstWhere('locale', $fallback)
+                : $this->translations()->where('locale', $fallback)->first();
+
+            if ($tFallback) {
+                return $tFallback->{$field};
+            }
+        }
+
+        return $this->{$field} ?? null;
     }
 
     /**
@@ -90,6 +103,14 @@ class MeetingPoint extends Model
         return $this->getTranslated('description');
     }
 
+    /**
+     * Accessor: $meetingPoint->instructions_localized
+     */
+    public function getInstructionsLocalizedAttribute(): ?string
+    {
+        return $this->getTranslated('instructions');
+    }
+
     /* ----------------------------------------
      | Utilidades privadas
      |-----------------------------------------*/
@@ -101,8 +122,10 @@ class MeetingPoint extends Model
     private function shortLocale(string $locale): string
     {
         // Si tu servicio existe, úsalo
-        if (class_exists(\App\Services\DeepLTranslator::class)
-            && method_exists(\App\Services\DeepLTranslator::class, 'normalizeLocaleCode')) {
+        if (
+            class_exists(\App\Services\DeepLTranslator::class)
+            && method_exists(\App\Services\DeepLTranslator::class, 'normalizeLocaleCode')
+        ) {
             return \App\Services\DeepLTranslator::normalizeLocaleCode($locale);
         }
 
@@ -111,6 +134,6 @@ class MeetingPoint extends Model
         $short  = explode('-', $locale)[0] ?? $locale;
 
         // Aseguramos que sea uno de los que usas
-        return in_array($short, ['es','en','fr','pt','de'], true) ? $short : config('app.fallback_locale', 'es');
+        return in_array($short, ['es', 'en', 'fr', 'pt', 'de'], true) ? $short : config('app.fallback_locale', 'es');
     }
 }

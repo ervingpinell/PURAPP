@@ -48,31 +48,22 @@
           @enderror
         </div>
 
-        <div class="col-md-3">
-          <label class="form-label">{{ __('pickups.meeting_point.fields.pickup_time') }}</label>
-          <input type="text" name="pickup_time"
-            class="form-control @error('pickup_time') is-invalid @enderror"
-            placeholder="{{ __('pickups.meeting_point.placeholders.pickup_time') }}"
-            value="{{ old('pickup_time') }}">
-          @error('pickup_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-
-        <div class="col-md-3">
-          @php $suggestedOrder = (optional($points)->max('sort_order') ?? 0) + 1; @endphp
-          <label class="form-label">{{ __('pickups.meeting_point.fields.sort_order') }}</label>
-          <input type="number" name="sort_order"
-            class="form-control @error('sort_order') is-invalid @enderror"
-            min="0" step="1" value="{{ old('sort_order', $suggestedOrder) }}">
-          @error('sort_order') <div class="invalid-feedback">{{ $message }}</div> @enderror
-        </div>
-
-        <div class="col-md-6">
+        <div class="col-md-12">
           <label class="form-label">{{ __('pickups.meeting_point.fields.description') }}</label>
           <input type="text" name="description"
             class="form-control @error('description') is-invalid @enderror"
             placeholder="{{ __('pickups.meeting_point.placeholders.description') }}"
             value="{{ old('description') }}">
           @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label">{{ __('pickups.meeting_point.fields.instructions') }}</label>
+          <textarea name="instructions"
+            class="form-control @error('instructions') is-invalid @enderror"
+            rows="3"
+            placeholder="{{ __('pickups.meeting_point.placeholders.instructions') }}">{{ old('instructions') }}</textarea>
+          @error('instructions') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
         <div class="col-md-6">
@@ -84,8 +75,26 @@
           @error('map_url') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
-        <div class="col-12">
-          <div class="form-check">
+        <div class="col-md-6">
+          <label class="form-label">{{ __('pickups.meeting_point.fields.pickup_time') }}</label>
+          <input type="text" name="pickup_time"
+            class="form-control @error('pickup_time') is-invalid @enderror"
+            placeholder="{{ __('pickups.meeting_point.placeholders.pickup_time') }}"
+            value="{{ old('pickup_time') }}">
+          @error('pickup_time') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+
+        <div class="col-md-6">
+          @php $suggestedOrder = (optional($points)->max('sort_order') ?? 0) + 1; @endphp
+          <label class="form-label">{{ __('pickups.meeting_point.fields.sort_order') }}</label>
+          <input type="number" name="sort_order"
+            class="form-control @error('sort_order') is-invalid @enderror"
+            min="0" step="1" value="{{ old('sort_order', $suggestedOrder) }}">
+          @error('sort_order') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+
+        <div class="col-md-6 d-flex align-items-end">
+          <div class="form-check mb-2">
             <input type="hidden" name="is_active" value="0">
             <input class="form-check-input" type="checkbox" id="mp_active_new"
               name="is_active" value="1" {{ old('is_active', 1) ? 'checked' : '' }}>
@@ -150,14 +159,14 @@
           @forelse ($points as $i => $p)
           @php
           $transPack = $p->translations->mapWithKeys(fn($t) => [
-          $t->locale => ['name' => $t->name, 'description' => $t->description]
+          $t->locale => ['name' => $t->name, 'description' => $t->description, 'instructions' => $t->instructions]
           ]);
           @endphp
-          <tr data-row-text="{{ strtolower(trim(($p->name ?? '').' '.($p->description ?? ''))) }}">
+          <tr data-row-text="{{ strtolower(trim(($p->name_localized ?? '').' '.($p->description_localized ?? ''))) }}">
             <td class="text-center text-muted">{{ $i+1 }}</td>
-            <td><strong>{{ $p->name }}</strong></td>
+            <td><strong>{{ $p->name_localized }}</strong></td>
             <td class="text-center">{{ $p->pickup_time ?: '—' }}</td>
-            <td>{{ $p->description ?: '—' }}</td>
+            <td>{{ $p->description_localized ?: '—' }}</td>
             <td class="text-center">
               @if ($p->map_url)
               <a href="{{ $p->map_url }}" target="_blank" class="btn btn-sm btn-info" title="{{ __('pickups.meeting_point.actions.view_map') }}">
@@ -180,7 +189,6 @@
                   data-id="{{ $p->id }}"
                   data-name="{{ $p->name }}"
                   data-pickup-time="{{ $p->pickup_time }}"
-                  data-description="{{ $p->description }}"
                   data-map-url="{{ $p->map_url }}"
                   data-sort-order="{{ $p->sort_order }}"
                   data-is-active="{{ $p->is_active }}"
@@ -246,11 +254,11 @@
     @forelse ($points as $p)
     @php
     $transPack = $p->translations->mapWithKeys(fn($t) => [
-    $t->locale => ['name' => $t->name, 'description' => $t->description]
+    $t->locale => ['name' => $t->name, 'description' => $t->description, 'instructions' => $t->instructions]
     ]);
     @endphp
     <div class="card shadow-sm mb-3 mobile-point-card"
-      data-row-text="{{ strtolower(trim(($p->name ?? '').' '.($p->description ?? ''))) }}">
+      data-row-text="{{ strtolower(trim(($p->name ?? '').' '.($p->description_localized ?? ''))) }}">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div class="flex-grow-1">
@@ -259,8 +267,8 @@
               {{ $p->name }}
             </h5>
             <div class="text-muted small mb-2">
-              @if($p->description)
-              <i class="fas fa-info-circle me-1"></i>{{ $p->description }}
+              @if($p->description_localized)
+              <i class="fas fa-info-circle me-1"></i>{{ $p->description_localized }}
               @endif
             </div>
           </div>
@@ -293,9 +301,8 @@
           @can('edit-meeting-points')
           <button class="btn btn-sm btn-primary flex-grow-1 edit-btn-mobile"
             data-id="{{ $p->id }}"
-            data-name="{{ $p->name }}"
+            data-name="{{ $p->name_localized }}"
             data-pickup-time="{{ $p->pickup_time }}"
-            data-description="{{ $p->description }}"
             data-map-url="{{ $p->map_url }}"
             data-sort-order="{{ $p->sort_order }}"
             data-is-active="{{ $p->is_active }}"
@@ -358,10 +365,6 @@
             <input type="text" name="pickup_time" id="edit_pickup_time" class="form-control" placeholder="{{ __('pickups.meeting_point.placeholders.pickup_time') }}">
           </div>
           <div class="mb-3">
-            <label class="form-label">{{ __('pickups.meeting_point.fields.description_base') }}</label>
-            <input type="text" name="description" id="edit_description" class="form-control" placeholder="{{ __('pickups.meeting_point.placeholders.optional') }}">
-          </div>
-          <div class="mb-3">
             <label class="form-label">{{ __('pickups.meeting_point.fields.map_url') }}</label>
             <input type="url" name="map_url" id="edit_map_url" class="form-control" placeholder="{{ __('pickups.meeting_point.placeholders.map_url') }}">
           </div>
@@ -398,6 +401,10 @@
             <div class="col-12">
               <label class="form-label">{{ __('pickups.meeting_point.fields.description_translation') }}</label>
               <textarea name="t_description" id="edit_t_description" class="form-control" rows="2"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">{{ __('pickups.meeting_point.fields.instructions_translation') }}</label>
+              <textarea name="t_instructions" id="edit_t_instructions" class="form-control" rows="3"></textarea>
               <small class="text-muted">
                 {!! __('pickups.meeting_point.hints.fallback_sync', ['fallback' => strtoupper(config('app.fallback_locale','es'))]) !!}
               </small>
@@ -528,10 +535,12 @@
   function fillTranslationFields(translations, locale) {
     const t = (translations && translations[locale]) ? translations[locale] : {
       name: '',
-      description: ''
+      description: '',
+      instructions: ''
     };
     document.getElementById('edit_t_name').value = t.name || '';
     document.getElementById('edit_t_description').value = t.description || '';
+    document.getElementById('edit_t_instructions').value = t.instructions || '';
   }
 
   // Desktop edit buttons
@@ -552,7 +561,6 @@
       // Base (opcionales)
       document.getElementById('edit_name').value = this.dataset.name || '';
       document.getElementById('edit_pickup_time').value = this.dataset.pickupTime || '';
-      document.getElementById('edit_description').value = this.dataset.description || '';
       document.getElementById('edit_map_url').value = this.dataset.mapUrl || '';
       document.getElementById('edit_sort_order').value = this.dataset.sortOrder || 0;
       document.getElementById('edit_is_active').checked = this.dataset.isActive === '1';
@@ -587,7 +595,6 @@
 
       document.getElementById('edit_name').value = this.dataset.name || '';
       document.getElementById('edit_pickup_time').value = this.dataset.pickupTime || '';
-      document.getElementById('edit_description').value = this.dataset.description || '';
       document.getElementById('edit_map_url').value = this.dataset.mapUrl || '';
       document.getElementById('edit_sort_order').value = this.dataset.sortOrder || 0;
       document.getElementById('edit_is_active').checked = this.dataset.isActive === '1';
@@ -738,7 +745,7 @@
   @endif
 
   /** Errores de validación */
-  @if($errors-> any())
+  @if($errors - > any())
   Swal.fire({
     icon: 'error',
     title: @json(__('pickups.meeting_point.validation.title')),
