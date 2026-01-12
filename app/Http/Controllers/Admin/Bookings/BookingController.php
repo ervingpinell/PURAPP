@@ -110,7 +110,6 @@ class BookingController extends Controller
         $hotels        = HotelList::where('is_active', true)->orderBy('name')->get(['hotel_id', 'name']);
         $meetingPoints = MeetingPoint::where('is_active', true)
             ->orderByRaw('sort_order IS NULL, sort_order ASC')
-            ->orderBy('name', 'asc')
             ->get();
 
         return view('admin.bookings.index', compact('bookings', 'tours', 'schedules', 'hotels', 'meetingPoints'));
@@ -159,7 +158,7 @@ class BookingController extends Controller
             ->get();
 
         $hotels = HotelList::where('is_active', true)->orderBy('name')->get();
-        $meetingPoints = MeetingPoint::where('is_active', true)->orderBy('name')->get();
+        $meetingPoints = MeetingPoint::where('is_active', true)->get()->sortBy('name');
 
         return view('admin.bookings.create-simple', compact('tours', 'customers', 'hotels', 'meetingPoints'));
     }
@@ -192,7 +191,7 @@ class BookingController extends Controller
 
         $users         = User::where('is_active', true)->orderBy('first_name')->orderBy('last_name')->get();
         $hotels        = HotelList::where('is_active', true)->orderBy('name')->get();
-        $meetingPoints = MeetingPoint::where('is_active', true)->orderBy('name')->get();
+        $meetingPoints = MeetingPoint::where('is_active', true)->get()->sortBy('name');
 
         // Parse category quantities from booking details
         $categoryQuantitiesById = [];
