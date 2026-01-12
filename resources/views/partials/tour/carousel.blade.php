@@ -129,11 +129,36 @@ while ($images->count() < 5) {
     style="height:462px;max-height:462px;min-height:462px;">
 
     <div class="row gx-2 h-100 flex-column-reverse flex-md-row">
-      <!-- ... (unchanged content: thumbnails loop) ... -->
+      {{-- Thumbnails (Desktop) --}}
+      @if($images->count() > 1)
+      <div class="col-auto d-none d-md-flex flex-column gap-2 pe-2 thumb-box">
+        @foreach($images as $i => $src)
+        <img src="{{ $src }}"
+          class="{{ $i === 0 ? 'active' : '' }}"
+          data-bs-target="#tourCarousel"
+          data-bs-slide-to="{{ $i }}"
+          data-open-lightbox
+          data-index="{{ $i }}"
+          role="button"
+          alt="Miniatura {{ $i + 1 }}">
+        @endforeach
+      </div>
+      @endif
+
       {{-- Image --}}
       <div class="col position-relative h-100">
         <div class="carousel-inner h-100 rounded shadow-sm overflow-hidden">
-          <!-- ... (unchanged content: carousel items) ... -->
+          @foreach($images as $i => $src)
+          <div class="carousel-item {{ $i === 0 ? 'active' : '' }} h-100">
+            <img src="{{ $src }}"
+              class="d-block w-100 h-100"
+              style="object-fit: cover; cursor: pointer;"
+              alt="{{ $tour->getTranslatedName() }} - {{ $i + 1 }}"
+              data-open-lightbox
+              data-index="{{ $i }}"
+              loading="lazy">
+          </div>
+          @endforeach
         </div>
 
         {{-- Controls --}}

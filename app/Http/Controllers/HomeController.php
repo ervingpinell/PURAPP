@@ -120,6 +120,7 @@ class HomeController extends Controller
         try {
             $tour->load([
                 'tourType.translations',
+                'images',
                 'schedules' => fn($q) => $q->where('schedules.is_active', true)
                     ->wherePivot('is_active', true)
                     ->orderBy('schedules.start_time'),
