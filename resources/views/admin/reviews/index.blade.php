@@ -15,8 +15,21 @@
 
 <div class="card">
   <div class="card-body">
-    {{-- Filtros (sin proveedor; solo aplica a locales) --}}
+    {{-- Filtros --}}
     <form class="row g-2 mb-3">
+      {{-- Provider Filter --}}
+      <div class="col-md-2">
+        <select name="provider" class="form-control">
+          @foreach($providers as $p)
+          <option value="{{ $p->slug }}" @selected(($selectedProvider ?? 'local' )===$p->slug)>
+            {{ $p->name }}
+          </option>
+          @endforeach
+        </select>
+      </div>
+
+      {{-- Only show these filters for local provider --}}
+      @if(($selectedProvider ?? 'local') === 'local')
       <div class="col-md-2">
         <select name="status" class="form-control">
           <option value="">{{ __('reviews.admin.filters.status') }}</option>
@@ -55,6 +68,15 @@
       <div class="col-md-2">
         <button class="btn btn-primary btn-block">{{ __('reviews.common.filter') }}</button>
       </div>
+      @else
+      {{-- For external providers, just show the filter button --}}
+      <div class="col-md-10">
+        <div class="alert alert-info mb-0">
+          <i class="fas fa-info-circle"></i>
+          {{ __('reviews.admin.external_provider_note') }}
+        </div>
+      </div>
+      @endif
     </form>
 
     <div class="d-flex justify-content-between mb-2">
@@ -85,30 +107,44 @@
       <table class="table table-sm table-striped">
         <thead>
           <tr class="text-nowrap">
+            @if(($selectedProvider ?? 'local') === 'local')
             <th width="25"><input type="checkbox" id="chkAll"></th>
+            @endif
             <th>{{ __('reviews.common.id') }}</th>
+            <th>{{ __('reviews.common.provider') }}</th>
             <th>{{ __('reviews.common.tour') }}</th>
+            @if(($selectedProvider ?? 'local') === 'local')
             <th>{{ __('reviews.requests.table.reference') }}</th>
+            @endif
             <th>⭐</th>
             <th style="min-width:420px;">{{ __('reviews.common.title') }} / {{ __('reviews.common.body') }}</th>
             <th>{{ __('reviews.common.author') }}</th>
+            @if(($selectedProvider ?? 'local') === 'local')
             <th>{{ __('reviews.common.status') }}</th>
             <th>{{ __('reviews.thread.replies_header') }}</th>
+            @endif
             <th>{{ __('reviews.common.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           @foreach($reviews as $r)
           @php
-          $ref = optional($r->booking)->booking_reference
-          ?? optional($r->booking)->reference
-          ?? null;
-          $bkid = optional($r->booking)->booking_id ?? null;
+          $isExternal = isset($r->is_external) && $r->is_external;
+          $ref = !$isExternal ? (optional($r->booking)->booking_reference ?? optional($r->booking)->reference ?? null) : null;
+          $bkid = !$isExternal ? (optional($r->booking)->booking_id ?? null) : null;
           @endphp
           <tr>
+            @if(!$isExternal && ($selectedProvider ?? 'local') === 'local')
             <td><input class="chk" type="checkbox" form="bulkForm" name="ids[]" value="{{ $r->id }}"></td>
-            <td>{{ $r->id }}</td>
-            <td>{{ $r->tour_id ?: '—' }}</td>
+            @endif
+            <td>{{ $r->id ?? $r->provider_review_id ?? '—' }}</td>
+            <td>
+              <span class="badge badge-{{ $isExternal ? 'info' : 'primary' }}">
+                {{ ucfirst($r->provider ?? 'local') }}
+              </span>
+            </td>
+            <td>{{ $r->tour_id ?? $r->tour_name ?? '—' }}</td>
+            @if(!$isExternal && ($selectedProvider ?? 'local') === 'local')
             <td>
               @if($ref)
               <code>{{ $ref }}</code>
@@ -117,12 +153,13 @@
               @else
               —
               @endif
-            </td>
+              @endif
             <td>{{ $r->rating }}</td>
             <td class="text-truncate" style="max-width:520px">
               {{ $r->title ?: Str::limit($r->body, 140) }}
             </td>
             <td>{{ $r->author_name ?? '—' }}</td>
+            @if(!$isExternal && ($selectedProvider ?? 'local') === 'local')
             <td>
               <span class="badge badge-secondary text-uppercase">{{ __('reviews.status.'.$r->status) }}</span>
               @if(isset($r->is_public) && !$r->is_public)
@@ -142,8 +179,12 @@
               <span class="badge badge-secondary">{{ __('reviews.common.no') }}</span>
               @endif
             </td>
+            @endif
 
             <td class="text-nowrap">
+              @if($isExternal)
+              <span class="text-muted small"><i class="fas fa-lock"></i> Solo lectura</span>
+              @else
               @can('moderate-reviews')
               <a class="btn btn-xs btn-edit" href="{{ route('admin.reviews.edit',$r) }}" title="{{ __('reviews.common.edit') }}"><i class="fa fa-edit"></i></a>
 
@@ -186,6 +227,7 @@
                 <button class="btn btn-xs btn-danger" title="{{ __('reviews.common.delete') }}"><i class="fa fa-trash"></i></button>
               </form>
               @endcan
+              @endif
             </td>
           </tr>
           @endforeach

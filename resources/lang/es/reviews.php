@@ -287,7 +287,12 @@ return [
     // =========================
     'providers' => [
         'index_title' => 'Proveedores de reseñas',
+        'indexable' => 'Indexable',
+        'cache_ttl' => 'Cache TTL (seg)',
+        'back' => 'Volver',
+        'actions' => 'Acciones',
         'system_locked' => 'Proveedor del sistema',
+        'product_mapping' => 'Mapeo de Productos',
         'messages' => [
             'cannot_delete_local' => 'El proveedor “local” es del sistema y no puede eliminarse.',
             'created'        => 'Proveedor creado.',
@@ -296,7 +301,28 @@ return [
             'status_updated' => 'Estado actualizado.',
             'cache_flushed'  => 'Caché limpiada.',
             'test_fetched'   => 'Se obtuvieron :n reseñas.',
+            'mapping_added'   => 'Mapeo agregado correctamente.',
+            'mapping_updated' => 'Mapeo actualizado correctamente.',
+            'mapping_deleted' => 'Mapeo eliminado correctamente.',
         ],
+        'product_map' => [
+            'title' => 'Mapeo de Productos - :provider',
+        ],
+        'product_mapping_title' => 'Mapeo de Productos - :name',
+        'product_mappings' => 'Mapeos de Productos',
+        'tour' => 'Tour',
+        'select_tour' => 'Seleccionar tour',
+        'select_tour_placeholder' => 'Seleccionar un tour...',
+        'product_code' => 'Código de producto',
+        'product_code_placeholder' => 'Ej: 12345-ABC',
+        'add_mapping' => 'Agregar mapeo',
+        'no_mappings' => 'No hay mapeos configurados',
+        'confirm_delete_mapping' => '¿Estás seguro de eliminar este mapeo?',
+        'help_title' => 'Ayuda',
+        'help_text' => 'Mapea códigos de productos externos a tours internos para sincronizar reseñas correctamente.',
+        'help_step_1' => 'Selecciona un tour de la lista',
+        'help_step_2' => 'Ingresa el código de producto del proveedor externo',
+        'help_step_3' => 'Haz clic en "Agregar" para crear el mapeo',
     ],
 
     // =========================

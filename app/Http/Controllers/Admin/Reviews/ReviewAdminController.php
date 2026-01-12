@@ -26,7 +26,7 @@ class ReviewAdminController extends Controller
      */
     // app/Http/Controllers/Admin/Reviews/ReviewAdminController.php
 
-    public function index(Request $request)
+    public function index(Request $request, \App\Services\Reviews\ReviewAggregator $aggregator)
     {
         $this->authorize('viewAny', Review::class);
 
@@ -36,6 +36,54 @@ class ReviewAdminController extends Controller
         $hasReviewBkId    = Schema::hasColumn($reviewsTable, 'booking_id');
         $hasBookingRefCol = Schema::hasColumn($bookingsTable, 'booking_reference');
 
+        // Get all active providers for filter dropdown
+        $providers = ReviewProvider::where('is_active', true)
+            ->orderByRaw("CASE WHEN slug = 'local' THEN 0 ELSE 1 END")
+            ->orderBy('name')
+            ->get(['slug', 'name']);
+
+        // Get selected provider from request (default: local)
+        $selectedProvider = $request->get('provider', 'local');
+
+        // === EXTERNAL PROVIDER: Fetch from API via aggregator ===
+        if ($selectedProvider !== 'local') {
+            try {
+                $externalReviews = $aggregator->aggregate([
+                    'provider' => $selectedProvider,
+                    'limit' => 100,
+                ]);
+
+                // Convert to collection and add metadata
+                $reviews = collect($externalReviews)->map(function ($review) use ($selectedProvider) {
+                    return (object) array_merge($review, [
+                        'provider' => $selectedProvider,
+                        'is_external' => true,
+                        'created_at' => $review['date'] ?? now(),
+                    ]);
+                });
+
+                // Manual pagination for external reviews
+                $perPage = 25;
+                $currentPage = $request->get('page', 1);
+                $reviews = new \Illuminate\Pagination\LengthAwarePaginator(
+                    $reviews->forPage($currentPage, $perPage),
+                    $reviews->count(),
+                    $perPage,
+                    $currentPage,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                );
+            } catch (\Throwable $e) {
+                \Log::error('Failed to fetch external reviews', [
+                    'provider' => $selectedProvider,
+                    'error' => $e->getMessage(),
+                ]);
+                $reviews = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 25);
+            }
+
+            return view('admin.reviews.index', compact('reviews', 'providers', 'selectedProvider'));
+        }
+
+        // === LOCAL PROVIDER: Query database ===
         // Eager-load dinámico para evitar N+1
         $with = ['user:user_id,first_name,last_name,email'];
         if ($hasReviewBkId) {
@@ -47,7 +95,7 @@ class ReviewAdminController extends Controller
         }
 
         $q = Review::query()
-            ->where('provider', 'local')           // <- SOLO locales
+            ->where('provider', 'local')
             ->with($with)
             ->withCount('replies')                 // cuántas respuestas
             ->withMax('replies', 'created_at');    // fecha de última respuesta
@@ -81,8 +129,7 @@ class ReviewAdminController extends Controller
 
         $reviews = $q->orderByDesc('id')->paginate(25)->withQueryString();
 
-        // Nota: ya no pasamos $providers al Blade
-        return view('admin.reviews.index', compact('reviews'));
+        return view('admin.reviews.index', compact('reviews', 'providers', 'selectedProvider'));
     }
 
 

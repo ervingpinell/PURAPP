@@ -287,7 +287,11 @@ return [
     // =========================
     'providers' => [
         'index_title' => 'Review providers',
-        'system_locked' => 'System provider',
+        'indexable' => 'Indexable',
+        'cache_ttl' => 'Cache TTL (sec)',
+        'back' => 'Back',
+        'actions' => 'Actions',
+        'system_locked' => 'System Provider',
         'messages' => [
             'cannot_delete_local' => 'The “local” provider is a system provider and cannot be deleted.',
             'created'        => 'Provider created.',
@@ -296,7 +300,28 @@ return [
             'status_updated' => 'Status updated.',
             'cache_flushed'  => 'Cache flushed.',
             'test_fetched'   => ':n reviews fetched.',
+            'mapping_added'   => 'Mapping added successfully.',
+            'mapping_updated' => 'Mapping updated successfully.',
+            'mapping_deleted' => 'Mapping deleted successfully.',
         ],
+        'product_map' => [
+            'title' => 'Product Mapping - :provider',
+        ],
+        'product_mapping_title' => 'Product Mapping - :name',
+        'product_mappings' => 'Product Mappings',
+        'tour' => 'Tour',
+        'select_tour' => 'Select tour',
+        'select_tour_placeholder' => 'Select a tour...',
+        'product_code' => 'Product code',
+        'product_code_placeholder' => 'Ex: 12732-ABC',
+        'add_mapping' => 'Add mapping',
+        'no_mappings' => 'No mappings configured',
+        'confirm_delete_mapping' => 'Are you sure you want to delete this mapping?',
+        'help_title' => 'Help',
+        'help_text' => 'Map external product codes to internal tours to sync reviews correctly.',
+        'help_step_1' => 'Select a tour from the list',
+        'help_step_2' => 'Enter the external provider product code',
+        'help_step_3' => 'Click "Add" to create the mapping',
     ],
 
     // =========================

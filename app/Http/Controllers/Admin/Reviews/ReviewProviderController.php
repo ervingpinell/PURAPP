@@ -65,12 +65,8 @@ class ReviewProviderController extends Controller
         // Driver fijo para proveedores creados por el admin: http_json
         $data['driver'] = 'http_json';
 
-        // Normaliza settings (acepta array o JSON string)
-        $settings = $data['settings'] ?? [];
-        if (is_string($settings)) {
-            $decoded  = json_decode($settings, true);
-            $settings = is_array($decoded) ? $decoded : [];
-        }
+        // Build settings from simplified form fields or advanced JSON
+        $settings = $this->buildSettings($data);
 
         $data['settings']  = $settings;
         $data['indexable'] = (bool) ($data['indexable'] ?? false);
@@ -125,11 +121,9 @@ class ReviewProviderController extends Controller
             // Driver externo
             $provider->driver = 'http_json';
 
-            // Guardar settings del request (ya normalizado por el FormRequest)
-            if (array_key_exists('settings', $data) && is_array($data['settings'])) {
-                // El mutator del modelo cifra automáticamente claves sensibles (api_key, etc.)
-                $provider->settings = $data['settings'];
-            }
+            // Build settings from simplified form fields or advanced JSON
+            $settings = $this->buildSettings($data, $provider->settings ?? []);
+            $provider->settings = $settings;
         }
 
         $provider->save();
@@ -214,5 +208,25 @@ class ReviewProviderController extends Controller
         return back()->with('ok', __('reviews.providers.messages.test_fetched', [
             'n' => $n,
         ]));
+    }
+
+    /**
+     * Build settings array from simplified form fields or advanced JSON
+     */
+    protected function buildSettings(array $data, array $existing = []): array
+    {
+        // If advanced JSON is provided, use it
+        if (!empty($data['settings_json'])) {
+            $decoded = json_decode($data['settings_json'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+            // If JSON is invalid, fall back to existing
+            return $existing;
+        }
+
+        // For external providers, keep existing settings (managed via .env)
+        // Only allow editing via advanced JSON
+        return $existing;
     }
 }

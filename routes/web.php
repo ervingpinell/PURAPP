@@ -1325,7 +1325,14 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::post('review-providers/{provider}/toggle', [ReviewProviderController::class, 'toggle'])->name('review-providers.toggle');
                     Route::post('review-providers/{provider}/test', [ReviewProviderController::class, 'test'])->name('review-providers.test');
                     Route::post('review-providers/{provider}/cache/flush', [ReviewProviderController::class, 'flushCache'])->name('review-providers.flush');
+
+                    // Product Mapping
+                    Route::get('review-providers/{provider}/product-map', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'index'])->name('review-providers.product-map.index');
+                    Route::post('review-providers/{provider}/product-map', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'store'])->name('review-providers.product-map.store');
+                    Route::put('review-providers/{provider}/product-map/{tourId}', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'update'])->name('review-providers.product-map.update');
+                    Route::delete('review-providers/{provider}/product-map/{tourId}', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'destroy'])->name('review-providers.product-map.destroy');
                 });
+
 
                 // Reviews
                 Route::group(['middleware' => ['can:view-reviews']], function () {

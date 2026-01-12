@@ -283,6 +283,10 @@ return [
     // =========================
     'providers' => [
         'index_title' => 'Fournisseurs d’avis',
+        'indexable' => 'Indexable',
+        'cache_ttl' => 'Cache TTL (sec)',
+        'back' => 'Retour',
+        'actions' => 'Actions',
         'system_locked' => 'Fournisseur système',
         'messages' => [
             'cannot_delete_local' => 'Le fournisseur “local” est un fournisseur système et ne peut pas être supprimé.',
@@ -292,7 +296,28 @@ return [
             'status_updated' => 'Statut mis à jour.',
             'cache_flushed'  => 'Cache vidé.',
             'test_fetched'   => ':n avis récupérés.',
+            'mapping_added'   => 'Mappage ajouté avec succès.',
+            'mapping_updated' => 'Mappage mis à jour avec succès.',
+            'mapping_deleted' => 'Mappage supprimé avec succès.',
         ],
+        'product_map' => [
+            'title' => 'Mappage de Produits - :provider',
+        ],
+        'product_mapping_title' => 'Mappage de Produits - :name',
+        'product_mappings' => 'Mappages de Produits',
+        'tour' => 'Visite',
+        'select_tour' => 'Sélectionner une visite',
+        'select_tour_placeholder' => 'Sélectionner une visite...',
+        'product_code' => 'Code produit',
+        'product_code_placeholder' => 'Ex: 12732-ABC',
+        'add_mapping' => 'Ajouter un mappage',
+        'no_mappings' => 'Aucun mappage configuré',
+        'confirm_delete_mapping' => 'Êtes-vous sûr de vouloir supprimer ce mappage?',
+        'help_title' => 'Aide',
+        'help_text' => 'Mappez les codes de produits externes aux visites internes pour synchroniser correctement les avis.',
+        'help_step_1' => 'Sélectionnez une visite dans la liste',
+        'help_step_2' => 'Entrez le code produit du fournisseur externe',
+        'help_step_3' => 'Cliquez sur "Ajouter" pour créer le mappage',
     ],
 
     // =========================

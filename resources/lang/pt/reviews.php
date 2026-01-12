@@ -283,7 +283,11 @@ return [
     // =========================
     'providers' => [
         'index_title' => 'Fornecedores de avaliações',
-        'system_locked' => 'Fornecedor do sistema',
+        'indexable' => 'Indexável',
+        'cache_ttl' => 'Cache TTL (seg)',
+        'back' => 'Voltar',
+        'actions' => 'Ações',
+        'system_locked' => 'Provedor do Sistema',
         'messages' => [
             'cannot_delete_local' => 'O fornecedor “local” é do sistema e não pode ser excluído.',
             'created'        => 'Fornecedor criado.',
@@ -292,7 +296,28 @@ return [
             'status_updated' => 'Status atualizado.',
             'cache_flushed'  => 'Cache limpo.',
             'test_fetched'   => ':n avaliações obtidas.',
+            'mapping_added'   => 'Mapeamento adicionado com sucesso.',
+            'mapping_updated' => 'Mapeamento atualizado com sucesso.',
+            'mapping_deleted' => 'Mapeamento excluído com sucesso.',
         ],
+        'product_map' => [
+            'title' => 'Mapeamento de Produtos - :provider',
+        ],
+        'product_mapping_title' => 'Mapeamento de Produtos - :name',
+        'product_mappings' => 'Mapeamentos de Produtos',
+        'tour' => 'Passeio',
+        'select_tour' => 'Selecionar passeio',
+        'select_tour_placeholder' => 'Selecionar um passeio...',
+        'product_code' => 'Código do produto',
+        'product_code_placeholder' => 'Ex: 12732-ABC',
+        'add_mapping' => 'Adicionar mapeamento',
+        'no_mappings' => 'Nenhum mapeamento configurado',
+        'confirm_delete_mapping' => 'Tem certeza de que deseja excluir este mapeamento?',
+        'help_title' => 'Ajuda',
+        'help_text' => 'Mapeie códigos de produtos externos para passeios internos para sincronizar avaliações corretamente.',
+        'help_step_1' => 'Selecione um passeio da lista',
+        'help_step_2' => 'Digite o código do produto do fornecedor externo',
+        'help_step_3' => 'Clique em "Adicionar" para criar o mapeamento',
     ],
 
     // =========================

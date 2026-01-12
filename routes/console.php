@@ -134,3 +134,20 @@ Schedule::command('bookings:send-daily-operations-report')
     ->timezone(config('app.timezone', 'UTC'))
     ->onOneServer()
     ->appendOutputTo(storage_path('logs/operations-report.log'));
+
+/*
+|--------------------------------------------------------------------------
+| Sync External Reviews (Viator Compliance)
+|--------------------------------------------------------------------------
+| Sincroniza reviews de proveedores externos (Viator, GYG, etc.) semanalmente.
+| Cumple con requisitos de Viator: sync semanal y auto-eliminación.
+| Se ejecuta domingos a las 2:00 AM para evitar conflictos con otras tareas.
+*/
+Schedule::command('reviews:sync --all')
+    ->weekly()
+    ->sundays()
+    ->at('02:00')
+    ->timezone(config('app.timezone', 'UTC'))
+    ->onOneServer()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/reviews-sync.log'));

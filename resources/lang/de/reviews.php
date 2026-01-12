@@ -284,6 +284,10 @@ return [
     // =========================
     'providers' => [
         'index_title' => 'Bewertungsanbieter',
+        'indexable' => 'Indexierbar',
+        'cache_ttl' => 'Cache TTL (Sek)',
+        'back' => 'Zurück',
+        'actions' => 'Aktionen',
         'system_locked' => 'Systemanbieter',
         'messages' => [
             'cannot_delete_local' => 'Der „local“-Anbieter ist systemrelevant und kann nicht gelöscht werden.',
@@ -293,7 +297,28 @@ return [
             'status_updated' => 'Status aktualisiert.',
             'cache_flushed'  => 'Cache geleert.',
             'test_fetched'   => ':n Bewertungen abgerufen.',
+            'mapping_added'   => 'Zuordnung erfolgreich hinzugefügt.',
+            'mapping_updated' => 'Zuordnung erfolgreich aktualisiert.',
+            'mapping_deleted' => 'Zuordnung erfolgreich gelöscht.',
         ],
+        'product_map' => [
+            'title' => 'Produktzuordnung - :provider',
+        ],
+        'product_mapping_title' => 'Produktzuordnung - :name',
+        'product_mappings' => 'Produktzuordnungen',
+        'tour' => 'Tour',
+        'select_tour' => 'Tour auswählen',
+        'select_tour_placeholder' => 'Tour auswählen...',
+        'product_code' => 'Produktcode',
+        'product_code_placeholder' => 'Z.B.: 12732-ABC',
+        'add_mapping' => 'Zuordnung hinzufügen',
+        'no_mappings' => 'Keine Zuordnungen konfiguriert',
+        'confirm_delete_mapping' => 'Sind Sie sicher, dass Sie diese Zuordnung löschen möchten?',
+        'help_title' => 'Hilfe',
+        'help_text' => 'Ordnen Sie externe Produktcodes internen Touren zu, um Bewertungen korrekt zu synchronisieren.',
+        'help_step_1' => 'Wählen Sie eine Tour aus der Liste',
+        'help_step_2' => 'Geben Sie den Produktcode des externen Anbieters ein',
+        'help_step_3' => 'Klicken Sie auf "Hinzufügen", um die Zuordnung zu erstellen',
     ],
 
     // =========================
