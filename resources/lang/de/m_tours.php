@@ -585,6 +585,18 @@ return [
                 'created_title'     => 'Sprache registriert',
                 'deleted_title'     => 'Sprache gelöscht',
             ],
+            'trash_title'      => 'Sprachpapierkorb',
+            'trash_list_title' => 'Gelöschte Sprachen',
+            'restore'          => 'Wiederherstellen',
+            'empty_trash'      => 'Papierkorb leer',
+            'deleted_at'       => 'Gelöscht am',
+            'deleted_by'       => 'Gelöscht von',
+            'back_to_list'     => 'Zurück zur Liste',
+            'delete'           => 'Löschen',
+            'alerts' => [
+                'delete_title' => 'Diese Sprache löschen?',
+                'delete_text'  => 'Die Sprache wird in den Papierkorb verschoben.',
+            ],
         ],
 
         'success' => [
@@ -593,6 +605,8 @@ return [
             'activated'   => 'Sprache erfolgreich aktiviert.',
             'deactivated' => 'Sprache erfolgreich deaktiviert.',
             'deleted'     => 'Sprache erfolgreich gelöscht.',
+            'restored'      => 'Sprache erfolgreich wiederhergestellt.',
+            'force_deleted' => 'Sprache dauerhaft gelöscht.',
         ],
 
         'error' => [
@@ -601,6 +615,8 @@ return [
             'toggle' => 'Der Status der Sprache konnte nicht geändert werden.',
             'delete' => 'Die Sprache konnte nicht gelöscht werden.',
             'save'   => 'Konnte nicht gespeichert werden.',
+            'restore'      => 'Sprache konnte nicht wiederhergestellt werden.',
+            'force_delete' => 'Sprache konnte nicht dauerhaft gelöscht werden.',
         ],
 
         'validation' => [

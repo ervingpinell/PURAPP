@@ -592,6 +592,18 @@ return [
                 'created_title'     => 'Language Registered',
                 'deleted_title'     => 'Language Deleted',
             ],
+            'trash_title'      => 'Languages Trash',
+            'trash_list_title' => 'Deleted Languages',
+            'restore'          => 'Restore',
+            'empty_trash'      => 'Trash is empty',
+            'deleted_at'       => 'Deleted Date',
+            'deleted_by'       => 'Deleted By',
+            'back_to_list'     => 'Back to list',
+            'delete'           => 'Delete',
+            'alerts' => [
+                'delete_title' => 'Delete this language?',
+                'delete_text'  => 'The language will be moved to trash.',
+            ],
         ],
 
         'success' => [
@@ -600,6 +612,8 @@ return [
             'activated'   => 'Language activated successfully.',
             'deactivated' => 'Language deactivated successfully.',
             'deleted'     => 'Language deleted successfully.',
+            'restored'      => 'Language restored successfully.',
+            'force_deleted' => 'Language permanently deleted.',
         ],
 
         'error' => [
@@ -608,6 +622,8 @@ return [
             'toggle' => 'Could not change the language status.',
             'delete' => 'Could not delete the language.',
             'save'   => 'Could not save.',
+            'restore'      => 'Could not restore the language.',
+            'force_delete' => 'Could not permanently delete the language.',
         ],
 
         'validation' => [

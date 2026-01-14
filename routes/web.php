@@ -1185,6 +1185,12 @@ Route::middleware([SetLocale::class])->group(function () {
                 // LANGUAGES (Part of Settings mostly)
                 // ============================
                 Route::group(['middleware' => ['can:view-settings']], function () {
+
+                    // Soft Delete Routes (Languages)
+                    Route::get('languages/trash/list', [TourLanguageController::class, 'trash'])->name('languages.trash');
+                    Route::patch('languages/{language}/restore', [TourLanguageController::class, 'restore'])->name('languages.restore');
+                    Route::delete('languages/{language}/force', [TourLanguageController::class, 'forceDelete'])->name('languages.forceDelete');
+
                     Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
                     Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
                 });

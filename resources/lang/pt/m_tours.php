@@ -592,6 +592,18 @@ return [
                 'created_title'     => 'Idioma Registrado',
                 'deleted_title'     => 'Idioma Excluído',
             ],
+            'trash_title'      => 'Lixeira de Idiomas',
+            'trash_list_title' => 'Idiomas Excluídos',
+            'restore'          => 'Restaurar',
+            'empty_trash'      => 'Lixeira vazia',
+            'deleted_at'       => 'Data de exclusão',
+            'deleted_by'       => 'Excluído por',
+            'back_to_list'     => 'Voltar para a lista',
+            'delete'           => 'Excluir',
+            'alerts' => [
+                'delete_title' => 'Excluir este idioma?',
+                'delete_text'  => 'O idioma será movido para a lixeira.',
+            ],
         ],
 
         'success' => [
@@ -600,6 +612,8 @@ return [
             'activated'   => 'Idioma ativado com sucesso.',
             'deactivated' => 'Idioma desativado com sucesso.',
             'deleted'     => 'Idioma excluído com sucesso.',
+            'restored'      => 'Idioma restaurado com sucesso.',
+            'force_deleted' => 'Idioma excluído permanentemente.',
         ],
 
         'error' => [
@@ -608,6 +622,8 @@ return [
             'toggle' => 'Não foi possível alterar o status do idioma.',
             'delete' => 'Não foi possível excluir o idioma.',
             'save'   => 'Não foi possível salvar',
+            'restore'      => 'Não foi possível restaurar o idioma.',
+            'force_delete' => 'Não foi possível excluir permanentemente o idioma.',
         ],
 
         'validation' => [

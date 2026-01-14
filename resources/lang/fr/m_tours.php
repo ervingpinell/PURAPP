@@ -590,6 +590,18 @@ return [
                 'created_title'     => 'Langue enregistrée',
                 'deleted_title'     => 'Langue supprimée',
             ],
+            'trash_title'      => 'Corbeille des Langues',
+            'trash_list_title' => 'Langues Supprimées',
+            'restore'          => 'Restaurer',
+            'empty_trash'      => 'Corbeille vide',
+            'deleted_at'       => 'Date de suppression',
+            'deleted_by'       => 'Supprimé par',
+            'back_to_list'     => 'Retour à la liste',
+            'delete'           => 'Supprimer',
+            'alerts' => [
+                'delete_title' => 'Supprimer cette langue?',
+                'delete_text'  => 'La langue sera déplacée vers la corbeille.',
+            ],
         ],
 
         'success' => [
@@ -598,6 +610,8 @@ return [
             'activated'   => 'Langue activée avec succès.',
             'deactivated' => 'Langue désactivée avec succès.',
             'deleted'     => 'Langue supprimée avec succès.',
+            'restored'      => 'Langue restaurée avec succès.',
+            'force_deleted' => 'Langue supprimée définitivement.',
         ],
 
         'error' => [
@@ -606,6 +620,8 @@ return [
             'toggle' => 'Impossible de changer le statut de la langue.',
             'delete' => 'Impossible de supprimer la langue.',
             'save'   => 'Impossible d’enregistrer.',
+            'restore'      => 'Impossible de restaurer la langue.',
+            'force_delete' => 'Impossible de supprimer définitivement la langue.',
         ],
 
         'validation' => [

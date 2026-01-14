@@ -128,7 +128,11 @@ class RunDailyCleanups extends Command
         }
 
         $this->newLine();
-        $this->info('✅ All daily cleanups completed successfully.');
+        // 9. Languages
+        $this->info('--- Cleaning up Languages ---');
+        $this->call('cleanup:old-languages', ['days' => 30]);
+
+        $this->info('All cleanups completed successfully.');
 
         return 0;
     }
