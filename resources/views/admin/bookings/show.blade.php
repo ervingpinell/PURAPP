@@ -593,7 +593,10 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                                 <select name="meeting_point_id" class="form-control">
                                     <option value="">{{ __('m_bookings.bookings.placeholders.select_point') }}</option>
                                     @php
-                                    $meetingPoints = \App\Models\MeetingPoint::where('is_active', true)->orderBy('name')->get();
+                                    $meetingPoints = \App\Models\MeetingPoint::where('is_active', true)
+                                    ->with('translations')
+                                    ->orderByRaw('sort_order IS NULL, sort_order ASC')
+                                    ->get();
                                     @endphp
                                     @foreach($meetingPoints as $mp)
                                     <option value="{{ $mp->meeting_point_id }}" {{ $booking->detail?->meeting_point_id == $mp->meeting_point_id ? 'selected' : '' }}>

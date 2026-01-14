@@ -129,11 +129,34 @@ while ($images->count() < 5) {
     style="height:462px;max-height:462px;min-height:462px;">
 
     <div class="row gx-2 h-100 flex-column-reverse flex-md-row">
-      <!-- ... (unchanged content: thumbnails loop) ... -->
+      {{-- Thumbnails (desktop only) --}}
+      <div class="col-md-2 d-none d-md-flex flex-column gap-2 pe-0">
+        @foreach($images as $i => $src)
+        <div class="thumb-box" style="cursor:pointer;" data-bs-target="#tourCarousel" data-bs-slide-to="{{ $i }}">
+          <img src="{{ $src }}"
+            alt="{{ $tour->getTranslatedName() }} - Thumb {{ $i + 1 }}"
+            class="img-fluid rounded shadow-sm {{ $i === 0 ? 'active' : '' }}"
+            data-open-lightbox
+            data-index="{{ $i }}"
+            loading="lazy">
+        </div>
+        @endforeach
+      </div>
+
       {{-- Image --}}
       <div class="col position-relative h-100">
         <div class="carousel-inner h-100 rounded shadow-sm overflow-hidden">
-          <!-- ... (unchanged content: carousel items) ... -->
+          @foreach($images as $i => $src)
+          <div class="carousel-item {{ $i === 0 ? 'active' : '' }}" style="height:100%;">
+            <img src="{{ $src }}"
+              alt="{{ $tour->getTranslatedName() }} - {{ $i + 1 }}"
+              class="d-block w-100 h-100"
+              style="object-fit:cover;cursor:pointer;"
+              data-open-lightbox
+              data-index="{{ $i }}"
+              loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+          </div>
+          @endforeach
         </div>
 
         {{-- Controls --}}
