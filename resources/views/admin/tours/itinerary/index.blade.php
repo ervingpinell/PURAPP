@@ -373,7 +373,7 @@ $itineraryToEdit = request('itinerary_id');
             confirmButtonColor: '#d33'
         });
         @endif
-        @if($errors - > any())
+        @if($errors -> any())
         Swal.fire({
             icon: 'error',
             title: @json(__('m_tours.itinerary.ui.validation_failed_title')),
