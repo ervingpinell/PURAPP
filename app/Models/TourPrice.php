@@ -48,7 +48,7 @@ class TourPrice extends Model
     }
     public function category()
     {
-        return $this->belongsTo(CustomerCategory::class, 'category_id', 'category_id');
+        return $this->belongsTo(CustomerCategory::class, 'category_id', 'category_id')->withTrashed();
     }
 
     /** Scopes */

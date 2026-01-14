@@ -330,7 +330,7 @@
                     <strong>{{ __('m_bookings.bookings.customer') }}</strong>
                 </div>
                 <div class="small">
-                    <div class="fw-bold">{{ $booking->user->name }}</div>
+                    <div class="fw-bold">{{ $booking->user->full_name }}</div>
                     <div class="text-muted">{{ $booking->user->email }}</div>
                 </div>
             </div>
@@ -424,7 +424,7 @@
                             @if($meetingPoint)
                             <div class="mb-1">
                                 <strong>{{ __('m_checkout.blocks.meeting_point') }}:</strong>
-                                {{ $meetingPoint->name ?? '' }}
+                                {{ $meetingPoint->name_localized ?? '' }}
                                 @if(data_get($meetingPoint,'address'))
                                 — {{ $meetingPoint->address }}
                                 @endif

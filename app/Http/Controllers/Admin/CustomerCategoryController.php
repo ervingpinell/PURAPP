@@ -26,12 +26,15 @@ class CustomerCategoryController extends Controller
         $this->middleware(['can:edit-customer-categories'])->only(['edit', 'update']);
         $this->middleware(['can:publish-customer-categories'])->only(['toggle']);
         $this->middleware(['can:delete-customer-categories'])->only(['destroy']);
+        $this->middleware(['can:restore-customer-categories'])->only(['trash', 'restore']);
+        $this->middleware(['can:force-delete-customer-categories'])->only(['forceDelete']);
     }
 
     public function index()
     {
         $categories = CustomerCategory::with('translations')->ordered()->paginate(20);
-        return view('admin.customer_categories.index', compact('categories'));
+        $trashedCount = CustomerCategory::onlyTrashed()->count();
+        return view('admin.customer_categories.index', compact('categories', 'trashedCount'));
     }
 
     public function create()
@@ -39,65 +42,36 @@ class CustomerCategoryController extends Controller
         return view('admin.customer_categories.create');
     }
 
-    public function store(StoreCustomerCategoryRequest $request, DeepLTranslator $translator)
+    public function store(StoreCustomerCategoryRequest $request)
     {
-        $locales = supported_locales();
-        $names   = $request->input('names', []);
-        $auto    = (bool) $request->boolean('auto_translate', true);
+        try {
+            DB::beginTransaction();
 
-        DB::transaction(function () use ($request, $translator, $locales, $names, $auto) {
-            // 1) Crear categoría base
-            $category = CustomerCategory::create($request->safe()->only([
-                'slug',
-                'age_from',
-                'age_to',
-                'order',
-                'is_active'
-            ]));
+            $category = CustomerCategory::create($request->validated());
 
-            // 2) Preparar nombres: completar los vacíos si se pidió auto-translate
-            $firstLocale = $locales[0] ?? 'es';
-            $seedText    = trim((string)($names[$firstLocale] ?? ''));
-            if ($seedText === '') {
-                // fallback: primera clave no vacía
-                foreach ($locales as $l) {
-                    if (!empty($names[$l])) {
-                        $seedText = trim($names[$l]);
-                        $firstLocale = $l;
-                        break;
-                    }
+            // Handle translations
+            foreach ($request->input('names', []) as $locale => $name) {
+                if (!empty($name)) {
+                    CustomerCategoryTranslation::create([
+                        'category_id' => $category->category_id,
+                        'locale'      => $locale,
+                        'name'        => $name,
+                    ]);
                 }
             }
 
-            if ($auto && $seedText !== '') {
-                $detected = $translator->detect($seedText) ?? $firstLocale;
-                foreach ($locales as $l) {
-                    if (empty($names[$l])) {
-                        // Si el target es igual al detectado, no traducir (usar seed)
-                        $names[$l] = ($l === substr($detected, 0, 2))
-                            ? $seedText
-                            : $translator->translate($seedText, $l);
-                    }
-                }
-            }
+            DB::commit();
 
-            // 3) Insertar traducciones (solo las que tengan contenido)
-            foreach ($locales as $l) {
-                $val = trim((string)($names[$l] ?? ''));
-                if ($val === '') continue;
+            LoggerHelper::mutated('CustomerCategoryController', 'store', 'CustomerCategory', $category->category_id);
 
-                CustomerCategoryTranslation::updateOrCreate(
-                    ['category_id' => $category->category_id, 'locale' => $l],
-                    ['name' => $val]
-                );
-            }
-        });
-
-        LoggerHelper::mutated('CustomerCategoryController', 'store', 'CustomerCategory', null);
-
-        return redirect()
-            ->route('admin.customer_categories.index')
-            ->with('success', 'Categoría creada exitosamente.');
+            return redirect()
+                ->route('admin.customer_categories.index')
+                ->with('success', 'Categoría creada con éxito.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LoggerHelper::exception('CustomerCategoryController', 'store', 'CustomerCategory', null, $e);
+            return back()->with('error', 'Error al crear la categoría: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function edit(CustomerCategory $category)
@@ -106,87 +80,100 @@ class CustomerCategoryController extends Controller
         return view('admin.customer_categories.edit', compact('category'));
     }
 
-    public function update(StoreCustomerCategoryRequest $request, CustomerCategory $category, DeepLTranslator $translator)
+    public function update(StoreCustomerCategoryRequest $request, CustomerCategory $category)
     {
-        $locales = supported_locales();
-        $names   = $request->input('names', []);
-        $regen   = (bool) $request->boolean('regen_missing', false);
+        try {
+            DB::beginTransaction();
 
-        DB::transaction(function () use ($request, $category, $translator, $locales, $names, $regen) {
-            // 1) Actualizar base
-            $category->update($request->safe()->only([
-                'slug',
-                'age_from',
-                'age_to',
-                'order',
-                'is_active'
-            ]));
+            $category->update($request->validated());
 
-            // 2) Guardar/actualizar traducciones provistas
-            foreach ($locales as $l) {
-                $val = trim((string)($names[$l] ?? ''));
-                if ($val === '') continue;
-
-                CustomerCategoryTranslation::updateOrCreate(
-                    ['category_id' => $category->category_id, 'locale' => $l],
-                    ['name' => $val]
-                );
-            }
-
-            // 3) Rellenar vacíos (opcional) sin pisar existentes
-            if ($regen) {
-                // Texto semilla: prioriza el primero que exista en DB o request
-                $seedText = null;
-                foreach ($locales as $l) {
-                    $seedText = $seedText
-                        ?? trim((string)($names[$l] ?? ''))
-                        ?: optional($category->translations->firstWhere('locale', $l))->name;
-                    if ($seedText) {
-                        $seedLocale = $l;
-                        break;
-                    }
-                }
-
-                if (!empty($seedText)) {
-                    $detected = $translator->detect($seedText) ?? ($seedLocale ?? 'es');
-                    foreach ($locales as $l) {
-                        $exists = $category->translations->firstWhere('locale', $l);
-                        if ($exists && !empty($exists->name)) continue; // no pisar
-                        if (!empty($names[$l])) continue; // ya vino en request
-
-                        $val = ($l === substr($detected, 0, 2))
-                            ? $seedText
-                            : $translator->translate($seedText, $l);
-
-                        CustomerCategoryTranslation::updateOrCreate(
-                            ['category_id' => $category->category_id, 'locale' => $l],
-                            ['name' => $val]
-                        );
-                    }
+            // Update translations
+            foreach ($request->input('names', []) as $locale => $name) {
+                if (!empty($name)) {
+                    $category->translations()->updateOrCreate(
+                        ['locale' => $locale],
+                        ['name' => $name]
+                    );
                 }
             }
-        });
 
-        LoggerHelper::mutated('CustomerCategoryController', 'update', 'CustomerCategory', $category->category_id);
+            DB::commit();
 
-        return redirect()
-            ->route('admin.customer_categories.index')
-            ->with('success', 'Categoría actualizada exitosamente.');
+            LoggerHelper::mutated('CustomerCategoryController', 'update', 'CustomerCategory', $category->category_id);
+
+            return redirect()
+                ->route('admin.customer_categories.index')
+                ->with('success', 'Categoría actualizada con éxito.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LoggerHelper::exception('CustomerCategoryController', 'update', 'CustomerCategory', $category->category_id, $e);
+            return back()->with('error', 'Error al actualizar: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function toggle(CustomerCategory $category)
     {
         $category->update(['is_active' => !$category->is_active]);
-        LoggerHelper::mutated('CustomerCategoryController', 'toggle', 'CustomerCategory', $category->category_id, ['is_active' => $category->is_active]);
-        return back()->with('success', 'Estado actualizado exitosamente.');
+
+        LoggerHelper::mutated('CustomerCategoryController', 'toggle', 'CustomerCategory', $category->category_id);
+
+        return back()->with('success', 'Estado actualizado correctamente.');
     }
 
     public function destroy(CustomerCategory $category)
     {
+        $category->deleted_by = auth()->id();
+        $category->save();
         $category->delete();
+
         LoggerHelper::mutated('CustomerCategoryController', 'destroy', 'CustomerCategory', $category->category_id);
+
         return redirect()
             ->route('admin.customer_categories.index')
-            ->with('success', 'Categoría eliminada exitosamente.');
+            ->with('success', 'Categoría enviada a la papelera.');
+    }
+
+    public function trash()
+    {
+        $categories = CustomerCategory::onlyTrashed()
+            ->with(['translations', 'deletedBy'])
+            ->orderBy('deleted_at', 'desc')
+            ->get();
+
+        return view('admin.customer_categories.trash', compact('categories'));
+    }
+
+    public function restore($id)
+    {
+        $category = CustomerCategory::onlyTrashed()->findOrFail($id);
+        $category->deleted_by = null;
+        $category->save();
+        $category->restore();
+
+        LoggerHelper::mutated('CustomerCategoryController', 'restore', 'CustomerCategory', $category->category_id);
+
+        return redirect()
+            ->route('admin.customer_categories.trash')
+            ->with('success', 'Categoría restaurada correctamente.');
+    }
+
+    public function forceDelete($id)
+    {
+        $category = CustomerCategory::onlyTrashed()->findOrFail($id);
+
+        // Check for dependencies (TourPrice)
+        if ($category->tourPrices()->exists()) {
+            return redirect()
+                ->route('admin.customer_categories.trash')
+                ->with('error', 'No se puede eliminar permanentemente porque tiene precios de tours asociados.');
+        }
+
+        $category->forceDelete();
+
+        LoggerHelper::mutated('CustomerCategoryController', 'forceDelete', 'CustomerCategory', $id);
+
+        return redirect()
+            ->route('admin.customer_categories.trash')
+            ->with('success', 'Categoría eliminada permanentemente.');
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Itinerary Model
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  */
 class Itinerary extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'itineraries';
     protected $primaryKey = 'itinerary_id';
@@ -22,6 +23,7 @@ class Itinerary extends Model
 
     protected $fillable = [
         'is_active',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -224,5 +226,10 @@ class Itinerary extends Model
     {
         $locale = $locale ?? app()->getLocale();
         return $query->with(['translations' => fn($q) => $q->where('locale', $locale)]);
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
     }
 }

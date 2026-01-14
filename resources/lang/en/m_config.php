@@ -15,6 +15,17 @@
 
 return [
 
+
+    // =========================================================
+    // ==== GLOBAL BUTTONS =====================================
+    // =========================================================
+    'buttons' => [
+        'back' => 'Back',
+        'save' => 'Save',
+        'cancel' => 'Cancel',
+        'close' => 'Close',
+    ],
+
     // =========================================================
     // ==== POLICIES ===========================================
     // =========================================================
@@ -182,6 +193,12 @@ return [
         'title'                   => 'Tour Types',
         'new'                     => 'Add Tour Type',
 
+        'active_tab'              => 'Active',
+        'trash_tab'               => 'Trash',
+        'trash_title'             => 'Tour Types Trash',
+        'trash_header'            => 'Tour Types Trash',
+        'trash_empty'             => 'No deleted tour types',
+
         // Columns / fields
         'id'                      => 'ID',
         'name'                    => 'Name',
@@ -231,6 +248,18 @@ return [
         // Validation / generic
         'validation_errors'       => 'Please review the highlighted fields.',
         'error_title'             => 'Error',
+    ],
+
+    // =========================================================
+    // ==== AMENITIES ==========================================
+    // =========================================================
+    'amenities' => [
+        'title'           => 'Amenities',
+        'active_tab'      => 'Active',
+        'trash_tab'       => 'Trash',
+        'trash_title'     => 'Amenities Trash',
+        'trash_header'    => 'Amenities Trash',
+        'trash_empty'     => 'No deleted amenities found',
     ],
 
     // =========================================================

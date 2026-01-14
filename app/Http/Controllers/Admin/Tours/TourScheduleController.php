@@ -30,12 +30,15 @@ class TourScheduleController extends Controller
         $this->middleware(['can:publish-tour-schedules'])->only(['toggle']);
         $this->middleware(['can:publish-tour-schedule-assignments'])->only(['toggleAssignment']);
         $this->middleware(['can:delete-tour-schedules'])->only(['destroy']);
+        $this->middleware(['can:restore-schedules'])->only(['restore']);
+        $this->middleware(['can:force-delete-schedules'])->only(['forceDelete']);
     }
 
     protected string $controller = 'TourScheduleController';
 
     public function index()
     {
+        $trashedCount = Schedule::onlyTrashed()->count();
         $generalSchedules = Schedule::orderBy('start_time')->get();
 
         $tours = Tour::with([
@@ -44,7 +47,66 @@ class TourScheduleController extends Controller
             }
         ])->orderBy('name')->get();
 
-        return view('admin.tours.schedule.index', compact('generalSchedules', 'tours'));
+        return view('admin.tours.schedule.index', compact('generalSchedules', 'tours', 'trashedCount'));
+    }
+
+    /**
+     * Listar horarios eliminados
+     */
+    public function trash()
+    {
+        $schedules = Schedule::onlyTrashed()
+            ->with(['deletedBy'])
+            ->orderByDesc('deleted_at')
+            ->get();
+
+        return view('admin.tours.schedule.trash', compact('schedules'));
+    }
+
+    /**
+     * Restaurar horario eliminado
+     */
+    public function restore($id): RedirectResponse
+    {
+        try {
+            $schedule = Schedule::onlyTrashed()->findOrFail($id);
+            $schedule->restore();
+
+            LoggerHelper::mutated($this->controller, 'restore', 'schedule', $id, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()->route('admin.tours.schedule.trash')
+                ->with('success', __('m_tours.schedule.success.restored'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'restore', 'schedule', $id, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', __('m_tours.schedule.error.restore'));
+        }
+    }
+
+    /**
+     * Eliminar permanentemente
+     */
+    public function forceDelete($id): RedirectResponse
+    {
+        try {
+            $schedule = Schedule::onlyTrashed()->findOrFail($id);
+            $schedule->forceDelete();
+
+            LoggerHelper::mutated($this->controller, 'forceDelete', 'schedule', $id, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()->route('admin.tours.schedule.trash')
+                ->with('success', __('m_tours.schedule.success.force_deleted'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'forceDelete', 'schedule', $id, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', __('m_tours.schedule.error.force_delete'));
+        }
     }
 
     /**
@@ -282,12 +344,15 @@ class TourScheduleController extends Controller
     }
 
     /**
-     * Eliminar schedule general completamente
+     * Eliminar schedule general usando SoftDeletes
      */
     public function destroy(Schedule $schedule): RedirectResponse
     {
         try {
             $id = $schedule->getKey();
+
+            // Set deleted_by before deleting
+            $schedule->update(['deleted_by' => auth()->id()]);
             $schedule->delete();
 
             LoggerHelper::mutated($this->controller, 'destroy', 'schedule', $id, [

@@ -87,18 +87,50 @@ class TourLanguageController extends Controller
             ->with('success', __('m_tours.language.success.' . $key));
     }
 
-    /**
-     * (Opcional) Borrado real – dejado comentado.
-     */
-    /*
+    public function trash(Request $request)
+    {
+        $this->authorize('restore-tour-languages');
+
+        $trashedLanguages = TourLanguage::onlyTrashed()
+            ->with(['deletedBy'])
+            ->orderBy('deleted_at', 'desc')
+            ->get();
+
+        return view('admin.languages.trash', compact('trashedLanguages'));
+    }
+
     public function destroy(TourLanguage $language)
     {
-        $name = $language->name;
+        // Soft delete
+        $language->update(['deleted_by' => auth()->id()]);
         $language->delete();
 
         return redirect()
             ->route('admin.languages.index')
-            ->with('success', __('m_tours.language.ui.flash.deleted_title') . " «{$name}»");
+            ->with('success', __('m_tours.language.success.deleted'));
     }
-    */
+
+    public function restore($id)
+    {
+        $this->authorize('restore-tour-languages');
+
+        $language = TourLanguage::onlyTrashed()->findOrFail($id);
+        $language->restore();
+
+        return redirect()
+            ->route('admin.languages.trash')
+            ->with('success', __('m_tours.language.success.restored') ?? 'Language restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $this->authorize('force-delete-tour-languages');
+
+        $language = TourLanguage::onlyTrashed()->findOrFail($id);
+        $language->forceDelete();
+
+        return redirect()
+            ->route('admin.languages.trash')
+            ->with('success', __('m_tours.language.success.force_deleted') ?? 'Language permanently deleted.');
+    }
 }

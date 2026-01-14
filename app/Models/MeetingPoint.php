@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany as EloquentHasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * MeetingPoint Model
@@ -12,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany as EloquentHasMany;
  */
 class MeetingPoint extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'meeting_points';
     protected $primaryKey = 'id';
 
@@ -20,6 +24,7 @@ class MeetingPoint extends Model
         'map_url',
         'sort_order',
         'is_active',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -41,6 +46,15 @@ class MeetingPoint extends Model
         return $q->orderByRaw('sort_order IS NULL, sort_order ASC');
     }
 
+    /**
+     * Scope para items eliminados hace más de X días
+     */
+    public function scopeOlderThan($q, int $days = 30)
+    {
+        return $q->onlyTrashed()
+            ->where('deleted_at', '<=', now()->subDays($days));
+    }
+
     /* ----------------------------------------
      | Relaciones
      |-----------------------------------------*/
@@ -48,6 +62,14 @@ class MeetingPoint extends Model
     {
         // FK por convención: meeting_point_id
         return $this->hasMany(MeetingPointTranslation::class, 'meeting_point_id');
+    }
+
+    /**
+     * Usuario que eliminó este meeting point
+     */
+    public function deletedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     /* ----------------------------------------

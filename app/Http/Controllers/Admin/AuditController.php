@@ -60,8 +60,8 @@ class AuditController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('description', 'like', "%{$search}%")
-                  ->orWhere('user_name', 'like', "%{$search}%")
-                  ->orWhere('user_email', 'like', "%{$search}%");
+                    ->orWhere('user_name', 'like', "%{$search}%")
+                    ->orWhere('user_email', 'like', "%{$search}%");
             });
         }
 
@@ -84,8 +84,8 @@ class AuditController extends Controller
             ->orderBy('name')
             ->get();
 
-        $users = User::select('user_id', 'name')
-            ->orderBy('name')
+        $users = User::select('user_id', 'first_name', 'last_name')
+            ->orderByRaw("CONCAT(first_name, ' ', last_name)")
             ->get();
 
         $actions = TourAuditLog::select('action')

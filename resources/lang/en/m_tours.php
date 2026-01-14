@@ -275,6 +275,23 @@ return [
             'modal_cancel'                     => 'Cancel',
             'capacity_modal_info_with_value'   => 'The tour’s base capacity is :capacity. If left empty, this value will be used.',
             'capacity_modal_info_generic'      => 'If left empty, the tour’s general capacity will be used when defined.',
+            'trash_title'                      => 'Schedule Trash',
+            'trash_list_title'                 => 'Deleted Schedules',
+            'restore'                          => 'Restore',
+            'empty_trash'                      => 'Trash is empty',
+            'deleted_at'                       => 'Deleted At',
+            'deleted_by'                       => 'Deleted By',
+            'original_start'                   => 'Original Start',
+            'original_end'                     => 'Original End',
+            'back_to_list'                     => 'Back to list',
+            'success' => [
+                'restored'      => 'Schedule restored successfully.',
+                'force_deleted' => 'Schedule permanently deleted.',
+            ],
+            'error' => [
+                'restore'      => 'Could not restore schedule.',
+                'force_delete' => 'Could not permanently delete schedule.',
+            ],
         ],
 
         'success' => [
@@ -461,6 +478,14 @@ return [
             'flash_error_title'       => 'Error',
             'validation_failed_title' => 'Could not process',
             'go_to_crud'              => 'Go to Module',
+
+            'trash_title'      => 'Itineraries Trash',
+            'trash_list_title' => 'Deleted Itineraries',
+            'restore'          => 'Restore',
+            'empty_trash'      => 'Trash is empty',
+            'deleted_at'       => 'Date deleted',
+            'deleted_by'       => 'Deleted by',
+            'back_to_list'     => 'Back to list',
         ],
 
         'modal' => [
@@ -575,6 +600,18 @@ return [
                 'created_title'     => 'Language Registered',
                 'deleted_title'     => 'Language Deleted',
             ],
+            'trash_title'      => 'Languages Trash',
+            'trash_list_title' => 'Deleted Languages',
+            'restore'          => 'Restore',
+            'empty_trash'      => 'Trash is empty',
+            'deleted_at'       => 'Deleted Date',
+            'deleted_by'       => 'Deleted By',
+            'back_to_list'     => 'Back to list',
+            'delete'           => 'Delete',
+            'alerts' => [
+                'delete_title' => 'Delete this language?',
+                'delete_text'  => 'The language will be moved to trash.',
+            ],
         ],
 
         'success' => [
@@ -583,6 +620,8 @@ return [
             'activated'   => 'Language activated successfully.',
             'deactivated' => 'Language deactivated successfully.',
             'deleted'     => 'Language deleted successfully.',
+            'restored'      => 'Language restored successfully.',
+            'force_deleted' => 'Language permanently deleted.',
         ],
 
         'error' => [
@@ -591,6 +630,8 @@ return [
             'toggle' => 'Could not change the language status.',
             'delete' => 'Could not delete the language.',
             'save'   => 'Could not save.',
+            'restore'      => 'Could not restore the language.',
+            'force_delete' => 'Could not permanently delete the language.',
         ],
 
         'validation' => [

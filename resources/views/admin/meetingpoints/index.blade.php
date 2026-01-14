@@ -13,6 +13,26 @@
     {{ __('pickups.meeting_point.badges.count_badge', ['count' => $points->count()]) }}
   </span>
 </div>
+
+{{-- Tabs para Activos / Papelera --}}
+<ul class="nav nav-tabs mt-3" role="tablist">
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {{ request()->routeIs('admin.meetingpoints.index') ? 'active' : '' }}" href="{{ route('admin.meetingpoints.index') }}">
+      <i class="fas fa-check-circle me-1"></i> {{ __('pickups.meeting_point.list.title') }}
+      <span class="badge bg-success ms-1">{{ $points->count() }}</span>
+    </a>
+  </li>
+  @can('restore-meeting-points')
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {{ request()->routeIs('admin.meetingpoints.trash') ? 'active' : '' }}" href="{{ route('admin.meetingpoints.trash') }}">
+      <i class="fas fa-trash me-1"></i> {{ __('pickups.meeting_point.trash.title') }}
+      @if(isset($trashedCount) && $trashedCount > 0)
+      <span class="badge bg-danger ms-1">{{ $trashedCount }}</span>
+      @endif
+    </a>
+  </li>
+  @endcan
+</ul>
 @stop
 
 @section('content')
@@ -62,7 +82,7 @@
           <textarea name="instructions"
             class="form-control @error('instructions') is-invalid @enderror"
             rows="3"
-            placeholder="{{ __('pickups.meeting_point.placeholders.instructions') }}">{{ old('instructions') }}</textarea>
+            placeholder="{{ __('pickups.meeting_point.placeholders.instructions', ['company' => config('app.name')]) }}">{{ old('instructions') }}</textarea>
           @error('instructions') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
 
@@ -745,7 +765,7 @@
   @endif
 
   /** Errores de validación */
-  @if($errors - > any())
+  @if($errors -> any())
   Swal.fire({
     icon: 'error',
     title: @json(__('pickups.meeting_point.validation.title')),

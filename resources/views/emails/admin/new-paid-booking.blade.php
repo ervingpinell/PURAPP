@@ -5,7 +5,7 @@ A new booking has been paid and confirmed!
 
 **Booking Details:**
 - **Reference:** {{ $booking->booking_reference }}
-- **Customer:** {{ $booking->user->name }} ({{ $booking->user->email }})
+- **Customer:** {{ $booking->user->full_name }} ({{ $booking->user->email }})
 - **Tour:** {{ $booking->tour->title }}
 - **Date:** {{ $booking->details->first()->tour_date ?? 'N/A' }}
 - **Amount:** ${{ number_format($booking->paid_amount, 2) }}

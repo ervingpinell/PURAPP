@@ -15,6 +15,17 @@
 
 return [
 
+
+    // =========================================================
+    // ==== GLOBAL BUTTONS =====================================
+    // =========================================================
+    'buttons' => [
+        'back' => 'Volver',
+        'save' => 'Guardar',
+        'cancel' => 'Cancelar',
+        'close' => 'Cerrar',
+    ],
+
     // =========================================================
     // ==== POLICIES ===========================================
     // =========================================================
@@ -186,6 +197,12 @@ return [
         'title'                   => 'Tipos de Tours',
         'new'                     => 'Agregar Tipo de Tour',
 
+        'active_tab'              => 'Activos',
+        'trash_tab'               => 'Papelera',
+        'trash_title'             => 'Papelera de Tipos de Tour',
+        'trash_header'            => 'Papelera de Tipos de Tour',
+        'trash_empty'             => 'No hay tipos de tour eliminados',
+
         // Columnas / campos
         'id'                      => 'ID',
         'name'                    => 'Nombre',
@@ -235,6 +252,18 @@ return [
         // Validación / genéricos
         'validation_errors'       => 'Revisa los campos resaltados.',
         'error_title'             => 'Error',
+    ],
+
+    // =========================================================
+    // ==== AMENITIES ==========================================
+    // =========================================================
+    'amenities' => [
+        'title'           => 'Amenidades',
+        'active_tab'      => 'Activos',
+        'trash_tab'       => 'Papelera',
+        'trash_title'     => 'Papelera de Amenidades',
+        'trash_header'    => 'Papelera de Amenidades',
+        'trash_empty'     => 'No hay amenidades eliminadas',
     ],
 
     // =========================================================

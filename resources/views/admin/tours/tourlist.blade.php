@@ -649,6 +649,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
               @unless($isArchived)
               @can('delete-tours')
+              @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
               <form id="delete-form-{{ $tour->tour_id }}"
                 action="{{ route('admin.tours.destroy', $tour) }}"
                 method="POST"
@@ -663,6 +664,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                   <i class="fas fa-trash-alt"></i>
                 </button>
               </form>
+              @endif
               @endcan
               @endunless
 
@@ -962,6 +964,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
           @unless($isArchived)
           @can('delete-tours')
+          @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
           <form id="delete-form-mobile-{{ $tour->tour_id }}"
             action="{{ route('admin.tours.destroy', $tour) }}"
             method="POST"
@@ -975,6 +978,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               {{ __('m_tours.tour.ui.delete') }}
             </button>
           </form>
+          @endif
           @endcan
           @endunless
 

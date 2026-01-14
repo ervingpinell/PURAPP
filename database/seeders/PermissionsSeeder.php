@@ -74,6 +74,8 @@ class PermissionsSeeder extends Seeder
             'delete-tour-images'     => 'Eliminar imágenes de tours',
             'edit_cover-tour-images' => 'Editar covers de tipos de tour',
             'reorder-tours'          => 'Ordenar tours',
+            'restore-tours'          => 'Restaurar tours',
+            'force-delete-tours'     => 'Eliminar tours permanentemente',
 
             // Reservas (Bookings)
             'view-bookings' => 'Ver reservas',
@@ -159,6 +161,8 @@ class PermissionsSeeder extends Seeder
             'edit-customer-categories' => 'Editar categorías de clientes',
             'publish-customer-categories' => 'Publicar categorías de clientes',
             'delete-customer-categories' => 'Eliminar categorías de clientes',
+            'restore-customer-categories' => 'Restaurar categorías de clientes',
+            'force-delete-customer-categories' => 'Eliminar categorías de clientes permanentemente',
 
             // Pagos
             'view-payments' => 'Ver pagos',
@@ -170,6 +174,8 @@ class PermissionsSeeder extends Seeder
             'edit-tour-types' => 'Editar tipos de tour',
             'publish-tour-types' => 'Publicar tipos de tour',
             'delete-tour-types' => 'Eliminar tipos de tour',
+            'restore-tour-types' => 'Restaurar tipos de tour',
+            'force-delete-tour-types' => 'Eliminar tipos de tour permanentemente',
 
             // Amenidades
             'view-amenities' => 'Ver amenidades',
@@ -177,6 +183,8 @@ class PermissionsSeeder extends Seeder
             'edit-amenities' => 'Editar amenidades',
             'publish-amenities' => 'Publicar amenidades',
             'delete-amenities' => 'Eliminar amenidades',
+            'restore-amenities' => 'Restaurar amenidades',
+            'force-delete-amenities' => 'Eliminar amenidades permanentemente',
 
             // Hoteles (Pickups)
             'view-hotels' => 'Ver lista de hoteles',
@@ -191,6 +199,8 @@ class PermissionsSeeder extends Seeder
             'edit-meeting-points' => 'Editar puntos de encuentro',
             'publish-meeting-points' => 'Publicar puntos de encuentro',
             'delete-meeting-points' => 'Eliminar puntos de encuentro',
+            'restore-meeting-points' => 'Restaurar puntos de encuentro',
+            'force-delete-meeting-points' => 'Eliminar puntos de encuentro permanentemente',
 
             // Idiomas de Tours
             'view-tour-languages' => 'Ver idiomas de tours',
@@ -198,6 +208,8 @@ class PermissionsSeeder extends Seeder
             'edit-tour-languages' => 'Editar idiomas de tours',
             'publish-tour-languages' => 'Publicar idiomas de tours',
             'delete-tour-languages' => 'Eliminar idiomas de tours',
+            'restore-tour-languages' => 'Restaurar idiomas de tours',
+            'force-delete-tour-languages' => 'Eliminar idiomas de tours permanentemente',
 
             // Itinerarios
             'view-itineraries' => 'Ver itinerarios',
@@ -205,6 +217,8 @@ class PermissionsSeeder extends Seeder
             'edit-itineraries' => 'Editar itinerarios',
             'publish-itineraries' => 'Publicar itinerarios',
             'delete-itineraries' => 'Eliminar itinerarios',
+            'restore-itineraries' => 'Restaurar itinerarios',
+            'force-delete-itineraries' => 'Eliminar itinerarios permanentemente',
 
             // Items de Itinerarios
             'view-itinerary-items' => 'Ver items de itinerario',
@@ -220,6 +234,8 @@ class PermissionsSeeder extends Seeder
             'publish-tour-schedules' => 'Publicar horarios de tours',
             'publish_assignments-tour-schedules' => 'Publicar asignaciones de horarios',
             'delete-tour-schedules' => 'Eliminar horarios de tours',
+            'restore-schedules' => 'Restaurar horarios',
+            'force-delete-schedules' => 'Eliminar horarios permanentemente',
 
             // Disponibilidad de Tours (Extension)
             'create-tour-availability' => 'Crear disponibilidad de tours',
@@ -281,6 +297,8 @@ class PermissionsSeeder extends Seeder
             'delete-tours',
             'publish-tours',
             'reorder-tours',
+            'restore-tours',
+            'force-delete-tours',
             // Tour Images
             'view-tour-images',
             'create-tour-images',
@@ -342,18 +360,24 @@ class PermissionsSeeder extends Seeder
             'edit-customer-categories',
             'publish-customer-categories',
             'delete-customer-categories',
+            'restore-customer-categories',
+            'force-delete-customer-categories',
             // Tour types
             'view-tour-types',
             'create-tour-types',
             'edit-tour-types',
             'publish-tour-types',
             'delete-tour-types',
+            'restore-tour-types',
+            'force-delete-tour-types',
             // Amenities
             'view-amenities',
             'create-amenities',
             'edit-amenities',
             'publish-amenities',
             'delete-amenities',
+            'restore-amenities',
+            'force-delete-amenities',
             // Pricing & Availability
             'view-tour-pricing',
             'edit-tour-pricing',
@@ -394,18 +418,24 @@ class PermissionsSeeder extends Seeder
             'edit-meeting-points',
             'publish-meeting-points',
             'delete-meeting-points',
+            'restore-meeting-points',
+            'force-delete-meeting-points',
             // Tour Languages
             'view-tour-languages',
             'create-tour-languages',
             'edit-tour-languages',
             'publish-tour-languages',
             'delete-tour-languages',
+            'restore-tour-languages',
+            'force-delete-tour-languages',
             // Itinerarios
             'view-itineraries',
             'create-itineraries',
             'edit-itineraries',
             'publish-itineraries',
             'delete-itineraries',
+            'restore-itineraries',
+            'force-delete-itineraries',
             // Items Itinerarios
             'view-itinerary-items',
             'create-itinerary-items',
@@ -419,6 +449,8 @@ class PermissionsSeeder extends Seeder
             'publish-tour-schedules',
             'publish_assignments-tour-schedules',
             'delete-tour-schedules',
+            'restore-schedules',
+            'force-delete-schedules',
             // Availability
             'create-tour-availability',
             'publish-tour-availability', // Toggle block

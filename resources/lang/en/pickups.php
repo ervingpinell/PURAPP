@@ -39,7 +39,7 @@ return [
         'updated_success'    => 'Hotel updated successfully.',
         'deleted_success'    => 'Hotel deleted successfully.',
         'activated_success'  => 'Hotel activated successfully.',
-        'deactivated_success'=> 'Hotel deactivated successfully.',
+        'deactivated_success' => 'Hotel deactivated successfully.',
         'sorted_success'     => 'Hotels sorted alphabetically.',
         'unexpected_error'   => 'An unexpected error occurred. Please try again.',
 
@@ -99,23 +99,27 @@ return [
             'map'                     => 'Map',
             'status'                  => 'Status',
             'actions'                 => 'Actions',
+            'instructions'            => 'Instructions',
 
             // Editing / translations
             'name_base'               => 'Name (base)',
             'description_base'        => 'Description (base)',
+            'instructions_base'       => 'Instructions (base)',
             'locale'                  => 'Language',
             'name_translation'        => 'Name (translation)',
             'description_translation' => 'Description (translation)',
+            'instructions_translation' => 'Instructions (translation)',
         ],
 
         // Placeholders
         'placeholders' => [
-            'name'        => 'La Fortuna Central Park',
-            'pickup_time' => '7:10 AM',
-            'description' => 'La Fortuna downtown',
-            'map_url'     => 'https://maps.google.com/...',
-            'search'      => 'Search…',
-            'optional'    => 'Optional',
+            'name'         => 'La Fortuna Central Park',
+            'pickup_time'  => '7:10 AM',
+            'description'  => 'La Fortuna downtown',
+            'instructions' => 'Please meet us in front of the church at the central park. Our guide will be wearing a green shirt with the :company logo.',
+            'map_url'      => 'https://maps.google.com/...',
+            'search'       => 'Search…',
+            'optional'     => 'Optional',
         ],
 
         // Hints
@@ -134,11 +138,12 @@ return [
             'cancel'       => 'Cancel',
             'save_changes' => 'Save changes',
             'close'        => 'Close',
-            'ok'           => 'Got it',
+            'ok'           => 'OK',
             'confirm'      => 'Yes, continue',
             'delete'       => 'Delete',
             'activate'     => 'Activate',
             'deactivate'   => 'Deactivate',
+            'back'         => 'Back',
         ],
 
         // Actions (titles / tooltips)
@@ -170,7 +175,13 @@ return [
 
             'delete_title'             => 'Delete meeting point?',
             'delete_title_short'       => 'Delete?',
-            'delete_text'              => '":name" will be permanently deleted. This action cannot be undone.',
+            'delete_text'              => '« :name » will be permanently deleted. This action cannot be undone.',
+
+            'restore_title'            => 'Restore meeting point?',
+            'restore_text'             => 'The point will return to the active list.',
+
+            'force_delete_title'       => 'Delete permanently?',
+            'force_delete_text'        => 'This action cannot be undone.',
         ],
 
         // Validation / Toastr / SweetAlert
@@ -181,8 +192,25 @@ return [
         ],
 
         'toasts' => [
-            'success_title' => 'Success',
-            'error_title'   => 'Error',
+            'success_title'        => 'Success',
+            'error_title'          => 'Error',
+            'created_success'      => 'Meeting point created successfully.',
+            'updated_success'      => 'Meeting point updated successfully.',
+            'deleted_success'      => 'Meeting point moved to trash.',
+            'activated_success'    => 'Meeting point activated successfully.',
+            'deactivated_success'  => 'Meeting point deactivated successfully.',
+        ],
+
+        // Trash management
+        'trash' => [
+            'title'                => 'Trash',
+            'empty'                => 'No deleted meeting points.',
+            'deleted_by'           => 'Deleted by',
+            'deleted_at'           => 'Deleted on',
+            'auto_delete_in'       => 'Will be deleted in',
+            'days'                 => '{1} :count day|[2,*] :count days',
+            'restore_success'      => 'Meeting point restored successfully.',
+            'force_delete_success' => 'Meeting point permanently deleted.',
         ],
     ],
 

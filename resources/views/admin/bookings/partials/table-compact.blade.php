@@ -71,7 +71,7 @@ return [$c->slug => ($label ?: $c->slug)];
     ?: optional($detail?->hotel)->name
     ?: ($detail->hotel_name_snapshot ?? $booking->hotel_name_snapshot ?? null);
 
-    $mpName = optional($detail?->meetingPoint)->name
+    $mpName = optional($detail?->meetingPoint)->name_localized
     ?: ($detail->meeting_point_name_snapshot ?? $booking->meeting_point_name_snapshot ?? null);
 
     $pickupSnap = $detail->pickup_place_snapshot ?? $booking->pickup_place_snapshot ?? null;

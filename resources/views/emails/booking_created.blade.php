@@ -132,7 +132,7 @@ $notes = trim((string)($booking->notes ?? ''));
 
   {{-- Customer Details --}}
   <div style="margin-top:8px; padding-top:8px; border-top:1px dashed #e5e7eb; font-size:14px; color:#374151;">
-    <div style="margin-bottom:2px;"><strong>{{ $mailLocale === 'es' ? 'Cliente' : 'Customer' }}:</strong> {{ $booking->user->name ?? '—' }}</div>
+    <div style="margin-bottom:2px;"><strong>{{ $mailLocale === 'es' ? 'Cliente' : 'Customer' }}:</strong> {{ $booking->user->full_name ?? '—' }}</div>
     <div style="margin-bottom:2px;"><strong>Email:</strong> {{ $booking->user->email ?? '—' }}</div>
     <div><strong>{{ $mailLocale === 'es' ? 'Teléfono' : 'Phone' }}:</strong> {{ $booking->user->phone ?? '—' }}</div>
   </div>

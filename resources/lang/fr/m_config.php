@@ -15,6 +15,17 @@
 
 return [
 
+
+    // =========================================================
+    // ==== GLOBAL BUTTONS =====================================
+    // =========================================================
+    'buttons' => [
+        'back' => 'Retour',
+        'save' => 'Enregistrer',
+        'cancel' => 'Annuler',
+        'close' => 'Fermer',
+    ],
+
     // =========================================================
     // ==== POLICIES ===========================================
     // =========================================================
@@ -234,6 +245,18 @@ return [
         // Validation / génériques
         'validation_errors'       => 'Merci de vérifier les champs surlignés.',
         'error_title'             => 'Erreur',
+    ],
+
+    // =========================================================
+    // ==== AMENITIES ==========================================
+    // =========================================================
+    'amenities' => [
+        'title'           => 'Équipements',
+        'active_tab'      => 'Actifs',
+        'trash_tab'       => 'Corbeille',
+        'trash_title'     => 'Corbeille des Équipements',
+        'trash_header'    => 'Corbeille des Équipements',
+        'trash_empty'     => 'Aucun équipement supprimé',
     ],
 
     // =========================================================

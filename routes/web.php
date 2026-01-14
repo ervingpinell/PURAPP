@@ -494,7 +494,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
     // Alignet Webhook Callback (Server-to-Server or Browser Post/Redirect)
     Route::any('/webhooks/payment/alignet', [\App\Http\Controllers\Webhooks\PaymentWebhookController::class, 'alignet'])
-        ->middleware(['alignet.cors']) // 🔓 Allow CORS from Alignet
+        ->middleware(['alignet.cors', 'throttle:60,1']) // 🔓 Allow CORS from Alignet | Rate Limit: 60 req/min
         ->name('webhooks.payment.alignet');
 
     // Alignet test/debug route (development only)
@@ -741,6 +741,11 @@ Route::middleware([SetLocale::class])->group(function () {
                         ->parameters(['customer_categories' => 'category']);
                     Route::post('customer_categories/{category}/toggle', [CustomerCategoryController::class, 'toggle'])
                         ->name('customer_categories.toggle');
+
+                    // Soft Delete Routes (Customer Categories)
+                    Route::get('customer_categories/trash/list', [CustomerCategoryController::class, 'trash'])->name('customer_categories.trash');
+                    Route::patch('customer_categories/{category}/restore', [CustomerCategoryController::class, 'restore'])->name('customer_categories.restore');
+                    Route::delete('customer_categories/{category}/force', [CustomerCategoryController::class, 'forceDelete'])->name('customer_categories.forceDelete');
                 });
 
                 // ============================
@@ -785,8 +790,11 @@ Route::middleware([SetLocale::class])->group(function () {
                         ->name('update');
                     Route::patch('/{tour}/toggle', [TourController::class, 'toggle'])->name('toggle');
                     Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
-                    Route::post('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
-                    Route::delete('/{tour}/purge', [TourController::class, 'purge'])->name('purge');
+
+                    // Soft Delete Routes
+                    Route::get('/trash/list', [TourController::class, 'trash'])->name('trash');
+                    Route::patch('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
+                    Route::delete('/{tour}/force', [TourController::class, 'forceDelete'])->name('forceDelete');
 
                     // Extras moved from bottom group
                     Route::post('/{tour}/duplicate', [TourController::class, 'duplicate'])
@@ -945,6 +953,11 @@ Route::middleware([SetLocale::class])->group(function () {
 
                     // -------------------- SCHEDULES (Horarios) --------------------
                     Route::prefix('schedule')->name('schedule.')->group(function () {
+                        // Soft Delete Routes (Schedules) - Moved to top to avoid parameter collision
+                        Route::get('/trash/list', [TourScheduleController::class, 'trash'])->name('trash');
+                        Route::patch('/{id}/restore', [TourScheduleController::class, 'restore'])->name('restore');
+                        Route::delete('/{id}/force', [TourScheduleController::class, 'forceDelete'])->name('forceDelete');
+
                         Route::get('/', [TourScheduleController::class, 'index'])->name('index');
                         Route::post('/', [TourScheduleController::class, 'store'])
                             ->middleware('throttle:sensitive')
@@ -1062,6 +1075,11 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 Route::group(['middleware' => ['can:view-amenities']], function () {
                     Route::prefix('tours')->name('tours.')->group(function () {
+                        // Soft Delete Routes (Amenities)
+                        Route::get('amenities/trash/list', [AmenityController::class, 'trash'])->name('amenities.trash');
+                        Route::patch('amenities/{amenity}/restore', [AmenityController::class, 'restore'])->name('amenities.restore');
+                        Route::delete('amenities/{amenity}/force', [AmenityController::class, 'forceDelete'])->name('amenities.forceDelete');
+
                         Route::resource('amenities', AmenityController::class)->except(['show']);
                         Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
                     });
@@ -1154,6 +1172,12 @@ Route::middleware([SetLocale::class])->group(function () {
                         ->name('tourtypes.translations.update');
 
                     Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
+
+                    // Soft Delete Routes (Tour Types)
+                    Route::get('tourtypes/trash/list', [TourTypeController::class, 'trash'])->name('tourtypes.trash');
+                    Route::patch('tourtypes/{tourType}/restore', [TourTypeController::class, 'restore'])->name('tourtypes.restore');
+                    Route::delete('tourtypes/{tourType}/force', [TourTypeController::class, 'forceDelete'])->name('tourtypes.forceDelete');
+
                     Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
                 });
 
@@ -1161,6 +1185,12 @@ Route::middleware([SetLocale::class])->group(function () {
                 // LANGUAGES (Part of Settings mostly)
                 // ============================
                 Route::group(['middleware' => ['can:view-settings']], function () {
+
+                    // Soft Delete Routes (Languages)
+                    Route::get('languages/trash/list', [TourLanguageController::class, 'trash'])->name('languages.trash');
+                    Route::patch('languages/{language}/restore', [TourLanguageController::class, 'restore'])->name('languages.restore');
+                    Route::delete('languages/{language}/force', [TourLanguageController::class, 'forceDelete'])->name('languages.forceDelete');
+
                     Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
                     Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
                 });
@@ -1182,6 +1212,11 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::group(['middleware' => ['can:view-meeting-points']], function () {
                     Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
                     Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
+
+                    // Trash management routes
+                    Route::get('meetingpoints/trash/list', [MeetingPointSimpleController::class, 'trash'])->name('meetingpoints.trash');
+                    Route::patch('meetingpoints/{id}/restore', [MeetingPointSimpleController::class, 'restore'])->name('meetingpoints.restore');
+                    Route::delete('meetingpoints/{id}/force', [MeetingPointSimpleController::class, 'forceDelete'])->name('meetingpoints.forceDelete');
                 });
 
                 // ============================

@@ -271,6 +271,23 @@ return [
             'modal_cancel'                     => 'Abbrechen',
             'capacity_modal_info_with_value'   => 'Die Grundkapazität der Tour beträgt :capacity. Wenn Sie das Kapazitätsfeld leer lassen, wird dieser Wert verwendet.',
             'capacity_modal_info_generic'      => 'Wenn Sie das Kapazitätsfeld leer lassen, wird die allgemeine Kapazität der Tour verwendet, sofern definiert.',
+            'trash_title'                      => 'Papierkorb für Zeitpläne',
+            'trash_list_title'                 => 'Gelöschte Zeitpläne',
+            'restore'                          => 'Wiederherstellen',
+            'empty_trash'                      => 'Papierkorb leer',
+            'deleted_at'                       => 'Gelöscht am',
+            'deleted_by'                       => 'Gelöscht von',
+            'original_start'                   => 'Ursprünglicher Start',
+            'original_end'                     => 'Ursprüngliches Ende',
+            'back_to_list'                     => 'Zurück zur Liste',
+            'success' => [
+                'restored'      => 'Zeitplan erfolgreich wiederhergestellt.',
+                'force_deleted' => 'Zeitplan dauerhaft gelöscht.',
+            ],
+            'error' => [
+                'restore'      => 'Zeitplan konnte nicht wiederhergestellt werden.',
+                'force_delete' => 'Zeitplan konnte nicht dauerhaft gelöscht werden.',
+            ],
         ],
 
         'success' => [
@@ -455,6 +472,21 @@ return [
             'flash_error_title'       => 'Fehler',
             'validation_failed_title' => 'Konnte nicht verarbeitet werden',
             'go_to_crud' => 'Zum Modul wechseln',
+
+            'trash_title'      => 'Reiserouten-Papierkorb',
+            'trash_list_title' => 'Gelöschte Reiserouten',
+            'restore'          => 'Wiederherstellen',
+            'empty_trash'      => 'Papierkorb ist leer',
+            'deleted_at'       => 'Gelöscht am',
+            'deleted_by'       => 'Gelöscht von',
+            'back_to_list'     => 'Zurück zur Liste',
+
+            'items_assigned' => 'Elemente erfolgreich zugewiesen.',
+            'restored'       => 'Reiseroute erfolgreich wiederhergestellt.',
+            'force_deleted'  => 'Reiseroute dauerhaft gelöscht.',
+            'assign'  => 'Elemente konnten nicht zugewiesen werden.',
+            'restore_error'      => 'Reiseroute konnte nicht wiederhergestellt werden.',
+            'force_delete_error' => 'Reiseroute konnte nicht dauerhaft gelöscht werden.',
         ],
         'modal' => [
             'create_itinerary' => 'Reiseplan erstellen',
@@ -568,6 +600,18 @@ return [
                 'created_title'     => 'Sprache registriert',
                 'deleted_title'     => 'Sprache gelöscht',
             ],
+            'trash_title'      => 'Sprachpapierkorb',
+            'trash_list_title' => 'Gelöschte Sprachen',
+            'restore'          => 'Wiederherstellen',
+            'empty_trash'      => 'Papierkorb leer',
+            'deleted_at'       => 'Gelöscht am',
+            'deleted_by'       => 'Gelöscht von',
+            'back_to_list'     => 'Zurück zur Liste',
+            'delete'           => 'Löschen',
+            'alerts' => [
+                'delete_title' => 'Diese Sprache löschen?',
+                'delete_text'  => 'Die Sprache wird in den Papierkorb verschoben.',
+            ],
         ],
 
         'success' => [
@@ -576,6 +620,8 @@ return [
             'activated'   => 'Sprache erfolgreich aktiviert.',
             'deactivated' => 'Sprache erfolgreich deaktiviert.',
             'deleted'     => 'Sprache erfolgreich gelöscht.',
+            'restored'      => 'Sprache erfolgreich wiederhergestellt.',
+            'force_deleted' => 'Sprache dauerhaft gelöscht.',
         ],
 
         'error' => [
@@ -584,6 +630,8 @@ return [
             'toggle' => 'Der Status der Sprache konnte nicht geändert werden.',
             'delete' => 'Die Sprache konnte nicht gelöscht werden.',
             'save'   => 'Konnte nicht gespeichert werden.',
+            'restore'      => 'Sprache konnte nicht wiederhergestellt werden.',
+            'force_delete' => 'Sprache konnte nicht dauerhaft gelöscht werden.',
         ],
 
         'validation' => [

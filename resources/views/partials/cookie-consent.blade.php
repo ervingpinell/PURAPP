@@ -15,7 +15,6 @@ return $v !== $key ? $v : $fallback;
 };
 @endphp
 
-@if (! $hasConsent)
 <style>
   /* ===== BANNER ===== */
   .cookie-banner {
@@ -451,6 +450,7 @@ return $v !== $key ? $v : $fallback;
   }
 </style>
 
+@if (! $hasConsent)
 <!-- Banner -->
 <div class="cookie-banner" id="cookie-banner" role="region" aria-label="{{ $t('cookies.banner_aria', 'Aviso de cookies') }}">
   <div class="container">
@@ -474,8 +474,9 @@ return $v !== $key ? $v : $fallback;
     </div>
   </div>
 </div>
+@endif
 
-<!-- Modal de personalización -->
+<!-- Modal de personalización (always available) -->
 <div class="cookie-modal" id="cookie-modal" role="dialog" aria-modal="true" aria-labelledby="cookie-modal-title">
   <div class="cookie-modal-content">
     <div class="cookie-modal-header">
@@ -580,7 +581,9 @@ return $v !== $key ? $v : $fallback;
 
         return response;
       } catch (e) {
+        @if(config('app.debug'))
         console.error('Cookie consent request failed:', e);
+        @endif
         throw e;
       }
     }
@@ -632,7 +635,7 @@ return $v !== $key ? $v : $fallback;
         marketing: document.getElementById('cookie-marketing').checked,
       };
 
-      banner.style.display = 'none';
+      if (banner) banner.style.display = 'none';
       modal.classList.remove('active');
 
       try {
@@ -643,9 +646,33 @@ return $v !== $key ? $v : $fallback;
           setTimeout(() => window.location.reload(), 120);
         }
       } catch (e) {
-        banner.style.display = 'block';
+        if (banner) banner.style.display = 'block';
+        @if(config('app.debug'))
         console.error('Failed to save cookie preferences');
+        @endif
       }
+    });
+
+    // OPEN FROM FOOTER LINK
+    document.getElementById('cookie-settings-link')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      modal.classList.add('active');
+
+      // Load current preferences
+      fetch('{{ route("cookies.preferences") }}')
+        .then(res => res.json())
+        .then(prefs => {
+          if (prefs) {
+            document.getElementById('cookie-functional').checked = prefs.functional || false;
+            document.getElementById('cookie-analytics').checked = prefs.analytics || false;
+            document.getElementById('cookie-marketing').checked = prefs.marketing || false;
+          }
+        })
+        .catch(e => {
+          @if(config('app.debug'))
+          console.error('Failed to load preferences:', e);
+          @endif
+        });
     });
 
     // Keyboard accessibility
@@ -656,4 +683,3 @@ return $v !== $key ? $v : $fallback;
     });
   });
 </script>
-@endif

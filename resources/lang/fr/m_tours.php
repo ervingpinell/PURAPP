@@ -274,6 +274,23 @@ return [
             'modal_cancel'                     => 'Annuler',
             'capacity_modal_info_with_value'   => 'La capacité de base du tour est de :capacity. Si vous laissez le champ vide, cette valeur sera utilisée.',
             'capacity_modal_info_generic'      => 'Si vous laissez le champ de capacité vide, la capacité générale du tour sera utilisée lorsqu’elle est définie.',
+            'trash_title'                      => 'Corbeille des Horaires',
+            'trash_list_title'                 => 'Horaires supprimés',
+            'restore'                          => 'Restaurar',
+            'empty_trash'                      => 'Corbeille vide',
+            'deleted_at'                       => 'Date de suppression',
+            'deleted_by'                       => 'Supprimé par',
+            'original_start'                   => 'Début original',
+            'original_end'                     => 'Fin originale',
+            'back_to_list'                     => 'Retour à la liste',
+            'success' => [
+                'restored'      => 'Horaires restaurés avec succès.',
+                'force_deleted' => 'Horaires supprimés définitivement.',
+            ],
+            'error' => [
+                'restore'      => 'Impossible de restaurer les horaires.',
+                'force_delete' => 'Impossible de supprimer définitivement les horaires.',
+            ],
         ],
 
         'success' => [
@@ -458,7 +475,15 @@ return [
             'flash_success_title'     => 'Succès',
             'flash_error_title'       => 'Erreur',
             'validation_failed_title' => 'Impossible de traiter',
-            'go_to_crud'              => 'Aller au module',
+            'go_to_crud'              => 'Aller au Module',
+
+            'trash_title'      => 'Corbeille des Itinéraires',
+            'trash_list_title' => 'Itinéraires Supprimés',
+            'restore'          => 'Restaurer',
+            'empty_trash'      => 'La corbeille est vide',
+            'deleted_at'       => 'Date de suppression',
+            'deleted_by'       => 'Supprimé par',
+            'back_to_list'     => 'Retour à la liste',
         ],
 
         'modal' => [
@@ -573,6 +598,18 @@ return [
                 'created_title'     => 'Langue enregistrée',
                 'deleted_title'     => 'Langue supprimée',
             ],
+            'trash_title'      => 'Corbeille des Langues',
+            'trash_list_title' => 'Langues Supprimées',
+            'restore'          => 'Restaurer',
+            'empty_trash'      => 'Corbeille vide',
+            'deleted_at'       => 'Date de suppression',
+            'deleted_by'       => 'Supprimé par',
+            'back_to_list'     => 'Retour à la liste',
+            'delete'           => 'Supprimer',
+            'alerts' => [
+                'delete_title' => 'Supprimer cette langue?',
+                'delete_text'  => 'La langue sera déplacée vers la corbeille.',
+            ],
         ],
 
         'success' => [
@@ -581,6 +618,8 @@ return [
             'activated'   => 'Langue activée avec succès.',
             'deactivated' => 'Langue désactivée avec succès.',
             'deleted'     => 'Langue supprimée avec succès.',
+            'restored'      => 'Langue restaurée avec succès.',
+            'force_deleted' => 'Langue supprimée définitivement.',
         ],
 
         'error' => [
@@ -589,6 +628,8 @@ return [
             'toggle' => 'Impossible de changer le statut de la langue.',
             'delete' => 'Impossible de supprimer la langue.',
             'save'   => 'Impossible d’enregistrer.',
+            'restore'      => 'Impossible de restaurer la langue.',
+            'force_delete' => 'Impossible de supprimer définitivement la langue.',
         ],
 
         'validation' => [

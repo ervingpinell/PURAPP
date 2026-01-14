@@ -99,23 +99,27 @@ return [
             'map'                     => 'Mapa',
             'status'                  => 'Estado',
             'actions'                 => 'Acciones',
+            'instructions'            => 'Instrucciones',
 
             // Edición / traducciones
             'name_base'               => 'Nombre (base)',
             'description_base'        => 'Descripción (base)',
+            'instructions_base'       => 'Instrucciones (base)',
             'locale'                  => 'Locale',
             'name_translation'        => 'Nombre (traducción)',
             'description_translation' => 'Descripción (traducción)',
+            'instructions_translation' => 'Instrucciones (traducción)',
         ],
 
         // Placeholders
         'placeholders' => [
-            'name'        => 'Parque Central de La Fortuna',
-            'pickup_time' => '7:10 AM',
-            'description' => 'Centro de La Fortuna',
-            'map_url'     => 'https://maps.google.com/...',
-            'search'      => 'Buscar…',
-            'optional'    => 'Opcional',
+            'name'         => 'Parque Central de La Fortuna',
+            'pickup_time'  => '7:10 AM',
+            'description'  => 'Centro de La Fortuna',
+            'instructions' => 'Por favor encuéntranos frente a la iglesia en el parque central. Nuestro guía llevará una camisa verde con el logo de :company.',
+            'map_url'      => 'https://maps.google.com/...',
+            'search'       => 'Buscar…',
+            'optional'     => 'Opcional',
         ],
 
         // Hints
@@ -139,6 +143,7 @@ return [
             'delete'       => 'Eliminar',
             'activate'     => 'Activar',
             'deactivate'   => 'Desactivar',
+            'back'         => 'Volver',
         ],
 
         // Actions (titles / tooltips)
@@ -168,9 +173,15 @@ return [
             'activate_title_short'     => '¿Activar?',
             'activate_text'            => '":name" quedará activo.',
 
-            'delete_title'             => '¿Eliminar meeting point?',
-            'delete_title_short'       => '¿Eliminar?',
-            'delete_text'              => '":name" será eliminado permanentemente. Esta acción no se puede deshacer.',
+            'delete_title'             => 'Eliminar el punto de encuentro?',
+            'delete_title_short'       => 'Eliminar?',
+            'delete_text'              => '« :name » será eliminado definitivamente. Esta acción no puede deshacerse.',
+
+            'restore_title'            => '¿Restaurar punto de encuentro?',
+            'restore_text'             => 'El punto volverá a la lista activa.',
+
+            'force_delete_title'       => '¿Eliminar permanentemente?',
+            'force_delete_text'        => 'Esta acción no se puede deshacer.',
         ],
 
         // Validation / Toastr / SweetAlert
@@ -181,9 +192,26 @@ return [
         ],
 
         'toasts' => [
-            'success_title' => 'Éxito',
-            'error_title'   => 'Error',
+            'success_title'        => 'Éxito',
+            'error_title'          => 'Error',
             'no_create_permission' => 'No tienes permiso para crear.',
+            'created_success'      => 'Punto creado correctamente.',
+            'updated_success'      => 'Punto actualizado correctamente.',
+            'deleted_success'      => 'Punto movido a papelera.',
+            'activated_success'    => 'Punto activado correctamente.',
+            'deactivated_success'  => 'Punto desactivado correctamente.',
+        ],
+
+        // Trash management
+        'trash' => [
+            'title'                => 'Papelera',
+            'empty'                => 'No hay puntos eliminados.',
+            'deleted_by'           => 'Eliminado por',
+            'deleted_at'           => 'Eliminado el',
+            'auto_delete_in'       => 'Se eliminará en',
+            'days'                 => '{1} :count día|[2,*] :count días',
+            'restore_success'      => 'Punto restaurado correctamente.',
+            'force_delete_success' => 'Punto eliminado permanentemente.',
         ],
     ],
 

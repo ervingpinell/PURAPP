@@ -15,6 +15,17 @@
 
 return [
 
+
+    // =========================================================
+    // ==== GLOBAL BUTTONS =====================================
+    // =========================================================
+    'buttons' => [
+        'back' => 'Zurück',
+        'save' => 'Speichern',
+        'cancel' => 'Abbrechen',
+        'close' => 'Schließen',
+    ],
+
     // =========================================================
     // ==== POLICIES ===========================================
     // =========================================================
@@ -185,6 +196,12 @@ return [
         'title'                   => 'Tourtypen',
         'new'                     => 'Tourtyp hinzufügen',
 
+        'active_tab'              => 'Aktiv',
+        'trash_tab'               => 'Papierkorb',
+        'trash_title'             => 'Papierkorb für Tourtypen',
+        'trash_header'            => 'Papierkorb für Tourtypen',
+        'trash_empty'             => 'Keine gelöschten Tourtypen',
+
         // Spalten / Felder
         'id'                      => 'ID',
         'name'                    => 'Name',
@@ -234,6 +251,18 @@ return [
         // Validierung / generisch
         'validation_errors'       => 'Bitte prüfe die hervorgehobenen Felder.',
         'error_title'             => 'Fehler',
+    ],
+
+    // =========================================================
+    // ==== AMENITIES ==========================================
+    // =========================================================
+    'amenities' => [
+        'title'           => 'Ausstattung',
+        'active_tab'      => 'Aktiv',
+        'trash_tab'       => 'Papierkorb',
+        'trash_title'     => 'Papierkorb Ausstattung',
+        'trash_header'    => 'Papierkorb Ausstattung',
+        'trash_empty'     => 'Keine gelöschte Ausstattung',
     ],
 
     // =========================================================

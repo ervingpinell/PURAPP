@@ -280,6 +280,23 @@ return [
             'use_tour_capacity'                => 'Usar capacidad del tour',
             'only_this_schedule'               => 'Solo para este horario en este tour',
             'leave_empty_for_base'             => 'Dejar vacío para usar capacidad base del tour: :capacity',
+            'trash_title'                      => 'Papelera de Horarios',
+            'trash_list_title'                 => 'Horarios Eliminados',
+            'restore'                          => 'Restaurar',
+            'empty_trash'                      => 'Papelera vacía',
+            'deleted_at'                       => 'Fecha de eliminación',
+            'deleted_by'                       => 'Eliminado por',
+            'original_start'                   => 'Inicio Original',
+            'original_end'                     => 'Fin Original',
+            'back_to_list'                     => 'Volver a la lista',
+            'success' => [
+                'restored'      => 'Horario restaurado correctamente.',
+                'force_deleted' => 'Horario eliminado permanentemente.',
+            ],
+            'error' => [
+                'restore'      => 'No se pudo restaurar el horario.',
+                'force_delete' => 'No se pudo eliminar permanentemente el horario.',
+            ],
 
         ],
 
@@ -474,6 +491,14 @@ return [
             'flash_error_title'       => 'Error',
             'validation_failed_title' => 'No se pudo procesar',
             'go_to_crud' => 'Ir al Módulo',
+
+            'trash_title'      => 'Papelera de Itinerarios',
+            'trash_list_title' => 'Itinerarios Eliminados',
+            'restore'          => 'Restaurar',
+            'empty_trash'      => 'Papelera vacía',
+            'deleted_at'       => 'Fecha de eliminación',
+            'deleted_by'       => 'Eliminado por',
+            'back_to_list'     => 'Volver a la lista',
         ],
         'modal' => [
             'create_itinerary' => 'Crear itinerario',
@@ -486,6 +511,8 @@ return [
             'deactivated'    => 'Itinerario desactivado correctamente.',
             'deleted'        => 'Itinerario eliminado definitivamente.',
             'items_assigned' => 'Ítems asignados correctamente.',
+            'restored'       => 'Itinerario restaurado correctamente.',
+            'force_deleted'  => 'Itinerario eliminado permanentemente.',
         ],
 
         'error' => [
@@ -494,6 +521,8 @@ return [
             'toggle'  => 'No se pudo cambiar el estado del itinerario.',
             'delete'  => 'No se pudo eliminar el itinerario.',
             'assign'  => 'No se pudieron asignar los ítems.',
+            'restore'      => 'No se pudo restaurar el itinerario.',
+            'force_delete' => 'No se pudo eliminar permanentemente el itinerario.',
         ],
 
         'validation' => [
@@ -587,6 +616,18 @@ return [
                 'created_title'     => 'Idioma Registrado',
                 'deleted_title'     => 'Idioma Eliminado',
             ],
+            'trash_title'      => 'Papelera de Idiomas',
+            'trash_list_title' => 'Idiomas Eliminados',
+            'restore'          => 'Restaurar',
+            'empty_trash'      => 'Papelera vacía',
+            'deleted_at'       => 'Fecha de eliminación',
+            'deleted_by'       => 'Eliminado por',
+            'back_to_list'     => 'Volver a la lista',
+            'delete'           => 'Eliminar',
+            'alerts' => [
+                'delete_title' => '¿Eliminar este idioma?',
+                'delete_text'  => 'El idioma se moverá a la papelera.',
+            ],
         ],
 
         'success' => [
@@ -595,6 +636,8 @@ return [
             'activated'   => 'Idioma activado correctamente.',
             'deactivated' => 'Idioma desactivado correctamente.',
             'deleted'     => 'Idioma eliminado correctamente.',
+            'restored'      => 'Idioma restaurado correctamente.',
+            'force_deleted' => 'Idioma eliminado permanentemente.',
         ],
 
         'error' => [
@@ -603,6 +646,8 @@ return [
             'toggle' => 'No se pudo cambiar el estado del idioma.',
             'delete' => 'No se pudo eliminar el idioma.',
             'save'   => 'No se pudo guardar',
+            'restore'      => 'No se pudo restaurar el idioma.',
+            'force_delete' => 'No se pudo eliminar permanentemente el idioma.',
         ],
 
         'validation' => [

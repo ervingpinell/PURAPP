@@ -28,6 +28,25 @@
 </div>
 @endif
 
+{{-- Tabs: Activos / Papelera --}}
+<ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a class="nav-link active" href="{{ route('admin.customer_categories.index') }}" role="tab">
+            Activos
+        </a>
+    </li>
+    @can('restore-customer-categories')
+    <li class="nav-item" role="presentation">
+        <a class="nav-link" href="{{ route('admin.customer_categories.trash') }}" role="tab">
+            Papelera
+            @if(isset($trashedCount) && $trashedCount > 0)
+            <span class="badge badge-danger ml-1">{{ $trashedCount }}</span>
+            @endif
+        </a>
+    </li>
+    @endcan
+</ul>
+
 <div class="card">
     <div class="card-header">
         <h3 class="card-title">{{ __('customer_categories.ui.list_title') }}</h3>
@@ -92,6 +111,8 @@
                                 </button>
                             </form>
                             @endcan
+
+                            @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
                             <button type="button"
                                 class="btn btn-sm btn-danger"
                                 data-toggle="modal"
@@ -99,6 +120,7 @@
                                 title="{{ __('customer_categories.buttons.delete') }}">
                                 <i class="fas fa-trash"></i>
                             </button>
+                            @endif
                             @endcan
                         </div>
 

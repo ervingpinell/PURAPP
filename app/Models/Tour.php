@@ -105,6 +105,7 @@ class Tour extends Model
         'created_by',
         'updated_by',
         'recommendations',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -312,6 +313,14 @@ class Tour extends Model
             ->where('is_draft', false);
     }
 
+    /**
+     * Tours eliminados hace más de X días
+     */
+    public function scopeOlderThan($query, int $days)
+    {
+        return $query->where('deleted_at', '<=', now()->subDays($days));
+    }
+
     /* =====================
      * HELPERS WIZARD - EXISTENTES
      * ===================== */
@@ -412,7 +421,7 @@ class Tour extends Model
 
     public function tourType()
     {
-        return $this->belongsTo(TourType::class, 'tour_type_id', 'tour_type_id');
+        return $this->belongsTo(TourType::class, 'tour_type_id', 'tour_type_id')->withTrashed();
     }
 
     public function languages()
@@ -432,7 +441,7 @@ class Tour extends Model
             'amenity_tour',
             'tour_id',
             'amenity_id'
-        )->withTimestamps();
+        )->withTimestamps()->withTrashed();
     }
 
     public function excludedAmenities()
@@ -442,7 +451,7 @@ class Tour extends Model
             'excluded_amenity_tour',
             'tour_id',
             'amenity_id'
-        )->withTimestamps();
+        )->withTimestamps()->withTrashed();
     }
 
     public function schedules()
@@ -656,6 +665,14 @@ class Tour extends Model
     {
         return $this->hasOne(TourAuditLog::class, 'tour_id', 'tour_id')
             ->latest('created_at');
+    }
+
+    /**
+     * Usuario que eliminó el tour
+     */
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
     }
 
     /* =====================

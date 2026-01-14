@@ -447,17 +447,20 @@ $schemaOrg = [
         // Set flag to signal Alignet modal closure across tabs/windows
         try {
             localStorage.setItem('alignet_payment_complete', 'true');
+            @if(config('app.debug'))
             console.log('✅ Alignet modal close signal set');
+            @endif
         } catch (e) {
+            @if(config('app.debug'))
             console.warn('Could not set localStorage signal:', e);
+            @endif
         }
     </script>
     @endif
 
-    {{-- Cookie consent banner only if no decision yet --}}
-    @if (!$hasConsent)
+    {{-- Cookie consent banner (logic inside partial handles visibility) --}}
     @include('partials.cookie-consent')
-    @endif
+
 </body>
 
 </html>

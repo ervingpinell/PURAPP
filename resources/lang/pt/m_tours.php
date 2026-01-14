@@ -275,6 +275,23 @@ return [
             'modal_cancel'                     => 'Cancelar',
             'capacity_modal_info_with_value'   => 'A capacidade base do tour é :capacity. Se você deixar o campo de capacidade em branco, esse valor será utilizado.',
             'capacity_modal_info_generic'      => 'Se você deixar o campo de capacidade em branco, será usada a capacidade geral do tour quando estiver definida.',
+            'trash_title'                      => 'Lixeira de Horários',
+            'trash_list_title'                 => 'Horários Eliminados',
+            'restore'                          => 'Restaurar',
+            'empty_trash'                      => 'Lixeira vazia',
+            'deleted_at'                       => 'Data de Eliminação',
+            'deleted_by'                       => 'Eliminado Por',
+            'original_start'                   => 'Início Original',
+            'original_end'                     => 'Fim Original',
+            'back_to_list'                     => 'Voltar para a lista',
+            'success' => [
+                'restored'      => 'Horário restaurado com sucesso.',
+                'force_deleted' => 'Horário eliminado permanentemente.',
+            ],
+            'error' => [
+                'restore'      => 'Não foi possível restaurar o horário.',
+                'force_delete' => 'Não foi possível eliminar permanentemente o horário.',
+            ],
         ],
 
         'success' => [
@@ -461,6 +478,14 @@ return [
             'flash_error_title'       => 'Erro',
             'validation_failed_title' => 'Não foi possível processar',
             'go_to_crud'              => 'Ir para o Módulo',
+
+            'trash_title'      => 'Lixeira de Roteiros',
+            'trash_list_title' => 'Roteiros Excluídos',
+            'restore'          => 'Restaurar',
+            'empty_trash'      => 'A lixeira está vazia',
+            'deleted_at'       => 'Data de exclusão',
+            'deleted_by'       => 'Excluído por',
+            'back_to_list'     => 'Voltar para a lista',
         ],
 
         'modal' => [
@@ -575,6 +600,18 @@ return [
                 'created_title'     => 'Idioma Registrado',
                 'deleted_title'     => 'Idioma Excluído',
             ],
+            'trash_title'      => 'Lixeira de Idiomas',
+            'trash_list_title' => 'Idiomas Excluídos',
+            'restore'          => 'Restaurar',
+            'empty_trash'      => 'Lixeira vazia',
+            'deleted_at'       => 'Data de exclusão',
+            'deleted_by'       => 'Excluído por',
+            'back_to_list'     => 'Voltar para a lista',
+            'delete'           => 'Excluir',
+            'alerts' => [
+                'delete_title' => 'Excluir este idioma?',
+                'delete_text'  => 'O idioma será movido para a lixeira.',
+            ],
         ],
 
         'success' => [
@@ -583,6 +620,8 @@ return [
             'activated'   => 'Idioma ativado com sucesso.',
             'deactivated' => 'Idioma desativado com sucesso.',
             'deleted'     => 'Idioma excluído com sucesso.',
+            'restored'      => 'Idioma restaurado com sucesso.',
+            'force_deleted' => 'Idioma excluído permanentemente.',
         ],
 
         'error' => [
@@ -591,6 +630,8 @@ return [
             'toggle' => 'Não foi possível alterar o status do idioma.',
             'delete' => 'Não foi possível excluir o idioma.',
             'save'   => 'Não foi possível salvar',
+            'restore'      => 'Não foi possível restaurar o idioma.',
+            'force_delete' => 'Não foi possível excluir permanentemente o idioma.',
         ],
 
         'validation' => [

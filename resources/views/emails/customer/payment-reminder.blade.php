@@ -1,7 +1,7 @@
 @component('mail::message')
 # Payment Reminder - Your Tour is Coming Soon!
 
-Hi {{ $booking->user->name }},
+Hi {{ $booking->user->full_name }},
 
 Your tour is coming up and we wanted to remind you about your pending payment.
 

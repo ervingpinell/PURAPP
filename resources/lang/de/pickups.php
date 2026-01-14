@@ -39,7 +39,7 @@ return [
         'updated_success'    => 'Hotel erfolgreich aktualisiert.',
         'deleted_success'    => 'Hotel erfolgreich gelöscht.',
         'activated_success'  => 'Hotel erfolgreich aktiviert.',
-        'deactivated_success'=> 'Hotel erfolgreich deaktiviert.',
+        'deactivated_success' => 'Hotel erfolgreich deaktiviert.',
         'sorted_success'     => 'Hotels alphabetisch sortiert.',
         'unexpected_error'   => 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.',
 
@@ -99,23 +99,27 @@ return [
             'map'                     => 'Karte',
             'status'                  => 'Status',
             'actions'                 => 'Aktionen',
+            'instructions'            => 'Anweisungen',
 
             // Bearbeitung / Übersetzungen
             'name_base'               => 'Name (Basis)',
             'description_base'        => 'Beschreibung (Basis)',
+            'instructions_base'       => 'Anweisungen (Basis)',
             'locale'                  => 'Sprache',
             'name_translation'        => 'Name (Übersetzung)',
             'description_translation' => 'Beschreibung (Übersetzung)',
+            'instructions_translation' => 'Anweisungen (Übersetzung)',
         ],
 
         // Platzhalter
         'placeholders' => [
-            'name'        => 'Zentralpark von La Fortuna',
-            'pickup_time' => '7:10 Uhr',
-            'description' => 'Zentrum von La Fortuna',
-            'map_url'     => 'https://maps.google.com/...',
-            'search'      => 'Suchen…',
-            'optional'    => 'Optional',
+            'name'         => 'Zentralpark von La Fortuna',
+            'pickup_time'  => '7:10 Uhr',
+            'description'  => 'Stadtzentrum von La Fortuna',
+            'instructions' => 'Bitte treffen Sie uns vor der Kirche im Zentralpark. Unser Guide trägt ein grünes Hemd mit dem :company Logo.',
+            'map_url'      => 'https://maps.google.com/...',
+            'search'       => 'Suchen…',
+            'optional'     => 'Optional',
         ],
 
         // Hinweise
@@ -181,8 +185,25 @@ return [
         ],
 
         'toasts' => [
-            'success_title' => 'Erfolg',
-            'error_title'   => 'Fehler',
+            'success_title'        => 'Erfolg',
+            'error_title'          => 'Fehler',
+            'created_success'      => 'Punkt erfolgreich erstellt.',
+            'updated_success'      => 'Punkt erfolgreich aktualisiert.',
+            'deleted_success'      => 'Punkt in den Papierkorb verschoben.',
+            'activated_success'    => 'Punkt erfolgreich aktiviert.',
+            'deactivated_success'  => 'Punkt erfolgreich deaktiviert.',
+        ],
+
+        // Papierkorbverwaltung
+        'trash' => [
+            'title'                => 'Papierkorb',
+            'empty'                => 'Keine gelöschten Punkte.',
+            'deleted_by'           => 'Gelöscht von',
+            'deleted_at'           => 'Gelöscht am',
+            'auto_delete_in'       => 'Wird gelöscht in',
+            'days'                 => '{1} :count Tag|[2,*] :count Tagen',
+            'restore_success'      => 'Punkt erfolgreich wiederhergestellt.',
+            'force_delete_success' => 'Punkt dauerhaft gelöscht.',
         ],
     ],
 

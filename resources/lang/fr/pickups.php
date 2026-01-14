@@ -39,7 +39,7 @@ return [
         'updated_success'    => 'Hôtel mis à jour avec succès.',
         'deleted_success'    => 'Hôtel supprimé avec succès.',
         'activated_success'  => 'Hôtel activé avec succès.',
-        'deactivated_success'=> 'Hôtel désactivé avec succès.',
+        'deactivated_success' => 'Hôtel désactivé avec succès.',
         'sorted_success'     => 'Hôtels triés par ordre alphabétique.',
         'unexpected_error'   => 'Une erreur inattendue s’est produite. Merci de réessayer.',
 
@@ -99,23 +99,27 @@ return [
             'map'                     => 'Carte',
             'status'                  => 'Statut',
             'actions'                 => 'Actions',
+            'instructions'            => 'Instructions',
 
             // Édition / traductions
             'name_base'               => 'Nom (base)',
             'description_base'        => 'Description (base)',
+            'instructions_base'       => 'Instructions (base)',
             'locale'                  => 'Langue',
             'name_translation'        => 'Nom (traduction)',
             'description_translation' => 'Description (traduction)',
+            'instructions_translation' => 'Instructions (traduction)',
         ],
 
         // Placeholders
         'placeholders' => [
-            'name'        => 'Parc central de La Fortuna',
-            'pickup_time' => '7h10',
-            'description' => 'Centre de La Fortuna',
-            'map_url'     => 'https://maps.google.com/...',
-            'search'      => 'Rechercher…',
-            'optional'    => 'Optionnel',
+            'name'         => 'Parc Central de La Fortuna',
+            'pickup_time'  => '7:10 AM',
+            'description'  => 'Centre-ville de La Fortuna',
+            'instructions' => 'Veuillez nous retrouver devant l\'église du parc central. Notre guide portera un t-shirt vert avec le logo :company.',
+            'map_url'      => 'https://maps.google.com/...',
+            'search'       => 'Rechercher…',
+            'optional'     => 'Optionnel',
         ],
 
         // Aides
@@ -181,8 +185,25 @@ return [
         ],
 
         'toasts' => [
-            'success_title' => 'Succès',
-            'error_title'   => 'Erreur',
+            'success_title'        => 'Succès',
+            'error_title'          => 'Erreur',
+            'created_success'      => 'Point créé avec succès.',
+            'updated_success'      => 'Point mis à jour avec succès.',
+            'deleted_success'      => 'Point déplacé vers la corbeille.',
+            'activated_success'    => 'Point activé avec succès.',
+            'deactivated_success'  => 'Point désactivé avec succès.',
+        ],
+
+        // Gestion de la corbeille
+        'trash' => [
+            'title'                => 'Corbeille',
+            'empty'                => 'Aucun point supprimé.',
+            'deleted_by'           => 'Supprimé par',
+            'deleted_at'           => 'Supprimé le',
+            'auto_delete_in'       => 'Sera supprimé dans',
+            'days'                 => '{1} :count jour|[2,*] :count jours',
+            'restore_success'      => 'Point restauré avec succès.',
+            'force_delete_success' => 'Point supprimé définitivement.',
         ],
     ],
 

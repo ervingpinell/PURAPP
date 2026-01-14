@@ -35,6 +35,7 @@ return [
         'tour_images' => 'Tour Images',
         'tour_pricing' => 'Tour Pricing',
         'payments' => 'Payments',
+        'email_templates' => 'Email Templates',
         'admin' => 'Administration',
     ],
     'actions' => [

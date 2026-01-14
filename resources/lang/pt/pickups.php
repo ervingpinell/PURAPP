@@ -39,7 +39,7 @@ return [
         'updated_success'    => 'Hotel atualizado com sucesso.',
         'deleted_success'    => 'Hotel excluído com sucesso.',
         'activated_success'  => 'Hotel ativado com sucesso.',
-        'deactivated_success'=> 'Hotel desativado com sucesso.',
+        'deactivated_success' => 'Hotel desativado com sucesso.',
         'sorted_success'     => 'Hotéis ordenados alfabeticamente.',
         'unexpected_error'   => 'Ocorreu um erro inesperado. Tente novamente.',
 
@@ -99,13 +99,16 @@ return [
             'map'                     => 'Mapa',
             'status'                  => 'Status',
             'actions'                 => 'Ações',
+            'instructions' => 'Por favor, encontre-nos em frente à igreja no parque central. Nosso guia estará vestindo uma camisa verde com o logotipo da :company.',
 
             // Edição / traduções
             'name_base'               => 'Nome (base)',
             'description_base'        => 'Descrição (base)',
+            'instructions_base'       => 'Instruções (base)',
             'locale'                  => 'Idioma',
             'name_translation'        => 'Nome (tradução)',
             'description_translation' => 'Descrição (tradução)',
+            'instructions_translation' => 'Instruções (tradução)',
         ],
 
         // Placeholders
@@ -181,8 +184,25 @@ return [
         ],
 
         'toasts' => [
-            'success_title' => 'Sucesso',
-            'error_title'   => 'Erro',
+            'success_title'        => 'Sucesso',
+            'error_title'          => 'Erro',
+            'created_success'      => 'Ponto criado com sucesso.',
+            'updated_success'      => 'Ponto atualizado com sucesso.',
+            'deleted_success'      => 'Ponto movido para a lixeira.',
+            'activated_success'    => 'Ponto ativado com sucesso.',
+            'deactivated_success'  => 'Ponto desativado com sucesso.',
+        ],
+
+        // Gerenciamento de lixeira
+        'trash' => [
+            'title'                => 'Lixeira',
+            'empty'                => 'Nenhum ponto excluído.',
+            'deleted_by'           => 'Excluído por',
+            'deleted_at'           => 'Excluído em',
+            'auto_delete_in'       => 'Será excluído em',
+            'days'                 => '{1} :count dia|[2,*] :count dias',
+            'restore_success'      => 'Ponto restaurado com sucesso.',
+            'force_delete_success' => 'Ponto excluído permanentemente.',
         ],
     ],
 

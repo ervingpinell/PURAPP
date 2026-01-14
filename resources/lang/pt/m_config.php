@@ -15,6 +15,17 @@
 
 return [
 
+
+    // =========================================================
+    // ==== GLOBAL BUTTONS =====================================
+    // =========================================================
+    'buttons' => [
+        'back' => 'Voltar',
+        'save' => 'Salvar',
+        'cancel' => 'Cancelar',
+        'close' => 'Fechar',
+    ],
+
     // =========================================================
     // ==== POLICIES ===========================================
     // =========================================================
@@ -234,6 +245,18 @@ return [
         // Validação / genéricos
         'validation_errors'       => 'Verifique os campos destacados.',
         'error_title'             => 'Erro',
+    ],
+
+    // =========================================================
+    // ==== AMENITIES ==========================================
+    // =========================================================
+    'amenities' => [
+        'title'           => 'Comodidades',
+        'active_tab'      => 'Ativos',
+        'trash_tab'       => 'Lixeira',
+        'trash_title'     => 'Lixeira de Comodidades',
+        'trash_header'    => 'Lixeira de Comodidades',
+        'trash_empty'     => 'Nenhuma comodidade excluída',
     ],
 
     // =========================================================

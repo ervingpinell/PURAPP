@@ -2,7 +2,7 @@
 # WARNING Booking Expiring Soon
 
 **Booking Reference:** {{ $booking->booking_reference }}
-**Customer:** {{ $booking->user->name }}
+**Customer:** {{ $booking->user->full_name }}
 **Email:** {{ $booking->user->email }}
 **Tour:** {{ $booking->tour->title }}
 **Date:** {{ $booking->details->first()->tour_date ?? 'N/A' }}
