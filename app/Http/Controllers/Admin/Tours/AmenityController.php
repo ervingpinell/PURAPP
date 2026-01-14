@@ -26,6 +26,8 @@ class AmenityController extends Controller
         $this->middleware(['can:edit-amenities'])->only(['update']);
         $this->middleware(['can:publish-amenities'])->only(['toggle']);
         $this->middleware(['can:delete-amenities'])->only(['destroy']);
+        $this->middleware(['can:restore-amenities'])->only(['trash', 'restore']);
+        $this->middleware(['can:force-delete-amenities'])->only(['forceDelete']);
     }
 
     protected string $controller = 'AmenityController';
@@ -33,7 +35,8 @@ class AmenityController extends Controller
     public function index()
     {
         $amenities = Amenity::with('translations')->get()->sortBy('name');
-        return view('admin.tours.amenities.index', compact('amenities'));
+        $trashedCount = Amenity::onlyTrashed()->count();
+        return view('admin.tours.amenities.index', compact('amenities', 'trashedCount'));
     }
 
     public function store(StoreAmenityRequest $request, TranslatorInterface $translator)
@@ -147,14 +150,15 @@ class AmenityController extends Controller
         }
     }
 
-    /** Eliminación definitiva */
+    /** Soft delete */
     public function destroy(Amenity $amenity)
     {
         try {
-            $id = $amenity->amenity_id;
+            $amenity->deleted_by = auth()->id();
+            $amenity->save();
             $amenity->delete();
 
-            LoggerHelper::mutated($this->controller, 'destroy', 'amenity', $id, [
+            LoggerHelper::mutated($this->controller, 'destroy', 'amenity', $amenity->amenity_id, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
@@ -168,5 +172,50 @@ class AmenityController extends Controller
 
             return back()->with('error', __('m_tours.amenity.error.delete'));
         }
+    }
+
+    public function trash()
+    {
+        $amenities = Amenity::onlyTrashed()
+            ->with(['translations', 'deletedBy'])
+            ->orderByDesc('deleted_at')
+            ->get();
+
+        return view('admin.tours.amenities.trash', compact('amenities'));
+    }
+
+    public function restore($id)
+    {
+        $amenity = Amenity::onlyTrashed()->findOrFail($id);
+        $amenity->deleted_by = null;
+        $amenity->save();
+        $amenity->restore();
+
+        LoggerHelper::mutated($this->controller, 'restore', 'amenity', $id);
+
+        return redirect()
+            ->route('admin.tours.amenities.trash')
+            ->with('success', 'Amenidad restaurada correctamente.');
+    }
+
+    public function forceDelete($id)
+    {
+        $amenity = Amenity::onlyTrashed()->findOrFail($id);
+
+        // Verificar si tiene tours relacionados antes de borrar permanentemente
+        // Nota: Amenity usa belongsToMany, así que verificamos la tabla pivote
+        if ($amenity->tours()->exists()) {
+            return redirect()
+                ->route('admin.tours.amenities.trash')
+                ->with('error', 'No se puede eliminar permanentemente porque tiene tours asociados.');
+        }
+
+        $amenity->forceDelete();
+
+        LoggerHelper::mutated($this->controller, 'forceDelete', 'amenity', $id);
+
+        return redirect()
+            ->route('admin.tours.amenities.trash')
+            ->with('success', 'Amenidad eliminada permanentemente.');
     }
 }

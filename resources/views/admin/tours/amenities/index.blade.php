@@ -9,6 +9,25 @@
 @section('content')
 <div class="p-3 table-responsive">
 
+    {{-- Tabs: Activos / Papelera --}}
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" href="{{ route('admin.tours.amenities.index') }}" role="tab">
+                {{ __('m_config.amenities.active_tab') ?? 'Activos' }}
+            </a>
+        </li>
+        @can('restore-amenities')
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" href="{{ route('admin.tours.amenities.trash') }}" role="tab">
+                {{ __('m_config.amenities.trash_tab') ?? 'Papelera' }}
+                @if(isset($trashedCount) && $trashedCount > 0)
+                <span class="badge badge-danger ml-1">{{ $trashedCount }}</span>
+                @endif
+            </a>
+        </li>
+        @endcan
+    </ul>
+
     @can('create-amenities')
     <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
         <i class="fas fa-plus"></i> {{ __('m_tours.amenity.ui.add') }}
@@ -71,6 +90,7 @@
                     @endcan
 
                     {{-- Eliminar definitivo --}}
+                    @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
                     @can('delete-amenities')
                     <form action="{{ route('admin.tours.amenities.destroy', $amenity->amenity_id) }}"
                         method="POST"
@@ -85,6 +105,7 @@
                         </button>
                     </form>
                     @endcan
+                    @endif
                 </td>
             </tr>
 
@@ -257,11 +278,11 @@
         confirmButtonColor: '#d33'
     });
     @endif
-    @if($errors-> has('name'))
+    @if($errors -> has('name'))
     Swal.fire({
         icon: 'error',
         title: @json(__('m_tours.amenity.validation.name.title')),
-        text: @json($errors-> first('name')),
+        text: @json($errors -> first('name')),
         confirmButtonColor: '#d33'
     });
     document.addEventListener('DOMContentLoaded', function() {

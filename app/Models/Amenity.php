@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\User;
 
 /**
  * Amenity Model
@@ -12,7 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  */
 class Amenity extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'amenities';
     protected $primaryKey = 'amenity_id';
@@ -20,15 +22,26 @@ class Amenity extends Model
     protected $keyType = 'int';
     public $timestamps = true;
 
-    protected $fillable = ['is_active'];
+    protected $fillable = ['is_active', 'deleted_by'];
 
     protected $casts = [
         'is_active' => 'bool',
+        'deleted_at' => 'datetime',
     ];
 
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+    }
+
+    public function scopeOlderThan($query, $days)
+    {
+        return $query->where('deleted_at', '<=', now()->subDays($days));
     }
 
     public function tours()

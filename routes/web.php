@@ -1070,6 +1070,11 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 Route::group(['middleware' => ['can:view-amenities']], function () {
                     Route::prefix('tours')->name('tours.')->group(function () {
+                        // Soft Delete Routes (Amenities)
+                        Route::get('amenities/trash/list', [AmenityController::class, 'trash'])->name('amenities.trash');
+                        Route::patch('amenities/{amenity}/restore', [AmenityController::class, 'restore'])->name('amenities.restore');
+                        Route::delete('amenities/{amenity}/force', [AmenityController::class, 'forceDelete'])->name('amenities.forceDelete');
+
                         Route::resource('amenities', AmenityController::class)->except(['show']);
                         Route::patch('amenities/{amenity}/toggle', [AmenityController::class, 'toggle'])->name('amenities.toggle');
                     });
