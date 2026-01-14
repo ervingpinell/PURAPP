@@ -117,6 +117,7 @@ return [
         // Alignet Bank Specific Messages
         'operation_denied'   => 'Operación Denegada.',
         'operation_rejected' => 'Operación Rechazada.',
+        'operation_cancelled' => 'Operación Cancelada.',
         'operation_authorized' => 'Operación Autorizada.',
 
         // Debug info for bank support

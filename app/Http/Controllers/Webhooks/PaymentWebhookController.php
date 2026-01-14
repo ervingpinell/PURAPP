@@ -144,14 +144,18 @@ class PaymentWebhookController extends Controller
                 ));
 
                 return $this->renderModalResponse($request, 'success', __('m_checkout.payment.success'), route('booking.confirmation', $payment->booking_id));
-            } elseif ($service->getClassification($authorizationResult) === 'cancelled' || in_array($errorCode, ['2300', '2301', '2302'])) {
-                // CANCELLED by user
+            } elseif (in_array($errorCode, ['2300', '2301', '2302']) || $authorizationResult === '99') {
+                // CANCELLED by user - only when errorCode explicitly indicates user cancellation
+                // 2300 = User Cancelled in PASS 1
+                // 2301 = User Cancelled in PASS 2
+                // 2302 = User Cancelled in PASS 3
+                // 99 = User cancelled
                 LoggerHelper::info('PaymentWebhookController', 'alignet', 'Payment Cancelled', array_merge(
                     ['payment_id' => $payment->payment_id],
                     $codeInfo
                 ));
 
-                $this->paymentService->handleFailedPayment($payment, 'user_cancelled', $service->getDescription($authorizationResult, 'en'));
+                $this->paymentService->handleFailedPayment($payment, 'user_cancelled', $service->getDescription($errorCode ?: $authorizationResult, 'en'));
 
                 $cancelMsg = __('m_checkout.payment.cancelled_by_user');
                 return $this->renderModalResponse($request, 'cancel', $cancelMsg, route('public.carts.index', ['cancelled' => '1']));
