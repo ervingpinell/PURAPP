@@ -280,6 +280,23 @@ return [
             'use_tour_capacity'                => 'Usar capacidad del tour',
             'only_this_schedule'               => 'Solo para este horario en este tour',
             'leave_empty_for_base'             => 'Dejar vacío para usar capacidad base del tour: :capacity',
+            'trash_title'                      => 'Papelera de Horarios',
+            'trash_list_title'                 => 'Horarios Eliminados',
+            'restore'                          => 'Restaurar',
+            'empty_trash'                      => 'Papelera vacía',
+            'deleted_at'                       => 'Fecha de eliminación',
+            'deleted_by'                       => 'Eliminado por',
+            'original_start'                   => 'Inicio Original',
+            'original_end'                     => 'Fin Original',
+            'back_to_list'                     => 'Volver a la lista',
+            'success' => [
+                'restored'      => 'Horario restaurado correctamente.',
+                'force_deleted' => 'Horario eliminado permanentemente.',
+            ],
+            'error' => [
+                'restore'      => 'No se pudo restaurar el horario.',
+                'force_delete' => 'No se pudo eliminar permanentemente el horario.',
+            ],
 
         ],
 

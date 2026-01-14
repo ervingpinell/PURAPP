@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Schedule Model
@@ -18,11 +19,16 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
  * @property bool $is_active Schedule active status
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
+ * @property \Carbon\Carbon|null $deleted_at
+ * @property int|null $deleted_by
  *
  * @property-read \Illuminate\Database\Eloquent\Collection|Tour[] $tours
+ * @property-read User|null $deletedBy
  */
 class Schedule extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'schedules';
     protected $primaryKey = 'schedule_id';
     public $incrementing = true;
@@ -38,6 +44,7 @@ class Schedule extends Model
         'end_time',
         'label',
         'is_active',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -80,8 +87,21 @@ class Schedule extends Model
             ->withTimestamps();
     }
 
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for finding schedules deleted older than days
+     */
+    public function scopeOlderThan($query, $days)
+    {
+        return $query->onlyTrashed()->where('deleted_at', '<', now()->subDays($days));
     }
 }

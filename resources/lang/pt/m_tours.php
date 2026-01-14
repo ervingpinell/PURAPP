@@ -275,6 +275,23 @@ return [
             'modal_cancel'                     => 'Cancelar',
             'capacity_modal_info_with_value'   => 'A capacidade base do tour é :capacity. Se você deixar o campo de capacidade em branco, esse valor será utilizado.',
             'capacity_modal_info_generic'      => 'Se você deixar o campo de capacidade em branco, será usada a capacidade geral do tour quando estiver definida.',
+            'trash_title'                      => 'Lixeira de Horários',
+            'trash_list_title'                 => 'Horários Eliminados',
+            'restore'                          => 'Restaurar',
+            'empty_trash'                      => 'Lixeira vazia',
+            'deleted_at'                       => 'Data de Eliminação',
+            'deleted_by'                       => 'Eliminado Por',
+            'original_start'                   => 'Início Original',
+            'original_end'                     => 'Fim Original',
+            'back_to_list'                     => 'Voltar para a lista',
+            'success' => [
+                'restored'      => 'Horário restaurado com sucesso.',
+                'force_deleted' => 'Horário eliminado permanentemente.',
+            ],
+            'error' => [
+                'restore'      => 'Não foi possível restaurar o horário.',
+                'force_delete' => 'Não foi possível eliminar permanentemente o horário.',
+            ],
         ],
 
         'success' => [

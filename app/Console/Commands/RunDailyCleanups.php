@@ -117,6 +117,16 @@ class RunDailyCleanups extends Command
             $this->error('x Error cleaning amenities: ' . $e->getMessage());
         }
 
+        // 8. Schedules
+        try {
+            $this->newLine();
+            $this->info('Cleaning up schedules...');
+            $this->call('cleanup:schedules', ['--days' => 30]);
+            $this->info('✓ Schedules cleaned.');
+        } catch (\Exception $e) {
+            $this->error('x Error cleaning schedules: ' . $e->getMessage());
+        }
+
         $this->newLine();
         $this->info('✅ All daily cleanups completed successfully.');
 

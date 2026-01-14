@@ -275,6 +275,23 @@ return [
             'modal_cancel'                     => 'Cancel',
             'capacity_modal_info_with_value'   => 'The tour’s base capacity is :capacity. If left empty, this value will be used.',
             'capacity_modal_info_generic'      => 'If left empty, the tour’s general capacity will be used when defined.',
+            'trash_title'                      => 'Schedule Trash',
+            'trash_list_title'                 => 'Deleted Schedules',
+            'restore'                          => 'Restore',
+            'empty_trash'                      => 'Trash is empty',
+            'deleted_at'                       => 'Deleted At',
+            'deleted_by'                       => 'Deleted By',
+            'original_start'                   => 'Original Start',
+            'original_end'                     => 'Original End',
+            'back_to_list'                     => 'Back to list',
+            'success' => [
+                'restored'      => 'Schedule restored successfully.',
+                'force_deleted' => 'Schedule permanently deleted.',
+            ],
+            'error' => [
+                'restore'      => 'Could not restore schedule.',
+                'force_delete' => 'Could not permanently delete schedule.',
+            ],
         ],
 
         'success' => [

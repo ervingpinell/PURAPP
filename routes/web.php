@@ -953,6 +953,11 @@ Route::middleware([SetLocale::class])->group(function () {
 
                     // -------------------- SCHEDULES (Horarios) --------------------
                     Route::prefix('schedule')->name('schedule.')->group(function () {
+                        // Soft Delete Routes (Schedules) - Moved to top to avoid parameter collision
+                        Route::get('/trash/list', [TourScheduleController::class, 'trash'])->name('trash');
+                        Route::patch('/{id}/restore', [TourScheduleController::class, 'restore'])->name('restore');
+                        Route::delete('/{id}/force', [TourScheduleController::class, 'forceDelete'])->name('forceDelete');
+
                         Route::get('/', [TourScheduleController::class, 'index'])->name('index');
                         Route::post('/', [TourScheduleController::class, 'store'])
                             ->middleware('throttle:sensitive')

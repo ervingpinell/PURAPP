@@ -274,6 +274,23 @@ return [
             'modal_cancel'                     => 'Annuler',
             'capacity_modal_info_with_value'   => 'La capacité de base du tour est de :capacity. Si vous laissez le champ vide, cette valeur sera utilisée.',
             'capacity_modal_info_generic'      => 'Si vous laissez le champ de capacité vide, la capacité générale du tour sera utilisée lorsqu’elle est définie.',
+            'trash_title'                      => 'Corbeille des Horaires',
+            'trash_list_title'                 => 'Horaires supprimés',
+            'restore'                          => 'Restaurar',
+            'empty_trash'                      => 'Corbeille vide',
+            'deleted_at'                       => 'Date de suppression',
+            'deleted_by'                       => 'Supprimé par',
+            'original_start'                   => 'Début original',
+            'original_end'                     => 'Fin originale',
+            'back_to_list'                     => 'Retour à la liste',
+            'success' => [
+                'restored'      => 'Horaires restaurés avec succès.',
+                'force_deleted' => 'Horaires supprimés définitivement.',
+            ],
+            'error' => [
+                'restore'      => 'Impossible de restaurer les horaires.',
+                'force_delete' => 'Impossible de supprimer définitivement les horaires.',
+            ],
         ],
 
         'success' => [

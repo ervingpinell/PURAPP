@@ -271,6 +271,23 @@ return [
             'modal_cancel'                     => 'Abbrechen',
             'capacity_modal_info_with_value'   => 'Die Grundkapazität der Tour beträgt :capacity. Wenn Sie das Kapazitätsfeld leer lassen, wird dieser Wert verwendet.',
             'capacity_modal_info_generic'      => 'Wenn Sie das Kapazitätsfeld leer lassen, wird die allgemeine Kapazität der Tour verwendet, sofern definiert.',
+            'trash_title'                      => 'Papierkorb für Zeitpläne',
+            'trash_list_title'                 => 'Gelöschte Zeitpläne',
+            'restore'                          => 'Wiederherstellen',
+            'empty_trash'                      => 'Papierkorb leer',
+            'deleted_at'                       => 'Gelöscht am',
+            'deleted_by'                       => 'Gelöscht von',
+            'original_start'                   => 'Ursprünglicher Start',
+            'original_end'                     => 'Ursprüngliches Ende',
+            'back_to_list'                     => 'Zurück zur Liste',
+            'success' => [
+                'restored'      => 'Zeitplan erfolgreich wiederhergestellt.',
+                'force_deleted' => 'Zeitplan dauerhaft gelöscht.',
+            ],
+            'error' => [
+                'restore'      => 'Zeitplan konnte nicht wiederhergestellt werden.',
+                'force_delete' => 'Zeitplan konnte nicht dauerhaft gelöscht werden.',
+            ],
         ],
 
         'success' => [
