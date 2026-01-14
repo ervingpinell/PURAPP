@@ -100,6 +100,37 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
     }
   }
 
+  /* Base styles for cart timer widget */
+  .cart-timer-widget {
+    position: fixed;
+    bottom: 90px;
+    left: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 999;
+    transition: all 0.3s ease;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  .cart-timer-widget:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .cart-timer-widget.warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    animation: pulse-warning 2s ease-in-out infinite;
+  }
+
+  .cart-timer-widget.critical {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    animation: shake 0.5s ease-in-out infinite, blink 1s ease-in-out infinite;
+  }
+
   /* Versión responsive (móviles) */
   @media (max-width: 575.98px) {
     .cart-timer-widget {
@@ -133,13 +164,21 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
       window.location.href = '{{ route("public.carts.index") }}';
     });
 
-    // Conectar con el sistema de countdown existente
-    if (window.cartCountdown) {
+    // Función para inicializar el widget
+    const initWidget = () => {
+      if (!window.cartCountdown) {
+        return false;
+      }
+
       const updateWidget = () => {
         const remaining = window.cartCountdown.getRemainingSeconds();
 
+        console.log('Cart timer widget - remaining seconds:', remaining);
+
         if (remaining <= 0) {
-          widget.style.display = 'none';
+          // Don't hide immediately, show expired state
+          timerFull.textContent = '0:00';
+          widget.classList.add('critical');
           return;
         }
 
@@ -163,10 +202,24 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
       // Actualizar cada segundo
       setInterval(updateWidget, 1000);
       updateWidget();
-    } else {
-      // Fallback si no existe el countdown
-      console.warn('Cart countdown system not found');
-      widget.style.display = 'none';
+      return true;
+    };
+
+    // Intentar inicializar inmediatamente
+    if (!initWidget()) {
+      // Si no está disponible, reintentar cada 100ms hasta 5 segundos
+      let attempts = 0;
+      const maxAttempts = 50; // 5 segundos
+      const retryInterval = setInterval(() => {
+        attempts++;
+        if (initWidget() || attempts >= maxAttempts) {
+          clearInterval(retryInterval);
+          if (attempts >= maxAttempts) {
+            console.warn('Cart countdown system not found after 5 seconds');
+            widget.style.display = 'none';
+          }
+        }
+      }, 100);
     }
   })();
 </script>

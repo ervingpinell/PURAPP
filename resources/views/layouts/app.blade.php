@@ -369,12 +369,7 @@ $schemaOrg = [
     <script>
         (function() {
             const createdAt = @json($guestCartCreated);
-            const expiryMinutes = {
-                {
-                    \
-                    App\ Models\ Setting::getValue('cart.expiration_minutes', 30)
-                }
-            };
+            const expiryMinutes = {{ App\Models\Setting::getValue('cart.expiration_minutes', 30) }};
             if (!createdAt) return;
 
             const created = new Date(createdAt).getTime();
