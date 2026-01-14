@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Tour;
 use App\Models\TourTypeTranslation;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\User;
+
 /**
  * TourType Model
  *
@@ -14,7 +17,7 @@ use App\Models\TourTypeTranslation;
  */
 class TourType extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'tour_types';
     protected $primaryKey = 'tour_type_id';
@@ -26,6 +29,7 @@ class TourType extends Model
     protected $fillable = [
         'is_active',
         'cover_path',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -70,6 +74,16 @@ class TourType extends Model
             'tour_id'
         )->withPivot('position')
             ->orderBy('tour_type_tour_order.position', 'asc');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+    }
+
+    public function scopeOlderThan($query, $days)
+    {
+        return $query->where('deleted_at', '<=', now()->subDays($days));
     }
 
     /* =====================

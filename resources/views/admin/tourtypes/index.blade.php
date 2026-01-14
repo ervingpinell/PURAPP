@@ -8,6 +8,25 @@
 
 @section('content')
 <div class="p-3 table-responsive">
+    {{-- Tabs: Activos / Papelera --}}
+    <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link active" href="{{ route('admin.tourtypes.index') }}" role="tab">
+                {{ __('m_config.tourtypes.active_tab') ?? 'Activos' }}
+            </a>
+        </li>
+        @can('restore-tour-types')
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" href="{{ route('admin.tourtypes.trash') }}" role="tab">
+                {{ __('m_config.tourtypes.trash_tab') ?? 'Papelera' }}
+                @if(isset($trashedCount) && $trashedCount > 0)
+                <span class="badge badge-danger ml-1">{{ $trashedCount }}</span>
+                @endif
+            </a>
+        </li>
+        @endcan
+    </ul>
+
     <div class="d-flex flex-wrap gap-2 mb-3">
         @can('create-tour-types')
         <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
@@ -110,6 +129,7 @@
                     @endcan
 
                     {{-- Eliminar --}}
+                    @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
                     @can('delete-tour-types')
                     <form action="{{ route('admin.tourtypes.destroy', $tourtype->tour_type_id) }}"
                         method="POST"
@@ -122,6 +142,7 @@
                         </button>
                     </form>
                     @endcan
+                    @endif
                 </td>
             </tr>
 
@@ -346,8 +367,8 @@
         });
 
         // Errores de validación => abrir modal correcto
-        @if($errors-> any())
-        const firstError = @json($errors-> first());
+        @if($errors -> any())
+        const firstError = @json($errors -> first());
         Swal.fire({
             icon: 'warning',
             title: @json(__('m_config.tourtypes.validation_errors')),

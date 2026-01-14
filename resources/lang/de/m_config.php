@@ -15,6 +15,17 @@
 
 return [
 
+
+    // =========================================================
+    // ==== GLOBAL BUTTONS =====================================
+    // =========================================================
+    'buttons' => [
+        'back' => 'Zurück',
+        'save' => 'Speichern',
+        'cancel' => 'Abbrechen',
+        'close' => 'Schließen',
+    ],
+
     // =========================================================
     // ==== POLICIES ===========================================
     // =========================================================
@@ -184,6 +195,12 @@ return [
         // Titel / Überschriften
         'title'                   => 'Tourtypen',
         'new'                     => 'Tourtyp hinzufügen',
+
+        'active_tab'              => 'Aktiv',
+        'trash_tab'               => 'Papierkorb',
+        'trash_title'             => 'Papierkorb für Tourtypen',
+        'trash_header'            => 'Papierkorb für Tourtypen',
+        'trash_empty'             => 'Keine gelöschten Tourtypen',
 
         // Spalten / Felder
         'id'                      => 'ID',

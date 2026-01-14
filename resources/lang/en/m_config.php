@@ -15,6 +15,17 @@
 
 return [
 
+
+    // =========================================================
+    // ==== GLOBAL BUTTONS =====================================
+    // =========================================================
+    'buttons' => [
+        'back' => 'Back',
+        'save' => 'Save',
+        'cancel' => 'Cancel',
+        'close' => 'Close',
+    ],
+
     // =========================================================
     // ==== POLICIES ===========================================
     // =========================================================
@@ -181,6 +192,12 @@ return [
         // Titles / headers
         'title'                   => 'Tour Types',
         'new'                     => 'Add Tour Type',
+
+        'active_tab'              => 'Active',
+        'trash_tab'               => 'Trash',
+        'trash_title'             => 'Tour Types Trash',
+        'trash_header'            => 'Tour Types Trash',
+        'trash_empty'             => 'No deleted tour types',
 
         // Columns / fields
         'id'                      => 'ID',

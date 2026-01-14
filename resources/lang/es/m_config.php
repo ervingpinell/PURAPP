@@ -15,6 +15,17 @@
 
 return [
 
+
+    // =========================================================
+    // ==== GLOBAL BUTTONS =====================================
+    // =========================================================
+    'buttons' => [
+        'back' => 'Volver',
+        'save' => 'Guardar',
+        'cancel' => 'Cancelar',
+        'close' => 'Cerrar',
+    ],
+
     // =========================================================
     // ==== POLICIES ===========================================
     // =========================================================
@@ -185,6 +196,12 @@ return [
         // Títulos / encabezados
         'title'                   => 'Tipos de Tours',
         'new'                     => 'Agregar Tipo de Tour',
+
+        'active_tab'              => 'Activos',
+        'trash_tab'               => 'Papelera',
+        'trash_title'             => 'Papelera de Tipos de Tour',
+        'trash_header'            => 'Papelera de Tipos de Tour',
+        'trash_empty'             => 'No hay tipos de tour eliminados',
 
         // Columnas / campos
         'id'                      => 'ID',

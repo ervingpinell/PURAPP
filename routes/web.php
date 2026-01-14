@@ -1162,6 +1162,12 @@ Route::middleware([SetLocale::class])->group(function () {
                         ->name('tourtypes.translations.update');
 
                     Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
+
+                    // Soft Delete Routes (Tour Types)
+                    Route::get('tourtypes/trash/list', [TourTypeController::class, 'trash'])->name('tourtypes.trash');
+                    Route::patch('tourtypes/{tourType}/restore', [TourTypeController::class, 'restore'])->name('tourtypes.restore');
+                    Route::delete('tourtypes/{tourType}/force', [TourTypeController::class, 'forceDelete'])->name('tourtypes.forceDelete');
+
                     Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
                 });
 
