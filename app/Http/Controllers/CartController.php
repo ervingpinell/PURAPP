@@ -133,7 +133,6 @@ class CartController extends Controller
             'meetingPoints' => MeetingPoint::where('is_active', true)
                 ->with('translations')
                 ->orderByRaw('sort_order IS NULL, sort_order ASC')
-                ->orderBy('name', 'asc')
                 ->get(),
             'expiresAtIso' => optional($cart?->expires_at)->toIso8601String(),
             'extendUsed' => (int) ($cart?->extended_count ?? 0),

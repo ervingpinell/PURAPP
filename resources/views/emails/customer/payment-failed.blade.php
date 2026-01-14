@@ -1,7 +1,7 @@
 @component('mail::message')
 # Payment Failed - Action Required
 
-Hi {{ $booking->user->name }},
+Hi {{ $booking->user->full_name }},
 
 We attempted to charge your card for the upcoming tour, but the payment failed.
 

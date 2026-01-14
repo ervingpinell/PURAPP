@@ -1,7 +1,7 @@
 @component('mail::message')
 # Booking Cancelled
 
-Hi {{ $booking->user->name }},
+Hi {{ $booking->user->full_name }},
 
 Unfortunately, your booking has been automatically cancelled due to non-payment.
 

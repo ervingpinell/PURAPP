@@ -1,7 +1,7 @@
 @component('mail::message')
 # Payment Confirmed!
 
-Hi {{ $booking->user->name }},
+Hi {{ $booking->user->full_name }},
 
 Your payment has been successfully processed!
 

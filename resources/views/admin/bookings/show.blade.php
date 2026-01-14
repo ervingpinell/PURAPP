@@ -199,7 +199,7 @@ $meetingPointName = null;
 if ($hasHotel) {
 $hotelName = $detail?->other_hotel_name ?? optional($detail?->hotel)->name ?? '—';
 } elseif ($hasMeetingPoint) {
-$meetingPointName = $detail?->meeting_point_name ?? optional($detail?->meetingPoint)->name ?? '—';
+$meetingPointName = $detail?->meeting_point_name ?? optional($detail?->meetingPoint)->name_localized ?? '—';
 }
 
 // Hora de recogida formateada
@@ -405,7 +405,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                             </tr>
                             <tr>
                                 <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.customer') }}</strong></td>
-                                <td>{{ $booking->user->full_name ?? $booking->user->name ?? '—' }} ({{ $booking->user->email ?? '—' }})</td>
+                                <td>{{ $booking->user->full_name ?? '—' }} ({{ $booking->user->email ?? '—' }})</td>
                             </tr>
                             <tr>
                                 <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.pickup_location') }}</strong></td>
@@ -600,7 +600,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                                     @endphp
                                     @foreach($meetingPoints as $mp)
                                     <option value="{{ $mp->meeting_point_id }}" {{ $booking->detail?->meeting_point_id == $mp->meeting_point_id ? 'selected' : '' }}>
-                                        {{ $mp->name }}
+                                        {{ $mp->name_localized }}
                                     </option>
                                     @endforeach
                                 </select>

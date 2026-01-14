@@ -89,7 +89,7 @@
                                     </a>
                                 </td>
                                 <td>
-                                    {{ $booking->user->name }}<br>
+                                    {{ $booking->user->full_name }}<br>
                                     <small class="text-muted">{{ $booking->user->email }}</small>
                                 </td>
                                 <td>{{ $booking->tour->title ?? 'N/A' }}</td>

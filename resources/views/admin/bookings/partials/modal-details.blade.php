@@ -211,7 +211,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
         if ($hasHotel) {
         $hotelName = $detail?->other_hotel_name ?? optional($detail?->hotel)->name ?? '—';
         } elseif ($hasMeetingPoint) {
-        $meetingPointName = $detail?->meeting_point_name ?? optional($detail?->meetingPoint)->name ?? '—';
+        $meetingPointName = $detail?->meeting_point_name ?? optional($detail?->meetingPoint)->name_localized ?? '—';
         }
 
         // Hora de recogida formateada
@@ -297,7 +297,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
               <div class="card-body">
                 <dl class="row mb-0">
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.customer') }}:</dt>
-                  <dd class="col-sm-8">{{ $booking->user->full_name ?? $booking->user->name ?? '—' }}</dd>
+                  <dd class="col-sm-8">{{ $booking->user->full_name ?? '—' }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.email') }}:</dt>
                   <dd class="col-sm-8">
@@ -562,7 +562,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
               @endphp
               @foreach($meetingPoints as $mp)
               <option value="{{ $mp->meeting_point_id }}" {{ $booking->detail?->meeting_point_id == $mp->meeting_point_id ? 'selected' : '' }}>
-                {{ $mp->name }}
+                {{ $mp->name_localized }}
               </option>
               @endforeach
             </select>

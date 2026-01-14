@@ -24,7 +24,7 @@
                         <strong>{{ $booking->booking_reference }}</strong>
                         <br>
                         <small class="text-muted">
-                            {{ $booking->user->name ?? 'N/A' }} - {{ $booking->tour->title ?? 'N/A' }}
+                            {{ $booking->user->full_name ?? 'N/A' }} - {{ $booking->tour->title ?? 'N/A' }}
                         </small>
                     </div>
                     <div class="text-right">
