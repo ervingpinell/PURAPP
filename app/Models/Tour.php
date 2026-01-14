@@ -421,7 +421,7 @@ class Tour extends Model
 
     public function tourType()
     {
-        return $this->belongsTo(TourType::class, 'tour_type_id', 'tour_type_id');
+        return $this->belongsTo(TourType::class, 'tour_type_id', 'tour_type_id')->withTrashed();
     }
 
     public function languages()
@@ -441,7 +441,7 @@ class Tour extends Model
             'amenity_tour',
             'tour_id',
             'amenity_id'
-        )->withTimestamps();
+        )->withTimestamps()->withTrashed();
     }
 
     public function excludedAmenities()
@@ -451,7 +451,7 @@ class Tour extends Model
             'excluded_amenity_tour',
             'tour_id',
             'amenity_id'
-        )->withTimestamps();
+        )->withTimestamps()->withTrashed();
     }
 
     public function schedules()

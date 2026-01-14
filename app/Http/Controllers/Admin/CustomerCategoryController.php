@@ -37,21 +37,96 @@ class CustomerCategoryController extends Controller
         return view('admin.customer_categories.index', compact('categories', 'trashedCount'));
     }
 
-    // ... (create, store, edit, update, toggle maintained as is) ...
-
-    public function destroy(CustomerCategory $customer_category)
+    public function create()
     {
-        // En Laravel Route Model Binding, si el nombre del parámetro no coincide con la ruta resource, puede fallar si no se typea bien.
-        // Pero aquí $category viene injectado.
-        // La variable en el argumento del método original era $category. Voy a mantener $category para consistencia interna si puedo,
-        // pero replace_file_content reemplaza el bloque.
-        // Espera, el argumento original era `destroy(CustomerCategory $category)`.
+        return view('admin.customer_categories.create');
+    }
 
-        $customer_category->deleted_by = auth()->id();
-        $customer_category->save();
-        $customer_category->delete();
+    public function store(StoreCustomerCategoryRequest $request)
+    {
+        try {
+            DB::beginTransaction();
 
-        LoggerHelper::mutated('CustomerCategoryController', 'destroy', 'CustomerCategory', $customer_category->category_id);
+            $category = CustomerCategory::create($request->validated());
+
+            // Handle translations
+            foreach ($request->input('names', []) as $locale => $name) {
+                if (!empty($name)) {
+                    CustomerCategoryTranslation::create([
+                        'category_id' => $category->category_id,
+                        'locale'      => $locale,
+                        'name'        => $name,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            LoggerHelper::mutated('CustomerCategoryController', 'store', 'CustomerCategory', $category->category_id);
+
+            return redirect()
+                ->route('admin.customer_categories.index')
+                ->with('success', 'Categoría creada con éxito.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LoggerHelper::exception('CustomerCategoryController', 'store', 'CustomerCategory', null, $e);
+            return back()->with('error', 'Error al crear la categoría: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function edit(CustomerCategory $category)
+    {
+        $category->load('translations');
+        return view('admin.customer_categories.edit', compact('category'));
+    }
+
+    public function update(StoreCustomerCategoryRequest $request, CustomerCategory $category)
+    {
+        try {
+            DB::beginTransaction();
+
+            $category->update($request->validated());
+
+            // Update translations
+            foreach ($request->input('names', []) as $locale => $name) {
+                if (!empty($name)) {
+                    $category->translations()->updateOrCreate(
+                        ['locale' => $locale],
+                        ['name' => $name]
+                    );
+                }
+            }
+
+            DB::commit();
+
+            LoggerHelper::mutated('CustomerCategoryController', 'update', 'CustomerCategory', $category->category_id);
+
+            return redirect()
+                ->route('admin.customer_categories.index')
+                ->with('success', 'Categoría actualizada con éxito.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            LoggerHelper::exception('CustomerCategoryController', 'update', 'CustomerCategory', $category->category_id, $e);
+            return back()->with('error', 'Error al actualizar: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function toggle(CustomerCategory $category)
+    {
+        $category->update(['is_active' => !$category->is_active]);
+
+        LoggerHelper::mutated('CustomerCategoryController', 'toggle', 'CustomerCategory', $category->category_id);
+
+        return back()->with('success', 'Estado actualizado correctamente.');
+    }
+
+    public function destroy(CustomerCategory $category)
+    {
+        $category->deleted_by = auth()->id();
+        $category->save();
+        $category->delete();
+
+        LoggerHelper::mutated('CustomerCategoryController', 'destroy', 'CustomerCategory', $category->category_id);
 
         return redirect()
             ->route('admin.customer_categories.index')
@@ -86,8 +161,12 @@ class CustomerCategoryController extends Controller
     {
         $category = CustomerCategory::onlyTrashed()->findOrFail($id);
 
-        // Opcional: Eliminar info relacionada
-        // $category->tourPrices()->forceDelete();
+        // Check for dependencies (TourPrice)
+        if ($category->tourPrices()->exists()) {
+            return redirect()
+                ->route('admin.customer_categories.trash')
+                ->with('error', 'No se puede eliminar permanentemente porque tiene precios de tours asociados.');
+        }
 
         $category->forceDelete();
 
