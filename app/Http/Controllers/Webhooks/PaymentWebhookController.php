@@ -36,8 +36,16 @@ class PaymentWebhookController extends Controller
         ]);
 
         try {
+            // Instantiate the service early for use throughout
+            $service = app(\App\Services\AlignetPaymentService::class);
+
             $operationNumber = $request->input('purchaseOperationNumber');
-            $authorizationResult = $request->input('authorizationResult'); // 00 = Aprobado, 01 = Denegado, 05 = Rechazado
+            $authorizationResult = $request->input('authorizationResult') ?? '';
+            $errorCode = $request->input('errorCode');
+            $errorMessage = $request->input('errorMessage');
+
+            // Get detailed code info for logging
+            $codeInfo = $service->getLogContext($authorizationResult, $errorCode, $errorMessage);
 
             if (!$operationNumber) {
                 LoggerHelper::warning('PaymentWebhookController', 'alignet', 'Missing operation number', $request->all());
@@ -45,9 +53,7 @@ class PaymentWebhookController extends Controller
             }
 
             // Validar firma (Security)
-            $service = app(\App\Services\AlignetPaymentService::class);
             $purchaseVerification = $request->input('purchaseVerification');
-            $authorizationResult = $request->input('authorizationResult');
             $skipSignature = false;
 
             // Lógica Granular de Validación de Firma
@@ -121,8 +127,9 @@ class PaymentWebhookController extends Controller
             }
 
             // LÓGICA DE ESTADOS
-            if ($authorizationResult === '00') {
-                // SUCCESS (00)
+            // Check if authorized using the new helper
+            if ($service->isAuthorized($authorizationResult)) {
+                // SUCCESS (00, 09, 10, 11)
                 if ($payment->status !== 'completed') {
                     $this->paymentService->handleSuccessfulPayment($payment, [
                         'transaction_id' => $operationNumber,
@@ -131,69 +138,51 @@ class PaymentWebhookController extends Controller
                     ]);
                 }
 
-                if (config('app.debug')) {
-                    LoggerHelper::info('PaymentWebhookController', 'alignet', 'Payment Confirmed', ['payment_id' => $payment->payment_id]);
-                }
+                LoggerHelper::info('PaymentWebhookController', 'alignet', 'Payment Authorized', array_merge(
+                    ['payment_id' => $payment->payment_id, 'booking_id' => $payment->booking_id],
+                    $codeInfo
+                ));
+
                 return $this->renderModalResponse($request, 'success', __('m_checkout.payment.success'), route('booking.confirmation', $payment->booking_id));
-            } elseif ($authorizationResult === '99' || $request->input('errorCode') == '2401') {
-                // CANCELLED (99 or 2401 VbV Cancel)
+            } elseif ($service->getClassification($authorizationResult) === 'cancelled' || in_array($errorCode, ['2300', '2301', '2302'])) {
+                // CANCELLED by user
+                LoggerHelper::info('PaymentWebhookController', 'alignet', 'Payment Cancelled', array_merge(
+                    ['payment_id' => $payment->payment_id],
+                    $codeInfo
+                ));
 
-                // Specific logging for error 2401 (Pre Auth Rules)
-                if ($request->input('errorCode') == '2401') {
-                    if (config('app.debug')) {
-                        LoggerHelper::warning('PaymentWebhookController', 'alignet', 'Error 2401 - Pre Auth Rules', [
-                            'operation' => $operationNumber,
-                            'commerce_id' => $request->input('idCommerce'),
-                            'VCI' => $request->input('VCI'),
-                            'ECI' => $request->input('ECI'),
-                            'card_bin' => $request->input('bin'),
-                            'brand' => $request->input('brand'),
-                            'shipping_country' => $request->input('shippingCountry'),
-                            'billing_country' => $request->input('billingCountry'),
-                        ]);
-                    }
-                } else {
-                    LoggerHelper::info('PaymentWebhookController', 'alignet', 'Payment Cancelled', ['payment_id' => $payment->payment_id]);
-                }
+                $this->paymentService->handleFailedPayment($payment, 'user_cancelled', $service->getDescription($authorizationResult, 'en'));
 
-                // Mark as cancelled
-                $this->paymentService->handleFailedPayment($payment, 'user_cancelled', 'User cancelled payment');
-
-                // Improved cancellation message
                 $cancelMsg = __('m_checkout.payment.cancelled_by_user');
                 return $this->renderModalResponse($request, 'cancel', $cancelMsg, route('public.carts.index', ['cancelled' => '1']));
             } else {
-                // FAILURE (Any other code)
-                $errorCode = $request->input('errorCode');
-                $errorMessage = $request->input('errorMessage');
+                // FAILURE - Denied, Rejected, or Error
+                $classification = $service->getClassification($authorizationResult);
+                $codeDescription = $service->getDescription($authorizationResult, app()->getLocale());
 
-                LoggerHelper::warning('PaymentWebhookController', 'alignet', 'Payment Rejected', [
-                    'payment_id' => $payment->payment_id,
-                    'result' => $authorizationResult,
-                    'error' => $errorMessage
-                ]);
+                // Enhanced logging with full code details
+                LoggerHelper::warning('PaymentWebhookController', 'alignet', 'Payment Failed', array_merge(
+                    ['payment_id' => $payment->payment_id, 'booking_id' => $payment->booking_id],
+                    $codeInfo
+                ));
 
                 $this->paymentService->handleFailedPayment(
                     $payment,
-                    'alignet_rejected_' . $authorizationResult,
-                    $errorMessage ?? 'Payment rejected by bank'
+                    'alignet_' . $classification . '_' . $authorizationResult,
+                    $service->getDescription($authorizationResult, 'en')
                 );
 
-                // Mapeo básico de errores comunes
-                if ($authorizationResult === '01') {
-                    $userMessage = __('m_checkout.payment.operation_denied');
-                } elseif ($authorizationResult === '05') {
-                    $userMessage = __('m_checkout.payment.operation_rejected');
-                } else {
-                    $userMessage = $errorMessage ?? __('m_checkout.payment.failed');
-                }
+                // Get user message based on classification
+                $userMessage = $service->getUserMessage($authorizationResult, app()->getLocale());
 
-                // Only add debug info if in debug mode
+                // In debug mode, show detailed code information
                 if (config('app.debug')) {
-                    $debug = "Auth: " . ($authorizationResult ?? '?') .
-                        ", Code: " . ($errorCode ?? '?') .
-                        ", Msg: " . ($errorMessage ?? 'N/A');
-                    return $this->renderModalResponse($request, 'error', $userMessage, route('public.carts.index', ['error' => $userMessage . "\n\nDEBUG: " . $debug]));
+                    $debug = "[{$authorizationResult}] {$codeDescription}";
+                    if ($errorCode) {
+                        $errorCodeInfo = $service->getResponseCodeInfo($errorCode);
+                        $debug .= "\nError Code: [{$errorCode}] " . ($errorCodeInfo['es'] ?? $errorMessage ?? 'N/A');
+                    }
+                    return $this->renderModalResponse($request, 'error', $userMessage . "\n\nDEBUG:\n" . $debug, route('public.carts.index', ['error' => $userMessage]));
                 }
 
                 return $this->renderModalResponse($request, 'error', $userMessage, route('public.carts.index', ['error' => $userMessage]));

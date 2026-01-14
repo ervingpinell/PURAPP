@@ -628,4 +628,97 @@ class AlignetPaymentService
     {
         return (bool) ($this->config['enabled'] ?? false);
     }
+
+    /**
+     * Get response code information from config
+     *
+     * @param string $code The Alignet response code
+     * @return array|null Code info with classification and descriptions
+     */
+    public function getResponseCodeInfo(string $code): ?array
+    {
+        return config("alignet_response_codes.codes.{$code}");
+    }
+
+    /**
+     * Get the classification for a response code
+     *
+     * @param string $code The Alignet response code
+     * @return string Classification: authorized, denied, rejected, cancelled, error, or unknown
+     */
+    public function getClassification(string $code): string
+    {
+        $info = $this->getResponseCodeInfo($code);
+        return $info['classification'] ?? 'unknown';
+    }
+
+    /**
+     * Get the description for a response code in the specified locale
+     *
+     * @param string $code The Alignet response code
+     * @param string $locale The locale (es, en)
+     * @return string The description or a fallback message
+     */
+    public function getDescription(string $code, string $locale = 'es'): string
+    {
+        $info = $this->getResponseCodeInfo($code);
+
+        if ($info) {
+            return $info[$locale] ?? $info['en'] ?? "Code: {$code}";
+        }
+
+        return "Código desconocido: {$code}";
+    }
+
+    /**
+     * Get user-friendly message based on classification
+     *
+     * @param string $code The Alignet response code
+     * @param string $locale The locale (es, en)
+     * @return string User-friendly message
+     */
+    public function getUserMessage(string $code, string $locale = 'es'): string
+    {
+        $classification = $this->getClassification($code);
+        $messages = config("alignet_response_codes.messages.{$classification}");
+
+        if ($messages) {
+            return $messages[$locale] ?? $messages['en'] ?? 'Error desconocido';
+        }
+
+        return $locale === 'es' ? 'Error desconocido' : 'Unknown error';
+    }
+
+    /**
+     * Check if a response code indicates success
+     *
+     * @param string $code The Alignet response code
+     * @return bool True if authorized
+     */
+    public function isAuthorized(string $code): bool
+    {
+        return $this->getClassification($code) === 'authorized';
+    }
+
+    /**
+     * Get detailed log context for a response code
+     *
+     * @param string $code The Alignet response code
+     * @param string|null $errorCode Optional error code from response
+     * @param string|null $errorMessage Optional error message from response
+     * @return array Context array for logging
+     */
+    public function getLogContext(string $code, ?string $errorCode = null, ?string $errorMessage = null): array
+    {
+        $info = $this->getResponseCodeInfo($code);
+
+        return [
+            'authorization_result' => $code,
+            'classification' => $info['classification'] ?? 'unknown',
+            'description_es' => $info['es'] ?? 'Desconocido',
+            'description_en' => $info['en'] ?? 'Unknown',
+            'error_code' => $errorCode,
+            'error_message' => $errorMessage,
+        ];
+    }
 }
