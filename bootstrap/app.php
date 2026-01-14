@@ -170,7 +170,15 @@ return Application::configure(basePath: dirname(__DIR__))
             ->onOneServer()
             ->withoutOverlapping();
 
-        // 6) Limpiar logs de auditoría de tours (> 365 días)
+
+        // 6) Limpiar meeting points eliminados hace más de 30 días
+        $schedule->command('meetingpoints:cleanup --days=30')
+            ->dailyAt('03:00')
+            ->name('meetingpoints:cleanup')
+            ->onOneServer()
+            ->withoutOverlapping();
+
+        // 7) Limpiar logs de auditoría de tours (>365 días)
         $schedule->command('tours:audit:cleanup --days=365')
             ->monthlyOn(1, '03:30')
             ->name('tours:audit:cleanup')

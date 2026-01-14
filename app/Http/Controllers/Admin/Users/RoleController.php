@@ -181,8 +181,20 @@ class RoleController extends Controller
 
         // Security Check
         $user = auth()->user();
-        if ($role->name === 'super-admin' || ($role->name === 'admin' && !$user->hasRole('super-admin'))) {
+
+        // Super Admin cannot edit Super Admin permissions
+        if ($role->name === 'super-admin') {
             return redirect()->route('admin.roles.index')->with('error', 'No tienes permiso para ver los permisos de este rol.');
+        }
+
+        // Only Super Admin can view Admin permissions
+        if ($role->name === 'admin' && !$user->hasRole('super-admin')) {
+            return redirect()->route('admin.roles.index')->with('error', 'No tienes permiso para ver los permisos de este rol.');
+        }
+
+        // Users cannot view permissions of their own role
+        if ($user->hasRole($role->name)) {
+            return redirect()->route('admin.roles.index')->with('error', 'No puedes ver los permisos de tu propio rol.');
         }
 
         $permissions = \Spatie\Permission\Models\Permission::all();
@@ -216,19 +228,23 @@ class RoleController extends Controller
         $role = Role::findOrFail($id);
         $user = $request->user();
 
-        // Security Check
-        if ($role->name === 'super-admin' || ($role->name === 'admin' && !$user->hasRole('super-admin'))) {
+        // Security Check 1: Super Admin role cannot be modified by anyone
+        if ($role->name === 'super-admin') {
             return redirect()->route('admin.roles.index')->with('error', 'No tienes permiso para modificar este rol.');
         }
 
-        // Solo super-admin puede modificar cualquier rol
-        if (!$user->hasRole('super-admin')) {
-            // Verificar si el usuario tiene este rol
-            if ($user->hasRole($role->name)) {
-                return redirect()->back()->with('error', 'No puedes modificar los permisos de tu propio rol.');
-            }
+        // Security Check 2: Only Super Admin can modify Admin role
+        if ($role->name === 'admin' && !$user->hasRole('super-admin')) {
+            return redirect()->route('admin.roles.index')->with('error', 'No tienes permiso para modificar este rol.');
+        }
 
-            // Verificar si está intentando dar permisos que él no tiene
+        // Security Check 3: Users cannot modify their own role permissions
+        if ($user->hasRole($role->name)) {
+            return redirect()->route('admin.roles.index')->with('error', 'No puedes modificar los permisos de tu propio rol.');
+        }
+
+        // Security Check 4: Non-Super-Admins cannot assign permissions they don't have
+        if (!$user->hasRole('super-admin')) {
             $requestedPermissions = $request->get('permissions', []);
             foreach ($requestedPermissions as $permissionName) {
                 if (!$user->can($permissionName)) {

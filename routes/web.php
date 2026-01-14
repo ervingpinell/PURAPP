@@ -1182,6 +1182,11 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::group(['middleware' => ['can:view-meeting-points']], function () {
                     Route::resource('meetingpoints', MeetingPointSimpleController::class)->except(['show', 'create', 'edit']);
                     Route::patch('meetingpoints/{meetingpoint}/toggle', [MeetingPointSimpleController::class, 'toggle'])->name('meetingpoints.toggle');
+
+                    // Trash management routes
+                    Route::get('meetingpoints/trash/list', [MeetingPointSimpleController::class, 'trash'])->name('meetingpoints.trash');
+                    Route::patch('meetingpoints/{id}/restore', [MeetingPointSimpleController::class, 'restore'])->name('meetingpoints.restore');
+                    Route::delete('meetingpoints/{id}/force', [MeetingPointSimpleController::class, 'forceDelete'])->name('meetingpoints.forceDelete');
                 });
 
                 // ============================

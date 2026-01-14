@@ -36,6 +36,7 @@ return [
         'tour_images' => 'Imágenes del Tour',
         'tour_pricing' => 'Precios del Tour',
         'payments' => 'Pagos',
+        'email_templates' => 'Plantillas de Email',
     ],
     'actions' => [
         'view' => 'Ver',
@@ -52,6 +53,8 @@ return [
         'access' => 'Acceder',
         'publish_assignments' => 'Publicar Asignaciones',
         'edit_cover' => 'Editar Cover',
+        'restore' => 'Restaurar',
+        'force_delete' => 'Eliminar Permanentemente',
     ],
 
     // UI Keys
