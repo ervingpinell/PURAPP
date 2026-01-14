@@ -262,8 +262,31 @@ $initialNotes = old('notes', $cart->notes ?? '');
   </div>
   @endif
 
-  {{-- Toasts --}}
-  @if (session('success') || session('error'))
+  {{-- Toasts / Payment Error SweetAlerts --}}
+  @php
+  // Check for payment error from URL query params
+  $paymentError = request('error');
+  $paymentCancelled = request('cancelled');
+
+  // Get classification from URL if available (set by webhook)
+  $paymentClassification = request('classification') ?? 'error';
+
+  // Determine icon and title based on classification
+  $alertIcon = 'error';
+  $alertTitle = __('adminlte::adminlte.error');
+
+  if ($paymentCancelled) {
+  $alertIcon = 'warning';
+  $alertTitle = __('m_checkout.payment.operation_cancelled', [], app()->getLocale()) ?? 'Operación Cancelada';
+  $paymentError = __('m_checkout.payment.cancelled_by_user', [], app()->getLocale()) ?? 'El pago fue cancelado';
+  } elseif ($paymentClassification === 'denied') {
+  $alertTitle = __('m_checkout.payment.operation_denied', [], app()->getLocale()) ?? 'Operación Denegada';
+  } elseif ($paymentClassification === 'rejected') {
+  $alertTitle = __('m_checkout.payment.operation_rejected', [], app()->getLocale()) ?? 'Operación Rechazada';
+  }
+  @endphp
+
+  @if (session('success') || session('error') || $paymentError || $paymentCancelled)
   @once
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   @endonce
@@ -278,6 +301,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
         allowOutsideClick: false
       });
       @endif
+
       @if(session('error'))
       Swal.fire({
         icon: 'error',
@@ -285,6 +309,22 @@ $initialNotes = old('notes', $cart->notes ?? '');
         text: @json(session('error')),
         confirmButtonColor: '#dc3545',
         allowOutsideClick: false
+      });
+      @endif
+
+      @if($paymentError || $paymentCancelled)
+      Swal.fire({
+        icon: @json($alertIcon),
+        title: @json($alertTitle),
+        text: @json($paymentError ?? ''),
+        confirmButtonColor: @json($paymentCancelled ? '#f0ad4e' : '#dc3545'),
+        allowOutsideClick: false
+      }).then(() => {
+        // Clean URL after showing alert (remove query params)
+        if (window.history.replaceState) {
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
       });
       @endif
     });

@@ -182,10 +182,10 @@ class PaymentWebhookController extends Controller
                         $errorCodeInfo = $service->getResponseCodeInfo($errorCode);
                         $debug .= "\nError Code: [{$errorCode}] " . ($errorCodeInfo['es'] ?? $errorMessage ?? 'N/A');
                     }
-                    return $this->renderModalResponse($request, 'error', $userMessage . "\n\nDEBUG:\n" . $debug, route('public.carts.index', ['error' => $userMessage]));
+                    return $this->renderModalResponse($request, 'error', $userMessage . "\n\nDEBUG:\n" . $debug, route('public.carts.index', ['error' => $userMessage, 'classification' => $classification]));
                 }
 
-                return $this->renderModalResponse($request, 'error', $userMessage, route('public.carts.index', ['error' => $userMessage]));
+                return $this->renderModalResponse($request, 'error', $userMessage, route('public.carts.index', ['error' => $userMessage, 'classification' => $classification]));
             }
         } catch (\Exception $e) {
             LoggerHelper::exception('PaymentWebhookController', 'alignet', 'System', null, $e);
