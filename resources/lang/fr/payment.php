@@ -149,4 +149,26 @@ return [
         'of' => 'de',
         'results' => 'résultats',
     ],
+
+    // Alignet Payment Page
+    'alignet' => [
+        'page_title' => 'Paiement Sécurisé',
+        'processed_by' => 'Traité par',
+        'booking_summary' => 'Résumé de Réservation',
+        'reference' => 'Référence',
+        'tour' => 'Excursion',
+        'date' => 'Date',
+        'passengers' => 'Passagers',
+        'total' => 'Total',
+        'proceed_payment' => 'Procéder au Paiement',
+        'loading_module' => 'Chargement du module de paiement...',
+        'secure_transaction' => 'Transaction sécurisée et cryptée',
+        'error_module_unavailable' => 'Erreur: Le module de paiement n\'est pas disponible.',
+        'error_loading' => 'Erreur de chargement du module de paiement',
+        'error_config' => 'Erreur de Configuration',
+        'error_payment_system' => 'Impossible de charger le système de paiement.',
+        'reload' => 'Recharger',
+        'payment_successful' => 'Paiement Réussi!',
+        'payment_cancelled' => 'Le processus de paiement a été annulé.',
+    ],
 ];

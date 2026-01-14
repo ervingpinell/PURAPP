@@ -161,4 +161,26 @@ return [
         'of' => 'of',
         'results' => 'results',
     ],
+
+    // Alignet Payment Page
+    'alignet' => [
+        'page_title' => 'Secure Payment',
+        'processed_by' => 'Processed by',
+        'booking_summary' => 'Booking Summary',
+        'reference' => 'Reference',
+        'tour' => 'Tour',
+        'date' => 'Date',
+        'passengers' => 'Passengers',
+        'total' => 'Total',
+        'proceed_payment' => 'Proceed to Payment',
+        'loading_module' => 'Loading payment module...',
+        'secure_transaction' => 'Secure and encrypted transaction',
+        'error_module_unavailable' => 'Error: Payment module is not available.',
+        'error_loading' => 'Error loading payment module',
+        'error_config' => 'Configuration Error',
+        'error_payment_system' => 'Could not load payment system.',
+        'reload' => 'Reload',
+        'payment_successful' => 'Payment Successful!',
+        'payment_cancelled' => 'Payment process was cancelled.',
+    ],
 ];

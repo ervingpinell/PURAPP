@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Pago Seguro - {{ config('app.name') }}</title>
+    <title>{{ __('payment.alignet.page_title') }} - {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         .payment-container {
@@ -121,17 +121,17 @@
 <body>
     <div class="payment-container">
         <div class="alignet-logo">
-            <h2>Pago Seguro</h2>
-            <p>Procesado por <strong>Alignet</strong></p>
+            <h2>{{ __('payment.alignet.page_title') }}</h2>
+            <p>{{ __('payment.alignet.processed_by') }} <strong>Alignet</strong></p>
         </div>
         @if($booking ?? null)
         <div class="booking-summary">
-            <h3>Resumen de Reserva</h3>
-            <div class="booking-detail"><span>Referencia:</span><span><strong>{{ $booking->booking_reference }}</strong></span></div>
-            <div class="booking-detail"><span>Tour:</span><span>{{ $booking->tour->name ?? 'N/A' }}</span></div>
-            <div class="booking-detail"><span>Fecha:</span><span>{{ $booking->tour_date ? \Carbon\Carbon::parse($booking->tour_date)->format('d/m/Y') : 'N/A' }}</span></div>
-            <div class="booking-detail"><span>Pasajeros:</span><span>{{ $booking->pax }}</span></div>
-            <div class="booking-detail"><span>Total:</span><span>${{ number_format($booking->total, 2) }}</span></div>
+            <h3>{{ __('payment.alignet.booking_summary') }}</h3>
+            <div class="booking-detail"><span>{{ __('payment.alignet.reference') }}:</span><span><strong>{{ $booking->booking_reference }}</strong></span></div>
+            <div class="booking-detail"><span>{{ __('payment.alignet.tour') }}:</span><span>{{ $booking->tour->name ?? 'N/A' }}</span></div>
+            <div class="booking-detail"><span>{{ __('payment.alignet.date') }}:</span><span>{{ $booking->tour_date ? \Carbon\Carbon::parse($booking->tour_date)->format('d/m/Y') : 'N/A' }}</span></div>
+            <div class="booking-detail"><span>{{ __('payment.alignet.passengers') }}:</span><span>{{ $booking->pax }}</span></div>
+            <div class="booking-detail"><span>{{ __('payment.alignet.total') }}:</span><span>${{ number_format($booking->total, 2) }}</span></div>
         </div>
         @endif
         <form name="alignet_payment_form" id="alignet_payment_form" action="#" method="post" class="alignet-form-vpos2">
@@ -140,10 +140,10 @@
             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
             @endif
             @endforeach
-            <button type="button" id="btn-pay" onclick="abrirModalAlignet()" class="btn-pay"><i class="fas fa-lock"></i> Proceder al Pago</button>
-            <div class="loading-message" id="loading-message"><i class="fas fa-spinner fa-spin"></i> Cargando módulo de pago...</div>
+            <button type="button" id="btn-pay" onclick="abrirModalAlignet()" class="btn-pay"><i class="fas fa-lock"></i> {{ __('payment.alignet.proceed_payment') }}</button>
+            <div class="loading-message" id="loading-message"><i class="fas fa-spinner fa-spin"></i> {{ __('payment.alignet.loading_module') }}</div>
         </form>
-        <div class="secure-badge"><i class="fas fa-shield-alt"></i> Transacción segura y encriptada</div>
+        <div class="secure-badge"><i class="fas fa-shield-alt"></i> {{ __('payment.alignet.secure_transaction') }}</div>
         @if(config('app.debug') && !app()->isProduction())
         <div class="debug-info">
             <h4> Debug Info (solo visible en modo debug)</h4>
@@ -168,7 +168,7 @@
     <script type="text/javascript" src="{{ $paymentData['vpos2_script'] ?? $paymentData['base_url'] . 'VPOS2/js/modalcomercio.js' }}"></script>
     <script>
         window.addEventListener('load', function() {
-            @if(config('app.debug') && !app() -> isProduction())
+            @if(config('app.debug') && !app() - > isProduction())
             console.log('Verificando Alignet VPOS2...');
             @endif
             const btnPay = document.getElementById('btn-pay');
@@ -177,12 +177,12 @@
 
             if (typeof AlignetVPOS2 === 'undefined') {
                 btnPay.disabled = true;
-                btnPay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error al cargar módulo de pago';
+                btnPay.innerHTML = '<i class="fas fa-exclamation-triangle"></i> {{ __("payment.alignet.error_loading") }}';
                 Swal.fire({
                     icon: 'error',
-                    title: 'Error de Configuración',
-                    text: 'No se pudo cargar el sistema de pagos.',
-                    confirmButtonText: 'Recargar'
+                    title: '{{ __("payment.alignet.error_config") }}',
+                    text: '{{ __("payment.alignet.error_payment_system") }}',
+                    confirmButtonText: '{{ __("payment.alignet.reload") }}'
                 }).then(() => {
                     window.location.reload();
                 });
@@ -215,72 +215,28 @@
 
             AlignetVPOS2.setResponseHandler(function(response) {
                 const params = new URLSearchParams({
-                    acquirerId: '{{ $paymentData['
-                    acquirerId '] ?? '
-                    ' }}',
-                    idCommerce: '{{ $paymentData['
-                    idCommerce '] ?? '
-                    ' }}',
-                    purchaseOperationNumber: '{{ $paymentData['
-                    purchaseOperationNumber '] ?? '
-                    ' }}',
-                    purchaseAmount: '{{ $paymentData['
-                    purchaseAmount '] ?? '
-                    ' }}',
-                    purchaseCurrencyCode: '{{ $paymentData['
-                    purchaseCurrencyCode '] ?? '
-                    ' }}',
-                    language: '{{ $paymentData['
-                    language '] ?? '
-                    ' }}',
-                    shippingFirstName: '{{ $paymentData['
-                    shippingFirstName '] ?? '
-                    ' }}',
-                    shippingLastName: '{{ $paymentData['
-                    shippingLastName '] ?? '
-                    ' }}',
-                    shippingEmail: '{{ $paymentData['
-                    shippingEmail '] ?? '
-                    ' }}',
-                    shippingAddress: '{{ $paymentData['
-                    shippingAddress '] ?? '
-                    ' }}',
-                    shippingZIP: '{{ $paymentData['
-                    shippingZIP '] ?? '
-                    ' }}',
-                    shippingCity: '{{ $paymentData['
-                    shippingCity '] ?? '
-                    ' }}',
-                    shippingState: '{{ $paymentData['
-                    shippingState '] ?? '
-                    ' }}',
-                    shippingCountry: '{{ $paymentData['
-                    shippingCountry '] ?? '
-                    ' }}',
-                    userCommerce: '{{ $paymentData['
-                    userCommerce '] ?? '
-                    ' }}',
-                    userCodePayme: '{{ $paymentData['
-                    userCodePayme '] ?? '
-                    ' }}',
-                    descriptionProducts: '{{ $paymentData['
-                    descriptionProducts '] ?? '
-                    ' }}',
-                    programmingLanguage: '{{ $paymentData['
-                    programmingLanguage '] ?? '
-                    ' }}',
-                    reserved1: '{{ $paymentData['
-                    reserved1 '] ?? '
-                    ' }}',
-                    reserved2: '{{ $paymentData['
-                    reserved2 '] ?? '
-                    ' }}',
-                    reserved3: '{{ $paymentData['
-                    reserved3 '] ?? '
-                    ' }}',
-                    purchaseVerification: '{{ $paymentData['
-                    purchaseVerification '] ?? '
-                    ' }}'
+                    acquirerId: '{{ $paymentData["acquirerId"] ?? "" }}',
+                    idCommerce: '{{ $paymentData["idCommerce"] ?? "" }}',
+                    purchaseOperationNumber: '{{ $paymentData["purchaseOperationNumber"] ?? "" }}',
+                    purchaseAmount: '{{ $paymentData["purchaseAmount"] ?? "" }}',
+                    purchaseCurrencyCode: '{{ $paymentData["purchaseCurrencyCode"] ?? "" }}',
+                    language: '{{ $paymentData["language"] ?? "" }}',
+                    shippingFirstName: '{{ $paymentData["shippingFirstName"] ?? "" }}',
+                    shippingLastName: '{{ $paymentData["shippingLastName"] ?? "" }}',
+                    shippingEmail: '{{ $paymentData["shippingEmail"] ?? "" }}',
+                    shippingAddress: '{{ $paymentData["shippingAddress"] ?? "" }}',
+                    shippingZIP: '{{ $paymentData["shippingZIP"] ?? "" }}',
+                    shippingCity: '{{ $paymentData["shippingCity"] ?? "" }}',
+                    shippingState: '{{ $paymentData["shippingState"] ?? "" }}',
+                    shippingCountry: '{{ $paymentData["shippingCountry"] ?? "" }}',
+                    userCommerce: '{{ $paymentData["userCommerce"] ?? "" }}',
+                    userCodePayme: '{{ $paymentData["userCodePayme"] ?? "" }}',
+                    descriptionProducts: '{{ $paymentData["descriptionProducts"] ?? "" }}',
+                    programmingLanguage: '{{ $paymentData["programmingLanguage"] ?? "" }}',
+                    reserved1: '{{ $paymentData["reserved1"] ?? "" }}',
+                    reserved2: '{{ $paymentData["reserved2"] ?? "" }}',
+                    reserved3: '{{ $paymentData["reserved3"] ?? "" }}',
+                    purchaseVerification: '{{ $paymentData["purchaseVerification"] ?? "" }}'
                 });
                 window.location.href = response.url + '?' + params.toString();
             });

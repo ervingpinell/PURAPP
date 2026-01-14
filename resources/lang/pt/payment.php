@@ -65,4 +65,26 @@ return [
     'redirect_external_gateway' => 'Você será redirecionado para o gateway de pagamento externo para concluir sua transação.',
     'alignet_description' => 'Pagamento seguro com Cartão de Crédito/Débito (Banco Nacional)',
     'no_cart_data' => 'Dados do carrinho não encontrados',
+
+    // Alignet Payment Page
+    'alignet' => [
+        'page_title' => 'Pagamento Seguro',
+        'processed_by' => 'Processado por',
+        'booking_summary' => 'Resumo da Reserva',
+        'reference' => 'Referência',
+        'tour' => 'Passeio',
+        'date' => 'Data',
+        'passengers' => 'Passageiros',
+        'total' => 'Total',
+        'proceed_payment' => 'Prosseguir para Pagamento',
+        'loading_module' => 'Carregando módulo de pagamento...',
+        'secure_transaction' => 'Transação segura e criptografada',
+        'error_module_unavailable' => 'Erro: O módulo de pagamento não está disponível.',
+        'error_loading' => 'Erro ao carregar módulo de pagamento',
+        'error_config' => 'Erro de Configuração',
+        'error_payment_system' => 'Não foi possível carregar o sistema de pagamento.',
+        'reload' => 'Recarregar',
+        'payment_successful' => 'Pagamento Bem-Sucedido!',
+        'payment_cancelled' => 'O processo de pagamento foi cancelado.',
+    ],
 ];

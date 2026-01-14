@@ -152,4 +152,26 @@ return [
         'of' => 'de',
         'results' => 'resultados',
     ],
+
+    // Alignet Payment Page
+    'alignet' => [
+        'page_title' => 'Pago Seguro',
+        'processed_by' => 'Procesado por',
+        'booking_summary' => 'Resumen de Reserva',
+        'reference' => 'Referencia',
+        'tour' => 'Tour',
+        'date' => 'Fecha',
+        'passengers' => 'Pasajeros',
+        'total' => 'Total',
+        'proceed_payment' => 'Proceder al Pago',
+        'loading_module' => 'Cargando módulo de pago...',
+        'secure_transaction' => 'Transacción segura y encriptada',
+        'error_module_unavailable' => 'Error: El módulo de pago no está disponible.',
+        'error_loading' => 'Error al cargar módulo de pago',
+        'error_config' => 'Error de Configuración',
+        'error_payment_system' => 'No se pudo cargar el sistema de pagos.',
+        'reload' => 'Recargar',
+        'payment_successful' => '¡Pago Exitoso!',
+        'payment_cancelled' => 'El proceso de pago fue cancelado.',
+    ],
 ];

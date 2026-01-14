@@ -149,4 +149,26 @@ return [
         'of' => 'von',
         'results' => 'Ergebnisse',
     ],
+
+    // Alignet Payment Page
+    'alignet' => [
+        'page_title' => 'Sichere Zahlung',
+        'processed_by' => 'Verarbeitet von',
+        'booking_summary' => 'Buchungsübersicht',
+        'reference' => 'Referenz',
+        'tour' => 'Tour',
+        'date' => 'Datum',
+        'passengers' => 'Passagiere',
+        'total' => 'Gesamt',
+        'proceed_payment' => 'Zur Zahlung',
+        'loading_module' => 'Zahlungsmodul wird geladen...',
+        'secure_transaction' => 'Sichere und verschlüsselte Transaktion',
+        'error_module_unavailable' => 'Fehler: Zahlungsmodul ist nicht verfügbar.',
+        'error_loading' => 'Fehler beim Laden des Zahlungsmoduls',
+        'error_config' => 'Konfigurationsfehler',
+        'error_payment_system' => 'Zahlungssystem konnte nicht geladen werden.',
+        'reload' => 'Neu laden',
+        'payment_successful' => 'Zahlung Erfolgreich!',
+        'payment_cancelled' => 'Der Zahlungsvorgang wurde abgebrochen.',
+    ],
 ];
