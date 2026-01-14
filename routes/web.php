@@ -241,7 +241,7 @@ Route::post('/payment/record-terms', [\App\Http\Controllers\PaymentController::c
     ->name('payment.record-terms');
 
 Route::post('/payment/initiate', [\App\Http\Controllers\PaymentController::class, 'initiate'])
-    ->middleware(['throttle:payment-initiate', 'recaptcha:payment'])
+    ->middleware('throttle:payment-initiate')
     ->name('payment.initiate');
 
 /*
@@ -460,7 +460,7 @@ Route::middleware([SetLocale::class])->group(function () {
     // ------------------------------
     Route::get('/checkout', [PublicCheckoutController::class, 'show'])->name('public.checkout.show');
     Route::post('/checkout/process', [PublicCheckoutController::class, 'process'])
-        ->middleware(['throttle:guest-checkout', 'recaptcha:checkout'])
+        ->middleware('throttle:guest-checkout')
         ->name('public.checkout.process');
     Route::post('/checkout/accept-terms', [PublicCheckoutController::class, 'acceptTerms'])
         ->middleware('throttle:payment')
