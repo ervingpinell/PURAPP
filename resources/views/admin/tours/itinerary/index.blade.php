@@ -65,6 +65,25 @@
 $itineraryToEdit = request('itinerary_id');
 @endphp
 
+<div class="row mb-3">
+    <div class="col-12">
+        <!-- Tabs de navegación -->
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ route('admin.tours.itinerary.index') }}">
+                    <i class="fas fa-list"></i> {{ __('m_tours.common.active') }}
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ route('admin.tours.itinerary.trash') }}">
+                    <i class="fas fa-trash"></i> {{ __('m_tours.itinerary.ui.trash_title') }}
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
 @if(session('success'))
 <div class="alert alert-success">{{ session('success') }}</div>
 @endif
@@ -354,7 +373,7 @@ $itineraryToEdit = request('itinerary_id');
             confirmButtonColor: '#d33'
         });
         @endif
-        @if($errors-> any())
+        @if($errors - > any())
         Swal.fire({
             icon: 'error',
             title: @json(__('m_tours.itinerary.ui.validation_failed_title')),

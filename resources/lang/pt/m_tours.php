@@ -478,6 +478,14 @@ return [
             'flash_error_title'       => 'Erro',
             'validation_failed_title' => 'Não foi possível processar',
             'go_to_crud'              => 'Ir para o Módulo',
+
+            'trash_title'      => 'Lixeira de Roteiros',
+            'trash_list_title' => 'Roteiros Excluídos',
+            'restore'          => 'Restaurar',
+            'empty_trash'      => 'A lixeira está vazia',
+            'deleted_at'       => 'Data de exclusão',
+            'deleted_by'       => 'Excluído por',
+            'back_to_list'     => 'Voltar para a lista',
         ],
 
         'modal' => [

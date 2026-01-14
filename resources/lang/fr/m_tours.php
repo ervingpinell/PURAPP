@@ -475,7 +475,15 @@ return [
             'flash_success_title'     => 'Succès',
             'flash_error_title'       => 'Erreur',
             'validation_failed_title' => 'Impossible de traiter',
-            'go_to_crud'              => 'Aller au module',
+            'go_to_crud'              => 'Aller au Module',
+
+            'trash_title'      => 'Corbeille des Itinéraires',
+            'trash_list_title' => 'Itinéraires Supprimés',
+            'restore'          => 'Restaurer',
+            'empty_trash'      => 'La corbeille est vide',
+            'deleted_at'       => 'Date de suppression',
+            'deleted_by'       => 'Supprimé par',
+            'back_to_list'     => 'Retour à la liste',
         ],
 
         'modal' => [

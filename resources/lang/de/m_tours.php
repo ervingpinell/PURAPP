@@ -472,6 +472,21 @@ return [
             'flash_error_title'       => 'Fehler',
             'validation_failed_title' => 'Konnte nicht verarbeitet werden',
             'go_to_crud' => 'Zum Modul wechseln',
+
+            'trash_title'      => 'Reiserouten-Papierkorb',
+            'trash_list_title' => 'Gelöschte Reiserouten',
+            'restore'          => 'Wiederherstellen',
+            'empty_trash'      => 'Papierkorb ist leer',
+            'deleted_at'       => 'Gelöscht am',
+            'deleted_by'       => 'Gelöscht von',
+            'back_to_list'     => 'Zurück zur Liste',
+
+            'items_assigned' => 'Elemente erfolgreich zugewiesen.',
+            'restored'       => 'Reiseroute erfolgreich wiederhergestellt.',
+            'force_deleted'  => 'Reiseroute dauerhaft gelöscht.',
+            'assign'  => 'Elemente konnten nicht zugewiesen werden.',
+            'restore_error'      => 'Reiseroute konnte nicht wiederhergestellt werden.',
+            'force_delete_error' => 'Reiseroute konnte nicht dauerhaft gelöscht werden.',
         ],
         'modal' => [
             'create_itinerary' => 'Reiseplan erstellen',

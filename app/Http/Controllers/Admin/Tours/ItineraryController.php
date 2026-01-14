@@ -29,6 +29,8 @@ class ItineraryController extends Controller
         $this->middleware(['can:edit-itineraries'])->only(['update', 'assignItems', 'updateTranslations']);
         $this->middleware(['can:publish-itineraries'])->only(['toggle']);
         $this->middleware(['can:delete-itineraries'])->only(['destroy']);
+        $this->middleware(['can:restore-itineraries'])->only(['restore']);
+        $this->middleware(['can:force-delete-itineraries'])->only(['forceDelete']);
     }
 
     protected string $controller = 'ItineraryController';
@@ -134,6 +136,75 @@ class ItineraryController extends Controller
     }
 
     /**
+     * View trash list.
+     */
+    public function trash()
+    {
+        $trashedItineraries = Itinerary::onlyTrashed()
+            ->with(['deletedBy', 'translations'])
+            ->get();
+
+        return view('admin.tours.itinerary.trash', [
+            'itineraries' => $trashedItineraries,
+        ]);
+    }
+
+    /**
+     * Restore soft-deleted itinerary.
+     */
+    public function restore($id)
+    {
+        try {
+            $itinerary = Itinerary::withTrashed()->findOrFail($id);
+            $itinerary->restore();
+
+            // Clear deleted_by
+            $itinerary->update(['deleted_by' => null]);
+
+            LoggerHelper::mutated($this->controller, 'restore', 'itinerary', $id, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', __('m_tours.itinerary.success.restored'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'restore', 'itinerary', $id, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('error', __('m_tours.itinerary.error.restore'));
+        }
+    }
+
+    /**
+     * Force delete itinerary permanently.
+     */
+    public function forceDelete($id)
+    {
+        try {
+            $itinerary = Itinerary::withTrashed()->findOrFail($id);
+            $idCaptured = $itinerary->itinerary_id;
+
+            // Detach items first if necessary or rely on database cascade if configured
+            $itinerary->items()->detach();
+            $itinerary->translations()->delete();
+
+            $itinerary->forceDelete();
+
+            LoggerHelper::mutated($this->controller, 'forceDelete', 'itinerary', $idCaptured, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', __('m_tours.itinerary.success.force_deleted'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'forceDelete', 'itinerary', $id, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('error', __('m_tours.itinerary.error.force_delete'));
+        }
+    }
+
+    /**
      * Toggle activar/desactivar itinerario
      */
     public function toggle(Itinerary $itinerary)
@@ -166,11 +237,15 @@ class ItineraryController extends Controller
      * Eliminación definitiva (NO usar aún).
      * Dejo el método comentado para cuando quieras habilitarlo.
      */
-    /*
     public function destroy(Itinerary $itinerary)
     {
         try {
             $id = $itinerary->itinerary_id;
+
+            // Soft delete logic with deleted_by
+            $itinerary->update([
+                'deleted_by' => optional(request()->user())->getAuthIdentifier(),
+            ]);
             $itinerary->delete();
 
             LoggerHelper::mutated($this->controller, 'destroy', 'itinerary', $id, [
@@ -178,7 +253,6 @@ class ItineraryController extends Controller
             ]);
 
             return back()->with('success', __('m_tours.itinerary.success.deleted'));
-
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'itinerary', $itinerary->itinerary_id ?? null, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
@@ -187,7 +261,6 @@ class ItineraryController extends Controller
             return back()->with('error', __('m_tours.itinerary.error.delete'));
         }
     }
-    */
 
     /**
      * Asignar ítems a un itinerario (recibe items[ID]=orden desde el modal)

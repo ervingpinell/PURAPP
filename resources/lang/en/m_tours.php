@@ -478,6 +478,14 @@ return [
             'flash_error_title'       => 'Error',
             'validation_failed_title' => 'Could not process',
             'go_to_crud'              => 'Go to Module',
+
+            'trash_title'      => 'Itineraries Trash',
+            'trash_list_title' => 'Deleted Itineraries',
+            'restore'          => 'Restore',
+            'empty_trash'      => 'Trash is empty',
+            'deleted_at'       => 'Date deleted',
+            'deleted_by'       => 'Deleted by',
+            'back_to_list'     => 'Back to list',
         ],
 
         'modal' => [

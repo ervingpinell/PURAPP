@@ -132,6 +132,16 @@ class RunDailyCleanups extends Command
         $this->info('--- Cleaning up Languages ---');
         $this->call('cleanup:old-languages', ['days' => 30]);
 
+        // 10. Itineraries
+        try {
+            $this->newLine();
+            $this->info('Cleaning up itineraries...');
+            $this->call('itineraries:cleanup', ['--days' => 30]);
+            $this->info('✓ Itineraries cleaned.');
+        } catch (\Exception $e) {
+            $this->error('x Error cleaning itineraries: ' . $e->getMessage());
+        }
+
         $this->info('All cleanups completed successfully.');
 
         return 0;

@@ -491,6 +491,14 @@ return [
             'flash_error_title'       => 'Error',
             'validation_failed_title' => 'No se pudo procesar',
             'go_to_crud' => 'Ir al Módulo',
+
+            'trash_title'      => 'Papelera de Itinerarios',
+            'trash_list_title' => 'Itinerarios Eliminados',
+            'restore'          => 'Restaurar',
+            'empty_trash'      => 'Papelera vacía',
+            'deleted_at'       => 'Fecha de eliminación',
+            'deleted_by'       => 'Eliminado por',
+            'back_to_list'     => 'Volver a la lista',
         ],
         'modal' => [
             'create_itinerary' => 'Crear itinerario',
@@ -503,6 +511,8 @@ return [
             'deactivated'    => 'Itinerario desactivado correctamente.',
             'deleted'        => 'Itinerario eliminado definitivamente.',
             'items_assigned' => 'Ítems asignados correctamente.',
+            'restored'       => 'Itinerario restaurado correctamente.',
+            'force_deleted'  => 'Itinerario eliminado permanentemente.',
         ],
 
         'error' => [
@@ -511,6 +521,8 @@ return [
             'toggle'  => 'No se pudo cambiar el estado del itinerario.',
             'delete'  => 'No se pudo eliminar el itinerario.',
             'assign'  => 'No se pudieron asignar los ítems.',
+            'restore'      => 'No se pudo restaurar el itinerario.',
+            'force_delete' => 'No se pudo eliminar permanentemente el itinerario.',
         ],
 
         'validation' => [
