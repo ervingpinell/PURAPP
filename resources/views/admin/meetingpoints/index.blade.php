@@ -745,7 +745,7 @@
   @endif
 
   /** Errores de validación */
-  @if($errors - > any())
+  @if($errors -> any())
   Swal.fire({
     icon: 'error',
     title: @json(__('pickups.meeting_point.validation.title')),
