@@ -613,20 +613,17 @@ class PaymentController extends Controller
             if ($bookingId) {
                 // Determine booking (ensure loaded)
                 $booking = \App\Models\Booking::with('user')->find($bookingId); // Use locally scoped var
-                if ($booking) {
-                    $userEmail = $userEmail ?? $booking->user?->email ?? $booking->customer_email;
-                    $firstName = $booking->customer_name ?? '';
-                    $lastName  = $booking->customer_lastname ?? '';
+                if ($booking && $booking->user) {
+                    $userEmail = $userEmail ?? $booking->user->email ?? $booking->customer_email;
+                    $firstName = $booking->user->first_name ?? '';
+                    $lastName  = $booking->user->last_name ?? '';
                 }
             }
 
-            // Fallback to Auth User name splitting if names are still empty
+            // Fallback to Auth User if names are still empty
             if (empty($firstName) && Auth::check()) {
-                $fullName = trim(Auth::user()->name);
-                // Split by first space
-                $parts = explode(' ', $fullName, 2);
-                $firstName = $parts[0];
-                $lastName  = $parts[1] ?? '';
+                $firstName = Auth::user()->first_name ?? '';
+                $lastName  = Auth::user()->last_name ?? '';
             }
 
             // Final fallback defaults to satisfy gateways requiring non-empty strings
