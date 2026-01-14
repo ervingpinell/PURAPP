@@ -98,6 +98,28 @@ class PaymentWebhookController extends Controller
                 return $this->renderModalResponse($request, 'error', 'Pago no encontrado', route('public.carts.index', ['error' => 'Payment Not Found. Op: ' . $operationNumber]));
             }
 
+            // [SECURITY] Validate Amount to prevent tampering
+            // Alignet sends amount in cents (e.g. 10000 for $100.00)
+            $receivedAmount = $request->input('purchaseAmount');
+            $expectedAmount = (int)round($payment->amount * 100);
+
+            // We only validate amount if it's present and operation is approved to avoid false positives on chaotic rejections
+            if ($authorizationResult === '00' && $receivedAmount && (int)$receivedAmount !== $expectedAmount) {
+                LoggerHelper::error('PaymentWebhookController', 'alignet', 'Security: Amount mismatch', [
+                    'expected' => $expectedAmount,
+                    'received' => $receivedAmount,
+                    'payment_id' => $payment->payment_id,
+                    'op' => $operationNumber
+                ]);
+
+                return $this->renderModalResponse(
+                    $request,
+                    'error',
+                    'Error de seguridad: Monto inválido',
+                    route('public.carts.index', ['error' => 'Security Error: Amount Mismatch'])
+                );
+            }
+
             // LÓGICA DE ESTADOS
             if ($authorizationResult === '00') {
                 // SUCCESS (00)
