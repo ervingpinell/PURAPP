@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 /**
  * CustomerCategory Model
  *
@@ -14,7 +16,7 @@ use Illuminate\Support\Str;
  */
 class CustomerCategory extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'customer_categories';
     protected $primaryKey = 'category_id';
@@ -25,6 +27,7 @@ class CustomerCategory extends Model
         'age_to',
         'order',
         'is_active',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -38,8 +41,14 @@ class CustomerCategory extends Model
     protected $appends = ['translated'];
 
     /* Scopes */
-    public function scopeActive($q){ return $q->where('is_active', true); }
-    public function scopeOrdered($q){ return $q->orderBy('order')->orderBy('age_from'); }
+    public function scopeActive($q)
+    {
+        return $q->where('is_active', true);
+    }
+    public function scopeOrdered($q)
+    {
+        return $q->orderBy('order')->orderBy('age_from');
+    }
 
     /* Helpers */
     public function getAgeRangeAttribute(): string
@@ -62,19 +71,25 @@ class CustomerCategory extends Model
             ->where('is_active', true);
 
         foreach ($query->get() as $existing) {
-            if ($this->age_from >= $existing->age_from &&
-                ($existing->age_to === null || $this->age_from <= $existing->age_to)) {
+            if (
+                $this->age_from >= $existing->age_from &&
+                ($existing->age_to === null || $this->age_from <= $existing->age_to)
+            ) {
                 return false;
             }
             if ($this->age_to !== null) {
-                if ($this->age_to >= $existing->age_from &&
-                    ($existing->age_to === null || $this->age_to <= $existing->age_to)) {
+                if (
+                    $this->age_to >= $existing->age_from &&
+                    ($existing->age_to === null || $this->age_to <= $existing->age_to)
+                ) {
                     return false;
                 }
             }
-            if ($existing->age_to !== null &&
+            if (
+                $existing->age_to !== null &&
                 $this->age_from <= $existing->age_from &&
-                ($this->age_to === null || $this->age_to >= $existing->age_to)) {
+                ($this->age_to === null || $this->age_to >= $existing->age_to)
+            ) {
                 return false;
             }
         }
@@ -91,8 +106,12 @@ class CustomerCategory extends Model
     protected static function boot()
     {
         parent::boot();
-        static::saved(function () { Cache::forget('customer_categories_active'); });
-        static::deleted(function () { Cache::forget('customer_categories_active'); });
+        static::saved(function () {
+            Cache::forget('customer_categories_active');
+        });
+        static::deleted(function () {
+            Cache::forget('customer_categories_active');
+        });
     }
 
     public function tourPrices()
@@ -105,6 +124,16 @@ class CustomerCategory extends Model
         return $this->belongsToMany(Tour::class, 'tour_prices', 'category_id', 'tour_id')
             ->withPivot(['price', 'min_quantity', 'max_quantity', 'is_active'])
             ->withTimestamps();
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
+    }
+
+    public function scopeOlderThan($query, $days)
+    {
+        return $query->where('deleted_at', '<=', now()->subDays($days));
     }
 
     public function translations()
@@ -174,7 +203,7 @@ class CustomerCategory extends Model
         }
 
         return $this->slug
-            ? (string) Str::of($this->slug)->replace(['_','-'],' ')->title()
+            ? (string) Str::of($this->slug)->replace(['_', '-'], ' ')->title()
             : '';
     }
 
@@ -197,14 +226,15 @@ class CustomerCategory extends Model
         $slugs = array_values(array_unique(array_filter($slugs)));
 
         if (empty($ids) && empty($slugs)) {
-            return ['byId'=>[], 'bySlug'=>[]];
+            return ['byId' => [], 'bySlug' => []];
         }
 
         $q = static::query()->with('translations');
 
         if (!empty($ids))   $q->whereIn('category_id', $ids);
         if (!empty($slugs)) {
-            $q->when(!empty($ids),
+            $q->when(
+                !empty($ids),
                 fn($qq) => $qq->orWhereIn('slug', $slugs),
                 fn($qq) => $qq->whereIn('slug', $slugs)
             );

@@ -13,6 +13,10 @@ return [
         // Nuevas para index/listado
         'list_title'        => 'Listado de Categorías',
         'empty_list'        => 'No hay categorías registradas.',
+
+        'trash_title'       => 'Papelera de Categorías',
+        'trash_header'      => 'Papelera de Categorías',
+        'trash_empty'       => 'No hay categorías eliminadas',
     ],
 
     'buttons' => [

@@ -741,6 +741,11 @@ Route::middleware([SetLocale::class])->group(function () {
                         ->parameters(['customer_categories' => 'category']);
                     Route::post('customer_categories/{category}/toggle', [CustomerCategoryController::class, 'toggle'])
                         ->name('customer_categories.toggle');
+
+                    // Soft Delete Routes (Customer Categories)
+                    Route::get('customer_categories/trash/list', [CustomerCategoryController::class, 'trash'])->name('customer_categories.trash');
+                    Route::patch('customer_categories/{category}/restore', [CustomerCategoryController::class, 'restore'])->name('customer_categories.restore');
+                    Route::delete('customer_categories/{category}/force', [CustomerCategoryController::class, 'forceDelete'])->name('customer_categories.forceDelete');
                 });
 
                 // ============================

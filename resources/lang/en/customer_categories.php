@@ -13,6 +13,10 @@ return [
         // New for index/list
         'list_title'        => 'Category List',
         'empty_list'        => 'There are no categories registered.',
+
+        'trash_title'       => 'Categories Trash',
+        'trash_header'      => 'Categories Trash',
+        'trash_empty'       => 'No deleted categories',
     ],
 
     'buttons' => [
