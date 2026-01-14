@@ -785,8 +785,11 @@ Route::middleware([SetLocale::class])->group(function () {
                         ->name('update');
                     Route::patch('/{tour}/toggle', [TourController::class, 'toggle'])->name('toggle');
                     Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
-                    Route::post('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
-                    Route::delete('/{tour}/purge', [TourController::class, 'purge'])->name('purge');
+
+                    // Soft Delete Routes
+                    Route::get('/trash/list', [TourController::class, 'trash'])->name('trash');
+                    Route::patch('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
+                    Route::delete('/{tour}/force', [TourController::class, 'forceDelete'])->name('forceDelete');
 
                     // Extras moved from bottom group
                     Route::post('/{tour}/duplicate', [TourController::class, 'duplicate'])

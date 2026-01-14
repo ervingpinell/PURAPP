@@ -108,81 +108,37 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withSchedule(function (Schedule $schedule) {
 
-        // 1) Expirar carritos activos vencidos (cada 5 min)
-        $schedule->call(function () {
-            Cart::query()
-                ->where('is_active', true)
-                ->whereNotNull('expires_at')
-                ->where('expires_at', '<=', now())
-                ->orderBy('cart_id')
-                ->chunkById(500, function ($carts) {
-                    foreach ($carts as $cart) {
-                        $cart->forceExpire();
-                    }
-                });
-        })->everyFiveMinutes()->name('carts:expire-overdue')->withoutOverlapping();
+        // 1) Tareas frecuentes (cada 5 min) - Expira carritos vencidos
+        $schedule->command('app:check-frequent')
+            ->everyFiveMinutes()
+            ->name('app:check-frequent')
+            ->withoutOverlapping();
 
-        // 2) Purgar carritos inactivos antiguos (>7 días) (cada noche)
-        $schedule->call(function () {
-            $cutoff = now()->subDays(7);
+        // 2) Tareas Diarias (03:00 AM) - Carritos viejos, overrides, soft deletes
+        $schedule->command('app:daily-cleanup')
+            ->dailyAt('03:00')
+            ->name('app:daily-cleanup')
+            ->onOneServer()
+            ->withoutOverlapping();
 
-            Cart::query()
-                ->where('is_active', false)
-                ->whereNotNull('expires_at')
-                ->where('expires_at', '<=', $cutoff)
-                ->orderBy('cart_id')
-                ->chunkById(500, function ($carts) {
-                    foreach ($carts as $cart) {
-                        $cart->items()->delete();
-                        $cart->delete();
-                    }
-                });
-        })->dailyAt('02:30')->name('carts:prune-old')->onOneServer();
+        // 3) Tareas Semanales (Lunes 03:30 AM) - Items huérfanos
+        $schedule->command('app:weekly-cleanup')
+            ->weeklyOn(1, '03:30')
+            ->name('app:weekly-cleanup')
+            ->onOneServer();
 
-        // 3) Items huérfanos (semanal)
-        $schedule->call(function () {
-            CartItem::query()
-                ->whereDoesntHave('cart')
-                ->delete();
-        })->weeklyOn(1, '03:10')->name('cart_items:prune-orphans')->onOneServer();
+        // 4) Tareas Mensuales (Día 1 04:00 AM) - Auditoría logs
+        $schedule->command('app:monthly-cleanup')
+            ->monthlyOn(1, '04:00')
+            ->name('app:monthly-cleanup')
+            ->onOneServer();
 
-        // 4) Horizon snapshots (opcional)
+        // 5) Horizon snapshots (infra)
         if (class_exists(\Laravel\Horizon\Horizon::class)) {
             $schedule->command('horizon:snapshot')
                 ->everyFiveMinutes()
                 ->onOneServer()
                 ->name('horizon:snapshot');
         }
-
-        // 5) Purga de overrides de capacidad (anteriores a HOY)
-        $schedule->call(function () {
-            PurgeOldAvailabilityOverrides::dispatch([
-                'daysAgo'      => 0,
-                'onlyInactive' => false,
-                'keepBlocked'  => true,
-                'limit'        => 20000,
-                'chunk'        => 1000,
-                'dryRun'       => false,
-            ])->onQueue('maintenance');
-        })
-            ->dailyAt('02:40')
-            ->name('overrides:purge-old')
-            ->onOneServer()
-            ->withoutOverlapping();
-
-
-        // 6) Limpiar meeting points eliminados hace más de 30 días
-        $schedule->command('meetingpoints:cleanup --days=30')
-            ->dailyAt('03:00')
-            ->name('meetingpoints:cleanup')
-            ->onOneServer()
-            ->withoutOverlapping();
-
-        // 7) Limpiar logs de auditoría de tours (>365 días)
-        $schedule->command('tours:audit:cleanup --days=365')
-            ->monthlyOn(1, '03:30')
-            ->name('tours:audit:cleanup')
-            ->onOneServer()
-            ->withoutOverlapping();
     })
     ->create();

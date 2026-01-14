@@ -31,7 +31,31 @@
 </div>
 @endif
 
-{{-- Barra superior: filtros + acceso al carrito --}}
+{{-- Tabs: Activos / Papelera --}}
+<ul class="nav nav-tabs mb-3" role="tablist">
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {{ !request()->routeIs('admin.tours.trash') ? 'active' : '' }}"
+      href="{{ route('admin.tours.index') }}"
+      role="tab">
+      Activos
+    </a>
+  </li>
+  @can('restore-tours')
+  <li class="nav-item" role="presentation">
+    <a class="nav-link {{ request()->routeIs('admin.tours.trash') ? 'active' : '' }}"
+      href="{{ route('admin.tours.trash') }}"
+      role="tab">
+      Papelera
+      @if(isset($trashedCount) && $trashedCount > 0)
+      <span class="badge bg-danger ms-1">{{ $trashedCount }}</span>
+      @endif
+    </a>
+  </li>
+  @endcan
+</ul>
+
+{{-- Barra superior: filtros + acceso al carrito (solo en vista activos) --}}
+@if(!request()->routeIs('admin.tours.trash'))
 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
   <div class="btn-group" role="group" aria-label="{{ __('m_tours.tour.ui.filter_status') }}">
     <a href="{{ route('admin.tours.index', ['status' => 'active']) }}"
@@ -56,6 +80,7 @@
     <i class="fas fa-shopping-cart"></i> {{ __('m_tours.tour.ui.view_cart') }}
   </a>
 </div>
+@endif
 
 {{-- Tabla de tours --}}
 <div class="card">

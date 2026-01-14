@@ -44,9 +44,11 @@ class TourController extends Controller
     {
         $this->middleware(['can:view-tours'])->only(['index']);
         $this->middleware(['can:create-tours'])->only(['create', 'store']);
-        $this->middleware(['can:edit-tours'])->only(['edit', 'update', 'restore']);
+        $this->middleware(['can:edit-tours'])->only(['edit', 'update']);
         $this->middleware(['can:publish-tours'])->only(['toggle']);
-        $this->middleware(['can:delete-tours'])->only(['destroy', 'purge']);
+        $this->middleware(['can:delete-tours'])->only(['destroy']);
+        $this->middleware(['can:restore-tours'])->only(['trash', 'restore']);
+        $this->middleware(['can:force-delete-tours'])->only(['forceDelete']);
     }
 
     protected string $controller = 'TourController';
@@ -136,7 +138,7 @@ class TourController extends Controller
             'schedules',
             'hotels',
             'status'
-        ));
+        ))->with('trashedCount', Tour::onlyTrashed()->count());
     }
 
 
@@ -655,15 +657,20 @@ class TourController extends Controller
     public function destroy(Request $request, Tour $tour)
     {
         try {
+            // Guardar quién eliminó el tour
+            $tour->deleted_by = auth()->id();
+            $tour->save();
+
             $tour->delete();
 
             LoggerHelper::mutated($this->controller, 'destroy(soft)', 'tour', $tour->tour_id, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
+                'deleted_by' => auth()->id(),
             ]);
 
             return redirect()
-                ->route('admin.tours.index', ['status' => 'archived'])
-                ->with('success', 'Tour movido a Eliminados.');
+                ->route('admin.tours.index')
+                ->with('success', 'Tour eliminado correctamente.');
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy(soft)', 'tour', $tour->tour_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -674,12 +681,30 @@ class TourController extends Controller
     }
 
     /** =========================================================
+     *  TRASH (Vista de papelera)
+     *  ========================================================= */
+    public function trash()
+    {
+        $trashedTours = Tour::onlyTrashed()
+            ->with(['deletedBy', 'translations'])
+            ->orderBy('deleted_at', 'desc')
+            ->get();
+
+        return view('admin.tours.trash', compact('trashedTours'));
+    }
+
+    /** =========================================================
      *  RESTORE
      *  ========================================================= */
     public function restore(Request $request, $tourId)
     {
         try {
             $tour = Tour::withTrashed()->findOrFail($tourId);
+
+            // Limpiar deleted_by al restaurar
+            $tour->deleted_by = null;
+            $tour->save();
+
             $tour->restore();
 
             LoggerHelper::mutated($this->controller, 'restore', 'tour', $tour->tour_id, [
@@ -702,7 +727,10 @@ class TourController extends Controller
      *  PURGE (Force Delete)
      *  ========================================================= */
 
-    public function purge(Request $request, $tourId)
+    /** =========================================================
+     *  FORCE DELETE (Eliminación permanente)
+     *  ========================================================= */
+    public function forceDelete(Request $request, $tourId)
     {
         $userId = optional($request->user())->getAuthIdentifier();
 

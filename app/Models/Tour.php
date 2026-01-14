@@ -105,6 +105,7 @@ class Tour extends Model
         'created_by',
         'updated_by',
         'recommendations',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -310,6 +311,14 @@ class Tour extends Model
     {
         return $query->where('is_active', false)
             ->where('is_draft', false);
+    }
+
+    /**
+     * Tours eliminados hace más de X días
+     */
+    public function scopeOlderThan($query, int $days)
+    {
+        return $query->where('deleted_at', '<=', now()->subDays($days));
     }
 
     /* =====================
@@ -656,6 +665,14 @@ class Tour extends Model
     {
         return $this->hasOne(TourAuditLog::class, 'tour_id', 'tour_id')
             ->latest('created_at');
+    }
+
+    /**
+     * Usuario que eliminó el tour
+     */
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'user_id');
     }
 
     /* =====================
