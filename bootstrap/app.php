@@ -49,6 +49,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\NormalizeEmail::class,
             \App\Http\Middleware\LogContext::class,
             \App\Http\Middleware\RememberEmail::class,
+            \App\Http\Middleware\SecurityHeaders::class,  // 🔒 Security headers (CSP, HSTS)
+            \App\Http\Middleware\CacheControl::class,     // ⚡ HTTP cache headers
         ]);
 
         $middleware->appendToGroup('web', [

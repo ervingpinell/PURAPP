@@ -73,7 +73,7 @@ if ($len <= 0) return 1;
     {{-- Tarjeta del tipo (HOME) --}}
     <div class="tour-card" style="cursor:pointer"
       data-bs-toggle="modal" data-bs-target="#modal-{{ $slugKey }}">
-      <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $translatedTitle }}" loading="lazy">
+      <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $translatedTitle }}" loading="lazy" width="400" height="300">
       <div class="card-body d-flex flex-column h-100 p-3">
         <h5 class="card-title mb-2">{{ $translatedTitle }}</h5>
 
@@ -85,7 +85,7 @@ if ($len <= 0) return 1;
         <p class="card-text small mb-3 flex-grow-1">{!! nl2br(e($translatedDescription)) !!}</p>
         @endif
 
-        <a href="javascript:void(0)" class="btn btn-success w-100 btn-ver-tour mt-auto"
+        <a href="#tour-modal-{{ $slugKey }}" class="btn btn-success w-100 btn-ver-tour mt-auto"
           data-bs-toggle="modal" data-bs-target="#modal-{{ $slugKey }}">
           {{ __('adminlte::adminlte.see_tours') }}
         </a>
@@ -162,7 +162,7 @@ if ($len <= 0) return 1;
                     </div>
 
                     {{-- Imagen grande --}}
-                    <img src="{{ $tourCover }}" class="tour-image" alt="{{ $tour->getTranslatedName() }}" loading="lazy">
+                    <img src="{{ $tourCover }}" class="tour-image" alt="{{ $tour->getTranslatedName() }}" loading="lazy" width="400" height="300">
 
                     {{-- Título + Precio principal --}}
                     @php

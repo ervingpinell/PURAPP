@@ -158,6 +158,14 @@ $schemaOrg = [
     <meta name="keywords" content="{{ config('company.seo.meta_keywords') }}">
     <link rel="canonical" href="{{ url()->current() }}">
 
+    {{-- ⚡ Performance: Preconnect to external domains --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="//www.googletagmanager.com">
+    <link rel="dns-prefetch" href="//www.google-analytics.com">
+    <link rel="dns-prefetch" href="//connect.facebook.net">
+
     {{-- Alternate hreflangs --}}
     <link rel="alternate" hreflang="es" href="{{ $homeEs }}">
     <link rel="alternate" hreflang="en" href="{{ $homeEn }}">
@@ -353,8 +361,8 @@ $schemaOrg = [
     @if ($hasActiveCart)
     <script>
         (function() {
-            const expiresAtStr = @json($userCart -> expires_at);
-            const totalMinutes = @json($userCart -> expiryMinutes());
+            const expiresAtStr = @json($userCart - > expires_at);
+            const totalMinutes = @json($userCart - > expiryMinutes());
 
             if (!expiresAtStr) return;
 

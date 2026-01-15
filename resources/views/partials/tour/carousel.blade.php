@@ -140,6 +140,8 @@ while ($images->count() < 5) {
           data-open-lightbox
           data-index="{{ $i }}"
           role="button"
+          width="100"
+          height="75"
           alt="Miniatura {{ $i + 1 }}">
         @endforeach
       </div>
@@ -156,6 +158,8 @@ while ($images->count() < 5) {
               alt="{{ $tour->getTranslatedName() }} - {{ $i + 1 }}"
               data-open-lightbox
               data-index="{{ $i }}"
+              width="800"
+              height="600"
               loading="lazy">
           </div>
           @endforeach
