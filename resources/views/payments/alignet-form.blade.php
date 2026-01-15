@@ -169,7 +169,7 @@
     <script type="text/javascript" src="{{ $paymentData['vpos2_script'] ?? $paymentData['base_url'] . 'VPOS2/js/modalcomercio.js' }}"></script>
     <script>
         window.addEventListener('load', function() {
-            @if(config('app.debug') && !app() - > isProduction())
+            @if(config('app.debug') && !app() -> isProduction())
             console.log('Verificando Alignet VPOS2...');
             @endif
             const btnPay = document.getElementById('btn-pay');
