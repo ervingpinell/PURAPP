@@ -17,6 +17,11 @@ class SecurityHeaders
     {
         $response = $next($request);
 
+        // Skip security headers in local development
+        if (app()->environment('local')) {
+            return $response;
+        }
+
         // Content Security Policy
         $response->headers->set(
             'Content-Security-Policy',
@@ -25,8 +30,8 @@ class SecurityHeaders
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; " .
                 "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; " .
                 "img-src 'self' data: https: blob:; " .
-                "connect-src 'self' https://www.google-analytics.com https://www.facebook.com; " .
-                "frame-src 'self' https://www.google.com https://www.facebook.com; " .
+                "connect-src 'self' https://www.google-analytics.com https://www.facebook.com https://wa.me https://api.whatsapp.com; " .
+                "frame-src 'self' https://www.google.com https://www.facebook.com https://wa.me; " .
                 "object-src 'none'; " .
                 "base-uri 'self'; " .
                 "form-action 'self';"
