@@ -366,8 +366,8 @@ $schemaOrg = [
     @if ($hasActiveCart)
     <script>
         (function() {
-            const expiresAtStr = @json($userCart -> expires_at);
-            const totalMinutes = @json($userCart -> expiryMinutes());
+            const expiresAtStr = @json($userCart - > expires_at);
+            const totalMinutes = @json($userCart - > expiryMinutes());
 
             if (!expiresAtStr) return;
 
@@ -380,6 +380,9 @@ $schemaOrg = [
                 getExpiresAt: () => new Date(serverExpires),
                 isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
             };
+
+            // Emit event so widgets know cartCountdown is ready
+            window.dispatchEvent(new CustomEvent('cartCountdown:ready'));
         })();
     </script>
     @endif
@@ -418,6 +421,9 @@ $schemaOrg = [
                 getExpiresAt: () => new Date(expires),
                 isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
             };
+
+            // Emit event so widgets know cartCountdown is ready
+            window.dispatchEvent(new CustomEvent('cartCountdown:ready'));
 
             let hasReloaded = false;
             const expireUrl = '{{ route("public.guest-carts.expire") }}';

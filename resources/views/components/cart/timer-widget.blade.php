@@ -173,8 +173,6 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
       const updateWidget = () => {
         const remaining = window.cartCountdown.getRemainingSeconds();
 
-        console.log('Cart timer widget - remaining seconds:', remaining);
-
         if (remaining <= 0) {
           // Don't hide immediately, show expired state
           timerFull.textContent = '0:00';
@@ -207,14 +205,21 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 
     // Intentar inicializar inmediatamente
     if (!initWidget()) {
-      // Si no está disponible, reintentar cada 100ms hasta 5 segundos
+      // Listen for cartCountdown:ready event
+      window.addEventListener('cartCountdown:ready', () => {
+        initWidget();
+      }, {
+        once: true
+      });
+
+      // Fallback: reintentar cada 100ms hasta 5 segundos (por si el evento ya pasó)
       let attempts = 0;
       const maxAttempts = 50; // 5 segundos
       const retryInterval = setInterval(() => {
         attempts++;
         if (initWidget() || attempts >= maxAttempts) {
           clearInterval(retryInterval);
-          if (attempts >= maxAttempts) {
+          if (attempts >= maxAttempts && !window.cartCountdown) {
             console.warn('Cart countdown system not found after 5 seconds');
             widget.style.display = 'none';
           }
