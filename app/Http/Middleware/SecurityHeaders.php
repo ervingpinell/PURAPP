@@ -26,11 +26,11 @@ class SecurityHeaders
         $response->headers->set(
             'Content-Security-Policy',
             "default-src 'self'; " .
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net; " .
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; " .
-                "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; " .
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net; " .
+                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; " .
+                "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; " .
                 "img-src 'self' data: https: blob:; " .
-                "connect-src 'self' https://www.google-analytics.com https://www.facebook.com https://wa.me https://api.whatsapp.com; " .
+                "connect-src 'self' https://cdn.jsdelivr.net https://www.google-analytics.com https://www.facebook.com https://wa.me https://api.whatsapp.com; " .
                 "frame-src 'self' https://www.google.com https://www.facebook.com https://wa.me; " .
                 "object-src 'none'; " .
                 "base-uri 'self'; " .

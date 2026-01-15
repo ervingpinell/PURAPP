@@ -23,16 +23,22 @@ class CacheControl
             $response->header('Expires', gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
         }
 
-        // Cache storage files (images, etc.) for 1 week
+        // Cache storage files (images, etc.) for 1 year
         if ($request->is('storage/*')) {
-            $response->header('Cache-Control', 'public, max-age=604800');
-            $response->header('Expires', gmdate('D, d M Y H:i:s', time() + 604800) . ' GMT');
+            $response->header('Cache-Control', 'public, max-age=31536000, immutable');
+            $response->header('Expires', gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
         }
 
-        // Cache images for 1 week
+        // Cache images for 1 year
         if (preg_match('/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i', $request->path())) {
-            $response->header('Cache-Control', 'public, max-age=604800');
-            $response->header('Expires', gmdate('D, d M Y H:i:s', time() + 604800) . ' GMT');
+            $response->header('Cache-Control', 'public, max-age=31536000, immutable');
+            $response->header('Expires', gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
+        }
+
+        // Cache fonts for 1 year
+        if (preg_match('/\.(woff|woff2|ttf|eot|otf)$/i', $request->path())) {
+            $response->header('Cache-Control', 'public, max-age=31536000, immutable');
+            $response->header('Expires', gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
         }
 
         // Cache CSS/JS for 1 day

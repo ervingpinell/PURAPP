@@ -115,14 +115,12 @@ class TourTypeCoverPickerController extends Controller
             Storage::disk('public')->delete($f);
         }
 
-        // Guardar nuevo
-        $ext      = strtolower($request->file('cover')->getClientOriginalExtension());
-        $filename = 'cover-' . now()->format('YmdHis') . '.' . $ext;
+        // Optimizar y guardar imagen con WebP
+        $imageService = app(\App\Services\ImageOptimizationService::class);
+        $paths = $imageService->optimizeAndSave($request->file('cover'), $dir);
 
-        Storage::disk('public')->putFileAs($dir, $request->file('cover'), $filename);
-
-        // Persistir ruta relativa
-        $tourType->update(['cover_path' => $dir . '/' . $filename]);
+        // Persistir ruta relativa (usamos la versión original, WebP se sirve automáticamente con <picture>)
+        $tourType->update(['cover_path' => $paths['original']]);
 
         \App\Services\LoggerHelper::mutated(
             'TourTypeCoverPickerController',
@@ -130,7 +128,8 @@ class TourTypeCoverPickerController extends Controller
             'tour_type',
             $tourType->tour_type_id,
             [
-                'cover_path' => $dir . '/' . $filename,
+                'cover_path' => $paths['original'],
+                'webp_path' => $paths['webp'],
                 'user_id'    => optional($request->user())->getAuthIdentifier(),
             ]
         );
@@ -138,7 +137,7 @@ class TourTypeCoverPickerController extends Controller
         return back()->with('swal', [
             'icon'  => 'success',
             'title' => 'Cover actualizado',
-            'text'  => 'La imagen de portada de la categoría se guardó correctamente.',
+            'text'  => 'La imagen de portada de la categoría se guardó y optimizó correctamente.',
         ]);
     }
 }

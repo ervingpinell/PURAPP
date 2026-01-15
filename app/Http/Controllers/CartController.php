@@ -674,7 +674,11 @@ class CartController extends Controller
             ]);
         }
 
-        $cart = $this->activeCartOf($request->user());
+        // Optimized: Only select necessary columns and use count() instead of loading all items
+        $cart = Cart::where('user_id', $request->user()->id)
+            ->where('is_active', true)
+            ->latest('cart_id')
+            ->first(['cart_id', 'expires_at', 'is_active']);
 
         if (!$cart) {
             return response()->json([
@@ -683,7 +687,8 @@ class CartController extends Controller
             ]);
         }
 
-        if (!$cart->items()->count()) {
+        // Check expiration without loading items
+        if ($cart->isExpired()) {
             $cart->forceExpire();
             return response()->json([
                 'count' => 0,
@@ -691,8 +696,13 @@ class CartController extends Controller
             ]);
         }
 
-        if ($cart->isExpired()) {
-            $this->expireCart($cart);
+        // Use count() query instead of loading all items
+        $itemCount = CartItem::where('cart_id', $cart->cart_id)
+            ->where('is_active', true)
+            ->count();
+
+        if ($itemCount === 0) {
+            $cart->forceExpire();
             return response()->json([
                 'count' => 0,
                 'expired' => true,
@@ -700,7 +710,7 @@ class CartController extends Controller
         }
 
         return response()->json([
-            'count' => (int) $cart->items()->where('is_active', true)->count(),
+            'count' => $itemCount,
             'expired' => false,
             'remaining' => $cart->remainingSeconds(),
         ]);

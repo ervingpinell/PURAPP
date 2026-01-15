@@ -73,7 +73,13 @@ if ($len <= 0) return 1;
     {{-- Tarjeta del tipo (HOME) --}}
     <div class="tour-card" style="cursor:pointer"
       data-bs-toggle="modal" data-bs-target="#modal-{{ $slugKey }}">
+      @if($loop->first)
+      {{-- Primera imagen: sin lazy, con high priority para LCP --}}
+      <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $translatedTitle }}" fetchpriority="high" width="400" height="300">
+      @else
+      {{-- Resto de imágenes: lazy loading --}}
       <img src="{{ $firstCover }}" class="card-img-top" alt="{{ $translatedTitle }}" loading="lazy" width="400" height="300">
+      @endif
       <div class="card-body d-flex flex-column h-100 p-3">
         <h5 class="card-title mb-2">{{ $translatedTitle }}</h5>
 
