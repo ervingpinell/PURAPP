@@ -1,7 +1,7 @@
 {{-- resources/views/layouts/app.blade.php --}}
 <!DOCTYPE html>
 @php
-use Illuminate\Support\Facades\Route as RouteFacade;
+use Illuminate\Support\Facades\Route;
 
 $appLocale = str_replace('_', '-', app()->getLocale() ?? 'es');
 $ASSET_ROOT = rtrim(asset(''), '/');
@@ -30,27 +30,46 @@ $pixelId = config('services.meta.pixel_id');
 $themeColor = $__env->yieldContent('theme_color') ?: '#0f2419';
 $isHome = request()->routeIs('home');
 
-// Safe localized routes with fallbacks
-$homeEs = (function_exists('localized_route') && RouteFacade::has('home'))
-? localized_route('home', 'es')
-: url('/');
-$homeEn = (function_exists('localized_route') && RouteFacade::has('home'))
-? localized_route('home', 'en')
-: url('/en');
-$homeFr = (function_exists('localized_route') && RouteFacade::has('home'))
-? localized_route('home', 'fr')
-: url('/fr');
-$homeDe = (function_exists('localized_route') && RouteFacade::has('home'))
-? localized_route('home', 'de')
-: url('/de');
-$homePt = (function_exists('localized_route') && RouteFacade::has('home'))
-? localized_route('home', 'pt_BR')
-: url('/pt');
+// 1. Default Fallbacks (Homepage)
+$homeEs = (function_exists('localized_route') && Route::has('home')) ? localized_route('home', 'es') : url('/');
+$homeEn = (function_exists('localized_route') && Route::has('home')) ? localized_route('home', 'en') : url('/en');
+$homeFr = (function_exists('localized_route') && Route::has('home')) ? localized_route('home', 'fr') : url('/fr');
+$homeDe = (function_exists('localized_route') && Route::has('home')) ? localized_route('home', 'de') : url('/de');
+$homePt = (function_exists('localized_route') && Route::has('home')) ? localized_route('home', 'pt_BR') : url('/pt');
+
+// 2. Dynamic Override (Current Page)
+try {
+$currentRoute = Route::current();
+$currentRouteName = $currentRoute ? $currentRoute->getName() : null;
+$currentRouteParams = $currentRoute ? $currentRoute->parameters() : [];
+
+if (function_exists('localized_route') && $currentRouteName) {
+$segments = explode('.', $currentRouteName);
+$first = $segments[0] ?? '';
+$knownPrefixes = ['es', 'en', 'fr', 'de', 'pt'];
+$baseName = $currentRouteName;
+
+if (in_array($first, $knownPrefixes)) {
+array_shift($segments);
+$baseName = implode('.', $segments);
+}
+
+if (Route::has('es.' . $baseName)) {
+$homeEs = localized_route($baseName, $currentRouteParams, 'es');
+$homeEn = localized_route($baseName, $currentRouteParams, 'en');
+$homeFr = localized_route($baseName, $currentRouteParams, 'fr');
+$homeDe = localized_route($baseName, $currentRouteParams, 'de');
+$homePt = localized_route($baseName, $currentRouteParams, 'pt_BR');
+}
+}
+} catch (\Throwable $e) {
+// Silent failure: keep defaults
+}
 
 // Cart count route with safe fallback
-if (RouteFacade::has('cart.count')) {
+if (Route::has('cart.count')) {
 $cartCountUrl = route('cart.count');
-} elseif (RouteFacade::has('cart.count.public')) {
+} elseif (Route::has('cart.count.public')) {
 $cartCountUrl = route('cart.count.public');
 } else {
 $cartCountUrl = url('/cart/count');
@@ -362,14 +381,18 @@ $schemaOrg = [
     // Calculate home URL outside of script
     $currentLocale = app()->getLocale();
     $homeRoute = $currentLocale . '.home';
-    $guestHomeUrl = RouteFacade::has($homeRoute) ? route($homeRoute) : url('/');
+    $guestHomeUrl = Route::has($homeRoute) ? route($homeRoute) : url('/');
     @endphp
 
     @if ($hasGuestCart)
     <script>
         (function() {
             const createdAt = @json($guestCartCreated);
-            const expiryMinutes = {{ App\Models\Setting::getValue('cart.expiration_minutes', 30) }};
+            const expiryMinutes = {
+                {
+                    App\ Models\ Setting::getValue('cart.expiration_minutes', 30)
+                }
+            };
             if (!createdAt) return;
 
             const created = new Date(createdAt).getTime();
