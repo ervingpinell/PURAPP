@@ -88,6 +88,18 @@ h6{ font-size: var(--fs-xs); line-height: var(--lh-tight); font-weight:700; marg
   border-color: var(--primary-dark) !important;
 }
 
+/* Custom cart view button - complementary teal color */
+.btn-cart-view {
+  background-color: #0d6e6e;
+  border-color: #0d6e6e;
+  color: #fff;
+}
+.btn-cart-view:hover, .btn-cart-view:focus, .btn-cart-view:active {
+  background-color: #0a5252 !important;
+  border-color: #0a5252 !important;
+  color: #fff !important;
+}
+
 .btn, .btn-sm, .btn-lg{ line-height: 1.1; }
 .btn{ font-size: var(--fs-sm); }
 @media (min-width: 992px){

@@ -250,7 +250,7 @@ return asset('images/volcano.png');
       </div>
 
       <div class="mini-cart-actions">
-        <a class="btn btn-success btn-sm w-100 mb-2" href="{{ route('public.carts.index') }}">
+        <a class="btn btn-cart-view btn-sm w-100 mb-2 rounded" href="{{ route('public.carts.index') }}">
           {{ __('adminlte::adminlte.view_cart') }}
         </a>
 
@@ -395,7 +395,7 @@ return asset('images/volcano.png');
       </div>
 
       <div class="mini-cart-actions">
-        <a class="btn btn-success btn-sm w-100 mb-2" href="{{ route('public.carts.index') }}">
+        <a class="btn btn-cart-view btn-sm w-100 mb-2 rounded" href="{{ route('public.carts.index') }}">
           {{ __('adminlte::adminlte.view_cart') }}
         </a>
 
