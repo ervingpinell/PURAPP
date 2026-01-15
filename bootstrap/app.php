@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/reviews/batch',
             'api/apply-promo',
             'webhooks/payment/alignet', // Alignet payment gateway callback
+            'payment/return', // Alignet/PayPal return URL (POST/GET)
         ]);
 
         $middleware->alias([
@@ -58,7 +59,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\PublicReadOnly::class,
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\PreventCartCaching::class,
-            \App\Http\Middleware\ContentSecurityPolicy::class, // CSP for Alignet
+            // CSP is handled by SecurityHeaders middleware globally
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

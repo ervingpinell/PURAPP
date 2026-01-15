@@ -20,6 +20,7 @@ class AlignetCorsMiddleware
             'https://integracion.alignetsac.com',
             'https://test2.alignetsac.com',
             'https://vpos2.alignet.com', // Producción (por si acaso)
+            'https://vpayment.verifika.com', // Producción Verifika
         ];
 
         $origin = $request->header('Origin');

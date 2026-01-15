@@ -476,7 +476,7 @@ Route::middleware([SetLocale::class])->group(function () {
     // ------------------------------
     Route::get('/payment', [\App\Http\Controllers\PaymentController::class, 'show'])->name('payment.show');
     Route::get('/payment/confirm', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.confirm');
-    Route::get('/payment/return', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.return'); // PayPal return URL
+    Route::match(['get', 'post'], '/payment/return', [\App\Http\Controllers\PaymentController::class, 'confirm'])->name('payment.return'); // PayPal/Alignet return URL
     Route::get('/payment/return/restore/{token}', [\App\Http\Controllers\PaymentController::class, 'restoreSession'])
         ->middleware('throttle:10,1') // Max 10 attempts per minute per IP
         ->name('payment.return.restore'); // Alignet session restoration
