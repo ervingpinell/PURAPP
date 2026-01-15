@@ -219,11 +219,11 @@
                         <div class="row">
                             <div class="col-12 mb-3">
                                 <label for="meeting_point_id">{{ __('m_bookings.bookings.fields.meeting_point') }}</label>
-                                <select name="meeting_point_id" id="meeting_point_id" class="form-control">
+                                <select name="meeting_point_id" id="meeting_point_id" class="form-control text-dark">
                                     <option value="">-- {{ __('m_bookings.bookings.ui.select_meeting_point') }} --</option>
                                     @foreach($meetingPoints as $mp)
                                     <option value="{{ $mp->meeting_point_id }}" {{ old('meeting_point_id') == $mp->meeting_point_id ? 'selected' : '' }}>
-                                        {{ $mp->name }}
+                                        {{ $mp->getTranslated('name') }}
                                     </option>
                                     @endforeach
                                 </select>

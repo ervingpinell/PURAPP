@@ -50,6 +50,7 @@ class PermissionsSeeder extends Seeder
             'create-users' => 'Crear usuarios',
             'edit-users' => 'Editar usuarios',
             'delete-users' => 'Eliminar usuarios',
+            'force-delete-users' => 'Eliminar usuarios permanentemente',
 
             // Roles (solo super admin y admin)
             'view-roles' => 'Ver roles',
@@ -286,6 +287,7 @@ class PermissionsSeeder extends Seeder
             'create-users',
             'edit-users',
             'delete-users',
+            'force-delete-users',
             // Roles (solo ver y asignar, no crear/editar/eliminar)
             'view-roles',
             'publish-roles',

@@ -80,7 +80,8 @@ class UserRegisterController extends Controller
     {
         try {
             $request->validate([
-                'full_name'    => ['required', 'string', 'max:100'],
+                'first_name'   => ['required', 'string', 'max:50'],
+                'last_name'    => ['required', 'string', 'max:50'],
                 'email'        => ['required', 'string', 'email', 'max:200', 'unique:users,email'],
                 'password'     => ['required', 'string', 'min:8', 'confirmed'],
                 'role_id'      => ['required', 'exists:roles,id'],
@@ -119,13 +120,9 @@ class UserRegisterController extends Controller
                     : $phoneDigits;
             }
 
-            $parts = explode(' ', trim($request->full_name), 2);
-            $firstName = $parts[0];
-            $lastName  = $parts[1] ?? '';
-
             $user = User::create([
-                'first_name'   => $firstName,
-                'last_name'    => $lastName,
+                'first_name'   => trim($request->first_name),
+                'last_name'    => trim($request->last_name),
                 'email'        => mb_strtolower(trim($request->email)),
                 'password'     => Hash::make($request->password),
                 'status'       => true,
@@ -183,7 +180,8 @@ class UserRegisterController extends Controller
         }
 
         $request->validate([
-            'full_name'    => ['required', 'string', 'max:100'],
+            'first_name'   => ['required', 'string', 'max:50'],
+            'last_name'    => ['required', 'string', 'max:50'],
             'email'        => ['required', 'string', 'email', 'max:200', 'unique:users,email,' . $id . ',user_id'],
             'password'     => [
                 'nullable',
@@ -211,9 +209,8 @@ class UserRegisterController extends Controller
             }
         }
 
-        $parts = explode(' ', trim($request->full_name), 2);
-        $user->first_name = $parts[0];
-        $user->last_name  = $parts[1] ?? '';
+        $user->first_name = trim($request->first_name);
+        $user->last_name  = trim($request->last_name);
         $user->email      = mb_strtolower(trim($request->email));
 
         // Usar Spatie para asignar rol en lugar de role_id
@@ -255,24 +252,32 @@ class UserRegisterController extends Controller
     }
 
     /**
-     * Activa/Inactiva usuario (toggle).
+     * Soft delete usuario.
      */
     public function destroy($id)
     {
+        $this->authorize('delete-users');
+
         $user = User::findOrFail($id);
-        $user->status = ! (bool) $user->status;
-        $user->save();
 
-        LoggerHelper::mutated('UserRegisterController', 'destroy', 'User', $user->user_id, ['status' => $user->status]);
+        // Prevent self-deletion
+        if (auth()->id() == $user->user_id) {
+            return back()->with('error', 'No puedes eliminar tu propia cuenta.');
+        }
 
-        $mensaje = $user->status
-            ? ['tipo' => 'activado',     'texto' => __('adminlte::adminlte.user_reactivated_successfully')]
-            : ['tipo' => 'desactivado',  'texto' => __('adminlte::adminlte.user_deactivated_successfully')];
+        // Prevent deleting super-admin
+        if ($user->hasRole('super-admin')) {
+            return back()->with('error', 'No se puede eliminar un Super Admin.');
+        }
+
+        $user->delete(); // Soft delete
+
+        LoggerHelper::mutated('UserRegisterController', 'destroy', 'User', $user->user_id);
 
         return redirect()
             ->route('admin.users.index')
-            ->with('alert_type', $mensaje['tipo'])
-            ->with('success', $mensaje['texto']);
+            ->with('alert_type', 'eliminado')
+            ->with('success', 'Usuario eliminado exitosamente.');
     }
 
     /**
@@ -340,5 +345,59 @@ class UserRegisterController extends Controller
         LoggerHelper::mutated('UserRegisterController', 'disable2FA', 'User', $user->user_id);
 
         return back()->with('success', '2FA desactivado exitosamente para ' . $user->full_name);
+    }
+
+    /**
+     * Ver usuarios eliminados (soft deleted).
+     */
+    public function trashed()
+    {
+        $this->authorize('force-delete-users');
+
+        $users = User::onlyTrashed()->get();
+        $roles = \Spatie\Permission\Models\Role::all();
+
+        return view('admin.users.trashed', compact('users', 'roles'));
+    }
+
+    /**
+     * Restaurar usuario eliminado.
+     */
+    public function restore($id)
+    {
+        $this->authorize('force-delete-users');
+
+        $user = User::withTrashed()->findOrFail($id);
+        $user->restore();
+
+        LoggerHelper::mutated('UserRegisterController', 'restore', 'User', $user->user_id);
+
+        return redirect()
+            ->route('admin.users.trashed')
+            ->with('success', 'Usuario restaurado exitosamente.');
+    }
+
+    /**
+     * Eliminar usuario permanentemente (hard delete).
+     */
+    public function forceDelete($id)
+    {
+        $this->authorize('force-delete-users');
+
+        $user = User::withTrashed()->findOrFail($id);
+
+        // Prevent force deleting super-admin
+        if ($user->hasRole('super-admin')) {
+            return back()->with('error', 'No se puede eliminar permanentemente un Super Admin.');
+        }
+
+        $userName = $user->full_name;
+        $user->forceDelete();
+
+        LoggerHelper::mutated('UserRegisterController', 'forceDelete', 'User', $id);
+
+        return redirect()
+            ->route('admin.users.trashed')
+            ->with('success', "Usuario {$userName} eliminado permanentemente.");
     }
 }

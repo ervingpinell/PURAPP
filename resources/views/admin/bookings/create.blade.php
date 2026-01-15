@@ -152,7 +152,7 @@
                                         <option value="">-- {{ __('m_bookings.bookings.ui.select_option') }} --</option>
                                         @foreach($meetingPoints as $mp)
                                         <option value="{{ $mp->id }}" {{ old('meeting_point_id') == $mp->id ? 'selected' : '' }}>
-                                            {{ $mp->name }}
+                                            {{ $mp->getTranslated('name') }}
                                         </option>
                                         @endforeach
                                     </select>
@@ -292,7 +292,7 @@
 @section('js')
 <script>
     // Locale actual para elegir traducciones correctas
-    window.APP_LOCALE = @json(app()->getLocale());
+    window.APP_LOCALE = @json(app() - > getLocale());
     window.BOOKING_LIMITS = @json($bookingLimits ?? []);
     window.TOURS_DATA = @json($toursData ?? []);
 

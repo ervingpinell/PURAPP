@@ -5,11 +5,18 @@
 @section('content_header')
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
   <h1 class="mb-0">Gestión de Usuarios</h1>
-  @can('create-users')
-  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
-    <i class="fas fa-plus me-1"></i> Añadir Usuario
-  </button>
-  @endcan
+  <div class="d-flex gap-2">
+    @can('create-users')
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+      <i class="fas fa-plus me-1"></i> Añadir Usuario
+    </button>
+    @endcan
+    @can('force-delete-users')
+    <a href="{{ route('admin.users.trashed') }}" class="btn btn-warning">
+      <i class="fas fa-trash-restore me-1"></i> Ver Eliminados
+    </a>
+    @endcan
+  </div>
 </div>
 @stop
 
@@ -129,12 +136,11 @@
                 </button>
                 @endcan
                 @can('delete-users')
-                <button type="button" class="btn {{ $user->status ? 'btn-danger' : 'btn-success' }} toggle-status-btn"
+                <button type="button" class="btn btn-danger delete-user-btn"
                   data-url="{{ route('admin.users.destroy', $user->user_id) }}"
-                  data-status="{{ $user->status }}"
                   data-name="{{ $user->full_name }}"
-                  title="{{ $user->status ? 'Desactivar' : 'Activar' }}">
-                  <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }}"></i>
+                  title="Eliminar">
+                  <i class="fas fa-trash"></i>
                 </button>
                 @endcan
                 @can('edit-users')
@@ -209,12 +215,10 @@
           <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalEditarMobile{{ $user->user_id }}">
             <i class="fas fa-edit me-1"></i>Editar
           </button>
-          <button type="button" class="btn btn-sm {{ $user->status ? 'btn-danger' : 'btn-success' }} toggle-status-btn"
+          <button type="button" class="btn btn-sm btn-danger delete-user-btn"
             data-url="{{ route('admin.users.destroy', $user->user_id) }}"
-            data-status="{{ $user->status }}"
             data-name="{{ $user->full_name }}">
-            <i class="fas {{ $user->status ? 'fa-user-slash' : 'fa-user-check' }} me-1"></i>
-            {{ $user->status ? 'Desactivar' : 'Activar' }}
+            <i class="fas fa-trash me-1"></i>Eliminar
           </button>
           <button type="button" class="btn btn-sm {{ $user->is_locked ? 'btn-secondary' : 'btn-warning' }} toggle-lock-btn"
             data-url="{{ $user->is_locked ? route('admin.users.unlock', $user->user_id) : route('admin.users.lock', $user->user_id) }}"
@@ -256,9 +260,15 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Nombre completo <span class="text-danger">*</span></label>
-            <input type="text" name="full_name" class="form-control" required value="{{ old('full_name') }}">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nombre <span class="text-danger">*</span></label>
+              <input type="text" name="first_name" class="form-control" required value="{{ old('first_name') }}">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Apellido <span class="text-danger">*</span></label>
+              <input type="text" name="last_name" class="form-control" required value="{{ old('last_name') }}">
+            </div>
           </div>
           <div class="mb-3">
             <label class="form-label">Email <span class="text-danger">*</span></label>
@@ -326,9 +336,15 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Nombre completo</label>
-            <input type="text" name="full_name" class="form-control" value="{{ $user->full_name }}" required>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nombre</label>
+              <input type="text" name="first_name" class="form-control" value="{{ $user->first_name }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Apellido</label>
+              <input type="text" name="last_name" class="form-control" value="{{ $user->last_name }}" required>
+            </div>
           </div>
           <div class="mb-3">
             <label class="form-label">Email</label>
@@ -399,9 +415,15 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Nombre completo</label>
-            <input type="text" name="full_name" class="form-control" value="{{ $user->full_name }}" required>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Nombre</label>
+              <input type="text" name="first_name" class="form-control" value="{{ $user->first_name }}" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">Apellido</label>
+              <input type="text" name="last_name" class="form-control" value="{{ $user->last_name }}" required>
+            </div>
           </div>
           <div class="mb-3">
             <label class="form-label">Email</label>
@@ -523,21 +545,18 @@
       icon.classList.toggle('fa-eye-slash');
     });
 
-    // Des/activar
-    document.querySelectorAll('.toggle-status-btn').forEach(btn => {
+    // Eliminar usuario (soft delete)
+    document.querySelectorAll('.delete-user-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const url = this.dataset.url;
-        const status = this.dataset.status === '1';
         const name = this.dataset.name;
-        confirm(
-          status ? '¿Desactivar usuario?' : '¿Activar usuario?',
-          `${name} será ${status ? 'desactivado' : 'activado'}`
-        ).then(r => {
-          if (r.isConfirmed) {
-            document.getElementById('statusForm').action = url;
-            document.getElementById('statusForm').submit();
-          }
-        });
+        confirm('¿Eliminar usuario?', `${name} será eliminado. Podrá ser restaurado desde la papelera.`)
+          .then(r => {
+            if (r.isConfirmed) {
+              document.getElementById('deleteForm').action = url;
+              document.getElementById('deleteForm').submit();
+            }
+          });
       });
     });
 

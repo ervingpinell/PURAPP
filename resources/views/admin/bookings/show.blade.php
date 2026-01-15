@@ -590,7 +590,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
 
                             {{-- Meeting Point Selection --}}
                             <div id="meeting_section" class="mt-3" style="display: {{ $booking->detail?->meeting_point_id ? 'block' : 'none' }};">
-                                <select name="meeting_point_id" class="form-control">
+                                <select name="meeting_point_id" class="form-control text-dark">
                                     <option value="">{{ __('m_bookings.bookings.placeholders.select_point') }}</option>
                                     @php
                                     $meetingPoints = \App\Models\MeetingPoint::where('is_active', true)

@@ -18,30 +18,30 @@ $rawCategories = $booking->detail?->categories ?? null;
 
 // Convertir a array si es necesario
 $categoriesSnapshot = match(true) {
-    is_array($rawCategories) => $rawCategories,
-    is_string($rawCategories) => json_decode($rawCategories, true) ?? null,
-    default => null
+is_array($rawCategories) => $rawCategories,
+is_string($rawCategories) => json_decode($rawCategories, true) ?? null,
+default => null
 };
 
 // Procesar solo si es array válido
 if (is_array($categoriesSnapshot) && !empty($categoriesSnapshot)) {
-    $isIndexed = isset($categoriesSnapshot[0]);
+$isIndexed = isset($categoriesSnapshot[0]);
 
-    foreach ($categoriesSnapshot as $key => $item) {
-        if ($isIndexed) {
-            // Array [0 => ['category_id' => 1, ...], ...]
-            $cid = (string)($item['category_id'] ?? $item['id'] ?? '');
-            $qty = (int)($item['quantity'] ?? 0);
-        } else {
-            // Array ['1' => ['quantity' => 2, ...], ...]
-            $cid = (string)$key;
-            $qty = (int)($item['quantity'] ?? 0);
-        }
+foreach ($categoriesSnapshot as $key => $item) {
+if ($isIndexed) {
+// Array [0 => ['category_id' => 1, ...], ...]
+$cid = (string)($item['category_id'] ?? $item['id'] ?? '');
+$qty = (int)($item['quantity'] ?? 0);
+} else {
+// Array ['1' => ['quantity' => 2, ...], ...]
+$cid = (string)$key;
+$qty = (int)($item['quantity'] ?? 0);
+}
 
-        if ($cid !== '' && $qty > 0) {
-            $categoryQuantitiesById[$cid] = $qty;
-        }
-    }
+if ($cid !== '' && $qty > 0) {
+$categoryQuantitiesById[$cid] = $qty;
+}
+}
 }
 
 // Bootstrap promo para JS
@@ -277,12 +277,12 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
                         <div class="col-12 col-md-6">
                             <div class="form-group">
                                 <label for="meeting_point_id">{{ __('m_bookings.bookings.fields.meeting_point') }}</label>
-                                <select name="meeting_point_id" id="meeting_point_id" class="form-control">
+                                <select name="meeting_point_id" id="meeting_point_id" class="form-control text-dark">
                                     <option value="">-- {{ __('m_bookings.bookings.ui.select_option') }} --</option>
                                     @foreach($meetingPoints as $mp)
                                     <option value="{{ $mp->id }}"
                                         {{ old('meeting_point_id', optional($booking->detail)->meeting_point_id) == $mp->id ? 'selected' : '' }}>
-                                        {{ $mp->name }}
+                                        {{ $mp->getTranslated('name') }}
                                     </option>
                                     @endforeach
                                 </select>
@@ -406,7 +406,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
 <script>
     $(function() {
         const fmtMoney = n => '$' + (Number(n || 0)).toFixed(2);
-        const locale = @json(app()->getLocale());
+        const locale = @json(app() - > getLocale());
         const initQtys = @json($categoryQuantitiesById ?? []);
 
         const $tourSelect = $('#tour_id');
@@ -423,10 +423,22 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         const LABEL_REMOVE = @json(__('m_bookings.bookings.buttons.remove_promo'));
 
         // Bootstrap promo desde backend
-        let promoValue = {{ $promoBootstrapValue ?: 0 }};
-        let promoType = {!! json_encode($promoBootstrapType) !!}; // "percentage" | "fixed" | null
-        let promoOperation = {!! json_encode($promoBootstrapOperation) !!}; // "add" | "subtract"
-        let promoActive = {{ ($promoBootstrapValue > 0 && $promoBootstrapType) ? 'true' : 'false' }};
+        let promoValue = {
+            {
+                $promoBootstrapValue ? : 0
+            }
+        };
+        let promoType = {
+            !!json_encode($promoBootstrapType) !!
+        }; // "percentage" | "fixed" | null
+        let promoOperation = {
+            !!json_encode($promoBootstrapOperation) !!
+        }; // "add" | "subtract"
+        let promoActive = {
+            {
+                ($promoBootstrapValue > 0 && $promoBootstrapType) ? 'true' : 'false'
+            }
+        };
 
         if (promoActive) {
             $promoBtn
@@ -447,7 +459,8 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
 
             // Horarios
             $scheduleSelect.empty().append(
-                '<option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>'
+                '<option value="">{{ __('
+                m_bookings.bookings.ui.select_tour_first ') }}</option>'
             );
             if (tourData.schedules && tourData.schedules.length > 0) {
                 tourData.schedules.forEach(s => {
@@ -461,7 +474,8 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
 
             // Idiomas
             $languageSelect.empty().append(
-                '<option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>'
+                '<option value="">{{ __('
+                m_bookings.bookings.ui.select_tour_first ') }}</option>'
             );
             if (tourData.languages && tourData.languages.length > 0) {
                 tourData.languages.forEach(l => {
@@ -855,9 +869,9 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         syncHotelMeetingInitialState();
 
         // Inicializar valores al cargar
-        const initialTourId = @json(old('tour_id', $booking->tour_id));
-        const initialScheduleId = @json(old('schedule_id', optional($booking->detail)->schedule_id));
-        const initialLanguageId = @json(old('tour_language_id', $booking->tour_language_id));
+        const initialTourId = @json(old('tour_id', $booking - > tour_id));
+        const initialScheduleId = @json(old('schedule_id', optional($booking - > detail) - > schedule_id));
+        const initialLanguageId = @json(old('tour_language_id', $booking - > tour_language_id));
 
         if (initialTourId) {
             $tourSelect.val(initialTourId).trigger('change');

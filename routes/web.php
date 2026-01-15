@@ -724,6 +724,10 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::patch('users/{user}/unlock', [UserRegisterController::class, 'unlock'])->name('users.unlock');
                     Route::patch('users/{user}/mark-verified', [UserRegisterController::class, 'markVerified'])->name('users.markVerified');
                     Route::patch('users/{user}/disable-2fa', [UserRegisterController::class, 'disable2FA'])->name('users.disable2FA');
+                    // Soft delete routes
+                    Route::get('users/trashed/list', [UserRegisterController::class, 'trashed'])->name('users.trashed');
+                    Route::patch('users/{id}/restore', [UserRegisterController::class, 'restore'])->name('users.restore');
+                    Route::delete('users/{id}/force-delete', [UserRegisterController::class, 'forceDelete'])->name('users.forceDelete');
                 });
 
                 Route::middleware(['can:view-roles'])->group(function () {

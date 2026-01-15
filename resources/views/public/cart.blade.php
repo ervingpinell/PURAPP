@@ -900,7 +900,7 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
 
                 <div class="pickup-pane" id="pane-mp-{{ $item->item_id }}" style="display:none">
                   <select name="meeting_point_id"
-                    class="form-select meetingpoint-select"
+                    class="form-select meetingpoint-select text-dark"
                     id="meetingpoint-select-{{ $item->item_id }}"
                     data-target="#mp-info-{{ $item->item_id }}"
                     data-mplist='{!! $mpListJson !!}'>

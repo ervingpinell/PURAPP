@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Prunable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Log;
@@ -67,6 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
     use HasApiTokens, HasFactory, Notifiable, TwoFactorAuthenticatable;
     use HasRoles;
     use Prunable;
+    use SoftDeletes;
 
     /**
      * Relación con Carts
@@ -125,6 +127,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
         'two_factor_recovery_codes' => 'encrypted',
         'two_factor_confirmed_at'   => 'datetime',
         'pending_email_created_at'  => 'datetime',
+        'deleted_at'                => 'datetime',
     ];
 
     /**
