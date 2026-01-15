@@ -65,8 +65,13 @@
             <th>{{ __('m_config.policies.id') }}</th>
             <th class="text-center">{{ __('m_config.policies.title_current_locale') }}</th>
             <th class="text-center">{{ __('m_config.policies.slug') }}</th>
+            @if(($status ?? 'active') === 'archived')
+            <th>{{ __('m_config.policies.deleted_by') }}</th>
+            <th>{{ __('m_config.policies.deleted_at') }}</th>
+            @else
             <th>{{ __('m_config.policies.validity_range') }}</th>
             <th>{{ __('m_config.policies.status') }}</th>
+            @endif
             <th>{{ __('m_config.policies.sections') }}</th>
             <th>{{ __('m_config.policies.actions') }}</th>
           </tr>
@@ -89,6 +94,25 @@
               {{ $t?->name ?? '—' }}
             </td>
             <td class="text-center"><code class="text-muted">{{ $p->slug }}</code></td>
+            @if(($status ?? 'active') === 'archived')
+            <td>
+              @if($p->deletedBy)
+
+              <span class="badge bg-secondary">
+                <i class="fas fa-user-times"></i> {{ $p->deletedBy->first_name }} {{ $p->deletedBy->last_name }}
+              </span>
+              @else
+              <span class="text-muted">—</span>
+              @endif
+            </td>
+            <td>
+              @if($p->deleted_at)
+              {{ \Illuminate\Support\Carbon::parse($p->deleted_at)->format('d-M-Y H:i') }}
+              @else
+              <span class="text-muted">—</span>
+              @endif
+            </td>
+            @else
             <td>
               @if($from || $to)
               {{ $from ?? '—' }} &rarr; {{ $to ?? '—' }}
@@ -109,6 +133,7 @@
               </span>
               @endif
             </td>
+            @endif
             <td>{{ $p->sections_count ?? $p->sections()->count() }}</td>
             <td>
               <div class="actions text-center my-1">
@@ -318,20 +343,55 @@ $t = $p->translation();
 
         <hr>
 
-        {{-- Traducción del locale actual --}}
-        <div class="mb-3">
-          <label class="form-label">{{ __('m_config.policies.name') }}</label>
-          <input type="text" name="name" class="form-control"
-            value="{{ old('name', $t?->name) }}">
-        </div>
+        {{-- Tabs de idiomas --}}
+        <ul class="nav nav-tabs mb-3" id="policyTabs-{{ $p->policy_id }}" role="tablist">
+          @foreach(['es', 'en', 'fr', 'pt', 'de'] as $lang)
+          <li class="nav-item" role="presentation">
+            <button class="nav-link {{ $loop->first ? 'active' : '' }}"
+              id="tab-{{ $p->policy_id }}-{{ $lang }}"
+              data-bs-toggle="tab"
+              data-bs-target="#content-{{ $p->policy_id }}-{{ $lang }}"
+              type="button" role="tab">
+              {{ strtoupper($lang) }}
+              @php
+              // Indicador visual si falta traducción
+              $hasTrans = $p->translations->where('locale', $lang)->first();
+              @endphp
+              @if(!$hasTrans)
+              <span class="text-danger small ms-1" title="Sin traducción"><i class="fas fa-exclamation-circle"></i></span>
+              @endif
+            </button>
+          </li>
+          @endforeach
+        </ul>
 
-        <div class="mb-3">
-          <label class="form-label">{{ __('m_config.policies.description_label') }}</label>
-          <textarea name="content" class="form-control" rows="8">{{ old('content', $t?->content) }}</textarea>
+        <div class="tab-content" id="policyTabContent-{{ $p->policy_id }}">
+          @foreach(['es', 'en', 'fr', 'pt', 'de'] as $lang)
+          @php
+          $trans = $p->translations->firstWhere('locale', $lang);
+          $valName = $trans ? $trans->name : '';
+          $valContent = $trans ? $trans->content : '';
+          @endphp
+          <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+            id="content-{{ $p->policy_id }}-{{ $lang }}"
+            role="tabpanel">
+
+            <div class="mb-3">
+              <label class="form-label">{{ __('m_config.policies.name') }} ({{ strtoupper($lang) }})</label>
+              <input type="text" name="translations[{{ $lang }}][name]" class="form-control"
+                value="{{ $valName }}">
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">{{ __('m_config.policies.description_label') }} ({{ strtoupper($lang) }})</label>
+              <textarea name="translations[{{ $lang }}][content]" class="form-control" rows="8">{{ $valContent }}</textarea>
+            </div>
+          </div>
+          @endforeach
         </div>
 
         {{-- SLUG (base) --}}
-        <div class="mb-3">
+        <div class="mb-3 mt-4">
           <label class="form-label">
             {{ __('m_config.policies.slug') }}
             <span class="text-muted small">({{ __('m_config.policies.slug_hint') }})</span>
@@ -359,21 +419,6 @@ $t = $p->translation();
           <small class="text-muted d-block mt-1">
             <i class="fas fa-info-circle"></i> {{ __('m_config.policies.type_description') }}
           </small>
-        </div>
-
-        {{-- SOLO propagación --}}
-        <div class="row g-3 mt-1">
-          <div class="col-12">
-            <div class="form-check">
-              <input type="checkbox" class="form-check-input" id="propagate-{{ $p->policy_id }}" name="propagate" value="1">
-              <label class="form-check-label" for="propagate-{{ $p->policy_id }}">
-                {{ __('m_config.policies.propagate_to_all_langs') }} (EN, FR, DE, PT)
-              </label>
-            </div>
-            <small class="text-muted d-block">
-              {{ __('m_config.policies.propagate_hint') }}
-            </small>
-          </div>
         </div>
       </div>
 

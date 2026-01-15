@@ -57,8 +57,11 @@ return [
         'update_base_hint'       => 'Overwrites the name and content of the policy in the base table (Spanish). Use only if you want the original text to change as well.',
         'filter_active'    => 'Active',
         'filter_inactive'  => 'Inactive',
-        'filter_archived'  => 'Archived',
+        'filter_archived'  => 'Deleted',
         'filter_all'       => 'All',
+        'trash_tab'        => 'Trash',
+        'trash_title'      => 'Policy Trash',
+        'trash_empty'      => 'No deleted policies',
         'created' => 'Policy category created successfully.',
         'slug_hint'      => 'lowercase, no spaces, dash-separated',
         'slug_auto_hint' => 'If left empty, it will be generated automatically from the title.',
@@ -95,6 +98,8 @@ return [
         'delete_category_confirm' => 'Delete this category and ALL its sections?<br>This action cannot be undone.',
         'no_categories'           => 'No categories found.',
         'edit_category'           => 'Edit category',
+        'deleted_by'              => 'Deleted by',
+        'deleted_at'              => 'Deleted at',
 
         // Forms (category)
         'title_label'             => 'Title',
@@ -183,6 +188,10 @@ return [
         'confirm_deactivate_section'  => 'Are you sure you want to deactivate this section?',
         'confirm_activate_section'    => 'Are you sure you want to activate this section?',
         'confirm_delete_section'      => 'Are you sure you want to delete this section?<br>This action cannot be undone.',
+        'section_restored'            => 'Section restored successfully.',
+        'section_force_deleted'       => 'Section permanently deleted.',
+        'confirm_restore_section'     => 'Restore this section?',
+        'confirm_force_delete_section' => 'Permanently delete this section? This action cannot be undone.',
     ],
 
     // =========================================================

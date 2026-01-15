@@ -57,8 +57,11 @@ return [
         'update_base_hint'       => 'Remplace le nom et le contenu de la politique dans la table de base (espagnol). À utiliser uniquement si tu souhaites modifier aussi le texte original.',
         'filter_active'    => 'Actives',
         'filter_inactive'  => 'Inactives',
-        'filter_archived'  => 'Archivées',
+        'filter_archived'  => 'Supprimées',
         'filter_all'       => 'Toutes',
+        'trash_tab'        => 'Corbeille',
+        'trash_title'      => 'Corbeille des Politiques',
+        'trash_empty'      => 'Aucune politique supprimée',
 
         'slug_hint'      => 'minuscules, sans espaces, séparées par des tirets',
         'slug_auto_hint' => 'S’il est laissé vide, il sera généré automatiquement à partir du titre.',
@@ -98,6 +101,8 @@ return [
         'delete_category_confirm' => 'Supprimer cette catégorie et TOUTES ses sections ?<br>Cette action ne peut pas être annulée.',
         'no_categories'           => 'Aucune catégorie trouvée.',
         'edit_category'           => 'Modifier la catégorie',
+        'deleted_by'              => 'Supprimé par',
+        'deleted_at'              => 'Supprimé le',
 
         // Formulaires (catégorie)
         'title_label'             => 'Titre',
@@ -186,6 +191,10 @@ return [
         'confirm_deactivate_section'  => 'Es-tu sûr(e) de vouloir désactiver cette section ?',
         'confirm_activate_section'    => 'Es-tu sûr(e) de vouloir activer cette section ?',
         'confirm_delete_section'      => 'Es-tu sûr(e) de vouloir supprimer cette section ?<br>Cette action ne peut pas être annulée.',
+        'section_restored'            => 'Section restaurée avec succès.',
+        'section_force_deleted'       => 'Section supprimée définitivement.',
+        'confirm_restore_section'     => 'Restaurer cette section ?',
+        'confirm_force_delete_section' => 'Supprimer définitivement cette section ? Cette action est irréversible.',
     ],
 
     // =========================================================

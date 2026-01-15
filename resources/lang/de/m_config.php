@@ -57,8 +57,11 @@ return [
         'update_base_hint'       => 'Überschreibt Name und Inhalt der Richtlinie in der Basistabelle (Spanisch). Nur verwenden, wenn sich auch der Originaltext ändern soll.',
         'filter_active'    => 'Aktiv',
         'filter_inactive'  => 'Inaktiv',
-        'filter_archived'  => 'Archiviert',
+        'filter_archived'  => 'Gelöscht',
         'filter_all'       => 'Alle',
+        'trash_tab'        => 'Papierkorb',
+        'trash_title'      => 'Papierkorb für Richtlinien',
+        'trash_empty'      => 'Keine gelöschten Richtlinien',
 
         'slug_hint'      => 'kleingeschrieben, keine Leerzeichen, mit Bindestrichen getrennt',
         'slug_auto_hint' => 'Wenn leer, wird es automatisch aus dem Titel erzeugt.',
@@ -98,6 +101,8 @@ return [
         'delete_category_confirm' => 'Diese Kategorie und ALLE ihre Abschnitte löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
         'no_categories'           => 'Es wurden keine Kategorien gefunden.',
         'edit_category'           => 'Kategorie bearbeiten',
+        'deleted_by'              => 'Gelöscht von',
+        'deleted_at'              => 'Gelöscht am',
 
         // Formulare (Kategorie)
         'title_label'             => 'Titel',
@@ -186,6 +191,10 @@ return [
         'confirm_deactivate_section'  => 'Möchtest du diesen Abschnitt wirklich deaktivieren?',
         'confirm_activate_section'    => 'Möchtest du diesen Abschnitt wirklich aktivieren?',
         'confirm_delete_section'      => 'Möchtest du diesen Abschnitt wirklich löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
+        'section_restored'            => 'Abschnitt erfolgreich wiederhergestellt.',
+        'section_force_deleted'       => 'Abschnitt dauerhaft gelöscht.',
+        'confirm_restore_section'     => 'Diesen Abschnitt wiederherstellen?',
+        'confirm_force_delete_section' => 'Diesen Abschnitt dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
     ],
 
     // =========================================================

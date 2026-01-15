@@ -48,6 +48,7 @@ class Policy extends Model
         'is_active',
         'effective_from',
         'effective_to',
+        'deleted_by', // Allow mass assignment for soft delete tracking
         // si tienes 'type' u otros, agréguelos aquí
     ];
 
@@ -219,6 +220,11 @@ class Policy extends Model
     public function activeSections()
     {
         return $this->sections()->where('is_active', true);
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'deleted_by');
     }
 
     /* ===================== SCOPES ===================== */

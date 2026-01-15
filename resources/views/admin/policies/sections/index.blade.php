@@ -41,6 +41,23 @@
   @endif
 </noscript>
 
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+  <div class="btn-group" role="group" aria-label="{{ __('m_config.policies.filter_status_aria') }}">
+    <a href="{{ route('admin.policies.sections.index', ['policy' => $policy, 'status' => 'active']) }}"
+      class="btn btn-outline-primary {{ ($status ?? 'active') === 'active' ? 'active' : '' }}">
+      {{ __('m_config.policies.filter_active') }}
+    </a>
+    <a href="{{ route('admin.policies.sections.index', ['policy' => $policy, 'status' => 'inactive']) }}"
+      class="btn btn-outline-primary {{ ($status ?? '') === 'inactive' ? 'active' : '' }}">
+      {{ __('m_config.policies.filter_inactive') }}
+    </a>
+    <a href="{{ route('admin.policies.sections.index', ['policy' => $policy, 'status' => 'archived']) }}"
+      class="btn btn-outline-primary {{ ($status ?? '') === 'archived' ? 'active' : '' }}">
+      {{ __('m_config.policies.filter_archived') }}
+    </a>
+  </div>
+</div>
+
 <div class="card shadow-sm">
   <div class="card-body p-0">
     <div class="table-responsive">
@@ -50,17 +67,48 @@
             <th>{{ __('m_config.policies.id') }}</th>
             <th class="text-center">{{ __('m_config.policies.name') }}</th>
             <th>{{ __('m_config.policies.order') }}</th>
+            @if(($status ?? 'active') === 'archived')
+            <th>{{ __('m_config.policies.deleted_by') }}</th>
+            <th>{{ __('m_config.policies.deleted_at') }}</th>
+            @else
             <th>{{ __('m_config.policies.status') }}</th>
+            @endif
             <th style="width: 280px;">{{ __('m_config.policies.actions') }}</th>
           </tr>
         </thead>
         <tbody>
           @forelse ($sections as $s)
-          @php $tr = $s->translation(); @endphp
+          @php
+          $tr = $s->translation();
+          $isTrashed = method_exists($s, 'trashed') && $s->trashed();
+          @endphp
           <tr>
             <td class="text-center">{{ $s->section_id }}</td>
-            <td class="text-center text-break">{{ $tr?->name ?? '—' }}</td>
+            <td class="text-center text-break">
+              @if($isTrashed)
+              <i class="fas fa-trash-alt text-muted me-1"></i>
+              @endif
+              {{ $tr?->name ?? '—' }}
+            </td>
             <td class="text-center">{{ $s->sort_order }}</td>
+            @if(($status ?? 'active') === 'archived')
+            <td class="text-center">
+              @if($s->deletedBy)
+              <span class="badge bg-secondary">
+                <i class="fas fa-user-times"></i> {{ $s->deletedBy->first_name }} {{ $s->deletedBy->last_name }}
+              </span>
+              @else
+              <span class="text-muted">—</span>
+              @endif
+            </td>
+            <td class="text-center">
+              @if($s->deleted_at)
+              {{ \Illuminate\Support\Carbon::parse($s->deleted_at)->format('d-M-Y H:i') }}
+              @else
+              <span class="text-muted">—</span>
+              @endif
+            </td>
+            @else
             <td class="text-center">
               @if($s->is_active)
               <span class="badge bg-success">{{ __('m_config.policies.active') }}</span>
@@ -68,9 +116,11 @@
               <span class="badge bg-secondary">{{ __('m_config.policies.inactive') }}</span>
               @endif
             </td>
+            @endif
             <td class="text-center">
               <div class="d-flex justify-content-center gap-2 flex-wrap">
 
+                @if(!$isTrashed)
                 {{-- Editar traducción del locale actual + base (orden/activo) --}}
                 @can('edit-policy-sections')
                 <button class="btn btn-sm btn-edit"
@@ -101,11 +151,39 @@
                   data-message="{{ __('m_config.policies.confirm_delete_section') }}">
                   @csrf @method('DELETE')
                   <button class="btn btn-sm btn-delete"
-                    title="{{ __('m_config.policies.delete') }}" data-bs-toggle="tooltip">
+                    title="{{ __('m_config.policies.move_to_trash') }}" data-bs-toggle="tooltip">
                     <i class="fas fa-trash"></i>
                   </button>
                 </form>
                 @endcan
+
+                @else
+                {{-- RESTORE --}}
+                @can('delete-policy-sections')
+                <form action="{{ route('admin.policies.sections.restore', [$policy, $s->section_id]) }}" method="POST"
+                  class="d-inline js-confirm-restore"
+                  data-message="{{ __('m_config.policies.confirm_restore_section') }}">
+                  @csrf
+                  <button class="btn btn-sm btn-restore"
+                    title="{{ __('m_config.policies.restore') }}" data-bs-toggle="tooltip">
+                    <i class="fas fa-undo"></i>
+                  </button>
+                </form>
+                @endcan
+
+                {{-- FORCE DELETE --}}
+                @can('delete-policy-sections')
+                <form action="{{ route('admin.policies.sections.forceDestroy', [$policy, $s->section_id]) }}" method="POST"
+                  class="d-inline js-confirm-force-delete"
+                  data-message="{{ __('m_config.policies.confirm_force_delete_section') }}">
+                  @csrf @method('DELETE')
+                  <button class="btn btn-sm btn-force-delete"
+                    title="{{ __('m_config.policies.delete_permanently') }}" data-bs-toggle="tooltip">
+                    <i class="fas fa-times-circle"></i>
+                  </button>
+                </form>
+                @endcan
+                @endif
 
               </div>
             </td>
@@ -244,6 +322,27 @@
   .btn-delete:hover {
     filter: brightness(.95);
   }
+
+  .btn-restore {
+    background: #17a2b8;
+    color: #fff;
+  }
+
+  .btn-restore:hover {
+    filter: brightness(.95);
+    color: #fff;
+  }
+
+  .btn-force-delete {
+    background: #dc3545;
+    color: #fff;
+    border: 1px solid #dc3545;
+  }
+
+  .btn-force-delete:hover {
+    background: #bb2d3b;
+    color: #fff;
+  }
 </style>
 @endpush
 
@@ -274,83 +373,118 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
+  [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
 
-    // limpiar backdrops duplicados
-    document.addEventListener('hidden.bs.modal', () => {
-      const backs = document.querySelectorAll('.modal-backdrop');
-      if (backs.length > 1) backs.forEach((b, i) => {
-        if (i < backs.length - 1) b.remove();
+  // limpiar backdrops duplicados
+  document.addEventListener('hidden.bs.modal', () => {
+    const backs = document.querySelectorAll('.modal-backdrop');
+    if (backs.length > 1) backs.forEach((b, i) => {
+      if (i < backs.length - 1) b.remove();
+    });
+  });
+
+  const confirm = (opts) => Swal.fire(Object.assign({
+    icon: 'question',
+    showCancelButton: true,
+    cancelButtonColor: '#6c757d'
+  }, opts));
+
+  // Crear
+  document.querySelectorAll('.js-confirm-create').forEach(form => {
+    form.addEventListener('submit', ev => {
+      ev.preventDefault();
+      confirm({
+        title: @json(__('m_config.policies.confirm_create_section') ?? '¿Crear esta sección?'),
+        confirmButtonColor: '#28a745',
+        confirmButtonText: @json(__('m_config.policies.create') ?? 'Crear'),
+        cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
+      }).then(r => {
+        if (r.isConfirmed) form.submit();
       });
     });
+  });
 
-    const confirm = (opts) => Swal.fire(Object.assign({
-      icon: 'question',
-      showCancelButton: true,
-      cancelButtonColor: '#6c757d'
-    }, opts));
-
-    // Crear
-    document.querySelectorAll('.js-confirm-create').forEach(form => {
-      form.addEventListener('submit', ev => {
-        ev.preventDefault();
-        confirm({
-          title: @json(__('m_config.policies.confirm_create_section') ?? '¿Crear esta sección?'),
-          confirmButtonColor: '#28a745',
-          confirmButtonText: @json(__('m_config.policies.create') ?? 'Crear'),
-          cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
-        }).then(r => {
-          if (r.isConfirmed) form.submit();
-        });
+  // Editar
+  document.querySelectorAll('.js-confirm-edit').forEach(form => {
+    form.addEventListener('submit', ev => {
+      ev.preventDefault();
+      confirm({
+        title: @json(__('m_config.policies.confirm_edit_section') ?? '¿Guardar cambios?'),
+        confirmButtonColor: '#0d6efd',
+        confirmButtonText: @json(__('m_config.policies.save_changes') ?? 'Guardar cambios'),
+        cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
+      }).then(r => {
+        if (r.isConfirmed) form.submit();
       });
     });
+  });
 
-    // Editar
-    document.querySelectorAll('.js-confirm-edit').forEach(form => {
-      form.addEventListener('submit', ev => {
-        ev.preventDefault();
-        confirm({
-          title: @json(__('m_config.policies.confirm_edit_section') ?? '¿Guardar cambios?'),
-          confirmButtonColor: '#0d6efd',
-          confirmButtonText: @json(__('m_config.policies.save_changes') ?? 'Guardar cambios'),
-          cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
-        }).then(r => {
-          if (r.isConfirmed) form.submit();
-        });
+  // Eliminar
+  document.querySelectorAll('.js-confirm-delete').forEach(form => {
+    form.addEventListener('submit', ev => {
+      ev.preventDefault();
+      confirm({
+        title: form.dataset.message || @json(__('m_config.policies.confirm_delete_section')),
+        icon: 'warning',
+        confirmButtonColor: '#d33',
+        confirmButtonText: @json(__('m_config.policies.delete') ?? 'Eliminar'),
+        cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
+      }).then(r => {
+        if (r.isConfirmed) form.submit();
       });
     });
+  });
 
-    // Eliminar
-    document.querySelectorAll('.js-confirm-delete').forEach(form => {
-      form.addEventListener('submit', ev => {
-        ev.preventDefault();
-        confirm({
-          title: form.dataset.message || @json(__('m_config.policies.confirm_delete_section')),
-          icon: 'warning',
-          confirmButtonColor: '#d33',
-          confirmButtonText: @json(__('m_config.policies.delete') ?? 'Eliminar'),
-          cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
-        }).then(r => {
-          if (r.isConfirmed) form.submit();
-        });
+  // Toggle
+  document.querySelectorAll('.js-confirm-toggle').forEach(form => {
+    form.addEventListener('submit', ev => {
+      ev.preventDefault();
+      const isActive = form.dataset.active === '1';
+      confirm({
+        title: isActive ? @json(__('m_config.policies.confirm_deactivate_section')) : @json(__('m_config.policies.confirm_activate_section')),
+        confirmButtonColor: isActive ? '#d33' : '#28a745',
+        confirmButtonText: isActive ? @json(__('m_config.policies.deactivate') ?? 'Desactivar') : @json(__('m_config.policies.activate') ?? 'Activar'),
+        cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
+      }).then(r => {
+        if (r.isConfirmed) form.submit();
       });
     });
+  });
+  });
+  });
 
-    // Toggle
-    document.querySelectorAll('.js-confirm-toggle').forEach(form => {
-      form.addEventListener('submit', ev => {
-        ev.preventDefault();
-        const isActive = form.dataset.active === '1';
-        confirm({
-          title: isActive ? @json(__('m_config.policies.confirm_deactivate_section')) : @json(__('m_config.policies.confirm_activate_section')),
-          confirmButtonColor: isActive ? '#d33' : '#28a745',
-          confirmButtonText: isActive ? @json(__('m_config.policies.deactivate') ?? 'Desactivar') : @json(__('m_config.policies.activate') ?? 'Activar'),
-          cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
-        }).then(r => {
-          if (r.isConfirmed) form.submit();
-        });
+  // Restore
+  document.querySelectorAll('.js-confirm-restore').forEach(form => {
+    form.addEventListener('submit', ev => {
+      ev.preventDefault();
+      confirm({
+        title: form.dataset.message,
+        icon: 'question',
+        confirmButtonColor: '#17a2b8',
+        confirmButtonText: @json(__('m_config.policies.restore') ?? 'Restaurar'),
+        cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
+      }).then(r => {
+        if (r.isConfirmed) form.submit();
       });
     });
+  });
+
+  // Force delete
+  document.querySelectorAll('.js-confirm-force-delete').forEach(form => {
+  form.addEventListener('submit', ev => {
+    ev.preventDefault();
+    confirm({
+      title: form.dataset.message,
+      icon: 'warning',
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: @json(__('m_config.policies.delete_permanently') ?? 'Eliminar permanentemente'),
+      cancelButtonText: @json(__('m_config.policies.cancel') ?? 'Cancelar'),
+    }).then(r => {
+      if (r.isConfirmed) form.submit();
+    });
+  });
+  });
+
   });
 </script>
 @stop

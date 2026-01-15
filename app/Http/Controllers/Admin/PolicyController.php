@@ -95,32 +95,6 @@ class PolicyController extends Controller
             ['name' => $data['name'], 'content' => $data['content']]
         );
 
-        // 3) Propagación opcional a EN/FR/DE/PT (pt_BR en DB)
-        if (!empty($data['propagate'])) {
-            try {
-                $nameAll = (array)($translator->translateAll($data['name']) ?? []);
-            } catch (\Throwable $e) {
-                $nameAll = [];
-            }
-
-            try {
-                $contAll = (array)($translator->translateAll($data['content']) ?? []);
-            } catch (\Throwable $e) {
-                $contAll = [];
-            }
-
-            foreach (['en', 'fr', 'de', 'pt'] as $lang) {
-                $norm = Policy::canonicalLocale($lang);
-                PolicyTranslation::updateOrCreate(
-                    ['policy_id' => $policy->policy_id, 'locale' => $norm],
-                    [
-                        'name'    => $nameAll[$lang]  ?? $data['name'],
-                        'content' => $contAll[$lang] ?? $data['content'],
-                    ]
-                );
-            }
-        }
-
 
 
         LoggerHelper::mutated('PolicyController', 'store', 'Policy', $policy->policy_id);
@@ -128,7 +102,7 @@ class PolicyController extends Controller
         return back()->with('success', 'm_config.policies.created');
     }
 
-    /** Editar base + traducción del locale actual, con propagación opcional */
+    /** Editar base + traducciones (ES, EN, FR, PT, DE) */
     public function update(
         Request $request,
         $policyId,
@@ -137,11 +111,10 @@ class PolicyController extends Controller
         $policy = Policy::where('policy_id', $policyId)->firstOrFail();
 
         $validated = $request->validate([
-            'locale'         => ['nullable', 'in:es,en,fr,pt,de'],
-
-            // Traducción (policies_translations)
-            'name'           => ['nullable', 'string', 'max:255'],
-            'content'        => ['nullable', 'string'],
+            // Validar array de traducciones
+            'translations'             => ['required', 'array'],
+            'translations.*.name'      => ['nullable', 'string', 'max:255'],
+            'translations.*.content'   => ['nullable', 'string'],
 
             // Base (policies)
             'slug'           => ['nullable', 'string', 'max:255', 'unique:policies,slug,' . $policy->policy_id . ',policy_id'],
@@ -149,16 +122,9 @@ class PolicyController extends Controller
             'is_active'      => ['sometimes', 'boolean'],
             'effective_from' => ['nullable', 'date'],
             'effective_to'   => ['nullable', 'date', 'after_or_equal:effective_from'],
-
-            // Opcional
-            'propagate'      => ['sometimes', 'boolean'],
         ]);
 
-        $locale     = $validated['locale'] ?? app()->getLocale();
-        $localeNorm = Policy::canonicalLocale($locale);
-        $propagate  = (bool)($validated['propagate'] ?? false);
-
-        // 1) Actualizar base (policies) — sin tocar traducciones
+        // 1) Actualizar base (policies)
         $baseUpdates = [];
         foreach (['slug', 'type', 'is_active', 'effective_from', 'effective_to'] as $k) {
             if (array_key_exists($k, $validated)) {
@@ -172,59 +138,27 @@ class PolicyController extends Controller
             $policy->update($baseUpdates);
         }
 
-        // 2) Actualizar / crear traducción del locale actual
-        $trName    = $validated['name']    ?? null;
-        $trContent = $validated['content'] ?? null;
+        // 2) Actualizar traducciones
+        if (!empty($validated['translations'])) {
+            foreach ($validated['translations'] as $locale => $data) {
+                // Normalizar locale (aunque venga como 'es', 'en', etc.)
+                $norm = Policy::canonicalLocale($locale);
 
-        if ($trName !== null || $trContent !== null) {
-            $tr = PolicyTranslation::firstOrNew([
-                'policy_id' => $policy->policy_id,
-                'locale'    => $localeNorm,
-            ]);
-            if ($trName !== null)    $tr->name    = $trName;
-            if ($trContent !== null) $tr->content = $trContent;
-            $tr->save();
-        }
+                $tName = $data['name'] ?? null;
+                $tContent = $data['content'] ?? null;
 
-        // 3) Propagar a los demás idiomas si se solicitó.
-        if ($propagate) {
-            // Tomamos como fuente la traducción del locale actual (recién guardada si se envió)
-            $source = PolicyTranslation::where([
-                'policy_id' => $policy->policy_id,
-                'locale'    => $localeNorm,
-            ])->first();
-
-            $sourceName    = $source?->name    ?? '';
-            $sourceContent = $source?->content ?? '';
-
-            try {
-                $nameAll    = (array) ($translator->translateAll($sourceName)    ?? []);
-            } catch (\Throwable $e) {
-                $nameAll = [];
-            }
-
-            try {
-                $contentAll = (array) ($translator->translateAll($sourceContent) ?? []);
-            } catch (\Throwable $e) {
-                $contentAll = [];
-            }
-
-            $targets = ['es', 'en', 'fr', 'pt', 'de'];
-            $targets = array_values(array_diff($targets, [$locale]));
-
-            foreach ($targets as $lang) {
-                $norm = Policy::canonicalLocale($lang);
-                PolicyTranslation::updateOrCreate(
-                    ['policy_id' => $policy->policy_id, 'locale' => $norm],
-                    [
-                        'name'    => $nameAll[$lang]    ?? $sourceName,
-                        'content' => $contentAll[$lang] ?? $sourceContent,
-                    ]
-                );
+                // Si al menos uno tiene valor, guardamos/actualizamos
+                if ($tName || $tContent) {
+                    PolicyTranslation::updateOrCreate(
+                        ['policy_id' => $policy->policy_id, 'locale' => $norm],
+                        [
+                            'name'    => $tName ?? '',
+                            'content' => $tContent ?? '',
+                        ]
+                    );
+                }
             }
         }
-
-
 
         LoggerHelper::mutated('PolicyController', 'update', 'Policy', $policy->policy_id);
 
@@ -253,6 +187,7 @@ class PolicyController extends Controller
     public function destroy($policyId)
     {
         $policy = Policy::where('policy_id', $policyId)->firstOrFail();
+        $policy->update(['deleted_by' => auth()->id()]);
         $policy->delete(); // Soft delete
 
         LoggerHelper::mutated('PolicyController', 'destroy', 'Policy', $policy->policy_id);

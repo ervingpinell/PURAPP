@@ -27,19 +27,32 @@ class PolicySectionController extends Controller
         $this->middleware(['can:create-policy-sections'])->only(['store']);
         $this->middleware(['can:edit-policy-sections'])->only(['update', 'sort']);
         $this->middleware(['can:publish-policy-sections'])->only(['toggle']);
-        $this->middleware(['can:delete-policy-sections'])->only(['destroy']);
+        $this->middleware(['can:publish-policy-sections'])->only(['toggle']);
+        $this->middleware(['can:delete-policy-sections'])->only(['destroy', 'restore', 'forceDestroy']);
     }
 
     /** Listado de secciones de una política */
-    public function index(Policy $policy)
+    public function index(Request $request, Policy $policy)
     {
-        $sections = $policy->sections()
-            ->withoutGlobalScopes()
-            ->with('translations')
-            ->orderBy('sort_order')
-            ->get();
+        $status = $request->get('status', 'active');
 
-        return view('admin.policies.sections.index', compact('policy', 'sections'));
+        $query = $policy->sections()
+            ->with('translations');
+
+        if ($status === 'archived') {
+            $query->onlyTrashed()->with('deletedBy');
+        } elseif ($status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($status === 'inactive') {
+            $query->where('is_active', false);
+        }
+        // 'all' includes both active and inactive (but not trashed unless strictly needed, usually 'all' in admin means everything non-deleted + deleted? No, usually just non-deleted unless specified)
+        // If 'all' means everything including trashed, we'd use withTrashed(). But usually 'all' implies current registry.
+        // Let's stick to standard behavior: 'all' = users can see active and inactive.
+
+        $sections = $query->orderBy('sort_order')->get();
+
+        return view('admin.policies.sections.index', compact('policy', 'sections', 'status'));
     }
 
     /** Crear sección + traducciones (translateAll) */
@@ -260,6 +273,7 @@ class PolicySectionController extends Controller
     {
         try {
             $deletedId = $section->section_id;
+            $section->update(['deleted_by' => auth()->id()]); // Track deletion
             $section->delete();
 
             LoggerHelper::mutated($this->controller, 'destroy', 'policy_section', $deletedId, [
@@ -276,6 +290,45 @@ class PolicySectionController extends Controller
 
             return back()
                 ->with('error', 'm_config.policies.unexpected_error');
+        }
+    }
+
+    /** Restore section */
+    public function restore(Request $request, Policy $policy, $sectionId)
+    {
+        try {
+            $section = PolicySection::withTrashed()->where('section_id', $sectionId)->firstOrFail();
+            $section->restore();
+
+            // Clear deleted_by on restore? Optional, but good practice.
+            $section->update(['deleted_by' => null]);
+
+            LoggerHelper::mutated($this->controller, 'restore', 'policy_section', $sectionId, [
+                'policy_id' => $policy->policy_id,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('success', 'm_config.policies.section_restored');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'restore', 'policy_section', $sectionId, $e);
+            return back()->with('error', 'm_config.policies.unexpected_error');
+        }
+    }
+
+    /** Force delete section */
+    public function forceDestroy(Request $request, Policy $policy, $sectionId)
+    {
+        try {
+            $section = PolicySection::withTrashed()->where('section_id', $sectionId)->firstOrFail();
+            $section->forceDelete();
+
+            LoggerHelper::mutated($this->controller, 'forceDestroy', 'policy_section', $sectionId, [
+                'policy_id' => $policy->policy_id,
+                'user_id'   => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('success', 'm_config.policies.section_force_deleted');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'forceDestroy', 'policy_section', $sectionId, $e);
+            return back()->with('error', 'm_config.policies.unexpected_error');
         }
     }
 

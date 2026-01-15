@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * PolicySection Model
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class PolicySection extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'policy_sections';
     protected $primaryKey = 'section_id';
@@ -25,12 +27,14 @@ class PolicySection extends Model
         // OJO: sin 'name' ni 'content' en la base
         'sort_order',
         'is_active',
+        'deleted_by',
         // si tienes otros (p.ej. 'type'), agrégalos aquí
     ];
 
     protected $casts = [
         'is_active'  => 'bool',
         'sort_order' => 'int',
+        'deleted_at' => 'datetime',
     ];
 
     /* -------------------- RELACIONES -------------------- */
@@ -38,6 +42,11 @@ class PolicySection extends Model
     public function policy()
     {
         return $this->belongsTo(Policy::class, 'policy_id', 'policy_id');
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 
     public function translations()
@@ -63,23 +72,23 @@ class PolicySection extends Model
             ? $this->getRelation('translations')
             : $this->translations()->get();
 
-        $norm = fn ($v) => str_replace('-', '_', strtolower((string) $v));
+        $norm = fn($v) => str_replace('-', '_', strtolower((string) $v));
 
         // Coincidencia exacta
-        if ($exact = $bag->first(fn ($t) => $norm($t->locale) === $norm($requested))) {
+        if ($exact = $bag->first(fn($t) => $norm($t->locale) === $norm($requested))) {
             return $exact;
         }
 
         // Variantes habituales (compat)
-        foreach ([$requested, str_replace('_','-',$requested), substr($requested, 0, 2), 'pt_BR', 'pt-br'] as $v) {
-            if ($found = $bag->first(fn ($t) => $norm($t->locale) === $norm($v))) {
+        foreach ([$requested, str_replace('_', '-', $requested), substr($requested, 0, 2), 'pt_BR', 'pt-br'] as $v) {
+            if ($found = $bag->first(fn($t) => $norm($t->locale) === $norm($v))) {
                 return $found;
             }
         }
 
         // Fallback → 'es' o primer registro
-        return $bag->first(fn ($t) => $norm($t->locale) === $norm($fallback))
-            ?: $bag->first(fn ($t) => $norm($t->locale) === $norm(substr($fallback, 0, 2)))
+        return $bag->first(fn($t) => $norm($t->locale) === $norm($fallback))
+            ?: $bag->first(fn($t) => $norm($t->locale) === $norm(substr($fallback, 0, 2)))
             ?: $bag->first();
     }
 

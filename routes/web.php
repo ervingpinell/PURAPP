@@ -1481,6 +1481,10 @@ Route::middleware([SetLocale::class])->group(function () {
                                 ->name('sections.update');
                             Route::post('/{policy:policy_id}/sections/{section}/toggle', [PolicySectionController::class, 'toggle'])->name('sections.toggle');
                             Route::delete('/{policy:policy_id}/sections/{section}', [PolicySectionController::class, 'destroy'])->name('sections.destroy');
+
+                            // Restore & Force Delete
+                            Route::post('/{policy:policy_id}/sections/{section}/restore', [PolicySectionController::class, 'restore'])->name('sections.restore');
+                            Route::delete('/{policy:policy_id}/sections/{section}/force', [PolicySectionController::class, 'forceDestroy'])->name('sections.forceDestroy');
                         });
                     });
                 });

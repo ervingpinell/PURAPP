@@ -57,8 +57,11 @@ return [
         'update_base_hint'       => 'Sobrescreve o nome e o conteúdo da política na tabela base (espanhol). Use apenas se você também quiser alterar o texto original.',
         'filter_active'    => 'Ativas',
         'filter_inactive'  => 'Inativas',
-        'filter_archived'  => 'Arquivadas',
+        'filter_archived'  => 'Excluídas',
         'filter_all'       => 'Todas',
+        'trash_tab'        => 'Lixeira',
+        'trash_title'      => 'Lixeira de Políticas',
+        'trash_empty'      => 'Nenhuma política excluída',
 
         'slug_hint'      => 'minúsculas, sem espaços, separadas-por-hífens',
         'slug_auto_hint' => 'Se ficar em branco, será gerado automaticamente a partir do título.',
@@ -98,6 +101,8 @@ return [
         'delete_category_confirm' => 'Excluir esta categoria e TODAS as suas seções?<br>Esta ação não pode ser desfeita.',
         'no_categories'           => 'Nenhuma categoria encontrada.',
         'edit_category'           => 'Editar categoria',
+        'deleted_by'              => 'Excluído por',
+        'deleted_at'              => 'Excluído em',
 
         // Formulários (categoria)
         'title_label'             => 'Título',
@@ -186,6 +191,10 @@ return [
         'confirm_deactivate_section'  => 'Tem certeza de que deseja desativar esta seção?',
         'confirm_activate_section'    => 'Tem certeza de que deseja ativar esta seção?',
         'confirm_delete_section'      => 'Tem certeza de que deseja excluir esta seção?<br>Esta ação não pode ser desfeita.',
+        'section_restored'            => 'Seção restaurada com sucesso.',
+        'section_force_deleted'       => 'Seção excluída permanentemente.',
+        'confirm_restore_section'     => 'Restaurar esta seção?',
+        'confirm_force_delete_section' => 'Excluir permanentemente esta seção? Esta ação não pode ser desfeita.',
     ],
 
     // =========================================================

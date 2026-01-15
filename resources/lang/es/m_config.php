@@ -57,8 +57,11 @@ return [
         'update_base_hint'       => 'Sobrescribe el nombre y el contenido de la política en la tabla base (español). Úsalo solo si quieres que el texto original también cambie.',
         'filter_active'    => 'Activos',
         'filter_inactive'  => 'Inactivos',
-        'filter_archived'  => 'Archivados',
+        'filter_archived'  => 'Eliminados',
         'filter_all'       => 'Todos',
+        'trash_tab'        => 'Papelera',
+        'trash_title'      => 'Papelera de Políticas',
+        'trash_empty'      => 'No hay políticas eliminadas',
 
         'slug_hint'      => 'minúsculas, sin espacios, separada-por-guiones',
         'slug_auto_hint' => 'Si se deja vacío, se generará automáticamente a partir del título.',
@@ -98,6 +101,8 @@ return [
         'delete_category_confirm' => '¿Eliminar esta categoría y TODAS sus secciones?<br>Esta acción no se puede deshacer.',
         'no_categories'           => 'No se encontraron categorías.',
         'edit_category'           => 'Editar categoría',
+        'deleted_by'              => 'Eliminado por',
+        'deleted_at'              => 'Fecha de eliminación',
 
         // Formularios (categoría)
         'title_label'             => 'Título',
@@ -187,6 +192,10 @@ return [
         'confirm_deactivate_section'  => '¿Seguro que deseas desactivar esta sección?',
         'confirm_activate_section'    => '¿Seguro que deseas activar esta sección?',
         'confirm_delete_section'      => '¿Seguro que deseas eliminar esta sección?<br>Esta acción no se puede deshacer.',
+        'section_restored'            => 'Sección restaurada correctamente.',
+        'section_force_deleted'       => 'Sección eliminada permanentemente.',
+        'confirm_restore_section'     => '¿Restaurar esta sección?',
+        'confirm_force_delete_section' => '¿Eliminar permanentemente esta sección? Esta acción no se puede deshacer.',
     ],
 
     // =========================================================
