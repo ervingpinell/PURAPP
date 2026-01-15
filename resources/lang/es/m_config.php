@@ -273,6 +273,12 @@ return [
         // Título / cabecera
         'title'            => 'FAQ',
 
+        // Tabs
+        'active_tab'       => 'Activos',
+        'trash_tab'        => 'Papelera',
+        'trash_title'      => 'Papelera de FAQs',
+        'trash_empty'      => 'No hay preguntas frecuentes eliminadas',
+
         // Campos / columnas
         'question'         => 'Pregunta',
         'answer'           => 'Respuesta',
@@ -280,6 +286,8 @@ return [
         'actions'          => 'Acciones',
         'active'           => 'Activo',
         'inactive'         => 'Inactivo',
+        'deleted_by'       => 'Eliminado por',
+        'deleted_at'       => 'Eliminado el',
 
         // Botones / acciones
         'new'              => 'Nueva pregunta',
@@ -292,6 +300,9 @@ return [
         'cancel'           => 'Cancelar',
         'close'            => 'Cerrar',
         'ok'               => 'OK',
+        'restore'          => 'Restaurar',
+        'force_delete'     => 'Eliminar permanentemente',
+        'retranslate'      => 'Retraducir',
 
         // UI
         'read_more'        => 'Leer más',
@@ -300,9 +311,12 @@ return [
         // Confirmaciones
         'confirm_create'   => '¿Crear esta pregunta frecuente?',
         'confirm_edit'     => '¿Guardar los cambios de esta pregunta frecuente?',
-        'confirm_delete'   => '¿Seguro que deseas eliminar esta pregunta frecuente?<br>Esta acción no se puede deshacer.',
+        'confirm_delete'   => '¿Seguro que deseas eliminar esta pregunta frecuente?<br>Se moverá a la papelera.',
         'confirm_activate' => '¿Seguro que deseas activar esta pregunta frecuente?',
         'confirm_deactivate' => '¿Seguro que deseas desactivar esta pregunta frecuente?',
+        'confirm_restore'  => '¿Restaurar esta pregunta frecuente?',
+        'confirm_force_delete' => '¿Eliminar permanentemente esta pregunta frecuente?<br>Esta acción no se puede deshacer.',
+        'confirm_retranslate' => '¿Regenerar todas las traducciones?<br>Esto sobrescribirá las traducciones existentes.',
 
         // Validación / errores
         'validation_errors' => 'Hay errores de validación',
@@ -311,9 +325,12 @@ return [
         // Mensajes (flash)
         'created_success'      => 'Pregunta frecuente creada correctamente.',
         'updated_success'      => 'Pregunta frecuente actualizada correctamente.',
-        'deleted_success'      => 'Pregunta frecuente eliminada correctamente.',
+        'deleted_success'      => 'Pregunta frecuente movida a la papelera.',
         'activated_success'    => 'Pregunta frecuente activada correctamente.',
         'deactivated_success'  => 'Pregunta frecuente desactivada correctamente.',
+        'restored_success'     => 'Pregunta frecuente restaurada correctamente.',
+        'force_deleted_success' => 'Pregunta frecuente eliminada permanentemente.',
+        'retranslated_success' => 'Traducciones regeneradas correctamente.',
         'unexpected_error'     => 'Ocurrió un error inesperado.',
     ],
 

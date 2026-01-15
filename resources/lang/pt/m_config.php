@@ -266,6 +266,12 @@ return [
         // Título / cabeçalho
         'title'            => 'FAQ',
 
+        // Abas
+        'active_tab'       => 'Ativos',
+        'trash_tab'        => 'Lixeira',
+        'trash_title'      => 'Lixeira de FAQs',
+        'trash_empty'      => 'Nenhuma pergunta frequente excluída',
+
         // Campos / colunas
         'question'         => 'Pergunta',
         'answer'           => 'Resposta',
@@ -273,6 +279,8 @@ return [
         'actions'          => 'Ações',
         'active'           => 'Ativa',
         'inactive'         => 'Inativa',
+        'deleted_by'       => 'Excluído por',
+        'deleted_at'       => 'Excluído em',
 
         // Botões / ações
         'new'              => 'Nova pergunta',
@@ -285,6 +293,8 @@ return [
         'cancel'           => 'Cancelar',
         'close'            => 'Fechar',
         'ok'               => 'OK',
+        'restore'          => 'Restaurar',
+        'force_delete'     => 'Excluir permanentemente',
 
         // UI
         'read_more'        => 'Ler mais',
@@ -293,9 +303,11 @@ return [
         // Confirmações
         'confirm_create'   => 'Criar esta pergunta frequente?',
         'confirm_edit'     => 'Salvar as alterações desta pergunta frequente?',
-        'confirm_delete'   => 'Tem certeza de que deseja excluir esta pergunta frequente?<br>Esta ação não pode ser desfeita.',
+        'confirm_delete'   => 'Tem certeza de que deseja excluir esta pergunta frequente?<br>Ela será movida para a lixeira.',
         'confirm_activate' => 'Tem certeza de que deseja ativar esta pergunta frequente?',
         'confirm_deactivate' => 'Tem certeza de que deseja desativar esta pergunta frequente?',
+        'confirm_restore'  => 'Restaurar esta pergunta frequente?',
+        'confirm_force_delete' => 'Excluir permanentemente esta pergunta frequente?<br>Esta ação não pode ser desfeita.',
 
         // Validação / erros
         'validation_errors' => 'Há erros de validação',
@@ -304,9 +316,11 @@ return [
         // Mensagens (flash)
         'created_success'      => 'Pergunta frequente criada com sucesso.',
         'updated_success'      => 'Pergunta frequente atualizada com sucesso.',
-        'deleted_success'      => 'Pergunta frequente excluída com sucesso.',
+        'deleted_success'      => 'Pergunta frequente movida para a lixeira.',
         'activated_success'    => 'Pergunta frequente ativada com sucesso.',
         'deactivated_success'  => 'Pergunta frequente desativada com sucesso.',
+        'restored_success'     => 'Pergunta frequente restaurada com sucesso.',
+        'force_deleted_success' => 'Pergunta frequente excluída permanentemente.',
         'unexpected_error'     => 'Ocorreu um erro inesperado.',
     ],
 

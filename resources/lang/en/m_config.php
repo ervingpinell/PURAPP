@@ -269,6 +269,12 @@ return [
         // Title / header
         'title'            => 'FAQ',
 
+        // Tabs
+        'active_tab'       => 'Active',
+        'trash_tab'        => 'Trash',
+        'trash_title'      => 'FAQ Trash',
+        'trash_empty'      => 'No deleted frequently asked questions',
+
         // Fields / columns
         'question'         => 'Question',
         'answer'           => 'Answer',
@@ -276,6 +282,8 @@ return [
         'actions'          => 'Actions',
         'active'           => 'Active',
         'inactive'         => 'Inactive',
+        'deleted_by'       => 'Deleted by',
+        'deleted_at'       => 'Deleted on',
 
         // Buttons / actions
         'new'              => 'New question',
@@ -288,6 +296,8 @@ return [
         'cancel'           => 'Cancel',
         'close'            => 'Close',
         'ok'               => 'OK',
+        'restore'          => 'Restore',
+        'force_delete'     => 'Delete permanently',
 
         // UI
         'read_more'        => 'Read more',
@@ -296,9 +306,11 @@ return [
         // Confirmations
         'confirm_create'   => 'Create this frequently asked question?',
         'confirm_edit'     => 'Save changes to this frequently asked question?',
-        'confirm_delete'   => 'Are you sure you want to delete this frequently asked question?<br>This action cannot be undone.',
+        'confirm_delete'   => 'Are you sure you want to delete this frequently asked question?<br>It will be moved to trash.',
         'confirm_activate' => 'Are you sure you want to activate this frequently asked question?',
         'confirm_deactivate' => 'Are you sure you want to deactivate this frequently asked question?',
+        'confirm_restore'  => 'Restore this frequently asked question?',
+        'confirm_force_delete' => 'Permanently delete this frequently asked question?<br>This action cannot be undone.',
 
         // Validation / errors
         'validation_errors' => 'There are validation errors',
@@ -307,9 +319,11 @@ return [
         // Messages (flash)
         'created_success'      => 'FAQ created successfully.',
         'updated_success'      => 'FAQ updated successfully.',
-        'deleted_success'      => 'FAQ deleted successfully.',
+        'deleted_success'      => 'FAQ moved to trash.',
         'activated_success'    => 'FAQ activated successfully.',
         'deactivated_success'  => 'FAQ deactivated successfully.',
+        'restored_success'     => 'FAQ restored successfully.',
+        'force_deleted_success' => 'FAQ permanently deleted.',
         'unexpected_error'     => 'An unexpected error occurred.',
     ],
 

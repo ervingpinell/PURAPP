@@ -272,6 +272,12 @@ return [
         // Titel / Kopfzeile
         'title'            => 'FAQ',
 
+        // Tabs
+        'active_tab'       => 'Aktiv',
+        'trash_tab'        => 'Papierkorb',
+        'trash_title'      => 'FAQ-Papierkorb',
+        'trash_empty'      => 'Keine gelöschten häufig gestellten Fragen',
+
         // Felder / Spalten
         'question'         => 'Frage',
         'answer'           => 'Antwort',
@@ -279,6 +285,8 @@ return [
         'actions'          => 'Aktionen',
         'active'           => 'Aktiv',
         'inactive'         => 'Inaktiv',
+        'deleted_by'       => 'Gelöscht von',
+        'deleted_at'       => 'Gelöscht am',
 
         // Buttons / Aktionen
         'new'              => 'Neue Frage',
@@ -291,6 +299,8 @@ return [
         'cancel'           => 'Abbrechen',
         'close'            => 'Schließen',
         'ok'               => 'OK',
+        'restore'          => 'Wiederherstellen',
+        'force_delete'     => 'Dauerhaft löschen',
 
         // UI
         'read_more'        => 'Mehr lesen',
@@ -299,9 +309,11 @@ return [
         // Bestätigungen
         'confirm_create'   => 'Diese häufig gestellte Frage erstellen?',
         'confirm_edit'     => 'Änderungen an dieser häufig gestellten Frage speichern?',
-        'confirm_delete'   => 'Möchtest du diese häufig gestellte Frage wirklich löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
+        'confirm_delete'   => 'Möchtest du diese häufig gestellte Frage wirklich löschen?<br>Sie wird in den Papierkorb verschoben.',
         'confirm_activate' => 'Möchtest du diese häufig gestellte Frage wirklich aktivieren?',
         'confirm_deactivate' => 'Möchtest du diese häufig gestellte Frage wirklich deaktivieren?',
+        'confirm_restore'  => 'Diese häufig gestellte Frage wiederherstellen?',
+        'confirm_force_delete' => 'Diese häufig gestellte Frage dauerhaft löschen?<br>Diese Aktion kann nicht rückgängig gemacht werden.',
 
         // Validierung / Fehler
         'validation_errors' => 'Es liegen Validierungsfehler vor',
@@ -310,9 +322,11 @@ return [
         // Meldungen (Flash)
         'created_success'      => 'Häufig gestellte Frage erfolgreich erstellt.',
         'updated_success'      => 'Häufig gestellte Frage erfolgreich aktualisiert.',
-        'deleted_success'      => 'Häufig gestellte Frage erfolgreich gelöscht.',
+        'deleted_success'      => 'Häufig gestellte Frage in den Papierkorb verschoben.',
         'activated_success'    => 'Häufig gestellte Frage erfolgreich aktiviert.',
         'deactivated_success'  => 'Häufig gestellte Frage erfolgreich deaktiviert.',
+        'restored_success'     => 'Häufig gestellte Frage erfolgreich wiederhergestellt.',
+        'force_deleted_success' => 'Häufig gestellte Frage dauerhaft gelöscht.',
         'unexpected_error'     => 'Es ist ein unerwarteter Fehler aufgetreten.',
     ],
 

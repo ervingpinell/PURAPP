@@ -20,17 +20,20 @@ class FaqController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['can:view-faqs'])->only(['index']);
+        $this->middleware(['can:view-faqs'])->only(['index', 'trash']);
         $this->middleware(['can:create-faqs'])->only(['store']);
         $this->middleware(['can:edit-faqs'])->only(['update']);
         $this->middleware(['can:publish-faqs'])->only(['toggleStatus']);
         $this->middleware(['can:delete-faqs'])->only(['destroy']);
+        $this->middleware(['can:restore-faqs'])->only(['restore']);
+        $this->middleware(['can:force-delete-faqs'])->only(['forceDelete']);
     }
 
     public function index()
     {
-        $faqs = Faq::orderBy('faq_id')->get();
-        return view('admin.faqs.index', compact('faqs'));
+        $faqs = Faq::with('translations')->orderBy('faq_id')->get();
+        $trashedCount = Faq::onlyTrashed()->count();
+        return view('admin.faqs.index', compact('faqs', 'trashedCount'));
     }
 
     public function store(Request $request, TranslatorInterface $translator)
@@ -91,15 +94,36 @@ class FaqController extends Controller
     public function update(Request $request, Faq $faq)
     {
         $request->validate([
-            'question' => 'required|string|max:255',
-            'answer'   => 'required|string',
+            'translations.*.question' => 'required|string|max:500',
+            'translations.*.answer'   => 'required|string',
         ]);
 
         try {
-            $faq->update([
-                'question' => $request->string('question')->trim(),
-                'answer'   => $request->string('answer')->trim(),
-            ]);
+            DB::transaction(function () use ($request, $faq) {
+                $translations = $request->input('translations', []);
+
+                // Update or create translations for each locale
+                foreach ($translations as $locale => $data) {
+                    FaqTranslation::updateOrCreate(
+                        [
+                            'faq_id' => $faq->faq_id,
+                            'locale' => $locale,
+                        ],
+                        [
+                            'question' => $data['question'],
+                            'answer' => $data['answer'],
+                        ]
+                    );
+                }
+
+                // Update base FAQ with Spanish translation
+                if (isset($translations['es'])) {
+                    $faq->update([
+                        'question' => $translations['es']['question'],
+                        'answer' => $translations['es']['answer'],
+                    ]);
+                }
+            });
 
             LoggerHelper::mutated('FaqController', 'update', 'Faq', $faq->faq_id);
 
@@ -117,6 +141,8 @@ class FaqController extends Controller
     public function destroy(Faq $faq)
     {
         try {
+            $faq->deleted_by = auth()->id();
+            $faq->save();
             $faq->delete();
 
             LoggerHelper::mutated('FaqController', 'destroy', 'Faq', $faq->faq_id);
@@ -151,5 +177,41 @@ class FaqController extends Controller
             return back()
                 ->with('error', 'm_config.faq.unexpected_error');
         }
+    }
+
+    public function trash()
+    {
+        $faqs = Faq::onlyTrashed()
+            ->with('deletedBy')
+            ->orderByDesc('deleted_at')
+            ->get();
+
+        return view('admin.faqs.trash', compact('faqs'));
+    }
+
+    public function restore($id)
+    {
+        $faq = Faq::onlyTrashed()->findOrFail($id);
+        $faq->deleted_by = null;
+        $faq->save();
+        $faq->restore();
+
+        LoggerHelper::mutated('FaqController', 'restore', 'Faq', $id);
+
+        return redirect()
+            ->route('admin.faqs.trash')
+            ->with('success', 'm_config.faq.restored_success');
+    }
+
+    public function forceDelete($id)
+    {
+        $faq = Faq::onlyTrashed()->findOrFail($id);
+        $faq->forceDelete();
+
+        LoggerHelper::mutated('FaqController', 'forceDelete', 'Faq', $id);
+
+        return redirect()
+            ->route('admin.faqs.trash')
+            ->with('success', 'm_config.faq.force_deleted_success');
     }
 }

@@ -7,98 +7,186 @@
 @stop
 
 @section('content')
-<!-- Botón Crear -->
-<!-- Botón Crear -->
-@can('create-faqs')
-<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#createFaqModal">
-  <i class="fas fa-plus"></i> {{ __('m_config.faq.new') }}
-</button>
-@endcan
+<div class="p-3 table-responsive">
 
-<table class="table table-bordered">
-  <thead class="table-dark">
-    <tr>
-      <th>{{ __('m_config.faq.question') }}</th>
-      <th>{{ __('m_config.faq.answer') }}</th>
-      <th>{{ __('m_config.faq.status') }}</th>
-      <th style="width: 160px;">{{ __('m_config.faq.actions') }}</th>
-    </tr>
-  </thead>
-  <tbody>
-    @foreach ($faqs as $faq)
-    <tr>
-      <td>{{ $faq->question }}</td>
-      <td>
-        <div class="faq-answer position-relative" style="max-height: 3.5em; overflow: hidden;" data-expanded="false">
-          <div class="answer-content">{{ strip_tags($faq->answer) }}</div>
-          <div class="fade-overlay position-absolute bottom-0 start-0 w-100"
-            style="height: 1.5em; background: linear-gradient(to bottom, transparent, white);"></div>
+  {{-- Tabs: Activos / Papelera --}}
+  <ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+      <a class="nav-link active" href="{{ route('admin.faqs.index') }}" role="tab">
+        {{ __('m_config.faq.active_tab') }}
+      </a>
+    </li>
+    @can('restore-faqs')
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" href="{{ route('admin.faqs.trash') }}" role="tab">
+        {{ __('m_config.faq.trash_tab') }}
+        @if(isset($trashedCount) && $trashedCount > 0)
+        <span class="badge badge-danger ml-1">{{ $trashedCount }}</span>
+        @endif
+      </a>
+    </li>
+    @endcan
+  </ul>
+
+  {{-- Botón Crear --}}
+  @can('create-faqs')
+  <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#createFaqModal">
+    <i class="fas fa-plus"></i> {{ __('m_config.faq.new') }}
+  </button>
+  @endcan
+
+  <table class="table table-bordered table-striped table-hover align-middle">
+    <thead class="bg-primary text-white">
+      <tr>
+        <th>{{ __('m_config.faq.question') }}</th>
+        <th>{{ __('m_config.faq.answer') }}</th>
+        <th>{{ __('m_config.faq.status') }}</th>
+        <th style="width: 160px;">{{ __('m_config.faq.actions') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach ($faqs as $faq)
+      <tr>
+        <td>{{ $faq->question }}</td>
+        <td>
+          <div class="faq-answer position-relative" style="max-height: 3.5em; overflow: hidden;" data-expanded="false">
+            <div class="answer-content">{{ strip_tags($faq->answer) }}</div>
+            <div class="fade-overlay position-absolute bottom-0 start-0 w-100"
+              style="height: 1.5em; background: linear-gradient(to bottom, transparent, white);"></div>
+          </div>
+          <button class="btn btn-link p-0 mt-1 toggle-answer d-none" style="font-size: 0.85em;">
+            {{ __('m_config.faq.read_more') }}
+          </button>
+        </td>
+        <td>
+          <span class="badge bg-{{ $faq->is_active ? 'success' : 'secondary' }}">
+            {{ $faq->is_active ? __('m_config.faq.active') : __('m_config.faq.inactive') }}
+          </span>
+        </td>
+        <td>
+          {{-- EDITAR --}}
+          @can('edit-faqs')
+          <button
+            class="btn btn-edit btn-sm"
+            data-bs-toggle="modal"
+            data-bs-target="#editFaqModal{{ $faq->faq_id }}"
+            title="{{ __('m_config.faq.edit') }}">
+            <i class="fas fa-edit"></i>
+          </button>
+          @endcan
+
+          {{-- TOGGLE --}}
+          @can('publish-faqs')
+          <form action="{{ route('admin.faqs.toggleStatus', $faq) }}" method="POST"
+            class="d-inline js-confirm-toggle" data-active="{{ $faq->is_active ? 1 : 0 }}">
+            @csrf
+            @method('PATCH')
+            <button type="submit"
+              class="btn btn-sm {{ $faq->is_active ? 'btn-toggle' : 'btn-secondary' }}"
+              title="{{ $faq->is_active ? __('m_config.faq.deactivate') : __('m_config.faq.activate') }}">
+              <i class="fas fa-toggle-{{ $faq->is_active ? 'on' : 'off' }}"></i>
+            </button>
+          </form>
+          @endcan
+
+          {{-- ELIMINAR (SOFT DELETE) --}}
+          @can('delete-faqs')
+          <form action="{{ route('admin.faqs.destroy', $faq) }}" method="POST"
+            class="d-inline js-confirm-delete">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-sm btn-delete" title="{{ __('m_config.faq.delete') }}">
+              <i class="fas fa-trash"></i>
+            </button>
+          </form>
+          @endcan
+        </td>
+      </tr>
+
+      {{-- Modal EDITAR con tabs por idioma --}}
+      <div class="modal fade" id="editFaqModal{{ $faq->faq_id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <form action="{{ route('admin.faqs.update', $faq) }}" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">{{ __('m_config.faq.edit') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.faq.close') }}"></button>
+              </div>
+              <div class="modal-body">
+                @php
+                $locales = supported_locales();
+                @endphp
+
+                <ul class="nav nav-tabs mb-3" id="faqTabs{{ $faq->faq_id }}" role="tablist">
+                  @foreach($locales as $locale)
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link {{ $loop->first ? 'active' : '' }}"
+                      id="tab-{{ $faq->faq_id }}-{{ $locale }}"
+                      data-bs-toggle="tab"
+                      data-bs-target="#content-{{ $faq->faq_id }}-{{ $locale }}"
+                      type="button"
+                      role="tab">
+                      {{ strtoupper($locale) }}
+                    </button>
+                  </li>
+                  @endforeach
+                </ul>
+
+                <div class="tab-content" id="faqTabsContent{{ $faq->faq_id }}">
+                  @foreach($locales as $locale)
+                  @php
+                  $translation = $faq->translations->firstWhere('locale', $locale);
+                  $questionValue = $translation ? $translation->question : ($locale === 'es' ? $faq->question : '');
+                  $answerValue = $translation ? $translation->answer : ($locale === 'es' ? $faq->answer : '');
+                  @endphp
+                  <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                    id="content-{{ $faq->faq_id }}-{{ $locale }}"
+                    role="tabpanel">
+                    <div class="mb-3">
+                      <label class="form-label">
+                        {{ __('m_config.faq.question') }} ({{ strtoupper($locale) }})
+                      </label>
+                      <input type="text"
+                        name="translations[{{ $locale }}][question]"
+                        class="form-control"
+                        value="{{ $questionValue }}"
+                        required
+                        maxlength="500">
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">
+                        {{ __('m_config.faq.answer') }} ({{ strtoupper($locale) }})
+                      </label>
+                      <textarea
+                        name="translations[{{ $locale }}][answer]"
+                        class="form-control"
+                        rows="5"
+                        required>{{ $answerValue }}</textarea>
+                    </div>
+                  </div>
+                  @endforeach
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                  {{ __('m_config.faq.cancel') }}
+                </button>
+                <button type="submit" class="btn btn-warning">
+                  {{ __('m_config.faq.save') }}
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
-        <button class="btn btn-link p-0 mt-1 toggle-answer d-none" style="font-size: 0.85em;">
-          {{ __('m_config.faq.read_more') }}
-        </button>
-      </td>
-      <td>
-        <span class="badge bg-{{ $faq->is_active ? 'success' : 'secondary' }}">
-          {{ $faq->is_active ? __('m_config.faq.active') : __('m_config.faq.inactive') }}
-        </span>
-      </td>
-      <td>
-        @php
-        $qAttr = e(strip_tags($faq->question));
-        $aAttr = e(str_replace(["\r", "\n"], ' ', strip_tags($faq->answer)));
-        @endphp
+      </div>
+      @endforeach
+    </tbody>
+  </table>
+</div>
 
-        <!-- ACCIONES -->
-
-        <!-- EDITAR -->
-        @can('edit-faqs')
-        <button
-          class="btn btn-sm btn-edit"
-          data-bs-toggle="modal"
-          data-bs-target="#editFaqModal"
-          data-id="{{ $faq->faq_id ?? $faq->id }}"
-          data-action="{{ route('admin.faqs.update', $faq) }}"
-          data-question="{{ $qAttr }}"
-          data-answer="{{ $aAttr }}"
-          title="{{ __('m_config.faq.edit') }}">
-          <i class="fas fa-edit"></i>
-        </button>
-        @endcan
-
-        <!-- TOGGLE -->
-        @can('publish-faqs')
-        <form action="{{ route('admin.faqs.toggleStatus', $faq) }}" method="POST"
-          class="d-inline js-confirm-toggle" data-active="{{ $faq->is_active ? 1 : 0 }}">
-          @csrf
-          @method('PATCH')
-          <button type="submit"
-            class="btn btn-sm {{ $faq->is_active ? 'btn-toggle' : 'btn-secondary' }}"
-            title="{{ $faq->is_active ? __('m_config.faq.deactivate') : __('m_config.faq.activate') }}"
-            data-bs-toggle="tooltip">
-            <i class="fas fa-toggle-{{ $faq->is_active ? 'on' : 'off' }}"></i>
-          </button>
-        </form>
-        @endcan
-
-        <!-- ELIMINAR -->
-        @can('delete-faqs')
-        <form action="{{ route('admin.faqs.destroy', $faq) }}" method="POST"
-          class="d-inline js-confirm-delete" data-message="{{ __('m_config.faq.confirm_delete') }}">
-          @csrf
-          @method('DELETE')
-          <button type="submit" class="btn btn-sm btn-danger" title="{{ __('m_config.faq.delete') }}" data-bs-toggle="tooltip">
-            <i class="fas fa-trash"></i>
-          </button>
-        </form>
-        @endcan
-      </td>
-    </tr>
-    @endforeach
-  </tbody>
-</table>
-
-<!-- Modal CREAR -->
+{{-- Modal CREAR --}}
 <div class="modal fade" id="createFaqModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -126,42 +214,12 @@
     </div>
   </div>
 </div>
-
-<!-- Modal EDITAR (reutilizable) -->
-<div class="modal fade" id="editFaqModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form id="editFaqForm" method="POST" action="#" class="js-confirm-edit">
-        @csrf
-        @method('PUT')
-        <div class="modal-header">
-          <h5 class="modal-title">{{ __('m_config.faq.edit') }} {{ __('m_config.faq.question') }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.faq.close') }}"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">{{ __('m_config.faq.question') }}</label>
-            <input id="editQuestion" type="text" name="question" class="form-control" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">{{ __('m_config.faq.answer') }}</label>
-            <textarea id="editAnswer" name="answer" class="form-control" rows="4" required></textarea>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.faq.cancel') }}</button>
-          <button type="submit" class="btn btn-primary">{{ __('m_config.faq.save') }}</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
 @stop
 
-@push('js')
+@section('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-{{-- Éxito / Error (modal centrado, sin toast) --}}
+{{-- Éxito / Error --}}
 @if(session('success'))
 <script>
   Swal.fire({
@@ -185,18 +243,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    if (window.bootstrap && bootstrap.Tooltip) {
-      [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
-    }
-
-    document.addEventListener('hidden.bs.modal', () => {
-      const backs = document.querySelectorAll('.modal-backdrop');
-      if (backs.length > 1) backs.forEach((b, i) => {
-        if (i < backs.length - 1) b.remove();
-      });
-    });
-
-    const valErrors = @json($errors-> any() ? $errors-> all() : []);
+    const valErrors = @json($errors -> any() ? $errors -> all() : []);
     if (valErrors && valErrors.length) {
       const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
       Swal.fire({
@@ -225,31 +272,12 @@
       });
     });
 
-    // Confirmación EDITAR
-    document.querySelectorAll('.js-confirm-edit').forEach(form => {
-      form.addEventListener('submit', (ev) => {
-        ev.preventDefault();
-        Swal.fire({
-          title: @json(__('m_config.faq.confirm_edit')),
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#0d6efd',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: @json(__('m_config.faq.edit')),
-          cancelButtonText: @json(__('m_config.faq.cancel')),
-        }).then((res) => {
-          if (res.isConfirmed) form.submit();
-        });
-      });
-    });
-
     // Confirmación ELIMINAR
     document.querySelectorAll('.js-confirm-delete').forEach(form => {
       form.addEventListener('submit', (ev) => {
         ev.preventDefault();
-        const msg = form.dataset.message || @json(__('m_config.faq.confirm_delete'));
         Swal.fire({
-          title: msg,
+          title: @json(__('m_config.faq.confirm_delete')),
           icon: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#d33',
@@ -300,29 +328,6 @@
         this.textContent = isExpanded ? @json(__('m_config.faq.read_more')) : @json(__('m_config.faq.read_less'));
       });
     });
-
-    // Rellenar modal de EDICIÓN
-    const editModal = document.getElementById('editFaqModal');
-    if (editModal) {
-      editModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        if (!button) return;
-
-        const action = button.getAttribute('data-action') || '#';
-        const question = button.getAttribute('data-question') || '';
-        const answer = button.getAttribute('data-answer') || '';
-
-        const form = document.getElementById('editFaqForm');
-        const qInp = document.getElementById('editQuestion');
-        const aTxt = document.getElementById('editAnswer');
-
-        if (form && qInp && aTxt) {
-          form.action = action;
-          qInp.value = question;
-          aTxt.value = answer;
-        }
-      });
-    }
   });
 </script>
-@endpush
+@stop

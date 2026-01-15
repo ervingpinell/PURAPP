@@ -292,7 +292,7 @@
 @section('js')
 <script>
     // Locale actual para elegir traducciones correctas
-    window.APP_LOCALE = @json(app() - > getLocale());
+    window.APP_LOCALE = @json(app() -> getLocale());
     window.BOOKING_LIMITS = @json($bookingLimits ?? []);
     window.TOURS_DATA = @json($toursData ?? []);
 

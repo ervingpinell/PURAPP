@@ -66,10 +66,12 @@
       class="btn btn-outline-primary {{ ($status ?? '') === 'inactive' ? 'active' : '' }}">
       {{ __('m_tours.tour.ui.inactives') }}
     </a>
+    @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
     <a href="{{ route('admin.tours.index', ['status' => 'archived']) }}"
-      class="btn btn-outline-primary {{ ($status ?? '') === 'archived' ? 'active' : '' }}">
-      {{ __('m_tours.tour.ui.archived') }}
+      class="btn btn-outline-danger {{ ($status ?? '') === 'archived' ? 'active' : '' }}">
+      {{ __('m_tours.tour.ui.deleted') }}
     </a>
+    @endif
     <a href="{{ route('admin.tours.index', ['status' => 'all']) }}"
       class="btn btn-outline-secondary {{ ($status ?? '') === 'all' ? 'active' : '' }}">
       {{ __('m_tours.tour.ui.all') }}

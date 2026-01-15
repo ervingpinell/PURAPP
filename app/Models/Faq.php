@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Faq Model
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  */
 class Faq extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'faqs';
     protected $primaryKey = 'faq_id';
@@ -26,6 +27,7 @@ class Faq extends Model
         'translated_question',
         'translated_answer',
         'is_active',
+        'deleted_by',
     ];
 
     protected $casts = [
@@ -55,8 +57,8 @@ class Faq extends Model
             ->where('locale', $locale)
             ->first()
             ?? $this->translations()
-                ->where('locale', config('app.fallback_locale'))
-                ->first();
+            ->where('locale', config('app.fallback_locale'))
+            ->first();
     }
 
     public function getQuestionTranslatedAttribute(): ?string
@@ -67,5 +69,15 @@ class Faq extends Model
     public function getAnswerTranslatedAttribute(): ?string
     {
         return optional($this->translate())?->answer;
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'deleted_by', 'user_id');
+    }
+
+    public function scopeOlderThan($query, $days)
+    {
+        return $query->where('deleted_at', '<=', now()->subDays($days));
     }
 }

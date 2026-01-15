@@ -1035,6 +1035,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
                     // -------------------- ITINERARY --------------------
                     Route::resource('itinerary', ItineraryController::class)->except(['show']);
+                    Route::get('itinerary/trash/list', [ItineraryController::class, 'trash'])->name('itinerary.trash');
                     Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])->name('itinerary.toggle');
                     Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])
                         ->middleware('throttle:sensitive')
@@ -1441,6 +1442,11 @@ Route::middleware([SetLocale::class])->group(function () {
                 // FAQs
                 // ============================
                 Route::group(['middleware' => ['can:view-faqs']], function () {
+                    // Soft Delete Routes (FAQs) - Must be before resource to avoid parameter collision
+                    Route::get('faqs/trash/list', [AdminFaqController::class, 'trash'])->name('faqs.trash');
+                    Route::patch('faqs/{id}/restore', [AdminFaqController::class, 'restore'])->name('faqs.restore');
+                    Route::delete('faqs/{id}/force', [AdminFaqController::class, 'forceDelete'])->name('faqs.forceDelete');
+
                     Route::resource('faqs', AdminFaqController::class)->except(['show']);
                     Route::patch('faqs/{faq}/toggle-status', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
                 });

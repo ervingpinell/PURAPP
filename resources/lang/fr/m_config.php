@@ -266,6 +266,12 @@ return [
         // Titre / en-tête
         'title'            => 'FAQ',
 
+        // Onglets
+        'active_tab'       => 'Actifs',
+        'trash_tab'        => 'Corbeille',
+        'trash_title'      => 'Corbeille des FAQ',
+        'trash_empty'      => 'Aucune question fréquente supprimée',
+
         // Champs / colonnes
         'question'         => 'Question',
         'answer'           => 'Réponse',
@@ -273,6 +279,8 @@ return [
         'actions'          => 'Actions',
         'active'           => 'Actif',
         'inactive'         => 'Inactif',
+        'deleted_by'       => 'Supprimé par',
+        'deleted_at'       => 'Supprimé le',
 
         // Boutons / actions
         'new'              => 'Nouvelle question',
@@ -285,6 +293,8 @@ return [
         'cancel'           => 'Annuler',
         'close'            => 'Fermer',
         'ok'               => 'OK',
+        'restore'          => 'Restaurer',
+        'force_delete'     => 'Supprimer définitivement',
 
         // UI
         'read_more'        => 'Lire plus',
@@ -293,9 +303,11 @@ return [
         // Confirmations
         'confirm_create'   => 'Créer cette question fréquente ?',
         'confirm_edit'     => 'Enregistrer les modifications de cette question fréquente ?',
-        'confirm_delete'   => 'Es-tu sûr(e) de vouloir supprimer cette question fréquente ?<br>Cette action ne peut pas être annulée.',
+        'confirm_delete'   => 'Es-tu sûr(e) de vouloir supprimer cette question fréquente ?<br>Elle sera déplacée dans la corbeille.',
         'confirm_activate' => 'Es-tu sûr(e) de vouloir activer cette question fréquente ?',
         'confirm_deactivate' => 'Es-tu sûr(e) de vouloir désactiver cette question fréquente ?',
+        'confirm_restore'  => 'Restaurer cette question fréquente ?',
+        'confirm_force_delete' => 'Supprimer définitivement cette question fréquente ?<br>Cette action ne peut pas être annulée.',
 
         // Validation / erreurs
         'validation_errors' => 'Il y a des erreurs de validation',
@@ -304,9 +316,11 @@ return [
         // Messages (flash)
         'created_success'      => 'Question fréquente créée avec succès.',
         'updated_success'      => 'Question fréquente mise à jour avec succès.',
-        'deleted_success'      => 'Question fréquente supprimée avec succès.',
+        'deleted_success'      => 'Question fréquente déplacée dans la corbeille.',
         'activated_success'    => 'Question fréquente activée avec succès.',
         'deactivated_success'  => 'Question fréquente désactivée avec succès.',
+        'restored_success'     => 'Question fréquente restaurée avec succès.',
+        'force_deleted_success' => 'Question fréquente supprimée définitivement.',
         'unexpected_error'     => 'Une erreur inattendue s\'est produite.',
     ],
 

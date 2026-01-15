@@ -406,7 +406,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
 <script>
     $(function() {
         const fmtMoney = n => '$' + (Number(n || 0)).toFixed(2);
-        const locale = @json(app() - > getLocale());
+        const locale = @json(app() -> getLocale());
         const initQtys = @json($categoryQuantitiesById ?? []);
 
         const $tourSelect = $('#tour_id');
@@ -869,9 +869,9 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         syncHotelMeetingInitialState();
 
         // Inicializar valores al cargar
-        const initialTourId = @json(old('tour_id', $booking - > tour_id));
-        const initialScheduleId = @json(old('schedule_id', optional($booking - > detail) - > schedule_id));
-        const initialLanguageId = @json(old('tour_language_id', $booking - > tour_language_id));
+        const initialTourId = @json(old('tour_id', $booking -> tour_id));
+        const initialScheduleId = @json(old('schedule_id', optional($booking -> detail) -> schedule_id));
+        const initialLanguageId = @json(old('tour_language_id', $booking -> tour_language_id));
 
         if (initialTourId) {
             $tourSelect.val(initialTourId).trigger('change');
