@@ -255,8 +255,8 @@ return asset('images/volcano.png');
         </a>
 
         {{-- 👇 Cambiado: ir al checkout (términos) --}}
-        <a class="btn btn-primary w-100"
-          href="{{ route('public.carts.index') }}"
+        <a class="btn btn-primary w-100 rounded"
+          href="{{ route('public.checkout.show') }}"
           id="mini-cart-confirm">
           {{ __('adminlte::adminlte.confirmBooking') }}
         </a>
@@ -399,7 +399,7 @@ return asset('images/volcano.png');
           {{ __('adminlte::adminlte.view_cart') }}
         </a>
 
-        <a class="btn btn-primary w-100"
+        <a class="btn btn-primary w-100 rounded"
           href="{{ route('public.checkout.show') }}"
           id="mini-cart-confirm">
           {{ __('adminlte::adminlte.confirmBooking') }}
