@@ -602,5 +602,6 @@ return [
         'tours_description' => 'Discover our selection of tours in La Fortuna. From volcano hikes to acuatic activities. Book your adventure today!',
         'contact_title' => 'Contact Us | Green Vacations Costa Rica',
         'contact_description' => 'Have questions? Contact us to plan your trip to Costa Rica. We are here to help with your tour and transportation booking.',
+        'faq_description' => 'Find answers to frequently asked questions about our tours in La Fortuna, booking process, cancellations, and more. Plan your Costa Rica adventure with ease.',
     ],
 ];

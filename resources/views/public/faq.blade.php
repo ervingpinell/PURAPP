@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', __('adminlte::adminlte.faq_title') ?? 'Preguntas Frecuentes')
+@section('meta_description', __('adminlte::adminlte.meta.faq_description'))
 
 @section('content')
 <div class="container py-5">
