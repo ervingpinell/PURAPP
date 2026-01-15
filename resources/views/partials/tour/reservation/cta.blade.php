@@ -1,5 +1,5 @@
 {{-- Cart button - Available for all users (guests + registered) --}}
-@if(config('gv.public_readonly'))
+@if(config('site.public_readonly'))
 <button type="button" class="btn btn-secondary w-100 mt-3" disabled>
   <i class="fas fa-lock me-2"></i> {{ __('Maintenance Mode') }}
 </button>

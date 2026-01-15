@@ -2,7 +2,7 @@
 
 use Laravel\Fortify\Features;
 
-$allowRegistration = (bool) (config('gv.allow_public_registration') ?? env('GV_ALLOW_PUBLIC_REGISTRATION', false));
+$allowRegistration = (bool) (config('site.allow_public_registration') ?? env('ALLOW_PUBLIC_REGISTRATION', false));
 
 return [
 
@@ -27,8 +27,8 @@ return [
     'views' => true,
 
     /*
-     | Condicionamos el registro vía .env / config('gv.*')
-     | - Con GV_ALLOW_PUBLIC_REGISTRATION=false, Fortify NO registra rutas de registro.
+     | Condicionamos el registro vía .env / config('site.*')
+     | - Con ALLOW_PUBLIC_REGISTRATION=false, Fortify NO registra rutas de registro.
      */
     'features' => array_values(array_filter([
         $allowRegistration ? Features::registration() : null,

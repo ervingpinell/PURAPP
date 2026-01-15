@@ -84,7 +84,7 @@ class FortifyServiceProvider extends ServiceProvider
 
             // ── Bandera para bloquear login público ───────────────────────────────
             // Si está en false, SOLO pueden iniciar sesión usuarios con permiso 'access-admin'
-            $allowPublicLogin = (bool) (config('gv.allow_public_login') ?? env('GV_ALLOW_PUBLIC_LOGIN', false));
+            $allowPublicLogin = (bool) (config('site.allow_public_login') ?? env('ALLOW_PUBLIC_LOGIN', false));
 
             // ── Non-strict mode (for local testing) ───────────────────────────────
             if (! $strict) {

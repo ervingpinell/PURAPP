@@ -15,30 +15,53 @@ class PublicReadOnly
             return $next($request);
         }
 
-        // Solo si readonly está activo, bloquea rutas públicas
-        if (config('gv.public_readonly') === true) {
-            // Bloquea todo intento de compra / carrito / promo / reservas públicas
-            $blocked = [
+        // Solo si readonly está activo, aplicar restricciones
+        if (config('site.public_readonly') === true) {
+            // Rutas que SIEMPRE se bloquean en modo readonly (incluso para usuarios autenticados)
+            $alwaysBlocked = [
+                'register',      // No permitir nuevos registros
+                'contact',       // No permitir formulario de contacto
+                'contact/*',
+            ];
+
+            foreach ($alwaysBlocked as $pat) {
+                if ($request->is($pat)) {
+                    return response()
+                        ->view('errors.public-readonly', [], 503)
+                        ->header('Retry-After', '3600');
+                }
+            }
+
+            // Rutas de carrito/checkout: verificar autenticación
+            $checkoutRoutes = [
                 'apply-promo',
                 'api/apply-promo',
                 'carrito/*',    // Legacy
                 'mi-carrito',   // Legacy
                 'my-bookings*',
-                'register',
-                // New Guest Checkout & Cart
                 'checkout*',
                 'carts/*',
                 'payment/*',
-                // Contact form
-                'contact',
-                'contact/*',
             ];
 
-            foreach ($blocked as $pat) {
+            $allowGuestCheckout = (bool) config('site.allow_guest_checkout', true);
+
+            foreach ($checkoutRoutes as $pat) {
                 if ($request->is($pat)) {
-                    return response()
-                        ->view('errors.public-readonly', [], 503)
-                        ->header('Retry-After', '3600');
+                    // Si el usuario está autenticado, permitir acceso
+                    if ($request->user()) {
+                        return $next($request);
+                    }
+
+                    // Si es invitado y NO se permite guest checkout, bloquear
+                    if (!$allowGuestCheckout) {
+                        return response()
+                            ->view('errors.public-readonly', [], 503)
+                            ->header('Retry-After', '3600');
+                    }
+
+                    // Si es invitado y SÍ se permite guest checkout, permitir
+                    return $next($request);
                 }
             }
         }

@@ -283,7 +283,7 @@ $schemaOrg = [
 </head>
 
 <body class="d-flex flex-column min-vh-100 {{ $bodyClassString }}">
-    @if (config('gv.public_readonly'))
+    @if (config('site.public_readonly'))
     <div class="alert alert-warning text-center mb-0 rounded-0">
         {{ __('Site is under maintenance. Registration and purchases are temporarily disabled.') }}
     </div>
@@ -353,8 +353,8 @@ $schemaOrg = [
     @if ($hasActiveCart)
     <script>
         (function() {
-            const expiresAtStr = @json($userCart -> expires_at);
-            const totalMinutes = @json($userCart -> expiryMinutes());
+            const expiresAtStr = @json($userCart - > expires_at);
+            const totalMinutes = @json($userCart - > expiryMinutes());
 
             if (!expiresAtStr) return;
 
