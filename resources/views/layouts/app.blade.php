@@ -361,8 +361,8 @@ $schemaOrg = [
     @if ($hasActiveCart)
     <script>
         (function() {
-            const expiresAtStr = @json($userCart - > expires_at);
-            const totalMinutes = @json($userCart - > expiryMinutes());
+            const expiresAtStr = @json($userCart -> expires_at);
+            const totalMinutes = @json($userCart -> expiryMinutes());
 
             if (!expiresAtStr) return;
 
