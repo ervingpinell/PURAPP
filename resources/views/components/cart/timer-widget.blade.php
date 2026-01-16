@@ -31,7 +31,7 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 @endphp
 
 @if ($shouldShow)
-<div id="cart-timer-widget" class="cart-timer-widget">
+<div id="cart-timer-widget" class="cart-timer-widget" style="display: none;">
   <div class="timer-text">
     <small>{{ __('carts.timer.will_expire') }}</small>
     <strong id="widget-timer-full">--:--</strong>
@@ -166,12 +166,24 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 
     // Función para inicializar el widget
     const initWidget = () => {
-      if (!window.cartCountdown) {
+      // Verificar existencia y métodos requeridos
+      if (!window.cartCountdown || typeof window.cartCountdown.getRemainingSeconds !== 'function') {
         return false;
       }
 
       const updateWidget = () => {
-        const remaining = window.cartCountdown.getRemainingSeconds();
+        const remaining = window.cartCountdown.getRemainingSeconds(); // Puede ser NaN si hay error
+
+        // Safety check for NaN
+        if (isNaN(remaining)) {
+          widget.style.display = 'none';
+          return;
+        }
+
+        // Mostrar widget si estaba oculto y tenemos datos validos
+        if (widget.style.display === 'none') {
+          widget.style.display = 'block';
+        }
 
         if (remaining <= 0) {
           // Don't hide immediately, show expired state
@@ -220,7 +232,7 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
         if (initWidget() || attempts >= maxAttempts) {
           clearInterval(retryInterval);
           if (attempts >= maxAttempts && !window.cartCountdown) {
-            console.warn('Cart countdown system not found after 5 seconds');
+            // Si falla todo, nos aseguramos que siga oculto
             widget.style.display = 'none';
           }
         }
