@@ -49,7 +49,13 @@ class SetLocale
             Session::put('locale_prefix', $prefix);
         } else {
             // Detecta del navegador o usa default
-            $pref   = $request->getPreferredLanguage($supportedPrefixes);
+            $supported = $supportedPrefixes;
+            if (($key = array_search($defaultPrefix, $supported)) !== false) {
+                unset($supported[$key]);
+                array_unshift($supported, $defaultPrefix);
+            }
+            
+            $pref   = $request->getPreferredLanguage($supported);
             $prefix = $pref ?: $defaultPrefix;
             Session::put('locale_prefix', $prefix);
         }
