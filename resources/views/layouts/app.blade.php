@@ -383,6 +383,38 @@ $schemaOrg = [
 
             // Emit event so widgets know cartCountdown is ready
             window.dispatchEvent(new CustomEvent('cartCountdown:ready'));
+
+            // Auto-expire logic for Auth Users (Global)
+            const expireUrl = '{{ route("public.carts.expire") }}';
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            let expirationHandled = false;
+
+            const updateBadgesToZero = () => {
+                document.querySelectorAll('.cart-count-badge').forEach(b => {
+                    b.textContent = '0';
+                    b.style.display = 'none';
+                });
+            };
+
+            const checkExpiration = () => {
+                if (window.cartCountdown.isExpired() && !expirationHandled) {
+                    expirationHandled = true;
+                    console.log('Cart expired (auth global check)');
+                    updateBadgesToZero();
+
+                    fetch(expireUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        }
+                    }).finally(() => {
+                        window.location.reload();
+                    });
+                }
+            };
+
+            setInterval(checkExpiration, 5000);
         })();
     </script>
     @endif
