@@ -30,9 +30,9 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 
 @if ($shouldShow)
 <div id="cart-timer-widget" class="cart-timer-widget" style="display: none;">
-  <div class="timer-text">
-    <small>{{ __('carts.timer.will_expire') }}</small>
-    <strong id="widget-timer-full">--:--</strong>
+  <div class="timer-content">
+    <span class="timer-message">{{ __('carts.timer.will_expire') }}</span>
+    <span id="widget-timer-full" class="timer-time">--:--</span>
   </div>
 </div>
 
@@ -40,51 +40,58 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 <style>
   .cart-timer-widget {
     position: fixed;
-    bottom: 90px;
-    left: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    bottom: 85px;
+    right: 20px;
+    background: linear-gradient(135deg, #2d7a4f 0%, #1e5a3a 100%);
     color: white;
-    padding: 0.75rem 1.25rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 12px 18px;
+    border-radius: 25px;
+    box-shadow: 0 4px 12px rgba(45, 122, 79, 0.4);
     cursor: pointer;
-    z-index: 999;
+    z-index: 998;
     transition: all 0.3s ease;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 280px;
   }
 
-  .cart-timer-widget .timer-text {
+  .cart-timer-widget .timer-content {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
+    align-items: center;
+  }
+
+  .cart-timer-widget .timer-message {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
     text-align: center;
+    opacity: 1;
+    white-space: nowrap;
   }
 
-  .cart-timer-widget .timer-text small {
-    font-size: 11px;
-    opacity: 0.9;
-    line-height: 1.2;
-  }
-
-  .cart-timer-widget .timer-text strong {
-    font-size: 16px;
-    letter-spacing: 0.5px;
-    line-height: 1.2;
+  .cart-timer-widget .timer-time {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    line-height: 1;
   }
 
   .cart-timer-widget:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 16px rgba(45, 122, 79, 0.5);
   }
 
   .cart-timer-widget.warning {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+    box-shadow: 0 4px 12px rgba(245, 124, 0, 0.4);
     animation: ctw-pulse 2s ease-in-out infinite;
   }
 
   .cart-timer-widget.critical {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    animation: ctw-shake 0.5s ease-in-out infinite, ctw-blink 1s ease-in-out infinite;
+    background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+    animation: ctw-shake 0.5s ease-in-out infinite;
   }
 
   @keyframes ctw-pulse {
@@ -129,18 +136,20 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 
   @media (max-width: 575.98px) {
     .cart-timer-widget {
-      left: 50%;
-      right: auto;
-      transform: translateX(-50%);
-      bottom: 70px;
-      width: calc(100% - 2.5rem);
-      padding: 0.65rem 0.9rem;
-      font-size: 0.8rem;
-      border-radius: 999px;
+      bottom: 80px;
+      right: 15px;
+      padding: 11px 16px;
+      max-width: 220px;
+      border-radius: 30px;
     }
 
-    .cart-timer-widget .timer-text strong {
-      font-size: 14px;
+    .cart-timer-widget .timer-message {
+      font-size: 12px;
+    }
+
+    .cart-timer-widget .timer-time {
+      font-size: 20px;
+      letter-spacing: 1.2px;
     }
   }
 </style>
@@ -148,33 +157,45 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 {{-- INLINE SCRIPT - No depende de @stack, se ejecuta inmediatamente --}}
 <script>
   (function() {
+    console.log('🔧 [Timer Widget] Script iniciado');
+
     const widget = document.getElementById('cart-timer-widget');
     const timerFull = document.getElementById('widget-timer-full');
 
-    if (!widget || !timerFull) return;
+    if (!widget || !timerFull) {
+      console.error('🔧 [Timer Widget] ERROR: Elementos no encontrados', {
+        widget: !!widget,
+        timerFull: !!timerFull
+      });
+      return;
+    }
 
-    // Click para ir al carrito
+    console.log('🔧 [Timer Widget] Elementos DOM encontrados ✓');
+
     widget.addEventListener('click', () => {
       window.location.href = '{{ route("public.carts.index") }}';
     });
 
-    // Función para inicializar el widget
     const initWidget = () => {
+      console.log('🔧 [Timer Widget] Intentando inicializar, cartCountdown:', !!window.cartCountdown);
+
       if (!window.cartCountdown || typeof window.cartCountdown.getRemainingSeconds !== 'function') {
         return false;
       }
 
+      const remaining = window.cartCountdown.getRemainingSeconds();
+      console.log('🔧 [Timer Widget] Segundos restantes:', remaining);
+
       const updateWidget = () => {
         const remaining = window.cartCountdown.getRemainingSeconds();
 
-        // Safety check for NaN
         if (isNaN(remaining)) {
           widget.style.display = 'none';
           return;
         }
 
-        // Mostrar widget si estaba oculto y tenemos datos válidos
         if (widget.style.display === 'none') {
+          console.log('🔧 [Timer Widget] Mostrando widget');
           widget.style.display = 'block';
         }
 
@@ -188,9 +209,7 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
         const seconds = remaining % 60;
         timerFull.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
-        // Cambiar estilo según tiempo restante
         widget.classList.remove('warning', 'critical');
-
         if (remaining <= 300) {
           widget.classList.add('critical');
         } else if (remaining <= 600) {
@@ -198,19 +217,22 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
         }
       };
 
+      console.log('🔧 [Timer Widget] ¡Inicialización exitosa!');
       setInterval(updateWidget, 1000);
       updateWidget();
       return true;
     };
 
-    // Intentar inicializar inmediatamente
     if (!initWidget()) {
-      // Escuchar evento cuando cartCountdown esté listo
-      window.addEventListener('cartCountdown:ready', () => initWidget(), {
+      console.log('🔧 [Timer Widget] Esperando cartCountdown:ready...');
+
+      window.addEventListener('cartCountdown:ready', () => {
+        console.log('🔧 [Timer Widget] Evento recibido');
+        initWidget();
+      }, {
         once: true
       });
 
-      // Fallback: reintentar cada 100ms hasta 5 segundos
       let attempts = 0;
       const maxAttempts = 50;
       const retryInterval = setInterval(() => {
@@ -218,6 +240,7 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
         if (initWidget() || attempts >= maxAttempts) {
           clearInterval(retryInterval);
           if (attempts >= maxAttempts && !window.cartCountdown) {
+            console.error('🔧 [Timer Widget] TIMEOUT: cartCountdown nunca se inicializó');
             widget.style.display = 'none';
           }
         }

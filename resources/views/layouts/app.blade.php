@@ -361,42 +361,45 @@ $schemaOrg = [
     @php
     $userCart = auth()->user()->cart()->where('is_active', true)->latest('cart_id')->first();
     $hasActiveCart = $userCart && $userCart->items()->count() > 0;
+    $cartExpiresAt = $hasActiveCart ? $userCart->expires_at : null;
+    $cartExpiryMinutes = $hasActiveCart ? $userCart->expiryMinutes() : 0;
     @endphp
 
     @if ($hasActiveCart)
     <script>
         (function() {
-            const expiresAtStr = @json($userCart -> expires_at);
-            const totalMinutes = @json($userCart -> expiryMinutes());
+            var expiresAtStr = @json($cartExpiresAt);
+            var totalMinutes = @json($cartExpiryMinutes);
 
             if (!expiresAtStr) return;
 
-            let serverExpires = new Date(expiresAtStr).getTime();
-            const totalSeconds = totalMinutes * 60;
+            var serverExpires = new Date(expiresAtStr).getTime();
+            var totalSeconds = totalMinutes * 60;
 
             window.cartCountdown = {
-                getRemainingSeconds: () => Math.max(0, Math.ceil((serverExpires - Date.now()) / 1000)),
-                getTotalSeconds: () => totalSeconds,
-                getExpiresAt: () => new Date(serverExpires),
-                isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+                getRemainingSeconds: function() { return Math.max(0, Math.ceil((serverExpires - Date.now()) / 1000)); },
+                getTotalSeconds: function() { return totalSeconds; },
+                getExpiresAt: function() { return new Date(serverExpires); },
+                isExpired: function() { return window.cartCountdown.getRemainingSeconds() <= 0; }
             };
 
             // Emit event so widgets know cartCountdown is ready
             window.dispatchEvent(new CustomEvent('cartCountdown:ready'));
+            console.log('✅ cartCountdown initialized for authenticated user');
 
             // Auto-expire logic for Auth Users (Global)
-            const expireUrl = '{{ route("public.carts.expire") }}';
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            let expirationHandled = false;
+            var expireUrl = '{{ route("public.carts.expire") }}';
+            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            var expirationHandled = false;
 
-            const updateBadgesToZero = () => {
-                document.querySelectorAll('.cart-count-badge').forEach(b => {
+            var updateBadgesToZero = function() {
+                document.querySelectorAll('.cart-count-badge').forEach(function(b) {
                     b.textContent = '0';
                     b.style.display = 'none';
                 });
             };
 
-            const checkExpiration = () => {
+            var checkExpiration = function() {
                 if (window.cartCountdown.isExpired() && !expirationHandled) {
                     expirationHandled = true;
                     console.log('Cart expired (auth global check)');
@@ -408,7 +411,7 @@ $schemaOrg = [
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': csrfToken
                         }
-                    }).finally(() => {
+                    }).finally(function() {
                         window.location.reload();
                     });
                 }
@@ -425,6 +428,7 @@ $schemaOrg = [
     @php
     $guestCartCreated = session('guest_cart_created_at');
     $hasGuestCart = !empty(session('guest_cart_items')) && $guestCartCreated;
+    $guestExpiryMinutes = \App\Models\Setting::getValue('cart.expiration_minutes', 30);
 
     // Calculate home URL outside of script
     $currentLocale = app()->getLocale();
@@ -435,35 +439,31 @@ $schemaOrg = [
     @if ($hasGuestCart)
     <script>
         (function() {
-            const createdAt = @json($guestCartCreated);
-            const expiryMinutes = {
-                {
-                    \
-                    App\ Models\ Setting::getValue('cart.expiration_minutes', 30)
-                }
-            };
+            var createdAt = @json($guestCartCreated);
+            var expiryMinutes = @json($guestExpiryMinutes);
             if (!createdAt) return;
 
-            const created = new Date(createdAt).getTime();
-            const expires = created + (expiryMinutes * 60 * 1000);
-            const totalSeconds = expiryMinutes * 60;
+            var created = new Date(createdAt).getTime();
+            var expires = created + (expiryMinutes * 60 * 1000);
+            var totalSeconds = expiryMinutes * 60;
 
             window.cartCountdown = {
-                getRemainingSeconds: () => Math.max(0, Math.ceil((expires - Date.now()) / 1000)),
-                getTotalSeconds: () => totalSeconds,
-                getExpiresAt: () => new Date(expires),
-                isExpired: () => window.cartCountdown.getRemainingSeconds() <= 0
+                getRemainingSeconds: function() { return Math.max(0, Math.ceil((expires - Date.now()) / 1000)); },
+                getTotalSeconds: function() { return totalSeconds; },
+                getExpiresAt: function() { return new Date(expires); },
+                isExpired: function() { return window.cartCountdown.getRemainingSeconds() <= 0; }
             };
 
             // Emit event so widgets know cartCountdown is ready
             window.dispatchEvent(new CustomEvent('cartCountdown:ready'));
+            console.log('✅ cartCountdown initialized for guest user');
 
-            let hasReloaded = false;
-            const expireUrl = '{{ route("public.guest-carts.expire") }}';
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-            const homeUrl = '{{ $guestHomeUrl }}';
+            var hasReloaded = false;
+            var expireUrl = '{{ route("public.guest-carts.expire") }}';
+            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            var homeUrl = '{{ $guestHomeUrl }}';
 
-            const checkExpiration = () => {
+            var checkExpiration = function() {
                 if (window.cartCountdown.isExpired() && !hasReloaded) {
                     hasReloaded = true;
                     fetch(expireUrl, {
@@ -472,7 +472,7 @@ $schemaOrg = [
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': csrfToken
                         }
-                    }).finally(() => {
+                    }).finally(function() {
                         window.location.href = homeUrl;
                     });
                 }
