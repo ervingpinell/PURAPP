@@ -46,7 +46,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->append([
-            \App\Http\Middleware\ForceCorrectDomain::class,
+
             \App\Http\Middleware\NormalizeEmail::class,
             \App\Http\Middleware\LogContext::class,
             \App\Http\Middleware\RememberEmail::class,
