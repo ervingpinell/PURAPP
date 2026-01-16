@@ -98,7 +98,7 @@ class BookingConfirmedMail extends Mailable implements ShouldQueue
                 'company'             => $fromName,
                 'contactEmail'        => $replyTo,
                 'appUrl'              => rtrim(config('app.url'), '/'),
-                'companyPhone'        => env('COMPANY_PHONE'),
+                'companyPhone'        => config('company.phone'),
                 'pickupTime'          => $pickupTime,
                 'meetingPickupTime'   => $meetingPickupTime,
             ]);

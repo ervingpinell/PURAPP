@@ -18,7 +18,7 @@
 
   <div class="footer-main-content">
     <div class="footer-brand d-none d-md-block">
-      <img src="{{ asset('images/logoCompanyWhite.png') }}"
+      <img src="{{ config('company.logo_url') }}"
         alt="{{ config('company.short_name') }}"
         decoding="async"
         fetchpriority="low" />

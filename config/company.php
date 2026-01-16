@@ -15,6 +15,7 @@ return [
     'name' => env('COMPANY_NAME', 'Green Vacations Costa Rica'),
     'short_name' => env('COMPANY_SHORT_NAME', 'Green Vacations CR'),
     'brand_name' => env('COMPANY_BRAND_NAME', 'GV'),
+    'logo_url'   => env('COMPANY_LOGO_URL', '/images/logoCompanyWhite.png'),
 
     /*
     |--------------------------------------------------------------------------
