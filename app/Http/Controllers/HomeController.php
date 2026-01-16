@@ -754,10 +754,18 @@ class HomeController extends Controller
             ];
 
             $mapLang = $localeMap[app()->getLocale()] ?? 'en';
+            
+            // Si hay API key, podríamos usar Embed API, pero el usuario confirmó NO tener key.
+            // Usamos legacy iframe con coordenadas, que suele ser más permisivo.
+            // Formato: https://maps.google.com/maps?q=LAT,LNG&z=15&output=embed
+            $lat = config('company.map.latitude', '10.4678');
+            $lng = config('company.map.longitude', '-84.6427');
+            
             $mapSrc = sprintf(
-                "https://maps.google.com/maps?hl=%s&gl=CR&q=%s&ll=10.4556623,-84.6532029&z=16&iwloc=near&output=embed",
-                $mapLang,
-                rawurlencode('Agencia de Viajes Green Vacations CR, La Fortuna, San Carlos, Costa Rica')
+                "https://maps.google.com/maps?q=%s,%s&hl=%s&z=15&output=embed",
+                $lat,
+                $lng,
+                $mapLang
             );
 
             // Time Trap Token (Anti-bot)

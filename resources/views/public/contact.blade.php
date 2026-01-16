@@ -18,7 +18,7 @@
 <section class="contact-section py-5 text-white">
   <div class="container">
     <div class="row gy-4 justify-content-center align-items-stretch flex-wrap">
-      <div class="col-lg-8 col-md-12 d-flex">
+      <div class="col-lg-7 col-md-12 d-flex">
         <div class="card shadow-sm border flex-fill w-100">
           <div class="card-header text-white">
             <h4 class="mb-0">{{ __('adminlte::adminlte.contact_us') }}</h4>
@@ -127,7 +127,7 @@
         </div>
       </div>
 
-      <div class="col-lg-4 col-md-12 d-flex">
+      <div class="col-lg-5 col-md-12 d-flex">
         <div class="card shadow-sm border bg-light flex-fill w-100">
           <div class="card-body">
             <h4 class="fw-bold mb-3">{{ __('adminlte::adminlte.contact_us') }}</h4>
@@ -150,7 +150,7 @@
             <h5 class="mt-4">
               <i class="fas fa-clock me-2 text-success"></i>{{ __('adminlte::adminlte.business_hours') }}
             </h5>
-            <span class="badge bg-success fs-6">
+            <span class="badge bg-success fs-6 text-wrap text-start lh-base">
               {{ __('adminlte::adminlte.business_schedule') }}
             </span>
 
