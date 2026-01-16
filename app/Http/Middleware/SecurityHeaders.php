@@ -26,12 +26,12 @@ class SecurityHeaders
         $response->headers->set(
             'Content-Security-Policy',
             "default-src 'self'; " .
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://vpayment.verifika.com https://integracion.alignetsac.com; " .
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://static.cloudflareinsights.com https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://vpayment.verifika.com https://integracion.alignetsac.com https://challenges.cloudflare.com; " .
                 "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://vpayment.verifika.com https://integracion.alignetsac.com; " .
                 "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; " .
                 "img-src 'self' data: https: blob:; " .
                 "connect-src 'self' https://cdn.jsdelivr.net https://www.google-analytics.com https://www.facebook.com https://wa.me https://api.whatsapp.com https://vpayment.verifika.com https://integracion.alignetsac.com; " .
-                "frame-src 'self' https://www.google.com https://www.facebook.com https://wa.me https://vpayment.verifika.com https://integracion.alignetsac.com; " .
+                "frame-src 'self' https://www.google.com https://www.facebook.com https://wa.me https://vpayment.verifika.com https://integracion.alignetsac.com https://challenges.cloudflare.com https://maps.google.com; " .
                 "frame-ancestors 'self' https://vpayment.verifika.com https://integracion.alignetsac.com; " .
                 "object-src 'none'; " .
                 "base-uri 'self'; " .
