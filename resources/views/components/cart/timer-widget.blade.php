@@ -28,11 +28,14 @@ $hideOnRoutes = [
 $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 @endphp
 
+
 @if ($shouldShow)
 <div id="cart-timer-widget" class="cart-timer-widget" style="display: none;">
-  <span id="widget-timer-full">--:--</span>
+  <div class="timer-text">
+    <small>{{ __('carts.timer.will_expire') }}</small>
+    <strong id="widget-timer-full">--:--</strong>
+  </div>
 </div>
-
 
 {{-- INLINE SCRIPT - No depende de @stack, se ejecuta inmediatamente --}}
 <script>
