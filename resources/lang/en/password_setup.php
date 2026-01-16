@@ -46,6 +46,8 @@ return [
     // Messages
     'token_expired' => 'This link has expired. Please request a new one.',
     'token_invalid' => 'Invalid setup link.',
+    'expires_in' => 'This link expires in :days days',
+    'fallback_link' => 'If the button does not work, copy and paste this link into your browser:',
     'success' => 'Account created successfully! You can now log in.',
     'user_not_found' => 'User not found.',
     'already_has_password' => 'This user already has a password set.',

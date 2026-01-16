@@ -188,12 +188,18 @@ class AppServiceProvider extends ServiceProvider
         }
 
         // =========================
-        // Override PayPal config from DB settings
+        // Override Config from DB settings
         // =========================
         try {
             // Only if not running in console to avoid migration issues if table doesn't exist
             if (! $this->app->runningInConsole() || ! $this->app->runningUnitTests()) {
                 config(['payment.gateways.paypal.enabled' => (bool) setting('payment.gateway.paypal', false)]);
+                
+                // Override Admin Notification Email from Settings
+                $notifyEmail = setting('email.booking_notifications');
+                if ($notifyEmail) {
+                     config(['mail.notifications.address' => $notifyEmail]);
+                }
             }
         } catch (\Throwable $e) {
             // Ignore errors during bootstrap (e.g. DB not ready)

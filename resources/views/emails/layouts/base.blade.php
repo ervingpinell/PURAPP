@@ -339,6 +339,11 @@
           <tr>
             <td class="email-body" style="background-color:#ffffff; padding:30px 20px; color:#333333; font-family:'Segoe UI',sans-serif; font-size:16px; line-height:1.6;">
               @yield('content')
+
+              <p style="margin: 30px 0 0 0; font-size: 15px; color: #374151;">
+                {{ __('emails.common.closing') }}<br>
+                <strong>{{ $brand }}</strong>
+              </p>
             </td>
           </tr>
 

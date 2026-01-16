@@ -46,6 +46,8 @@ return [
     // Messages
     'token_expired' => 'Ce lien a expiré. Veuillez en demander un nouveau.',
     'token_invalid' => 'Lien de configuration invalide.',
+    'expires_in' => 'Ce lien expire dans :days jours',
+    'fallback_link' => 'Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :',
     'success' => 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.',
     'user_not_found' => 'Utilisateur introuvable.',
     'already_has_password' => 'Cet utilisateur a déjà un mot de passe défini.',

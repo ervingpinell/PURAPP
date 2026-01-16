@@ -20,87 +20,54 @@
 </div>
 
 <div class="row">
-    {{-- Customer Emails --}}
+    @foreach($emailTypes as $key => $category)
     <div class="col-md-6">
-        <div class="card card-primary">
+        <div class="card card-outline card-{{ $key === 'auth' ? 'danger' : ($key === 'admin' ? 'warning' : ($key === 'reviews' ? 'success' : 'primary')) }}">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-user"></i> Customer Emails</h3>
+                <h3 class="card-title">
+                    <i class="{{ $category['icon'] ?? 'fas fa-envelope' }}"></i> {{ $category['label'] }}
+                </h3>
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
-                    @foreach($emailTypes['customer'] as $type => $label)
-                    <li class="list-group-item">
+                    @foreach($category['items'] as $type => $label)
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
                         <a href="{{ route('admin.email-preview.show', $type) }}" target="_blank" class="text-decoration-none">
                             <i class="fas fa-external-link-alt text-muted mr-2"></i>
                             {{ $label }}
                         </a>
+                        <div>
+                            <a href="{{ route('admin.email-preview.show', $type) }}?locale=es" target="_blank" class="badge badge-warning mr-1">ES</a>
+                            <a href="{{ route('admin.email-preview.show', $type) }}?locale=en" target="_blank" class="badge badge-primary">EN</a>
+                        </div>
                     </li>
                     @endforeach
                 </ul>
             </div>
         </div>
     </div>
-
-    {{-- Admin Emails --}}
-    <div class="col-md-6">
-        <div class="card card-warning">
-            <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-user-shield"></i> Admin Emails</h3>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    @foreach($emailTypes['admin'] as $type => $label)
-                    <li class="list-group-item">
-                        <a href="{{ route('admin.email-preview.show', $type) }}" target="_blank" class="text-decoration-none">
-                            <i class="fas fa-external-link-alt text-muted mr-2"></i>
-                            {{ $label }}
-                        </a>
-                    </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    </div>
+    @endforeach
 </div>
 
 <div class="row mt-3">
-    {{-- Other Emails --}}
-    <div class="col-md-6">
-        <div class="card card-secondary">
-            <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-envelope-open-text"></i> Other Emails</h3>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    @foreach($emailTypes['other'] as $type => $label)
-                    <li class="list-group-item">
-                        <a href="{{ route('admin.email-preview.show', $type) }}" target="_blank" class="text-decoration-none">
-                            <i class="fas fa-external-link-alt text-muted mr-2"></i>
-                            {{ $label }}
-                        </a>
-                    </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-    </div>
-
     {{-- Quick Links --}}
-    <div class="col-md-6">
+    <div class="col-md-12">
         <div class="card card-info">
             <div class="card-header">
                 <h3 class="card-title"><i class="fas fa-tools"></i> Email Tools</h3>
             </div>
             <div class="card-body">
-                <div class="mb-3">
-                    <a href="/telescope/mail" target="_blank" class="btn btn-info btn-block">
-                        <i class="fas fa-satellite-dish"></i> View Sent Emails (Telescope)
-                    </a>
-                </div>
-                <div class="mb-3">
-                    <a href="{{ route('admin.settings.index') }}" class="btn btn-secondary btn-block">
-                        <i class="fas fa-cog"></i> Email Configuration
-                    </a>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <a href="/telescope/mail" target="_blank" class="btn btn-info btn-block">
+                            <i class="fas fa-satellite-dish"></i> View Sent Emails (Telescope)
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <a href="{{ route('admin.settings.index') }}" class="btn btn-secondary btn-block">
+                            <i class="fas fa-cog"></i> Email Configuration
+                        </a>
+                    </div>
                 </div>
                 <div class="alert alert-warning mb-0">
                     <small>

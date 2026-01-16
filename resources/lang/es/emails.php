@@ -1,0 +1,48 @@
+<?php
+
+return [
+    'booking_expiring' => [
+        'subject' => 'ADVERTENCIA Reserva Próxima a Vencer',
+        'intro' => 'Esta reserva impaga se cancelará automáticamente si no se recibe el pago.',
+        'button_extend' => 'Extender Reserva (12h)',
+        'button_view' => 'Ver Reserva',
+        'label_reference' => 'Referencia de Reserva',
+        'label_customer' => 'Cliente',
+        'label_email' => 'Correo',
+        'label_tour' => 'Tour',
+        'label_date' => 'Fecha',
+        'label_amount' => 'Monto',
+        'label_expires' => 'Vence',
+        'na' => 'N/A',
+    ],
+    'new_paid_booking' => [
+        'subject' => 'OK Nueva Reserva Pagada',
+        'intro' => '¡Una nueva reserva ha sido pagada y confirmada!',
+        'label_details' => 'Detalles de la Reserva',
+        'label_paid_at' => 'Pagado El',
+        'button_view' => 'Ver Reserva',
+    ],
+    'daily_report' => [
+        'subject' => 'Reporte Diario de Operaciones - :date',
+        'intro' => 'Aquí está su resumen diario de reservas:',
+        'summary_title' => 'Resumen:',
+        'confirmed' => 'Confirmadas',
+        'pending' => 'Pendientes',
+        'cancelled' => 'Canceladas',
+        'total' => 'reservas para hoy',
+        'attachment_info' => 'Por favor encuentre el reporte detallado en Excel adjunto a este correo.',
+        'excel_contents' => 'Contenido del Excel:',
+        'sheet_1' => 'Hoja 1',
+        'sheet_1_desc' => 'CONFIRMADAS (ordenadas por hora de recogida)',
+        'sheet_2' => 'Hoja 2',
+        'sheet_2_desc' => 'PENDIENTES (con enlaces de pago y vencimiento)',
+        'sheet_3' => 'Hoja 3',
+        'sheet_3_desc' => 'CANCELADAS (con motivo de cancelación)',
+    ],
+    'common' => [
+        'thanks' => 'Gracias,',
+        'closing' => 'Amablemente,',
+        'system' => 'Sistema de Reservas',
+        'operations_team' => 'Equipo de Operaciones',
+    ],
+];

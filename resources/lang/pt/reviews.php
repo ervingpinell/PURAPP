@@ -1,242 +1,246 @@
 <?php
 
 return [
-    'no_reviews' => 'Nenhuma avaliação disponível',
-    'what_visitors_say' => 'O que nossos clientes dizem?',
-    'powered_by'        => 'Fornecido por',
+    'no_reviews' => 'No reviews available',
+
+    'what_visitors_say' => 'What do our customers say?',
+    'powered_by'        => 'Powered by',
 
     'generic' => [
-        'our_tour' => 'nosso passeio',
+        'our_tour' => 'our tour',
     ],
 
     // =========================
-    // Comum
+    // Common
     // =========================
     'common' => [
-        'reviews'   => 'Avaliações',
-        'provider'  => 'Fornecedor',
+        'reviews'   => 'Reviews',
+        'provider'  => 'Provider',
         'status'    => 'Status',
         'tour'      => 'Tour',
-        'rating'    => 'Avaliação',
-        'title'     => 'Título',
-        'body'      => 'Conteúdo',
-        'author'    => 'Autor',
-        'actions'   => 'Ações',
-        'filter'    => 'Filtrar',
-        'search'    => 'Buscar',
+        'rating'    => 'Rating',
+        'title'     => 'Title',
+        'body'      => 'Content',
+        'author'    => 'Author',
+        'actions'   => 'Actions',
+        'filter'    => 'Filter',
+        'search'    => 'Search',
         'id'        => 'ID',
-        'public'    => 'Pública',
-        'private'   => 'Privada',
-        'back'      => 'Voltar',
-        'save'      => 'Salvar',
-        'create'    => 'Criar',
-        'edit'      => 'Editar',
-        'delete'    => 'Excluir',
-        'publish'   => 'Publicar',
-        'hide'      => 'Ocultar',
-        'flag'      => 'Marcar',
-        'unflag'    => 'Desmarcar',
-        'apply'     => 'Aplicar',
-        'yes'       => 'Sim',
-        'no'        => 'Não',
-        'not_found' => 'Nenhum resultado encontrado.',
-        'clear'     => 'Limpar',
-        'language'  => 'Idioma',
+        'public'    => 'Public',
+        'private'   => 'Private',
+        'back'      => 'Back',
+        'save'      => 'Save',
+        'create'    => 'Create',
+        'edit'      => 'Edit',
+        'delete'    => 'Delete',
+        'publish'   => 'Publish',
+        'hide'      => 'Hide',
+        'flag'      => 'Flag',
+        'unflag'    => 'Unflag',
+        'apply'     => 'Apply',
+        'yes'       => 'Yes',
+        'no'        => 'No',
+        'not_found' => 'No results were found.',
+        'clear'     => 'Clear',
+        'language'  => 'Language',
 
-        'new'             => 'Novo',
-        'name'            => 'Nome',
-        'active'          => 'Ativo',
-        'inactive'        => 'Inativo',
-        'indexable'       => 'Indexável',
-        'indexable_yes'   => 'Inclui marcação indexável/JSON-LD',
-        'indexable_no'    => 'Não indexável',
-        'activate'        => 'Ativar fornecedor',
-        'deactivate'      => 'Desativar fornecedor',
-        'activate_title'  => 'Ativar fornecedor?',
-        'activate_text'   => 'O fornecedor será ativado.',
-        'deactivate_title' => 'Desativar fornecedor?',
-        'deactivate_text' => 'O fornecedor será desativado.',
-        'cancel'          => 'Cancelar',
-        'test'            => 'Testar conexão',
-        'flush_cache'     => 'Limpar cache',
-        'delete_confirm'  => 'Excluir fornecedor?',
-        'system_locked'   => 'Fornecedor do sistema (bloqueado)',
+        // 🔹 Keys added for Providers panel
+        'new'             => 'New',
+        'name'            => 'Name',
+        'active'          => 'Active',
+        'inactive'        => 'Inactive',
+        'indexable'       => 'Indexable',
+        'indexable_yes'   => 'Includes indexable/JSON-LD markup',
+        'indexable_no'    => 'Not indexable',
+        'activate'        => 'Activate provider',
+        'deactivate'      => 'Deactivate provider',
+        'activate_title'  => 'Activate provider?',
+        'activate_text'   => 'The provider will be set as active.',
+        'deactivate_title' => 'Deactivate provider?',
+        'deactivate_text' => 'The provider will no longer be active.',
+        'cancel'          => 'Cancel',
+        'test'            => 'Test connection',
+        'flush_cache'     => 'Flush cache',
+        'delete_confirm'  => 'Delete provider?',
+        'system_locked'   => 'System provider (locked)',
     ],
 
     // =========================
-    // Status da avaliação
+    // Review statuses (moderation)
     // =========================
     'status' => [
-        'pending'   => 'pendente',
-        'published' => 'publicada',
-        'hidden'    => 'oculta',
-        'flagged'   => 'marcada',
+        'pending'   => 'pending',
+        'published' => 'published',
+        'hidden'    => 'hidden',
+        'flagged'   => 'flagged',
     ],
 
     // =========================
-    // Admin - Lista / moderação
+    // Admin - list / moderation
     // =========================
     'admin' => [
-        'index_title'   => 'Avaliações',
-        'index_titel'   => 'Avaliações',
+        'index_title'   => 'Reviews',
+        'index_titel'   => 'Reviews', // alias for common typo
 
-        'new_local'     => 'Nova (local)',
-        'bulk_apply'    => 'Aplicar aos selecionados',
+        'new_local'     => 'New (local)',
+        'bulk_apply'    => 'Apply to selected',
 
-        'responded'     => 'Respondido?',
-        'last_reply'    => 'Última:',
+        'responded'     => 'Responded?',
+        'last_reply'    => 'Last:',
 
-        'filters' => [
-            'provider'  => 'Fornecedor',
+        'filters'       => [
+            'provider'  => 'Provider',
             'status'    => 'Status',
-            'tour_id'   => 'ID do tour',
+            'tour_id'   => 'Tour ID',
             'stars'     => '⭐',
-            'q'         => 'Buscar texto/autor...',
-            'responded' => 'Respondido?',
+            'q'         => 'Search text/author…',
+            'responded' => 'Responded?',
         ],
 
         'table' => [
-            'date'     => 'Data',
-            'review'   => 'Avaliação',
-            'client'   => 'Cliente',
+            'date'     => 'Date',
+            'review'   => 'Review',
+            'client'   => 'Client',
             'tour'     => 'Tour',
         ],
 
         'messages' => [
-            'created'        => 'Avaliação criada.',
-            'updated'        => 'Avaliação atualizada.',
-            'deleted'        => 'Avaliação excluída.',
-            'published'      => 'Avaliação publicada.',
-            'hidden'         => 'Avaliação oculta.',
-            'flagged'        => 'Avaliação marcada.',
-            'unflagged'      => 'Marcação removida.',
-            'bulk_published' => ':n avaliações publicadas.',
-            'bulk_hidden'    => ':n avaliações ocultas.',
-            'bulk_flagged'   => ':n avaliações marcadas.',
-            'bulk_deleted'   => ':n avaliações excluídas.',
-            'publish_min_rating' => 'Não foi possível publicar: a nota (:rating★) é inferior ao mínimo permitido (:min★).',
-            'bulk_published_partial' => ':ok avaliações publicadas. :skipped ignoradas por nota menor que :min★.',
+            'created'        => 'Review created.',
+            'updated'        => 'Review updated.',
+            'deleted'        => 'Review deleted.',
+            'published'      => 'Review published.',
+            'hidden'         => 'Review hidden.',
+            'flagged'        => 'Review flagged.',
+            'unflagged'      => 'Review unflagged.',
+            'bulk_published' => ':n reviews published.',
+            'bulk_hidden'    => ':n reviews hidden.',
+            'bulk_flagged'   => ':n reviews flagged.',
+            'bulk_deleted'   => ':n reviews deleted.',
+            'publish_min_rating' => 'Cannot publish because the rating (:rating★) is lower than the allowed minimum (:min★).',
+            'bulk_published_partial' => ':ok reviews published. :skipped skipped because their rating was lower than :min★.',
         ],
     ],
 
     // =========================
-    // Admin – Respostas
+    // Admin - replies
     // =========================
     'replies' => [
-        'reply'            => 'Responder',
-        'title_create'     => 'Responder — Avaliação #:id',
-        'label_body'       => 'Resposta',
-        'label_is_public'  => 'Pública',
-        'label_notify'     => 'Enviar email ao cliente',
-        'notify_to'        => 'Será enviado para: :email',
-        'warn_no_email'    => 'Atenção: não encontramos email do cliente. A resposta será salva, mas nenhum email será enviado.',
-        'saved_notified'   => 'Resposta publicada e enviada para :email.',
-        'saved_no_email'   => 'Resposta publicada. Nenhum email enviado.',
-        'deleted'          => 'Resposta excluída.',
-        'visibility_ok'    => 'Visibilidade atualizada.',
-        'thread_title'     => 'Conversação — Avaliação #:id',
-        'thread_empty'     => 'Sem respostas.',
-        'last_reply'       => 'Última:',
+        'reply'            => 'Reply',
+        'title_create'     => 'Reply — Review #:id',
+        'label_body'       => 'Reply',
+        'label_is_public'  => 'Public',
+        'label_notify'     => 'Send email to customer',
+        'notify_to'        => 'It will be sent to: :email',
+        'warn_no_email'    => 'Warning: we did not find an email address for the customer in this review. The reply will be saved, but no email will be sent.',
+        'saved_notified'   => 'Reply published and emailed to :email.',
+        'saved_no_email'   => 'Reply published. No email was sent because no recipient was found.',
+        'deleted'          => 'Reply deleted.',
+        'visibility_ok'    => 'Visibility updated.',
+        'thread_title'     => 'Conversation — Review #:id',
+        'thread_empty'     => 'No replies.',
+        'last_reply'       => 'Last:',
     ],
 
     // =========================
-    // Admin – Solicitações pós-compra
+    // Admin - post-purchase review requests
     // =========================
     'requests' => [
-        'index_title' => 'Solicitar avaliações',
-        'subtitle'    => 'Envie links de avaliação pós-compra e gerencie as solicitações enviadas.',
+        'index_title' => 'Request reviews',
+        'subtitle'    => 'Send post-purchase review links and manage already sent requests.',
 
+        // Tabs
         'tabs' => [
-            'eligible'  => 'Elegíveis (reservas)',
-            'requested' => 'Solicitadas (enviadas)',
+            'eligible'  => 'Eligible (bookings)',
+            'requested' => 'Requested (sent)',
         ],
 
+        // Filters
         'filters' => [
-            'q_placeholder' => 'ID, nome ou email',
-            'any_status'    => '— Qualquer —',
-            'from'          => 'De',
-            'to'            => 'Até',
+            'q_placeholder' => 'ID, name or email',
+            'any_status'    => '— Any —',
+            'from'          => 'From',
+            'to'            => 'To',
         ],
 
-        'window_days'      => 'Janela (dias)',
-        'date_column'      => 'Coluna de data',
-        'calculated_range' => 'Intervalo calculado',
-        'tour_id'          => 'ID do tour',
-        'btn_request'      => 'Solicitar avaliação',
-        'no_eligible'      => 'Nenhuma reserva elegível.',
+        'window_days'      => 'Window (days)',
+        'date_column'      => 'Date column',
+        'calculated_range' => 'Calculated range',
+        'tour_id'          => 'Tour ID',
+        'btn_request'      => 'Request review',
+        'no_eligible'      => 'No eligible bookings.',
 
         'table' => [
-            'booking'   => 'Reserva',
-            'reference' => 'Referência',
-            'sent_at'   => 'Enviado em',
-            'states'    => 'Estados',
+            'booking'   => 'Booking',
+            'reference' => 'Reference',
+            'sent_at'   => 'Sent at',
+            'states'    => 'States',
         ],
 
         'labels' => [
-            'expires_in_days' => 'Expira em (dias)',
-            'expires_at'      => 'Expira em',
-            'used_at'         => 'Usado em',
+            'expires_in_days' => 'Expiration (days)',
+            'expires_at'      => 'Expires at',
+            'used_at'         => 'Used at',
         ],
 
         'actions' => [
-            'resend'         => 'Reenviar',
-            'confirm_delete' => 'Excluir esta solicitação?',
+            'resend'         => 'Resend',
+            'confirm_delete' => 'Delete this request?',
         ],
 
         'status' => [
-            'active'    => 'Ativas',
-            'sent'      => 'Enviadas',
-            'reminded'  => 'Reenviadas',
-            'used'      => 'Usadas',
-            'expired'   => 'Expiradas',
-            'cancelled' => 'Canceladas',
+            'active'    => 'Active',
+            'sent'      => 'Sent',
+            'reminded'  => 'Reminded',
+            'used'      => 'Used',
+            'expired'   => 'Expired',
+            'cancelled' => 'Cancelled',
         ],
 
         'status_labels' => [
-            'created'   => 'criada',
-            'sent'      => 'enviada',
-            'reminded'  => 'reenviada',
-            'fulfilled' => 'concluída',
-            'expired'   => 'expirada',
-            'cancelled' => 'cancelada',
-            'active'    => 'ativa',
+            'created'   => 'created',
+            'sent'      => 'sent',
+            'reminded'  => 'reminded',
+            'fulfilled' => 'completed',
+            'expired'   => 'expired',
+            'cancelled' => 'cancelled',
+            'active'    => 'active',
         ],
 
-        'send_ok'   => 'Solicitação enviada.',
-        'resend_ok' => 'Solicitação reenviada.',
-        'remind_ok' => 'Lembrete enviado.',
-        'expire_ok' => 'Solicitação expirada.',
-        'deleted'   => 'Solicitação excluída.',
-        'none'      => 'Nenhuma solicitação.',
+        'send_ok'   => 'Review request sent.',
+        'resend_ok' => 'Request resent.',
+        'remind_ok' => 'Reminder sent.',
+        'expire_ok' => 'Request expired.',
+        'deleted'   => 'Request deleted.',
+        'none'      => 'No requests.',
 
         'errors' => [
-            'used'    => 'Esta solicitação já foi usada.',
-            'expired' => 'Esta solicitação está expirada.',
+            'used'    => 'This request has already been used.',
+            'expired' => 'This request is expired.',
         ],
     ],
 
     // =========================
-    // Público (formulário)
+    // Public (review form)
     // =========================
     'public' => [
-        'form_title'   => 'Deixar uma avaliação',
+        'form_title'   => 'Leave a review',
         'labels'       => [
-            'rating'       => 'Avaliação',
-            'title'        => 'Título (opcional)',
-            'body'         => 'Sua experiência',
-            'author_name'  => 'Seu nome (opcional)',
-            'author_email' => 'Seu email (opcional)',
-            'submit'       => 'Enviar avaliação',
+            'rating'       => 'Rating',
+            'title'        => 'Title (optional)',
+            'body'         => 'Your experience',
+            'author_name'  => 'Your name (optional)',
+            'author_email' => 'Your email (optional)',
+            'submit'       => 'Submit review',
         ],
-        'thanks'       => 'Obrigado pela sua avaliação! 🌿',
-        'thanks_body'  => 'Sua opinião é muito importante e nos ajuda a melhorar. Agradecemos de coração!',
-        'thanks_farewell' => "Esperamos que você tenha aproveitado muito e que possamos nos ver novamente em breve.\n\n🇨🇷 Pura Vida mae! 🇨🇷",
-        'thanks_dup'   => 'Obrigado! Sua avaliação já havia sido registrada 🙌',
-        'expired'      => 'Este link já expirou, mas agradecemos muito sua intenção 💚',
-        'used'         => 'Esta solicitação já foi usada.',
-        'used_help'    => 'Este link de avaliação já foi utilizado. Se acredita que é um erro ou deseja atualizar seu comentário, fale conosco.',
-        'not_found'    => 'Solicitação não encontrada.',
-        'back_home'    => 'Voltar',
+        'thanks'       => 'Thank you for your review! 🌿',
+        'thanks_body'  => 'Your opinion is very important and helps us improve. We truly appreciate it.',
+        'thanks_farewell' => "We hope you enjoyed your time with us and we hope to see you again soon.\n\n🇨🇷 Pura Vida mae! 🇨🇷",
+        'thanks_dup'   => 'Thank you! We already had your review on file 🙌',
+        'expired'      => 'This link has expired, but thank you so much for your intention 💚',
+        'used'         => 'This request has already been used.',
+        'used_help'    => 'This review link has already been used. If you think this is an error or want to update your comment, contact us and we will gladly help you.',
+        'not_found'    => 'Request not found.',
+        'back_home'    => 'Go back',
     ],
 
     // =========================
@@ -245,28 +249,29 @@ return [
     'emails' => [
 
         'brand_from'   => config('app.name', 'Green Vacations CR'),
-        'contact_line' => 'Se precisar de ajuda, entre em contato em :email ou :phone. Visite :url.',
+        'contact_line' => 'If you need help, contact us at :email or :phone. Visit us at :url.',
         'request' => [
-            'preheader_with_date' => 'Conte-nos sobre sua experiência em :tour (:date). Leva menos de um minuto.',
-            'preheader'           => 'Conte-nos sobre sua experiência em :tour. Leva menos de um minuto.',
-            'subject'   => 'Como foi sua experiência em :tour?',
-            'cta'       => 'Deixar minha avaliação',
-            'footer'    => 'Obrigado por apoiar o turismo local. Esperamos te ver novamente! 🌿',
-            'expires'   => '* Este link ficará ativo até: :date.',
-            'greeting'  => 'Olá :name,',
-            'intro'     => 'Pura Vida! 🙌 Obrigado por nos escolher. Queremos saber como foi sua experiência em :tour.',
-            'ask'       => 'Pode nos dedicar 1–2 minutinhos para deixar sua avaliação? Isso nos ajuda muito.',
-            'fallback'  => 'Se o botão não funcionar, copie este link no navegador:',
+            'preheader_with_date' => 'Tell us about your experience on :tour (:date). It only takes a minute.',
+            'preheader'           => 'Tell us about your experience on :tour. It only takes a minute.',
+            'subject'   => 'How was your experience on :tour?',
+            'cta'       => 'Leave my review',
+            'footer'    => 'Thank you for supporting local tourism. We hope to see you back soon! 🌿',
+            'expires'   => '* This link will be active until: :date.',
+            'greeting'  => 'Hi :name,',
+            'intro'     => 'Pura vida! 🙌 Thank you for choosing us. We would love to know how your experience on :tour was.',
+            'ask'       => 'Would you give us 1–2 minutes to leave your review? It really means a lot.',
+            'fallback'  => 'If the button does not work, copy and paste this link into your browser:',
         ],
         'reply' => [
-            'subject'  => 'Resposta ao seu comentário',
-            'greeting' => 'Olá :name,',
-            'intro'    => 'Nossa equipe respondeu ao seu comentário :extra.',
+            'subject'  => 'Reply to your review',
+            'greeting' => 'Hi :name,',
+            'intro'    => 'Our team has replied to your review :extra.',
             'quote'    => '“:text”',
             'sign'     => '— :admin',
+            'closing'  => 'Se tiver alguma dúvida ou quiser expandir seu comentário, basta responder a este e-mail. Pura vida! 🌿',
         ],
         'submitted' => [
-            'subject' => 'Nova avaliação recebida',
+            'subject' => 'New review received',
         ],
     ],
 
@@ -274,127 +279,133 @@ return [
     // Front
     // =========================
     'front' => [
-        'see_more'   => 'Ver mais avaliações',
-        'no_reviews' => 'Ainda não há avaliações.',
+        'see_more'   => 'See more reviews',
+        'no_reviews' => 'There are no reviews yet.',
     ],
 
     // =========================
-    // Fornecedores
+    // Providers
     // =========================
     'providers' => [
-        'index_title' => 'Fornecedores de avaliações',
-        'indexable' => 'Indexável',
-        'cache_ttl' => 'Cache TTL (seg)',
-        'back' => 'Voltar',
-        'actions' => 'Ações',
-        'system_locked' => 'Provedor do Sistema',
+        'index_title' => 'Review providers',
+        'indexable' => 'Indexable',
+        'cache_ttl' => 'Cache TTL (sec)',
+        'back' => 'Back',
+        'actions' => 'Actions',
+        'system_locked' => 'System Provider',
         'messages' => [
-            'cannot_delete_local' => 'O fornecedor “local” é do sistema e não pode ser excluído.',
-            'created'        => 'Fornecedor criado.',
-            'updated'        => 'Fornecedor atualizado.',
-            'deleted'        => 'Fornecedor excluído.',
-            'status_updated' => 'Status atualizado.',
-            'cache_flushed'  => 'Cache limpo.',
-            'test_fetched'   => ':n avaliações obtidas.',
-            'mapping_added'   => 'Mapeamento adicionado com sucesso.',
-            'mapping_updated' => 'Mapeamento atualizado com sucesso.',
-            'mapping_deleted' => 'Mapeamento excluído com sucesso.',
+            'cannot_delete_local' => 'The “local” provider is a system provider and cannot be deleted.',
+            'created'        => 'Provider created.',
+            'updated'        => 'Provider updated.',
+            'deleted'        => 'Provider deleted.',
+            'status_updated' => 'Status updated.',
+            'cache_flushed'  => 'Cache flushed.',
+            'test_fetched'   => ':n reviews fetched.',
+            'mapping_added'   => 'Mapping added successfully.',
+            'mapping_updated' => 'Mapping updated successfully.',
+            'mapping_deleted' => 'Mapping deleted successfully.',
         ],
         'product_map' => [
-            'title' => 'Mapeamento de Produtos - :provider',
+            'title' => 'Product Mapping - :provider',
         ],
-        'product_mapping_title' => 'Mapeamento de Produtos - :name',
-        'product_mappings' => 'Mapeamentos de Produtos',
-        'tour' => 'Passeio',
-        'select_tour' => 'Selecionar passeio',
-        'select_tour_placeholder' => 'Selecionar um passeio...',
-        'product_code' => 'Código do produto',
+        'product_mapping_title' => 'Product Mapping - :name',
+        'product_mappings' => 'Product Mappings',
+        'tour' => 'Tour',
+        'select_tour' => 'Select tour',
+        'select_tour_placeholder' => 'Select a tour...',
+        'product_code' => 'Product code',
         'product_code_placeholder' => 'Ex: 12732-ABC',
-        'add_mapping' => 'Adicionar mapeamento',
-        'no_mappings' => 'Nenhum mapeamento configurado',
-        'confirm_delete_mapping' => 'Tem certeza de que deseja excluir este mapeamento?',
-        'help_title' => 'Ajuda',
-        'help_text' => 'Mapeie códigos de produtos externos para passeios internos para sincronizar avaliações corretamente.',
-        'help_step_1' => 'Selecione um passeio da lista',
-        'help_step_2' => 'Digite o código do produto do fornecedor externo',
-        'help_step_3' => 'Clique em "Adicionar" para criar o mapeamento',
+        'add_mapping' => 'Add mapping',
+        'no_mappings' => 'No mappings configured',
+        'confirm_delete_mapping' => 'Are you sure you want to delete this mapping?',
+        'help_title' => 'Help',
+        'help_text' => 'Map external product codes to internal tours to sync reviews correctly.',
+        'help_step_1' => 'Select a tour from the list',
+        'help_step_2' => 'Enter the external provider product code',
+        'help_step_3' => 'Click "Add" to create the mapping',
     ],
 
     // =========================
     // Sync
     // =========================
     'sync' => [
-        'queued' => 'Sincronização enfileirada para :target.',
-        'all'    => 'todos os fornecedores',
+        'queued' => 'Sync queued for :target.',
+        'all'    => 'all providers',
     ],
 
     // =========================
-    // Thread / conversa
+    // Thread / conversation
     // =========================
     'thread' => [
-        'title'             => 'Thread da avaliação #:id',
-        'header'            => 'Thread — Avaliação #:id',
-        'replies_header'    => 'Respostas',
-        'th_date'           => 'Data',
+        'title'             => 'Review thread #:id',
+        'header'            => 'Thread — Review #:id',
+        'replies_header'    => 'Replies',
+        'th_date'           => 'Date',
         'th_admin'          => 'Admin',
-        'th_visible'        => 'Visível',
-        'th_body'           => 'Conteúdo',
-        'th_actions'        => 'Ações',
-        'toggle_visibility' => 'Alterar visibilidade',
-        'delete'            => 'Excluir',
-        'confirm_delete'    => 'Excluir resposta?',
-        'empty'             => 'Nenhuma resposta ainda.',
+        'th_visible'        => 'Visible',
+        'th_body'           => 'Content',
+        'th_actions'        => 'Actions',
+        'toggle_visibility' => 'Toggle visibility',
+        'delete'            => 'Delete',
+        'confirm_delete'    => 'Delete reply?',
+        'empty'             => 'No replies yet.',
     ],
 
     // =========================
-    // Formulário admin
+    // Admin form (create/edit)
     // =========================
     'form' => [
-        'title_edit'       => 'Editar Avaliação',
-        'title_new'        => 'Nova Avaliação',
-        'visible_publicly' => 'Visível publicamente',
+        'title_edit'       => 'Edit review',
+        'title_new'        => 'New review',
+        'visible_publicly' => 'Visible publicly',
     ],
 
     // =========================
-    // Alias de resposta
+    // Alias for reply emails (if used outside "emails")
     // =========================
     'reply' => [
-        'subject'          => 'Resposta ao seu comentário',
-        'greeting'         => 'Olá :name,',
-        'about_html'       => 'sobre <strong>:tour</strong>',
-        'about_text'       => 'sobre :tour',
-        'intro'            => 'Nossa equipe respondeu ao seu comentário :extra.',
+        'subject'          => 'Reply to your review',
+        'greeting'         => 'Hi :name,',
+        'about_html'       => 'about <strong>:tour</strong>',
+        'about_text'       => 'about :tour',
+        'intro'            => 'Our team has replied to your review :extra.',
         'quote'            => '“:text”',
         'sign'             => '— :admin',
-        'closing'          => 'Se tiver dúvidas ou quiser complementar seu comentário, é só responder este email. Pura Vida! 🌿',
-        'rights_reserved'  => 'Todos os direitos reservados',
+        'closing'          => 'If you have any questions or would like to expand on your comment, just reply to this email. Pura vida! 🌿',
+        'rights_reserved'  => 'All rights reserved',
     ],
 
-    'traveler' => 'viajante',
+    // Fallback for greeting if there is no name
+    'traveler' => 'traveler',
 
-    // =========================
-    // Legacy / compatibilidade
-    // =========================
-    'loaded'           => 'Avaliações carregadas com sucesso.',
-    'provider_error'   => 'Ocorreu um problema com o fornecedor de avaliações.',
-    'service_busy'     => 'O serviço está ocupado. Tente novamente mais tarde.',
-    'unexpected_error' => 'Ocorreu um erro inesperado ao carregar as avaliações.',
-    'anonymous'        => 'Anônimo',
+    // =====================================================================
+    // ==== Compatibility with old translation file (legacy) ================
+    // =====================================================================
 
-    'what_customers_think_about' => 'O que os clientes pensam sobre',
-    'previous_review'            => 'Avaliação anterior',
-    'next_review'                => 'Próxima avaliação',
-    'loading'                    => 'Carregando avaliações...',
-    'reviews_title'              => 'Avaliações de clientes',
-    'view_on_viator'             => 'Ver :name no Viator',
+    'loaded'           => 'Reviews loaded successfully.',
+    'provider_error'   => 'There was a problem with the review provider.',
+    'service_busy'     => 'The service is busy, please try again shortly.',
+    'unexpected_error' => 'An unexpected error occurred while loading reviews.',
+    'anonymous'        => 'Anonymous',
 
-    'open_tour_title'    => 'Abrir tour?',
-    'open_tour_text_pre' => 'Você está prestes a abrir a página do tour',
-    'open_tour_confirm'  => 'Abrir agora',
-    'open_tour_cancel'   => 'Cancelar',
+    'what_customers_think_about' => 'What customers think about',
+    'previous_review'            => 'Previous review',
+    'next_review'                => 'Next review',
+    'loading'                    => 'Loading reviews...',
+    // 'what_visitors_say' already exists above; kept for compatibility
+    'reviews_title'              => 'Customer reviews',
+    // 'powered_by' already exists above; kept for compatibility
+    'view_on_viator'             => 'View :name on Viator',
 
-    'previous' => 'Anterior',
-    'next'     => 'Próxima',
-    'see_more' => 'Ver mais',
-    'see_less' => 'Ver menos',
+    // Modal / actions (legacy)
+    'open_tour_title'    => 'Open tour page?',
+    'open_tour_text_pre' => 'You are about to open the tour page for',
+    'open_tour_confirm'  => 'Open now',
+    'open_tour_cancel'   => 'Cancel',
+
+    // Carousel controls (legacy, alias of front.see_more/less)
+    'previous' => 'Previous',
+    'next'     => 'Next',
+    'see_more' => 'See more',
+    'see_less' => 'See less',
 ];

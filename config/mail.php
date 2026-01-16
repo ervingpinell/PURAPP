@@ -3,7 +3,7 @@
 return [
 
     'default' => env('MAIL_MAILER', 'graph'), // en producción usa siempre graph
-    'booking_notify' => env('BOOKING_NOTIFY', ''),
+    'booking_notify' => env('MAIL_NOTIFY_ADDRESS', 'info@greenvacationscr.com'),
 
     'mailers' => [
 

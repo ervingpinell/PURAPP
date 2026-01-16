@@ -46,6 +46,8 @@ return [
     // Messages
     'token_expired' => 'Este enlace ha expirado. Por favor solicita uno nuevo.',
     'token_invalid' => 'Enlace de configuración inválido.',
+    'expires_in' => 'Este enlace expira en :days días',
+    'fallback_link' => 'Si el botón no funciona, copia y pega este enlace en tu navegador:',
     'success' => '¡Cuenta creada exitosamente! Ya puedes iniciar sesión.',
     'user_not_found' => 'Usuario no encontrado.',
     'already_has_password' => 'Este usuario ya tiene una contraseña configurada.',

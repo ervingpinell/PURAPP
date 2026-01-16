@@ -268,6 +268,7 @@ return [
             'intro'    => 'Our team has replied to your review :extra.',
             'quote'    => '“:text”',
             'sign'     => '— :admin',
+            'closing'  => 'If you have any questions or would like to expand on your comment, just reply to this email. Pura vida! 🌿',
         ],
         'submitted' => [
             'subject' => 'New review received',

@@ -104,7 +104,7 @@ class User extends Authenticatable implements MustVerifyEmail, HasLocalePreferen
         'phone',
         'country_code',
         'is_locked',
-        'is_super_admin',
+        // 'is_super_admin', // REMOVED for security
         'locale', // New field
         'address',
         'city',

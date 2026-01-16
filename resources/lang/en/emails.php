@@ -1,0 +1,48 @@
+<?php
+
+return [
+    'booking_expiring' => [
+        'subject' => 'WARNING Booking Expiring Soon',
+        'intro' => 'This unpaid booking will be automatically cancelled if payment is not received.',
+        'button_extend' => 'Extend Booking (12h)',
+        'button_view' => 'View Booking',
+        'label_reference' => 'Booking Reference',
+        'label_customer' => 'Customer',
+        'label_email' => 'Email',
+        'label_tour' => 'Tour',
+        'label_date' => 'Date',
+        'label_amount' => 'Amount',
+        'label_expires' => 'Expires',
+        'na' => 'N/A',
+    ],
+    'new_paid_booking' => [
+        'subject' => 'OK New Paid Booking',
+        'intro' => 'A new booking has been paid and confirmed!',
+        'label_details' => 'Booking Details',
+        'label_paid_at' => 'Paid At',
+        'button_view' => 'View Booking',
+    ],
+    'daily_report' => [
+        'subject' => 'Daily Operations Report - :date',
+        'intro' => 'Here\'s your daily bookings summary:',
+        'summary_title' => 'Summary:',
+        'confirmed' => 'Confirmadas',
+        'pending' => 'Pending',
+        'cancelled' => 'Cancelled',
+        'total' => 'bookings for today',
+        'attachment_info' => 'Please find the detailed Excel report attached to this email.',
+        'excel_contents' => 'Excel Contents:',
+        'sheet_1' => 'Sheet 1',
+        'sheet_1_desc' => 'CONFIRMADAS (sorted by pickup time)',
+        'sheet_2' => 'Sheet 2',
+        'sheet_2_desc' => 'PENDIENTES (with payment links and expiry)',
+        'sheet_3' => 'Sheet 3',
+        'sheet_3_desc' => 'CANCELADAS (with cancellation reason)',
+    ],
+    'common' => [
+        'thanks' => 'Thanks,',
+        'closing' => 'Sincerely,',
+        'system' => 'Booking System',
+        'operations_team' => 'Operations Team',
+    ],
+];

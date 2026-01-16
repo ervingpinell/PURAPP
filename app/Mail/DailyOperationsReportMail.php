@@ -25,7 +25,7 @@ class DailyOperationsReportMail extends Mailable
         $date = now()->format('Y-m-d');
 
         return new Envelope(
-            subject: "Daily Operations Report - {$date}",
+            subject: __('emails.daily_report.subject', ['date' => $date]),
             replyTo: [config('booking.email_config.reply_to', 'info@greenvacationscr.com')],
         );
     }

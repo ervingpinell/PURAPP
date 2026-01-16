@@ -46,6 +46,8 @@ return [
     // Messages
     'token_expired' => 'Dieser Link ist abgelaufen. Bitte fordern Sie einen neuen an.',
     'token_invalid' => 'Ungültiger Einrichtungslink.',
+    'expires_in' => 'Dieser Link läuft in :days Tagen ab',
+    'fallback_link' => 'Wenn die Taste nicht funktioniert, kopieren Sie diesen Link und fügen Sie ihn in Ihren Browser ein:',
     'success' => 'Konto erfolgreich erstellt! Sie können sich jetzt anmelden.',
     'user_not_found' => 'Benutzer nicht gefunden.',
     'already_has_password' => 'Dieser Benutzer hat bereits ein Passwort festgelegt.',

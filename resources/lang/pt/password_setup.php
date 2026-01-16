@@ -46,7 +46,9 @@ return [
     // Messages
     'token_expired' => 'Este link expirou. Por favor, solicite um novo.',
     'token_invalid' => 'Link de configuração inválido.',
-    'success' => 'Conta criada com sucesso! Agora você pode fazer login.',
+    'expires_in' => 'Este link expira em :days dias',
+    'fallback_link' => 'Se o botão não funcionar, copie e cole este link no seu navegador:',
+    'success' => 'Conta criada com sucesso! Você pode entrar agora.',
     'user_not_found' => 'Usuário não encontrado.',
     'already_has_password' => 'Este usuário já possui uma senha definida.',
     'too_many_requests' => 'Muitas solicitações. Tente novamente mais tarde.',

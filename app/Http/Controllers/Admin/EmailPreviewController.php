@@ -28,6 +28,14 @@ use App\Mail\ContactMessage;
 use App\Mail\TestEmail;
 use Illuminate\Http\Request;
 
+use App\Notifications\AccountLockedNotification;
+use App\Notifications\VerifyEmail;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\PasswordUpdatedNotification;
+use App\Notifications\EmailChangeVerificationNotification;
+use App\Notifications\EmailChangeCompletedNotification;
+use Illuminate\Notifications\Messages\MailMessage;
+
 class EmailPreviewController extends Controller
 {
     /**
@@ -36,30 +44,53 @@ class EmailPreviewController extends Controller
     public function index()
     {
         $emailTypes = [
-            'customer' => [
-                'booking-created' => 'Booking Created (Customer)',
-                'booking-confirmed' => 'Booking Confirmed',
-                'booking-updated' => 'Booking Updated',
-                'booking-cancelled' => 'Booking Cancelled',
-                'booking-expired' => 'Booking Expired (Unpaid)',
-                'payment-success' => 'Payment Success',
-                'payment-failed' => 'Payment Failed',
-                'payment-reminder' => 'Payment Reminder',
-                'password-setup' => 'Password Setup',
-                'welcome' => 'Welcome Email',
-                'review-request' => 'Review Request',
-                'review-reply' => 'Review Reply Notification',
+            'bookings' => [
+                'label' => 'Customer Bookings',
+                'icon' => 'fas fa-calendar-check',
+                'items' => [
+                    'booking-created' => 'Booking Created',
+                    'booking-confirmed' => 'Booking Confirmed',
+                    'booking-updated' => 'Booking Updated',
+                    'booking-cancelled' => 'Booking Cancelled',
+                    'booking-expired' => 'Booking Expired (Unpaid)',
+                    'payment-success' => 'Payment Success',
+                    'payment-failed' => 'Payment Failed',
+                    'payment-reminder' => 'Payment Reminder',
+                ]
+            ],
+            'reviews' => [
+                'label' => 'Reviews',
+                'icon' => 'fas fa-star',
+                'items' => [
+                    'review-request' => 'Review Request Link',
+                    'review-reply' => 'Review Reply Notification',
+                    'review-submitted' => 'Review Submitted (Admin Notification)',
+                ]
+            ],
+            'auth' => [
+                'label' => 'User & Account',
+                'icon' => 'fas fa-user-shield',
+                'items' => [
+                    'welcome' => 'Welcome Email',
+                    'password-setup' => 'Account Setup (Set Password)',
+                    'verify-email' => 'Verify Email Address',
+                    'reset-password' => 'Reset Password Request',
+                    'password-updated' => 'Password Updated Notice',
+                    'account-locked' => 'Account Locked Notification',
+                    'email-change-verification' => 'Email Change Verification',
+                    'email-change-completed' => 'Email Change Completed',
+                ]
             ],
             'admin' => [
-                'admin-booking-created' => 'New Booking (Admin)',
-                'admin-paid-booking' => 'Paid Booking (Admin)',
-                'admin-booking-expiring' => 'Booking Expiring (Admin)',
-                'admin-daily-report' => 'Daily Operations Report',
-                'admin-review-submitted' => 'Review Submitted (Admin)',
-            ],
-            'other' => [
-                'contact-message' => 'Contact Form Message',
-                'test' => 'Test Email',
+                'label' => 'Admin & Reports',
+                'icon' => 'fas fa-cogs',
+                'items' => [
+                    'admin-booking-created' => 'New Booking Notification',
+                    'admin-paid-booking' => 'Paid Booking Notification',
+                    'admin-booking-expiring' => 'Booking Expiring Alert',
+                    'admin-daily-report' => 'Daily Operations Report',
+                    'contact-message' => 'Contact Form Message',
+                ]
             ],
         ];
 
@@ -69,12 +100,32 @@ class EmailPreviewController extends Controller
     /**
      * Preview a specific email type.
      */
-    public function show(string $type)
+    public function show(string $type, Request $request)
     {
+        if ($request->has('locale')) {
+            app()->setLocale($request->get('locale'));
+        }
+
         $mailable = $this->getMailable($type);
 
         if (!$mailable) {
             abort(404, 'Email preview not found');
+        }
+
+        // Handle Notifications (which typically return a MailMessage)
+        if ($mailable instanceof \Illuminate\Notifications\Notification) {
+             // Mock notifiable entity (User)
+            $user = $this->createMockUser();
+            
+            // If the notification returns a MailMessage via toMail, we ensure we return its view
+            if (method_exists($mailable, 'toMail')) {
+                $mailMessage = $mailable->toMail($user);
+                
+                // If it returns a MailMessage object, render it
+                if ($mailMessage instanceof MailMessage) {
+                    return $mailMessage->render(); // Correctly renders the MailMessage view
+                }
+            }
         }
 
         return $mailable;
@@ -87,36 +138,54 @@ class EmailPreviewController extends Controller
     {
         // Get sample booking with all relations
         $booking = $this->getSampleBooking();
-        $user = $booking->user;
+        $user = $booking->user ?? $this->createMockUser();
 
         return match ($type) {
-            // Customer emails
+            // Bookings (Customer)
             'booking-created' => new BookingCreatedMail($booking),
             'booking-confirmed' => new BookingConfirmedMail($booking),
             'booking-updated' => new BookingUpdatedMail($booking),
             'booking-cancelled' => new BookingCancelledMail($booking),
             'booking-expired' => new BookingCancelledExpiry($booking),
-            'payment-success' => new PaymentSuccessMail($booking),
+            'payment-success' => new PaymentSuccessMail(tap($booking, function($b) {
+                $b->paid_at = $b->paid_at ?? now();
+                $b->paid_amount = $b->paid_amount > 0 ? $b->paid_amount : $b->total;
+            })),
             'payment-failed' => new PaymentFailedMail($booking),
-            'payment-reminder' => new PaymentReminderMail($booking),
-            'password-setup' => new PasswordSetupMail($user, 'sample-token-123', $booking->booking_reference),
-            'welcome' => new UserWelcomeMail($user),
+            'payment-reminder' => new PaymentReminderMail(tap($booking, function($b) {
+                 $b->auto_charge_at = now()->addDays(2);
+            })),
+
+            // Reviews
             'review-request' => new ReviewRequestLink($this->getSampleReviewRequest()),
             'review-reply' => $this->getReviewReplyMailable(),
+            'review-submitted' => new ReviewSubmittedNotification($this->getSampleReview()), // Admin
 
-            // Admin emails
+            // Auth / User
+            'welcome' => new UserWelcomeMail($user),
+            'password-setup' => new PasswordSetupMail($user, 'sample-token-123', $booking->booking_reference),
+            'verify-email' => new VerifyEmail(),
+            'reset-password' => new ResetPasswordNotification('sample-reset-token'),
+            'password-updated' => new PasswordUpdatedNotification(),
+            'account-locked' => new AccountLockedNotification(route('login')), // Mock unlock URL
+            'email-change-verification' => new EmailChangeVerificationNotification('new-email@example.com', 'sample-code-123'),
+            'email-change-completed' => new EmailChangeCompletedNotification('old-email@example.com'),
+
+            // Admin
             'admin-booking-created' => new BookingCreatedAdminMail($booking),
-            'admin-paid-booking' => new NewPaidBookingAdmin($booking),
-            'admin-booking-expiring' => new BookingExpiringAdmin($booking),
+            'admin-paid-booking' => new NewPaidBookingAdmin(tap($booking, function($b) {
+                $b->paid_at = $b->paid_at ?? now();
+                $b->paid_amount = $b->paid_amount > 0 ? $b->paid_amount : $b->total;
+            })),
+            'admin-booking-expiring' => new BookingExpiringAdmin(tap($booking, function($b) {
+                $b->pending_expires_at = $b->pending_expires_at ?? now()->addHours(12);
+            })),
             'admin-daily-report' => new DailyOperationsReportMail(
-                collect([$booking]), // confirmed
-                collect([]), // pending
-                collect([]), // cancelled
-                null // no attachment
+                1, // confirmed count
+                0, // pending count
+                0, // cancelled count
+                '/tmp/dummy_report.xlsx' // dummy attachment
             ),
-            'admin-review-submitted' => new ReviewSubmittedNotification($this->getSampleReview()),
-
-            // Other
             'contact-message' => new ContactMessage([
                 'name' => 'John Doe',
                 'email' => 'john@example.com',
@@ -124,7 +193,6 @@ class EmailPreviewController extends Controller
                 'message' => 'I would like to know more about your volcano tours. Do you offer private tours?',
                 'locale' => 'en',
             ]),
-            'test' => new TestEmail(),
 
             default => null,
         };
@@ -173,25 +241,37 @@ class EmailPreviewController extends Controller
             'subtotal' => 150.00,
             'taxes' => 19.50,
             'total' => 169.50,
+            'paid_amount' => 169.50, // Added for paid booking preview
             'notes' => 'Sample booking for email preview',
             'tour_language_id' => 1, // Required field
             'checkout_token' => 'preview-token-' . time(),
             'checkout_token_expires_at' => now()->addHours(48),
+            'pending_expires_at' => now()->addHours(12), // Added for expiring preview
+            'paid_at' => now()->subMinutes(15), // Added for paid preview
         ]);
 
         // Mark as existing to prevent save attempts
         $booking->exists = true;
 
         // Mock user with password to prevent token generation
-        $booking->setRelation('user', new User([
+        $booking->setRelation('user', $this->createMockUser());
+
+        return $booking;
+    }
+
+    protected function createMockUser(): User
+    {
+        $user = new User();
+        $user->forceFill([
             'user_id' => 99999,
             'name' => 'John Doe',
             'email' => 'preview@example.com',
             'phone' => '+506 1234 5678',
-            'password' => 'dummy-hash', // Prevents password setup token generation
-        ]));
-
-        return $booking;
+            'password' => 'dummy-hash',
+        ]);
+        $user->exists = true;
+        
+        return $user;
     }
 
     /**
@@ -244,19 +324,6 @@ class EmailPreviewController extends Controller
     }
 
     /**
-     * Get booking created mailable (prevents password setup token generation).
-     */
-    protected function getBookingCreatedMailable(Booking $booking)
-    {
-        // Ensure user has a password to prevent token generation
-        if ($booking->user && !$booking->user->password) {
-            $booking->user->password = 'dummy-password-hash';
-        }
-
-        return new BookingCreatedMail($booking);
-    }
-
-    /**
      * Get review reply mailable (creates a mock ReviewReply).
      */
     protected function getReviewReplyMailable()
@@ -271,6 +338,6 @@ class EmailPreviewController extends Controller
 
         $reply->setRelation('review', $review);
 
-        return new ReviewReplyNotification($reply, $reply->reply_text ?? '');
+        return new ReviewReplyNotification($reply, $reply->admin_name ?? 'Admin', $review->booking->tour->name ?? 'Tour Name', $review->customer_name);
     }
 }
