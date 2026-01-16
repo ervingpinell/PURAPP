@@ -143,6 +143,11 @@ class RateLimitServiceProvider extends ServiceProvider
 
         // 🔒 Strict rate limiter for payment initiation (anti-bot)
         RateLimiter::for('payment-initiate', function (Request $request) {
+            // Skip rate limiting in debug mode
+            if (config('app.debug')) {
+                return Limit::none();
+            }
+
             if ($request->user()) {
                 return Limit::perMinute(5)->by($request->user()->id);
             }
