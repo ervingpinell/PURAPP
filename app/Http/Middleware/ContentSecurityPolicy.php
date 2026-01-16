@@ -20,12 +20,12 @@ class ContentSecurityPolicy
         // Build CSP directives - Less restrictive to avoid breaking existing functionality
         $directives = [
             "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https: https://challenges.cloudflare.com",
             "style-src 'self' 'unsafe-inline' https:",
             "font-src 'self' data: https:",
             "img-src 'self' data: blob: https:",
             "connect-src 'self' https: wss: ws:",
-            "frame-src 'self' https:",
+            "frame-src 'self' https: https://maps.google.com",
             "object-src 'none'",
             "base-uri 'self'",
         ];

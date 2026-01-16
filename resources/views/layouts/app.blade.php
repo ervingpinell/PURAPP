@@ -203,7 +203,7 @@ $schemaOrg = [
     <link rel="icon" type="image/svg+xml" href="{{ $ASSET_ROOT }}/favicon.svg">
     <link rel="icon" type="image/png" sizes="96x96" href="{{ $ASSET_ROOT }}/favicon-96x96.png">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ $ASSET_ROOT }}/apple-touch-icon.png">
-    <link rel="manifest" href="{{ $ASSET_ROOT }}/site.webmanifest">
+    <link rel="manifest" href="{{ $ASSET_ROOT }}/site.webmanifest" crossorigin="use-credentials">
 
     <meta id="themeColorMeta" name="theme-color" content="{{ $themeColor }}">
     <meta name="theme-color" content="#0b2e13" media="(prefers-color-scheme: dark)">
