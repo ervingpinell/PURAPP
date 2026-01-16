@@ -977,7 +977,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 @media (max-width: 575.98px) {
   .cart-timer-widget {
     right: 0.75rem;
-    bottom: 4.5rem;
+    bottom: 6rem; /* Increased from 4.5rem to avoid WhatsApp overlap */
     padding: 0.5rem 0.75rem;
   }
   .cart-timer-widget .timer-text strong {
