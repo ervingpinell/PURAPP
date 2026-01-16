@@ -62,35 +62,40 @@
 </div>
 
 {{-- FAQ Schema --}}
-<script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [{
-                "@type": "Question",
-                "name": "{{ __('adminlte::adminlte.faq_q1') ?? '¿Cómo puedo reservar un tour?' }}",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "{{ __('adminlte::adminlte.faq_a1') ?? 'Puede reservar directamente en nuestro sitio web seleccionando el tour deseado, eligiendo la fecha y completando el formulario de pago seguro.' }}"
-                }
-            },
-            {
-                "@type": "Question",
-                "name": "{{ __('adminlte::adminlte.faq_q2') ?? '¿Cuál es la política de cancelación?' }}",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "{{ __('adminlte::adminlte.faq_a2') ?? 'Ofrecemos reembolso completo si cancela con 24 horas de anticipación para la mayoría de nuestros tours. Consulte los detalles específicos en cada tour.' }}"
-                }
-            },
-            {
-                "@type": "Question",
-                "name": "{{ __('adminlte::adminlte.faq_q3') ?? '¿Incluyen transporte??' }}",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "{{ __('adminlte::adminlte.faq_a3') ?? 'Sí, la mayoría de nuestros tours incluyen transporte ida y vuelta desde hoteles seleccionados en la zona de La Fortuna.' }}"
-                }
-            }
+{{-- FAQ Schema --}}
+@php
+$faqSchema = [
+    "@context" => "https://schema.org",
+    "@type" => "FAQPage",
+    "mainEntity" => [
+        [
+            "@type" => "Question",
+            "name" => __('adminlte::adminlte.faq_q1') ?? '¿Cómo puedo reservar un tour?',
+            "acceptedAnswer" => [
+                "@type" => "Answer",
+                "text" => __('adminlte::adminlte.faq_a1') ?? 'Puede reservar directamente en nuestro sitio web seleccionando el tour deseado, eligiendo la fecha y completando el formulario de pago seguro.'
+            ]
+        ],
+        [
+            "@type" => "Question",
+            "name" => __('adminlte::adminlte.faq_q2') ?? '¿Cuál es la política de cancelación?',
+            "acceptedAnswer" => [
+                "@type" => "Answer",
+                "text" => __('adminlte::adminlte.faq_a2') ?? 'Ofrecemos reembolso completo si cancela con 24 horas de anticipación para la mayoría de nuestros tours. Consulte los detalles específicos en cada tour.'
+            ]
+        ],
+        [
+            "@type" => "Question",
+            "name" => __('adminlte::adminlte.faq_q3') ?? '¿Incluyen transporte??',
+            "acceptedAnswer" => [
+                "@type" => "Answer",
+                "text" => __('adminlte::adminlte.faq_a3') ?? 'Sí, la mayoría de nuestros tours incluyen transporte ida y vuelta desde hoteles seleccionados en la zona de La Fortuna.'
+            ]
         ]
-    }
+    ]
+];
+@endphp
+<script type="application/ld+json">
+    {!! json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) !!}
 </script>
 @endsection

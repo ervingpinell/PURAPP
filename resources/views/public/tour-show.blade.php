@@ -10,9 +10,7 @@ use App\Helpers\SchemaHelper;
 $tourSchema = SchemaHelper::generateTourSchema($tour, $tourReviews ?? null);
 @endphp
 <script type="application/ld+json">
-  {
-    !!json_encode($tourSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!
-  }
+    {!! json_encode($tourSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
 </script>
 
 {{-- Breadcrumb Schema --}}
@@ -25,9 +23,7 @@ $breadcrumbItems = [
 $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
 @endphp
 <script type="application/ld+json">
-  {
-    !!json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!
-  }
+    {!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
 </script>
 @endpush
 

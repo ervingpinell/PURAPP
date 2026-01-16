@@ -35,9 +35,7 @@
   $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
   @endphp
   <script type="application/ld+json">
-    {
-      !!json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!
-    }
+    {!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
   </script>
   {{-- HEADER --}}
   <div class="tours-index-header mb-2">
