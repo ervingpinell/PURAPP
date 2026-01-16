@@ -40,34 +40,38 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 {{-- INLINE SCRIPT - No depende de @stack, se ejecuta inmediatamente --}}
 <script>
   (function() {
-    console.log('🔧 [Timer Widget] Script iniciado');
+    const DEBUG = {{ config('app.debug') ? 'true' : 'false' }};
+    const debug = (...args) => DEBUG && console.log(...args);
+    const debugError = (...args) => DEBUG && console.error(...args);
+
+    debug('🔧 [Timer Widget] Script iniciado');
 
     const widget = document.getElementById('cart-timer-widget');
     const timerFull = document.getElementById('widget-timer-full');
 
     if (!widget || !timerFull) {
-      console.error('🔧 [Timer Widget] ERROR: Elementos no encontrados', {
+      debugError('🔧 [Timer Widget] ERROR: Elementos no encontrados', {
         widget: !!widget,
         timerFull: !!timerFull
       });
       return;
     }
 
-    console.log('🔧 [Timer Widget] Elementos DOM encontrados ✓');
+    debug('🔧 [Timer Widget] Elementos DOM encontrados ✓');
 
     widget.addEventListener('click', () => {
       window.location.href = '{{ route("public.carts.index") }}';
     });
 
     const initWidget = () => {
-      console.log('🔧 [Timer Widget] Intentando inicializar, cartCountdown:', !!window.cartCountdown);
+      debug('🔧 [Timer Widget] Intentando inicializar, cartCountdown:', !!window.cartCountdown);
 
       if (!window.cartCountdown || typeof window.cartCountdown.getRemainingSeconds !== 'function') {
         return false;
       }
 
       const remaining = window.cartCountdown.getRemainingSeconds();
-      console.log('🔧 [Timer Widget] Segundos restantes:', remaining);
+      debug('🔧 [Timer Widget] Segundos restantes:', remaining);
 
       const updateWidget = () => {
         const remaining = window.cartCountdown.getRemainingSeconds();
@@ -78,7 +82,7 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
         }
 
         if (widget.style.display === 'none') {
-          console.log('🔧 [Timer Widget] Mostrando widget');
+          debug('🔧 [Timer Widget] Mostrando widget');
           widget.style.display = 'block';
         }
 
@@ -100,17 +104,17 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
         }
       };
 
-      console.log('🔧 [Timer Widget] ¡Inicialización exitosa!');
+      debug('🔧 [Timer Widget] ¡Inicialización exitosa!');
       setInterval(updateWidget, 1000);
       updateWidget();
       return true;
     };
 
     if (!initWidget()) {
-      console.log('🔧 [Timer Widget] Esperando cartCountdown:ready...');
+      debug('🔧 [Timer Widget] Esperando cartCountdown:ready...');
 
       window.addEventListener('cartCountdown:ready', () => {
-        console.log('🔧 [Timer Widget] Evento recibido');
+        debug('🔧 [Timer Widget] Evento recibido');
         initWidget();
       }, {
         once: true
@@ -123,7 +127,7 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
         if (initWidget() || attempts >= maxAttempts) {
           clearInterval(retryInterval);
           if (attempts >= maxAttempts && !window.cartCountdown) {
-            console.error('🔧 [Timer Widget] TIMEOUT: cartCountdown nunca se inicializó');
+            debugError('🔧 [Timer Widget] TIMEOUT: cartCountdown nunca se inicializó');
             widget.style.display = 'none';
           }
         }

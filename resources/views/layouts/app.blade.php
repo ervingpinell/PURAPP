@@ -368,6 +368,9 @@ $schemaOrg = [
     @if ($hasActiveCart)
     <script>
         (function() {
+            var DEBUG = {{ config('app.debug') ? 'true' : 'false' }};
+            var debug = function() { DEBUG && console.log.apply(console, arguments); };
+
             var expiresAtStr = @json($cartExpiresAt);
             var totalMinutes = @json($cartExpiryMinutes);
 
@@ -385,7 +388,7 @@ $schemaOrg = [
 
             // Emit event so widgets know cartCountdown is ready
             window.dispatchEvent(new CustomEvent('cartCountdown:ready'));
-            console.log('✅ cartCountdown initialized for authenticated user');
+            debug('✅ cartCountdown initialized for authenticated user');
 
             // Auto-expire logic for Auth Users (Global)
             var expireUrl = '{{ route("public.carts.expire") }}';
@@ -402,7 +405,7 @@ $schemaOrg = [
             var checkExpiration = function() {
                 if (window.cartCountdown.isExpired() && !expirationHandled) {
                     expirationHandled = true;
-                    console.log('Cart expired (auth global check)');
+                    debug('Cart expired (auth global check)');
                     updateBadgesToZero();
 
                     fetch(expireUrl, {
@@ -439,6 +442,9 @@ $schemaOrg = [
     @if ($hasGuestCart)
     <script>
         (function() {
+            var DEBUG = {{ config('app.debug') ? 'true' : 'false' }};
+            var debug = function() { DEBUG && console.log.apply(console, arguments); };
+
             var createdAt = @json($guestCartCreated);
             var expiryMinutes = @json($guestExpiryMinutes);
             if (!createdAt) return;
@@ -456,7 +462,7 @@ $schemaOrg = [
 
             // Emit event so widgets know cartCountdown is ready
             window.dispatchEvent(new CustomEvent('cartCountdown:ready'));
-            console.log('✅ cartCountdown initialized for guest user');
+            debug('✅ cartCountdown initialized for guest user');
 
             var hasReloaded = false;
             var expireUrl = '{{ route("public.guest-carts.expire") }}';
