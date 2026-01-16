@@ -758,13 +758,20 @@ class HomeController extends Controller
             // Si hay API key, podríamos usar Embed API, pero el usuario confirmó NO tener key.
             // Usamos legacy iframe con coordenadas, que suele ser más permisivo.
             // Formato: https://maps.google.com/maps?q=LAT,LNG&z=15&output=embed
-            $lat = config('company.map.latitude', '10.4678');
-            $lng = config('company.map.longitude', '-84.6427');
+            $lat = config('company.map.latitude', '10.455753');
+            $lng = config('company.map.longitude', '-84.653104');
+            
+            // Ahora que tenemos CSP corregido, intentamos mostrar el negocio por nombre
+            // para que aparezca la "Place Card" de Google.
+            // Generamos el query dinámicamente desde la configuración.
+            $companyName = config('company.name', 'Green Vacations CR');
+            $city        = config('company.address.city', 'Costa Rica');
+            
+            $query = rawurlencode("{$companyName}, {$city}");
             
             $mapSrc = sprintf(
-                "https://maps.google.com/maps?q=%s,%s&hl=%s&z=15&output=embed",
-                $lat,
-                $lng,
+                "https://maps.google.com/maps?q=%s&hl=%s&z=16&output=embed",
+                $query,
                 $mapLang
             );
 
