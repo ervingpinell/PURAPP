@@ -16,7 +16,7 @@ return $v !== $key ? $v : $fallback;
 @endphp
 
 <style>
-  /* ===== BANNER ===== */
+  /* ===== BANNER COMPACTO ===== */
   .cookie-banner {
     position: fixed;
     z-index: 2147483000;
@@ -25,7 +25,7 @@ return $v !== $key ? $v : $fallback;
     bottom: 0;
     background: #0f5132;
     color: #fff;
-    padding: 14px 16px;
+    padding: 12px 16px;
     box-shadow: 0 -6px 24px rgba(0, 0, 0, .18);
     font-size: 0.95rem;
   }
@@ -53,8 +53,10 @@ return $v !== $key ? $v : $fallback;
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    align-items: center;
   }
 
+  /* ===== BUTTONS ===== */
   .cookie-banner .btn {
     border: none;
     cursor: pointer;
@@ -98,11 +100,6 @@ return $v !== $key ? $v : $fallback;
     box-shadow: 0 4px 16px rgba(255, 214, 10, 0.5);
   }
 
-  .cookie-accept:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(255, 214, 10, 0.4);
-  }
-
   .cookie-reject {
     background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     color: #fff;
@@ -112,12 +109,6 @@ return $v !== $key ? $v : $fallback;
   .cookie-reject:hover {
     background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.5);
-  }
-
-  .cookie-reject:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
   }
 
   .cookie-customize {
@@ -129,17 +120,27 @@ return $v !== $key ? $v : $fallback;
   .cookie-customize:hover {
     background: linear-gradient(135deg, #d4d4d4 0%, #c0c0c0 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(200, 200, 200, 0.4);
-  }
-
-  .cookie-customize:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(200, 200, 200, 0.3);
   }
 
   .cookie-banner .btn:focus-visible {
     outline: 3px solid rgba(255, 255, 255, 0.5);
     outline-offset: 2px;
+  }
+
+  /* Link discreto para más opciones (móvil) */
+  .cookie-more-link {
+    display: none;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px 8px;
+  }
+
+  .cookie-more-link:hover {
+    color: #fff;
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -336,74 +337,68 @@ return $v !== $key ? $v : $fallback;
     color: #0a3d24;
   }
 
-  /* ===== RESPONSIVE ===== */
+  /* ===== RESPONSIVE - DISEÑO COMPACTO MÓVIL ===== */
   @media (max-width: 768px) {
     .cookie-banner {
-      padding: 16px 12px;
-      font-size: 0.9rem;
+      padding: 12px 16px;
     }
 
     .cookie-banner .container {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 16px;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 12px;
     }
 
     .cookie-banner .copy {
       flex: 1 1 auto;
+      font-size: 0.9rem;
     }
 
+    /* Ocultar título en móvil, mostrar versión compacta */
     .cookie-banner .copy strong {
-      font-size: 1.1rem;
-      display: block;
-      margin-bottom: 8px;
+      display: none;
     }
 
-    .cookie-banner .copy .mt-1 {
-      line-height: 1.5;
+    .cookie-banner .copy .cookie-full-message {
+      display: none;
+    }
+
+    .cookie-banner .copy .cookie-short-message {
+      display: block;
     }
 
     .cookie-banner .actions {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 100%;
+      flex-shrink: 0;
+      gap: 8px;
     }
 
-    .cookie-banner .btn {
-      width: 100%;
-      padding: 14px 20px;
-      font-size: 0.95rem;
+    /* Solo mostrar Aceptar como botón principal */
+    .cookie-banner .cookie-accept {
+      padding: 10px 16px;
+      font-size: 0.9rem;
       border-radius: 8px;
-      min-height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
       white-space: nowrap;
-      line-height: 1.3;
     }
 
-    /* Order for better UX: Accept first, then Customize, then Reject */
-    .cookie-accept {
-      order: 1;
+    /* Ocultar botones secundarios, mostrar link */
+    .cookie-banner .cookie-reject,
+    .cookie-banner .cookie-customize {
+      display: none;
     }
 
-    .cookie-customize {
-      order: 2;
+    .cookie-more-link {
+      display: inline;
     }
 
-    .cookie-reject {
-      order: 3;
-    }
-
+    /* Modal desde abajo */
     .cookie-modal {
       padding: 0;
       align-items: flex-end;
     }
 
     .cookie-modal-content {
-      max-height: 90vh;
+      max-height: 85vh;
       border-radius: 20px 20px 0 0;
       margin-bottom: 0;
       width: 100%;
@@ -427,6 +422,7 @@ return $v !== $key ? $v : $fallback;
 
     .cookie-modal-footer {
       padding: 16px;
+      flex-direction: column;
     }
 
     .cookie-modal-footer .btn {
@@ -434,18 +430,13 @@ return $v !== $key ? $v : $fallback;
     }
   }
 
-  @media (max-width: 480px) {
-    .cookie-banner {
-      font-size: 0.85rem;
+  @media (min-width: 769px) {
+    .cookie-banner .copy .cookie-short-message {
+      display: none;
     }
 
-    .cookie-banner .copy strong {
-      font-size: 1rem;
-    }
-
-    .cookie-banner .btn {
-      font-size: 0.9rem;
-      padding: 12px 16px;
+    .cookie-banner .copy .cookie-full-message {
+      display: block;
     }
   }
 </style>
@@ -456,20 +447,27 @@ return $v !== $key ? $v : $fallback;
   <div class="container">
     <div class="copy">
       <strong>{{ $t('cookies.title', 'Usamos cookies') }}</strong>
-      <div class="mt-1">
+      {{-- Versión corta para móvil --}}
+      <span class="cookie-short-message">🍪 {{ $t('cookies.short_message', 'Usamos cookies para mejorar tu experiencia.') }}</span>
+      {{-- Versión completa para desktop --}}
+      <div class="cookie-full-message mt-1">
         {{ $t('cookies.message', 'Este sitio utiliza cookies para mejorar tu experiencia. Puedes aceptar todas, rechazar las no esenciales o personalizar tus preferencias.') }}
       </div>
     </div>
 
     <div class="actions">
       <button type="button" class="btn cookie-accept" data-cookie-action="accept">
-        {{ $t('cookies.accept_all', 'Aceptar todas') }}
+        {{ $t('cookies.accept_all', 'Aceptar') }}
       </button>
       <button type="button" class="btn cookie-customize" data-cookie-action="customize">
         {{ $t('cookies.customize', 'Personalizar') }}
       </button>
       <button type="button" class="btn cookie-reject" data-cookie-action="reject">
         {{ $t('cookies.reject', 'Rechazar') }}
+      </button>
+      {{-- Link para móvil --}}
+      <button type="button" class="cookie-more-link" data-cookie-action="customize">
+        {{ $t('cookies.more_options', 'Más opciones') }}
       </button>
     </div>
   </div>
@@ -548,6 +546,9 @@ return $v !== $key ? $v : $fallback;
     </div>
 
     <div class="cookie-modal-footer">
+      <button type="button" class="btn cookie-reject" data-cookie-action="reject">
+        {{ $t('cookies.reject', 'Rechazar no esenciales') }}
+      </button>
       <button type="button" class="btn btn-success" id="save-preferences">
         {{ $t('cookies.save_preferences', 'Guardar preferencias') }}
       </button>
@@ -589,29 +590,36 @@ return $v !== $key ? $v : $fallback;
     }
 
     // Aceptar todas
-    document.querySelector('[data-cookie-action="accept"]')?.addEventListener('click', async () => {
-      banner.style.display = 'none';
-      try {
-        await savePreferences('{{ route("cookies.accept") }}');
-        setTimeout(() => window.location.reload(), 120);
-      } catch (e) {
-        banner.style.display = 'block';
-      }
+    document.querySelectorAll('[data-cookie-action="accept"]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (banner) banner.style.display = 'none';
+        try {
+          await savePreferences('{{ route("cookies.accept") }}');
+          setTimeout(() => window.location.reload(), 120);
+        } catch (e) {
+          if (banner) banner.style.display = 'block';
+        }
+      });
     });
 
     // Rechazar todas (solo esenciales)
-    document.querySelector('[data-cookie-action="reject"]')?.addEventListener('click', async () => {
-      banner.style.display = 'none';
-      try {
-        await savePreferences('{{ route("cookies.reject") }}');
-      } catch (e) {
-        banner.style.display = 'block';
-      }
+    document.querySelectorAll('[data-cookie-action="reject"]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (banner) banner.style.display = 'none';
+        modal.classList.remove('active');
+        try {
+          await savePreferences('{{ route("cookies.reject") }}');
+        } catch (e) {
+          if (banner) banner.style.display = 'block';
+        }
+      });
     });
 
     // Abrir modal de personalización
-    document.querySelector('[data-cookie-action="customize"]')?.addEventListener('click', () => {
-      modal.classList.add('active');
+    document.querySelectorAll('[data-cookie-action="customize"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        modal.classList.add('active');
+      });
     });
 
     // Cerrar modal

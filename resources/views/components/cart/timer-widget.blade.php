@@ -1,4 +1,4 @@
-{{-- Widget flotante de countdown del carrito --}}
+{{-- Widget flotante de countdown del carrito - AUTOCONTENIDO (no usa @push) --}}
 @php
 // Check both authenticated and guest users
 $hasItems = false;
@@ -18,13 +18,11 @@ $hasItems = $cart && $cart->items()->count() > 0;
 // Ocultar en páginas donde ya hay timer visible
 $hideOnRoutes = [
 'public.carts.index',
-// checkout + payment público (cubre show, payment, confirmation, etc.)
 'public.checkout.*',
-// nombres legacy por si acaso
 'checkout.show',
 'checkout.payment',
 'payment.process',
-'payment.show', // Fix: Hide on payment page to prevent double alert
+'payment.show',
 ];
 
 $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
@@ -38,69 +36,8 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
   </div>
 </div>
 
-@push('styles')
+{{-- INLINE STYLES - No depende de @stack --}}
 <style>
-  .timer-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    text-align: center;
-  }
-
-  .timer-text small {
-    font-size: 11px;
-    opacity: 0.9;
-    line-height: 1.2;
-  }
-
-  .timer-text strong {
-    font-size: 16px;
-    letter-spacing: 0.5px;
-    line-height: 1.2;
-  }
-
-  /* Animaciones existentes */
-  @keyframes pulse-warning {
-
-    0%,
-    100% {
-      transform: scale(1);
-    }
-
-    50% {
-      transform: scale(1.05);
-    }
-  }
-
-  @keyframes blink {
-
-    0%,
-    100% {
-      opacity: 1;
-    }
-
-    50% {
-      opacity: 0.4;
-    }
-  }
-
-  @keyframes shake {
-
-    0%,
-    100% {
-      transform: translateX(0);
-    }
-
-    25% {
-      transform: translateX(-3px);
-    }
-
-    75% {
-      transform: translateX(3px);
-    }
-  }
-
-  /* Base styles for cart timer widget */
   .cart-timer-widget {
     position: fixed;
     bottom: 90px;
@@ -116,6 +53,25 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
+  .cart-timer-widget .timer-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+  }
+
+  .cart-timer-widget .timer-text small {
+    font-size: 11px;
+    opacity: 0.9;
+    line-height: 1.2;
+  }
+
+  .cart-timer-widget .timer-text strong {
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+  }
+
   .cart-timer-widget:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
@@ -123,15 +79,54 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 
   .cart-timer-widget.warning {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    animation: pulse-warning 2s ease-in-out infinite;
+    animation: ctw-pulse 2s ease-in-out infinite;
   }
 
   .cart-timer-widget.critical {
     background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    animation: shake 0.5s ease-in-out infinite, blink 1s ease-in-out infinite;
+    animation: ctw-shake 0.5s ease-in-out infinite, ctw-blink 1s ease-in-out infinite;
   }
 
-  /* Versión responsive (móviles) */
+  @keyframes ctw-pulse {
+
+    0%,
+    100% {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes ctw-blink {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes ctw-shake {
+
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+
+    25% {
+      transform: translateX(-3px);
+    }
+
+    75% {
+      transform: translateX(3px);
+    }
+  }
+
   @media (max-width: 575.98px) {
     .cart-timer-widget {
       left: 50%;
@@ -144,14 +139,13 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
       border-radius: 999px;
     }
 
-    .timer-text strong {
+    .cart-timer-widget .timer-text strong {
       font-size: 14px;
     }
   }
 </style>
-@endpush
 
-@push('scripts')
+{{-- INLINE SCRIPT - No depende de @stack, se ejecuta inmediatamente --}}
 <script>
   (function() {
     const widget = document.getElementById('cart-timer-widget');
@@ -166,13 +160,12 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 
     // Función para inicializar el widget
     const initWidget = () => {
-      // Verificar existencia y métodos requeridos
       if (!window.cartCountdown || typeof window.cartCountdown.getRemainingSeconds !== 'function') {
         return false;
       }
 
       const updateWidget = () => {
-        const remaining = window.cartCountdown.getRemainingSeconds(); // Puede ser NaN si hay error
+        const remaining = window.cartCountdown.getRemainingSeconds();
 
         // Safety check for NaN
         if (isNaN(remaining)) {
@@ -180,13 +173,12 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
           return;
         }
 
-        // Mostrar widget si estaba oculto y tenemos datos validos
+        // Mostrar widget si estaba oculto y tenemos datos válidos
         if (widget.style.display === 'none') {
           widget.style.display = 'block';
         }
 
         if (remaining <= 0) {
-          // Don't hide immediately, show expired state
           timerFull.textContent = '0:00';
           widget.classList.add('critical');
           return;
@@ -194,22 +186,18 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 
         const minutes = Math.floor(remaining / 60);
         const seconds = remaining % 60;
-        const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-
-        // Solo mostramos el tiempo grande
-        timerFull.textContent = timeStr;
+        timerFull.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
 
         // Cambiar estilo según tiempo restante
         widget.classList.remove('warning', 'critical');
 
-        if (remaining <= 300) { // <= 5 minutos
+        if (remaining <= 300) {
           widget.classList.add('critical');
-        } else if (remaining <= 600) { // <= 10 minutos
+        } else if (remaining <= 600) {
           widget.classList.add('warning');
         }
       };
 
-      // Actualizar cada segundo
       setInterval(updateWidget, 1000);
       updateWidget();
       return true;
@@ -217,22 +205,19 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
 
     // Intentar inicializar inmediatamente
     if (!initWidget()) {
-      // Listen for cartCountdown:ready event
-      window.addEventListener('cartCountdown:ready', () => {
-        initWidget();
-      }, {
+      // Escuchar evento cuando cartCountdown esté listo
+      window.addEventListener('cartCountdown:ready', () => initWidget(), {
         once: true
       });
 
-      // Fallback: reintentar cada 100ms hasta 5 segundos (por si el evento ya pasó)
+      // Fallback: reintentar cada 100ms hasta 5 segundos
       let attempts = 0;
-      const maxAttempts = 50; // 5 segundos
+      const maxAttempts = 50;
       const retryInterval = setInterval(() => {
         attempts++;
         if (initWidget() || attempts >= maxAttempts) {
           clearInterval(retryInterval);
           if (attempts >= maxAttempts && !window.cartCountdown) {
-            // Si falla todo, nos aseguramos que siga oculto
             widget.style.display = 'none';
           }
         }
@@ -240,5 +225,4 @@ $shouldShow = $hasItems && !request()->routeIs($hideOnRoutes);
     }
   })();
 </script>
-@endpush
 @endif

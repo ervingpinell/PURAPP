@@ -438,6 +438,7 @@ $schemaOrg = [
             const createdAt = @json($guestCartCreated);
             const expiryMinutes = {
                 {
+                    \
                     App\ Models\ Setting::getValue('cart.expiration_minutes', 30)
                 }
             };
