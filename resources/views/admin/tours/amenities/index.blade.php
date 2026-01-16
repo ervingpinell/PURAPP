@@ -91,7 +91,7 @@
 
                     {{-- Eliminar definitivo --}}
                     @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
-                    @can('delete-amenities')
+                    @can('soft-delete-amenities')
                     <form action="{{ route('admin.tours.amenities.destroy', $amenity->amenity_id) }}"
                         method="POST"
                         class="d-inline form-delete-amenity"

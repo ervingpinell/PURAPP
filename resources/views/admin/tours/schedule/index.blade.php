@@ -263,7 +263,7 @@
                   @endcan
 
                   {{-- Eliminar GLOBAL --}}
-                  @can('delete-tour-schedules')
+                  @can('soft-delete-tour-schedules')
                   <form action="{{ route('admin.tours.schedule.destroy', $s->schedule_id) }}"
                     method="POST" class="d-inline form-delete"
                     data-label="{{ $s->label ?: ( \Carbon\Carbon::createFromTimeString($s->start_time)->format('g:i A') . ' - ' . \Carbon\Carbon::createFromTimeString($s->end_time)->format('g:i A') ) }}">

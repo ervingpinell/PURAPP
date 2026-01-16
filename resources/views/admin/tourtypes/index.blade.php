@@ -130,7 +130,7 @@
 
                     {{-- Eliminar --}}
                     @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
-                    @can('delete-tour-types')
+                    @can('soft-delete-tour-types')
                     <form action="{{ route('admin.tourtypes.destroy', $tourtype->tour_type_id) }}"
                         method="POST"
                         class="d-inline js-confirm-delete"

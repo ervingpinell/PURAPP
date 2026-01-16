@@ -356,7 +356,7 @@ class Booking extends Model
             $this->save();
         }
 
-        return route('payment.token', ['token' => $this->payment_token]);
+        return route('payment.show-by-token', ['token' => $this->payment_token]);
     }
 
     /**

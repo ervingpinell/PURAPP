@@ -26,7 +26,8 @@ class BookingController extends Controller
 {
     public function __construct(
         private BookingCreator $creator,
-        private BookingCapacityService $capacity
+        private BookingCapacityService $capacity,
+        private \App\Services\Auth\PasswordSetupService $passwordSetupService
     ) {}
 
     /** Checkout desde carrito (público) */
@@ -595,7 +596,20 @@ class BookingController extends Controller
             }
         }
 
-        return view('public.payment-confirmation', compact('booking'));
+        // Check if user needs to setup password (e.g. guest checkout created account)
+        $passwordSetupUrl = null;
+        $bookingUser = $booking->user;
+
+        if ($bookingUser && $this->passwordSetupService->needsPasswordSetup($bookingUser)) {
+            // Check if current logged in user is the booking user (to avoid showing setup link to admin viewing confirmation)
+            if ($user && $user->user_id === $bookingUser->user_id) {
+                // Generate a fresh token for immediate use
+                $tokenData = $this->passwordSetupService->generateSetupToken($bookingUser);
+                $passwordSetupUrl = route('password.setup', ['token' => $tokenData['plain_token']]);
+            }
+        }
+
+        return view('public.payment-confirmation', compact('booking', 'passwordSetupUrl'));
     }
 
     /**

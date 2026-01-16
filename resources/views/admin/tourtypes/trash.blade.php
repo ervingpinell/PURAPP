@@ -73,7 +73,7 @@
                                 </form>
                                 @endcan
 
-                                @can('force-delete-tour-types')
+                                @can('hard-delete-tour-types')
                                 <form action="{{ route('admin.tourtypes.forceDelete', $tourType->tour_type_id) }}" method="POST" class="d-inline force-delete-form">
                                     @csrf
                                     @method('DELETE')

@@ -667,6 +667,7 @@ class PublicCheckoutController extends Controller
 
     /**
      * Show checkout via token (for admin-created bookings)
+     * NO automatic login - user can complete payment without authentication
      */
     public function showByToken(string $token, PolicySnapshotService $svc)
     {
@@ -689,29 +690,13 @@ class PublicCheckoutController extends Controller
             $booking->save();
         }
 
-        // Login the user if not already logged in
-        if (!Auth::check() || Auth::id() !== $booking->user_id) {
-            Auth::loginUsingId($booking->user_id);
-        }
-
-        // Create or get existing cart for this user
-        $cart = Cart::firstOrCreate(
-            ['user_id' => $booking->user_id],
-            [
-                'is_active' => true,
-                'expires_at' => now()->addMinutes((int) setting('cart.expiration_minutes', 30))
-            ]
-        );
-
-        // Always ensure cart is active and has correct expiration based on current setting
-        $cart->is_active = true;
-        // We force update expiration to match current setting, ensuring user sees the configured time
-        // This fixes the issue where changing the setting didn't update existing carts
-        $cart->expires_at = now()->addMinutes((int) setting('cart.expiration_minutes', 30));
-        $cart->save();
-
-        // Store booking_id in session for later use
-        session(['pending_booking_payment' => $booking->booking_id]);
+        // NO automatic login - allow guest-like checkout
+        // Store booking info in session for payment processing
+        session([
+            'pending_booking_payment' => $booking->booking_id,
+            'booking_payment_token' => $token,
+            'booking_user_id' => $booking->user_id,
+        ]);
 
         // Get policy blocks for checkout page
         $locale   = app()->getLocale();
@@ -742,10 +727,11 @@ class PublicCheckoutController extends Controller
 
         // Create a mock cart structure for the view
         $mockCart = (object) [
-            'cart_id' => $cart->cart_id,
+            'cart_id' => null,
             'user_id' => $booking->user_id,
             'is_active' => true,
-            'expires_at' => $cart->expires_at,
+            'expires_at' => now()->addMinutes((int) setting('cart.expiration_minutes', 30)),
+            'is_booking_payment' => true, // Flag for view
             'items' => collect([
                 (object) [
                     'cart_item_id' => null,
@@ -772,6 +758,7 @@ class PublicCheckoutController extends Controller
             'policies'        => $policySnapshot['snapshot'] ?? [],
             'isBookingPayment' => true, // Flag to indicate this is a booking payment
             'booking'         => $booking, // Pass booking for reference
+            'bookingUser'     => $booking->user, // Pass user data for prefilling forms
         ]);
     }
 

@@ -100,7 +100,7 @@
                             </a>
                             @endcan
 
-                            @can('delete-customer-categories')
+                            @can('soft-delete-customer-categories')
                             @can('publish-customer-categories')
                             <form action="{{ route('admin.customer_categories.toggle', $category) }}" method="POST" class="d-inline">
                                 @csrf
@@ -212,7 +212,7 @@
                     </form>
                     @endcan
 
-                    @can('delete-customer-categories')
+                    @can('soft-delete-customer-categories')
                     <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ $category->category_id }}">
                         <i class="fas fa-trash me-1"></i> {{ __('customer_categories.buttons.delete') }}
                     </button>

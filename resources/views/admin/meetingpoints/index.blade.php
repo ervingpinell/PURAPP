@@ -226,7 +226,7 @@
                   <i class="fas fa-power-off"></i>
                 </button>
                 @endcan
-                @can('delete-meeting-points')
+                @can('soft-delete-meeting-points')
                 <button type="button" class="btn btn-danger delete-btn"
                   data-id="{{ $p->id }}"
                   data-name="{{ $p->name }}"

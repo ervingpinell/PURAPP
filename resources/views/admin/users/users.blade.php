@@ -92,6 +92,7 @@
       <table class="table table-striped table-bordered table-hover align-middle">
         <thead class="table-dark">
           <tr>
+            <th>ID</th>
             <th>Nombre</th>
             <th>Email</th>
             <th>Rol</th>
@@ -105,6 +106,7 @@
         <tbody>
           @foreach ($users as $user)
           <tr>
+            <td>{{ $user->user_id }}</td>
             <td><strong>{{ $user->full_name }}</strong></td>
             <td>{{ $user->email }}</td>
             <td>{{ $user->getRoleNames()->first() ?? 'Sin rol' }}</td>
@@ -135,7 +137,7 @@
                   <i class="fas fa-edit"></i>
                 </button>
                 @endcan
-                @can('delete-users')
+                @can('soft-delete-users')
                 <button type="button" class="btn btn-danger delete-user-btn"
                   data-url="{{ route('admin.users.destroy', $user->user_id) }}"
                   data-name="{{ $user->full_name }}"
@@ -292,6 +294,41 @@
             <label class="form-label">Teléfono <span class="text-danger">*</span></label>
             <input type="text" name="phone" class="form-control" required value="{{ old('phone') }}">
           </div>
+          
+          {{-- Dirección --}}
+          <div class="mb-3">
+             <label class="form-label">Dirección</label>
+             <input type="text" name="address" class="form-control" value="{{ old('address') }}" placeholder="Dirección exacta">
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+               <label class="form-label">Ciudad</label>
+               <input type="text" name="city" class="form-control" value="{{ old('city') }}">
+            </div>
+            <div class="col-md-6 mb-3">
+               <label class="form-label">Estado / Provincia</label>
+               <input type="text" name="state" class="form-control" value="{{ old('state') }}">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+               <label class="form-label">Código Postal (ZIP)</label>
+               <input type="text" name="zip" class="form-control" value="{{ old('zip') }}">
+            </div>
+            <div class="col-md-6 mb-3">
+               <label class="form-label">País</label>
+               <select name="country" class="form-select">
+                  <option value="">-- Seleccionar --</option>
+                  <option value="CR" {{ old('country') === 'CR' ? 'selected' : '' }}>Costa Rica</option>
+                  <option value="US" {{ old('country') === 'US' ? 'selected' : '' }}>United States</option>
+                  <option value="PA" {{ old('country') === 'PA' ? 'selected' : '' }}>Panama</option>
+                  <option value="NI" {{ old('country') === 'NI' ? 'selected' : '' }}>Nicaragua</option>
+                  <option value="GT" {{ old('country') === 'GT' ? 'selected' : '' }}>Guatemala</option>
+                  <option value="MX" {{ old('country') === 'MX' ? 'selected' : '' }}>Mexico</option>
+                  <option value="CA" {{ old('country') === 'CA' ? 'selected' : '' }}>Canada</option>
+               </select>
+            </div>
+          </div>
           <div class="mb-3">
             <label class="form-label">Contraseña <span class="text-danger">*</span></label>
             <div class="password-wrapper">
@@ -369,6 +406,41 @@
           <div class="mb-3">
             <label class="form-label">Teléfono</label>
             <input type="text" name="phone" class="form-control" value="{{ $user->phone }}" required>
+          </div>
+          
+          {{-- Dirección --}}
+          <div class="mb-3">
+             <label class="form-label">Dirección</label>
+             <input type="text" name="address" class="form-control" value="{{ $user->address }}">
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+               <label class="form-label">Ciudad</label>
+               <input type="text" name="city" class="form-control" value="{{ $user->city }}">
+            </div>
+            <div class="col-md-6 mb-3">
+               <label class="form-label">Estado / Provincia</label>
+               <input type="text" name="state" class="form-control" value="{{ $user->state }}">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+               <label class="form-label">Código Postal (ZIP)</label>
+               <input type="text" name="zip" class="form-control" value="{{ $user->zip }}">
+            </div>
+            <div class="col-md-6 mb-3">
+               <label class="form-label">País</label>
+               <select name="country" class="form-select">
+                  <option value="">-- Seleccionar --</option>
+                  <option value="CR" {{ ($user->country ?? 'CR') === 'CR' ? 'selected' : '' }}>Costa Rica</option>
+                  <option value="US" {{ $user->country === 'US' ? 'selected' : '' }}>United States</option>
+                  <option value="PA" {{ $user->country === 'PA' ? 'selected' : '' }}>Panama</option>
+                  <option value="NI" {{ $user->country === 'NI' ? 'selected' : '' }}>Nicaragua</option>
+                  <option value="GT" {{ $user->country === 'GT' ? 'selected' : '' }}>Guatemala</option>
+                  <option value="MX" {{ $user->country === 'MX' ? 'selected' : '' }}>Mexico</option>
+                  <option value="CA" {{ $user->country === 'CA' ? 'selected' : '' }}>Canada</option>
+               </select>
+            </div>
           </div>
           <div class="mb-3">
             <label class="form-label">Contraseña <small class="text-muted">(dejar vacío para no cambiar)</small></label>
@@ -449,6 +521,41 @@
             <label class="form-label">Teléfono</label>
             <input type="text" name="phone" class="form-control" value="{{ $user->phone }}" required>
           </div>
+          
+          {{-- Dirección --}}
+          <div class="mb-3">
+             <label class="form-label">Dirección</label>
+             <input type="text" name="address" class="form-control" value="{{ $user->address }}">
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+               <label class="form-label">Ciudad</label>
+               <input type="text" name="city" class="form-control" value="{{ $user->city }}">
+            </div>
+            <div class="col-md-6 mb-3">
+               <label class="form-label">Estado / Provincia</label>
+               <input type="text" name="state" class="form-control" value="{{ $user->state }}">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+               <label class="form-label">Código Postal (ZIP)</label>
+               <input type="text" name="zip" class="form-control" value="{{ $user->zip }}">
+            </div>
+            <div class="col-md-6 mb-3">
+               <label class="form-label">País</label>
+               <select name="country" class="form-select">
+                  <option value="">-- Seleccionar --</option>
+                  <option value="CR" {{ ($user->country ?? 'CR') === 'CR' ? 'selected' : '' }}>Costa Rica</option>
+                  <option value="US" {{ $user->country === 'US' ? 'selected' : '' }}>United States</option>
+                  <option value="PA" {{ $user->country === 'PA' ? 'selected' : '' }}>Panama</option>
+                  <option value="NI" {{ $user->country === 'NI' ? 'selected' : '' }}>Nicaragua</option>
+                  <option value="GT" {{ $user->country === 'GT' ? 'selected' : '' }}>Guatemala</option>
+                  <option value="MX" {{ $user->country === 'MX' ? 'selected' : '' }}>Mexico</option>
+                  <option value="CA" {{ $user->country === 'CA' ? 'selected' : '' }}>Canada</option>
+               </select>
+            </div>
+          </div>
           <div class="mb-3">
             <label class="form-label">Contraseña <small class="text-muted">(opcional)</small></label>
             <div class="password-wrapper">
@@ -475,7 +582,7 @@
 @endforeach
 
 {{-- Formularios ocultos --}}
-<form id="statusForm" method="POST" style="display:none;">@csrf @method('DELETE')</form>
+<form id="deleteForm" method="POST" style="display:none;">@csrf @method('DELETE')</form>
 <form id="lockForm" method="POST" style="display:none;">@csrf @method('PATCH')</form>
 <form id="verifyForm" method="POST" style="display:none;">@csrf @method('PATCH')</form>
 <form id="disable2FAForm" method="POST" style="display:none;">@csrf @method('PATCH')</form>

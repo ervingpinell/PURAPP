@@ -221,7 +221,7 @@
               </form>
               @endcan
 
-              @can('delete-reviews')
+              @can('soft-delete-reviews')
               <form method="post" action="{{ route('admin.reviews.destroy',$r) }}" class="d-inline" onsubmit="return confirm('{{ __('reviews.common.delete') }}?')">
                 @csrf @method('DELETE')
                 <button class="btn btn-xs btn-danger" title="{{ __('reviews.common.delete') }}"><i class="fa fa-trash"></i></button>

@@ -80,7 +80,7 @@
               @endcan
 
               {{-- Delete Button (Soft Delete) --}}
-              @can('delete-tour-languages')
+              @can('soft-delete-tour-languages')
               <form action="{{ route('admin.languages.destroy', $language->tour_language_id) }}"
                 method="POST"
                 class="d-inline form-delete-language"

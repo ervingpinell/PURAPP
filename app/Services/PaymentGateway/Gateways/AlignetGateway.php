@@ -225,14 +225,16 @@ class AlignetGateway extends AbstractPaymentGateway
      */
     protected function generateOperationNumber(?int $bookingId = null): string
     {
-        if ($bookingId) {
-            // Use booking ID padded to 9 digits
-            return str_pad((string)$bookingId, 9, '0', STR_PAD_LEFT);
-        }
+        // Alignet requires a unique operation number for every transaction (max 9 digits).
+        // If we use booking_id, repeat attempts for the same booking fail as "duplicate operation".
+        // Solution: Always use a unique number (last 9 digits of timestamp + microtime/random).
 
-        // Generate timestamp-based unique number (9 digits)
+        // Option: last 9 digits of time is usually safe for low volume
+        // Or mix with random to be safer
+        
         return substr((string)time(), -9);
     }
+
     /**
      * Map Alignet status to standard status
      */

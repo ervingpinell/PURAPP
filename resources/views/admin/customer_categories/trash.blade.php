@@ -76,7 +76,7 @@
                                 </form>
                                 @endcan
 
-                                @can('force-delete-customer-categories')
+                                @can('hard-delete-customer-categories')
                                 <form action="{{ route('admin.customer_categories.forceDelete', $category->category_id) }}" method="POST" class="d-inline force-delete-form">
                                     @csrf
                                     @method('DELETE')

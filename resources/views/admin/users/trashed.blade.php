@@ -52,18 +52,22 @@
                         </td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
+                                @can('restore-users')
                                 <button type="button" class="btn btn-success restore-user-btn"
                                     data-url="{{ route('admin.users.restore', $user->user_id) }}"
                                     data-name="{{ $user->full_name }}"
                                     title="Restaurar">
                                     <i class="fas fa-undo"></i>
                                 </button>
+                                @endcan
+                                @can('hard-delete-users')
                                 <button type="button" class="btn btn-danger force-delete-btn"
                                     data-url="{{ route('admin.users.forceDelete', $user->user_id) }}"
                                     data-name="{{ $user->full_name }}"
                                     title="Eliminar Permanentemente">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
+                                @endcan
                             </div>
                         </td>
                     </tr>

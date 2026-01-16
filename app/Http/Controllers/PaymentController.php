@@ -271,6 +271,58 @@ class PaymentController extends Controller
             abort(410, 'Payment link has expired.');
         }
 
+        // Always show complete info form when accessing via payment link
+        // This allows customers to review and update their information before payment
+        $user = $booking->user;
+        
+        return view('public.complete-booking-info', [
+            'booking' => $booking,
+            'user' => $user,
+            'token' => $token,
+        ]);
+    }
+
+    /**
+     * Update booking user information from payment link
+     */
+    public function updateBookingUserInfo(Request $request, string $token)
+    {
+        // Validate token format
+        if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
+            abort(404);
+        }
+
+        // Find booking by token
+        $booking = Booking::where('payment_token', $token)
+            ->with(['detail', 'tour', 'user', 'detail.schedule', 'detail.tourLanguage', 'detail.hotel', 'detail.meetingPoint'])
+            ->first();
+
+        if (!$booking) {
+            abort(404);
+        }
+
+        // Validate input
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:50',
+            'last_name' => 'required|string|max:50',
+            'address' => 'required|string|max:100',
+            'city' => 'required|string|max:50',
+            'state' => 'required|string|max:50',
+            'zip' => 'required|string|max:10',
+            'country' => 'required|string|size:2', // ISO code
+            'phone' => 'required|string|max:20',
+        ]);
+
+        // Update user
+        $booking->user->update($validated);
+
+        LoggerHelper::info('PaymentController', 'updateBookingUserInfo', 'User info updated for booking payment', [
+            'booking_id' => $booking->booking_id,
+            'user_id' => $booking->user_id,
+            'token_preview' => substr($token, 0, 8) . '...',
+        ]);
+
+        // Now proceed to payment page with cart snapshot
         // Reconstruct cart snapshot from booking
         $cartSnapshot = [
             'cart_id' => null,
@@ -295,37 +347,24 @@ class PaymentController extends Controller
             'created_at' => now()->toIso8601String(),
             'is_booking_payment' => true,
             'booking_id' => $booking->booking_id,
-            'payment_token' => $token, // Store token for initiate
+            'payment_token' => $token,
         ];
 
         // Save to session
         session(['cart_snapshot' => $cartSnapshot]);
 
-        LoggerHelper::info('PaymentController', 'showByToken', 'Payment accessed via token', [
-            'token_preview' => substr($token, 0, 8) . '...',
-            'booking_id' => $booking->booking_id,
-            'total' => $booking->total,
-        ]);
-
-        // Reuse the same payment page logic
+        // Setup payment page variables
         $timeoutMinutes = config('booking.payment_completion_timeout_minutes', 20);
-        $paymentStartTime = session('payment_start_time');
-
-        if (!$paymentStartTime) {
-            $paymentStartTime = now();
-            session(['payment_start_time' => $paymentStartTime]);
-        }
-
+        $paymentStartTime = now();
+        session(['payment_start_time' => $paymentStartTime]);
         $expiresAt = \Carbon\Carbon::parse($paymentStartTime)->addMinutes($timeoutMinutes);
 
         $total = $this->calculateTotalFromSnapshot($cartSnapshot);
         $currency = config('payment.default_currency', 'USD');
         $defaultGateway = config('payment.default_gateway', 'stripe');
-
-        // Get enabled gateways (same logic as show())
         $enabledGateways = $this->getEnabledGateways();
 
-        // Reconstruct items for display (same logic as show() method)
+        // Reconstruct items for display
         $items = collect([
             [
                 'tour'         => $booking->tour,
@@ -333,8 +372,8 @@ class PaymentController extends Controller
                 'categories'   => $booking->detail?->categories ?? [],
                 'schedule'     => $booking->detail?->schedule,
                 'language'     => $booking->detail?->tourLanguage,
-                'hotel'        => $booking->detail?->hotel_id ? \App\Models\HotelList::find($booking->detail->hotel_id) : null,
-                'meetingPoint' => $booking->detail?->meeting_point_id ? \App\Models\MeetingPoint::find($booking->detail->meeting_point_id) : null,
+                'hotel'        => $booking->detail?->hotel,
+                'meetingPoint' => $booking->detail?->meetingPoint,
                 'addons'       => [],
                 'notes'        => $booking->notes,
                 'duration'     => $booking->tour?->length,
@@ -349,14 +388,12 @@ class PaymentController extends Controller
             $freeCancelUntil = \Carbon\Carbon::parse($booking->detail->tour_date)->subHours($cutoffHours);
         }
 
-        // Fetch active policies for terms modal (using helper to format blocks)
+        // Fetch active policies
         $locale = app()->getLocale();
         $fallback = (string) config('app.fallback_locale', 'es');
-
         $policyResult = $this->buildPolicyBlocksFromDB($locale, $fallback);
         $policyBlocks = $policyResult['blocks'];
         $versions = $policyResult['versions'];
-
         $termsVersion = $versions['terms'] ?? 'v1';
 
         return view('public.checkout-payment', [
@@ -369,7 +406,7 @@ class PaymentController extends Controller
             'items' => $items,
             'cart' => null,
             'freeCancelUntil' => $freeCancelUntil,
-            'booking' => $booking, // Pass booking for display
+            'booking' => $booking,
             'stripeKey' => config('payment.gateways.stripe.publishable_key'),
             'policyBlocks' => $policyBlocks,
             'termsVersion' => $termsVersion,
@@ -611,9 +648,11 @@ class PaymentController extends Controller
 
             // If no user email from auth, try to get from booking
             if ($bookingId) {
-                // Determine booking (ensure loaded)
-                $booking = \App\Models\Booking::with('user')->find($bookingId); // Use locally scoped var
+                // Determine booking (ensure loaded fresh from DB to get latest updates)
+                $booking = \App\Models\Booking::with('user')->find($bookingId);
                 if ($booking && $booking->user) {
+                    // Force fresh reload to get latest user data
+                    $booking->user->refresh();
                     $userEmail = $userEmail ?? $booking->user->email ?? $booking->customer_email;
                     $firstName = $booking->user->first_name ?? '';
                     $lastName  = $booking->user->last_name ?? '';
@@ -639,20 +678,21 @@ class PaymentController extends Controller
             $phone = '';
 
             if ($bookingId) {
-                // Booking Logic: Use booking user or booking fields
-                $booking = \App\Models\Booking::with('user')->find($bookingId);
-                if ($booking) {
+                // Booking already loaded above, reuse it
+                if ($booking && $booking->user) {
                     $u = $booking->user;
-                    if ($u) {
-                        $address = $u->address ?? '';
-                        $city    = $u->city ?? '';
-                        $state   = $u->state ?? '';
-                        $zip     = $u->zip ?? '';
-                        $country = $u->country ?? 'CR';
-                        $phone   = $u->phone ?? '';
-                    }
-                    // Fallback to booking fields if user fields empty? (Only if we stored them in booking, but generally we rely on user link)
+                    // Refresh to ensure we have latest data from DB
+                    $u->refresh();
+                    $firstName = $u->first_name ?? '';
+                    $lastName  = $u->last_name ?? '';
+                    $address = $u->address ?? '';
+                    $city    = $u->city ?? '';
+                    $state   = $u->state ?? '';
+                    $zip     = $u->zip ?? '';
+                    $country = $u->country ?? 'CR';
+                    $phone   = $u->phone ?? '';
                 }
+                // Fallback to booking fields if user fields empty? (Only if we stored them in booking, but generally we rely on user link)
             } elseif (Auth::check()) {
                 // Auth User Logic
                 $u = Auth::user();
@@ -1312,9 +1352,16 @@ class PaymentController extends Controller
         }
 
         // Load booking if not already loaded
-        // Load booking if not already loaded
         if (!$payment->relationLoaded('booking')) {
-            $payment->load('booking.detail', 'booking.tour', 'booking.user');
+            $payment->load([
+                'booking.detail',
+                'booking.detail.schedule',
+                'booking.detail.tourLanguage',
+                'booking.detail.hotel',
+                'booking.detail.meetingPoint',
+                'booking.tour',
+                'booking.user'
+            ]);
         }
 
         $booking = $payment->booking;

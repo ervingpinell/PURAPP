@@ -87,6 +87,11 @@ class UserRegisterController extends Controller
                 'role_id'      => ['required', 'exists:roles,id'],
                 'country_code' => ['nullable', 'string', 'max:8', 'regex:/^\+?\d{1,4}$/', 'required_with:phone'],
                 'phone'        => ['nullable', 'string', 'max:30'],
+                'address'      => ['nullable', 'string', 'max:255'],
+                'city'         => ['nullable', 'string', 'max:100'],
+                'state'        => ['nullable', 'string', 'max:100'],
+                'zip'          => ['nullable', 'string', 'max:20'],
+                'country'      => ['nullable', 'string', 'size:2'],
             ]);
 
             // Validación de jerarquía de roles
@@ -129,6 +134,11 @@ class UserRegisterController extends Controller
                 'country_code' => $request->country_code,
                 'phone'        => $national,
                 'is_locked'    => false,
+                'address'      => $request->address,
+                'city'         => $request->city,
+                'state'        => $request->state,
+                'zip'          => $request->zip,
+                'country'      => $request->country,
             ]);
 
             // Asignar rol usando Spatie
@@ -194,6 +204,11 @@ class UserRegisterController extends Controller
             'role_id'      => ['required', 'exists:roles,id'],
             'country_code' => ['nullable', 'string', 'max:8', 'regex:/^\+?\d{1,4}$/', 'required_with:phone'],
             'phone'        => ['nullable', 'string', 'max:30'],
+            'address'      => ['nullable', 'string', 'max:255'],
+            'city'         => ['nullable', 'string', 'max:100'],
+            'state'        => ['nullable', 'string', 'max:100'],
+            'zip'          => ['nullable', 'string', 'max:20'],
+            'country'      => ['nullable', 'string', 'size:2'],
         ]);
 
         // Validación de jerarquía de roles
@@ -212,6 +227,11 @@ class UserRegisterController extends Controller
         $user->first_name = trim($request->first_name);
         $user->last_name  = trim($request->last_name);
         $user->email      = mb_strtolower(trim($request->email));
+        $user->address    = $request->address;
+        $user->city       = $request->city;
+        $user->state      = $request->state;
+        $user->zip        = $request->zip;
+        $user->country    = $request->country;
 
         // Usar Spatie para asignar rol en lugar de role_id
         $role = \Spatie\Permission\Models\Role::findOrFail($request->role_id);

@@ -227,8 +227,13 @@ Route::prefix('webhooks/payment')->name('webhooks.payment.')->group(function () 
 |--------------------------------------------------------------------------
 */
 Route::get('/pay/{token}', [\App\Http\Controllers\PaymentController::class, 'showByToken'])
-    ->middleware(['throttle:payment', SetLocale::class])
-    ->name('payment.token');
+    ->middleware([SetLocale::class])
+    ->name('payment.show-by-token');
+
+Route::post('/booking/{token}/complete-info', [\App\Http\Controllers\PaymentController::class, 'updateBookingUserInfo'])
+    ->middleware([SetLocale::class])
+    ->name('booking.complete-info');
+
 
 // Terms & Conditions Route (Redirects to policies for now)
 Route::get('/terms', function () {
@@ -423,8 +428,7 @@ Route::middleware([SetLocale::class])->group(function () {
             ->middleware('throttle:payment')
             ->name('public.bookings.storeFromCart');
 
-        // Checkout por token (para reservas creadas por admin)
-        Route::get('/checkout/{token}', [PublicCheckoutController::class, 'showByToken'])->name('public.checkout.token');
+        // Pay-Later routes removed from auth group to allow guest access
 
         // Payment Links (Pay-Later System)
         Route::get('/booking/payment/{bookingReference}', [PublicCheckoutController::class, 'showPayment'])
@@ -465,6 +469,9 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::post('/checkout/accept-terms', [PublicCheckoutController::class, 'acceptTerms'])
         ->middleware('throttle:payment')
         ->name('public.checkout.accept-terms');
+
+    // Checkout por token (para reservas creadas por admin - NO requiere auth)
+    Route::get('/checkout/{token}', [PublicCheckoutController::class, 'showByToken'])->name('public.checkout.token');
 
     // ------------------------------
     // Cart View - Available for GUESTS (outside auth)

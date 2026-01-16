@@ -8,100 +8,89 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ __('payment.alignet.page_title') }} - {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .payment-container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .booking-summary {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-        }
-
-        .booking-summary h3 {
-            margin-top: 0;
-            color: #333;
-        }
-
-        .booking-detail {
+        body {
+            background: #f5f5f5;
+            min-height: 100vh;
             display: flex;
-            justify-content: space-between;
-            margin: 10px 0;
-            padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        .booking-detail:last-child {
-            border-bottom: none;
-            font-weight: bold;
-            font-size: 1.2em;
-            color: #2c5282;
+        .payment-container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e5e7eb;
+            padding: 50px 40px;
+            text-align: center;
+        }
+
+        .alignet-logo {
+            margin-bottom: 40px;
+        }
+
+        .alignet-logo h2 {
+            margin: 0 0 12px;
+            color: #1f2937;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .alignet-logo p {
+            color: #6b7280;
+            margin: 0;
+            font-size: 1rem;
         }
 
         .btn-pay {
             width: 100%;
-            padding: 15px;
+            max-width: 350px;
+            padding: 18px;
             background: #2c5282;
             color: white;
             border: none;
             border-radius: 8px;
-            font-size: 18px;
+            font-size: 1.1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 auto;
         }
 
         .btn-pay:hover {
             background: #1a365d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(44, 82, 130, 0.3);
         }
 
         .btn-pay:disabled {
-            background: #ccc;
+            background: #9ca3af;
             cursor: not-allowed;
-        }
-
-        .alignet-logo {
-            text-align: center;
-            margin-bottom: 20px;
+            transform: none;
         }
 
         .secure-badge {
-            text-align: center;
             margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .debug-info {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f0f0f0;
-            border-radius: 8px;
-            font-size: 12px;
-            font-family: monospace;
-        }
-
-        .debug-info h4 {
-            margin-top: 0;
-            color: #666;
-        }
-
-        .debug-item {
-            margin: 5px 0;
-            word-break: break-all;
+            color: #059669;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .loading-message {
-            text-align: center;
-            color: #666;
-            margin-top: 10px;
+            color: #6b7280;
+            margin-top: 16px;
             display: none;
         }
 
@@ -109,11 +98,37 @@
             display: block;
         }
 
+        .debug-info {
+            margin-top: 30px;
+            padding: 16px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: monospace;
+            border: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
         iframe,
         #ADS-IFRAME-CONTAINER-IFRAME {
             background: white !important;
             width: 100% !important;
             min-height: 600px !important;
+        }
+
+        @media (max-width: 768px) {
+            .payment-container {
+                padding: 40px 24px;
+            }
+
+            .alignet-logo h2 {
+                font-size: 1.5rem;
+            }
+
+            .btn-pay {
+                font-size: 1rem;
+                padding: 16px;
+            }
         }
     </style>
 </head>
@@ -124,43 +139,31 @@
             <h2>{{ __('payment.alignet.page_title') }}</h2>
             <p>{{ __('payment.alignet.processed_by') }} <strong>Alignet</strong></p>
         </div>
-        @if($booking ?? null)
-        <div class="booking-summary">
-            <h3>{{ __('payment.alignet.booking_summary') }}</h3>
-            <div class="booking-detail"><span>{{ __('payment.alignet.reference') }}:</span><span><strong>{{ $booking->booking_reference }}</strong></span></div>
-            <div class="booking-detail"><span>{{ __('payment.alignet.tour') }}:</span><span>{{ $booking->tour->name ?? 'N/A' }}</span></div>
-            <div class="booking-detail"><span>{{ __('payment.alignet.date') }}:</span><span>{{ $booking->tour_date ? \Carbon\Carbon::parse($booking->tour_date)->format('d/m/Y') : 'N/A' }}</span></div>
-            <div class="booking-detail"><span>{{ __('payment.alignet.passengers') }}:</span><span>{{ $booking->pax }}</span></div>
-            <div class="booking-detail"><span>{{ __('payment.alignet.total') }}:</span><span>${{ number_format($booking->total, 2) }}</span></div>
-        </div>
-        @endif
+
         <form name="alignet_payment_form" id="alignet_payment_form" action="#" method="post" class="alignet-form-vpos2">
             @foreach($paymentData as $key => $value)
             @if(!in_array($key, ['base_url', 'vpos2_script']))
             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
             @endif
             @endforeach
-            <button type="button" id="btn-pay" onclick="abrirModalAlignet()" class="btn-pay"><i class="fas fa-lock"></i> {{ __('payment.alignet.proceed_payment') }}</button>
-            <div class="loading-message" id="loading-message"><i class="fas fa-spinner fa-spin"></i> {{ __('payment.alignet.loading_module') }}</div>
+            <button type="button" id="btn-pay" onclick="abrirModalAlignet()" class="btn-pay">
+                <i class="fas fa-lock"></i> {{ __('payment.alignet.proceed_payment') }}
+            </button>
+            <div class="loading-message" id="loading-message">
+                <i class="fas fa-spinner fa-spin"></i> {{ __('payment.alignet.loading_module') }}
+            </div>
         </form>
-        <div class="secure-badge"><i class="fas fa-shield-alt"></i> {{ __('payment.alignet.secure_transaction') }}</div>
+
+        <div class="secure-badge">
+            <i class="fas fa-shield-alt"></i>
+            {{ __('payment.alignet.secure_transaction') }}
+        </div>
+
         @if(config('app.debug') && !app()->isProduction())
         <div class="debug-info">
-            <h4> Debug Info (solo visible en modo debug)</h4>
-            <div class="debug-item"><strong>Acquirer ID:</strong> {{ $paymentData['acquirerId'] ?? '' }}</div>
-            <div class="debug-item"><strong>Commerce ID:</strong> {{ $paymentData['idCommerce'] ?? '' }}</div>
-            <div class="debug-item"><strong>Operation Number:</strong> {{ $paymentData['purchaseOperationNumber'] ?? '' }}</div>
-            <div class="debug-item"><strong>Amount (cents):</strong> {{ $paymentData['purchaseAmount'] ?? '' }}</div>
-            <div class="debug-item"><strong>Currency:</strong> {{ $paymentData['purchaseCurrencyCode'] ?? '' }}</div>
-            <div class="debug-item"><strong>Verification Hash:</strong> {{ isset($paymentData['purchaseVerification']) ? substr($paymentData['purchaseVerification'], 0, 40) . '...' : '' }}</div>
-            <div class="debug-item"><strong>Base URL (openModal):</strong> {{ $paymentData['base_url'] ?? '' }}</div>
-            <div class="debug-item"><strong>Script URL:</strong> {{ $paymentData['vpos2_script'] ?? '' }}</div>
-            <h4 style="margin-top: 20px;">📋 Todos los parámetros:</h4>
-            @foreach($paymentData as $key => $value)
-            @if(!in_array($key, ['base_url', 'vpos2_script']))
-            <div class="debug-item"><strong>{{ $key }}:</strong> {{ $value }}</div>
-            @endif
-            @endforeach
+            <strong>🐛 Debug Info</strong><br>
+            Operation: {{ $paymentData['purchaseOperationNumber'] ?? '' }}<br>
+            Amount: ${{ number_format(($paymentData['purchaseAmount'] ?? 0) / 100, 2) }}
         </div>
         @endif
     </div>
