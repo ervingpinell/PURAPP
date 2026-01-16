@@ -256,7 +256,7 @@ class UserRegisterController extends Controller
      */
     public function destroy($id)
     {
-        $this->authorize('delete-users');
+        $this->authorize('soft-delete-users');
 
         $user = User::findOrFail($id);
 
@@ -352,7 +352,7 @@ class UserRegisterController extends Controller
      */
     public function trashed()
     {
-        $this->authorize('force-delete-users');
+        $this->authorize('hard-delete-users');
 
         $users = User::onlyTrashed()->get();
         $roles = \Spatie\Permission\Models\Role::all();
@@ -365,7 +365,7 @@ class UserRegisterController extends Controller
      */
     public function restore($id)
     {
-        $this->authorize('force-delete-users');
+        $this->authorize('hard-delete-users');
 
         $user = User::withTrashed()->findOrFail($id);
         $user->restore();
@@ -382,7 +382,7 @@ class UserRegisterController extends Controller
      */
     public function forceDelete($id)
     {
-        $this->authorize('force-delete-users');
+        $this->authorize('hard-delete-users');
 
         $user = User::withTrashed()->findOrFail($id);
 
