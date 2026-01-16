@@ -177,6 +177,7 @@ return [
         'cart_refreshed' => 'Se extendió el tiempo de tu carrito.',
         'extend_success' => 'Carrito extendido correctamente.',
         'max_extensions_reached' => 'Ya alcanzaste el máximo de extensiones permitidas.',
+        'guest_checkout_disabled' => 'Para hacer reservas, por favor inicia sesión o crea una cuenta.',
     ],
 
     'validation' => [

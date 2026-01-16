@@ -272,12 +272,14 @@ return asset('images/volcano.png');
 
   @guest
   @php
+  $allowGuestCheckout = config('site.allow_guest_checkout', true);
+  
   $guestLinkCls = $isDesktop
   ? 'nav-link cart-icon-wrapper position-relative dropdown-toggle'
   : 'cart-icon-wrapper position-relative dropdown-toggle';
 
-  // Get guest cart items from session
-  $guestCartItems = session('guest_cart_items', []);
+  // Get guest cart items from session (only if guest checkout is allowed)
+  $guestCartItems = $allowGuestCheckout ? session('guest_cart_items', []) : [];
   $guestCount = count($guestCartItems);
 
   // Calculate total for guest cart
@@ -292,6 +294,7 @@ return asset('images/volcano.png');
   $guestTriggerId = $isDesktop ? 'guestCartDropdownDesktop' : 'guestCartDropdownMobile';
   $guestMenuId = $guestTriggerId.'Menu';
   @endphp
+
 
   <a href="#"
     id="{{ $guestTriggerId }}"

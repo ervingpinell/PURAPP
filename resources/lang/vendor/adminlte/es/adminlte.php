@@ -459,6 +459,7 @@ return [
     'auth_required_title' => 'Debes iniciar sesión para reservar',
     'auth_required_body'  => 'Inicia sesión o regístrate para comenzar tu compra. Los campos están bloqueados hasta que inicies sesión.',
     'login_now'           => 'Iniciar sesión',
+    'login_to_book'       => 'Inicia sesión para reservar',
     'back_to_login'       => 'Volver a iniciar sesión',
 
     // 21. CORREO

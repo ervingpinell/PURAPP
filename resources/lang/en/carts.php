@@ -179,6 +179,7 @@ return [
         'cart_refreshed'          => 'Your cart time has been extended.',
         'extend_success'          => 'Cart extended successfully.',
         'max_extensions_reached'  => 'You have already reached the maximum allowed extensions.',
+        'guest_checkout_disabled' => 'To make bookings, please log in or create an account.',
     ],
 
     'validation' => [

@@ -142,6 +142,17 @@ class CartController extends Controller
     /* ====================== Add item ====================== */
     public function store(Request $request)
     {
+        // EARLY GUARD: Block guests if guest checkout is disabled
+        if (!Auth::check() && !config('site.allow_guest_checkout', true)) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'ok' => false,
+                    'message' => __('carts.messages.guest_checkout_disabled'),
+                ], 403);
+            }
+            return redirect()->route('login')->with('error', __('carts.messages.guest_checkout_disabled'));
+        }
+
         // Support both guest and authenticated users
         // Guests will get a temporary cart for checkout
 

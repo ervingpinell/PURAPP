@@ -459,6 +459,7 @@ return [
     'auth_required_title' => 'You must log in to book',
     'auth_required_body'  => 'Log in or register to start your purchase. Fields are locked until you log in.',
     'login_now'           => 'Log in',
+    'login_to_book'       => 'Log in to book',
     'back_to_login'       => 'Back to log in',
 
     // 21. MAIL
