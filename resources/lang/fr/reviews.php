@@ -120,6 +120,12 @@ return [
             'publish_min_rating' => 'Cannot publish because the rating (:rating★) is lower than the allowed minimum (:min★).',
             'bulk_published_partial' => ':ok reviews published. :skipped skipped because their rating was lower than :min★.',
         ],
+        'sweetalert' => [
+            'delete_title'   => 'Supprimer l\'avis ?',
+            'delete_text'    => 'Cette action est irréversible.',
+            'delete_confirm' => 'Oui, supprimer',
+            'delete_cancel'  => 'Annuler',
+        ],
     ],
 
     // =========================

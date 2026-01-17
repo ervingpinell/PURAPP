@@ -28,7 +28,6 @@
         </select>
       </div>
 
-      {{-- Only show these filters for local provider --}}
       @if(($selectedProvider ?? 'local') === 'local')
       <div class="col-md-2">
         <select name="status" class="form-control">
@@ -64,19 +63,12 @@
       <div class="col-md-3">
         <input type="search" name="q" class="form-control" value="{{ request('q') }}" placeholder="{{ __('reviews.admin.filters.q') }}">
       </div>
+      @endif
 
+      {{-- Button always visible --}}
       <div class="col-md-2">
         <button class="btn btn-primary btn-block">{{ __('reviews.common.filter') }}</button>
       </div>
-      @else
-      {{-- For external providers, just show the filter button --}}
-      <div class="col-md-10">
-        <div class="alert alert-info mb-0">
-          <i class="fas fa-info-circle"></i>
-          {{ __('reviews.admin.external_provider_note') }}
-        </div>
-      </div>
-      @endif
     </form>
 
     <div class="d-flex justify-content-between mb-2">
@@ -88,10 +80,10 @@
         @endcan
       </div>
 
+      @if(($selectedProvider ?? 'local') === 'local')
       <form method="post" action="{{ route('admin.reviews.bulk') }}" id="bulkForm" class="d-flex gap-2">
         @csrf
         <select name="action" class="form-control form-control-sm mr-2" style="max-width:220px">
-          {{-- Opciones protegidas visualmente, aunque controlador debe validar también --}}
           <option value="publish">{{ __('reviews.common.publish') }}</option>
           <option value="hide">{{ __('reviews.common.hide') }}</option>
           <option value="flag">{{ __('reviews.common.flag') }}</option>
@@ -101,6 +93,7 @@
         <button class="btn btn-primary btn-sm">{{ __('reviews.admin.bulk_apply') }}</button>
         @endcan
       </form>
+      @endif
     </div>
 
     <div class="table-responsive">
@@ -222,9 +215,11 @@
               @endcan
 
               @can('soft-delete-reviews')
-              <form method="post" action="{{ route('admin.reviews.destroy',$r) }}" class="d-inline" onsubmit="return confirm('{{ __('reviews.common.delete') }}?')">
+              <form method="post" action="{{ route('admin.reviews.destroy',$r) }}" class="d-inline form-delete">
                 @csrf @method('DELETE')
-                <button class="btn btn-xs btn-danger" title="{{ __('reviews.common.delete') }}"><i class="fa fa-trash"></i></button>
+                <button type="button" class="btn btn-xs btn-danger btn-delete" title="{{ __('reviews.common.delete') }}">
+                    <i class="fa fa-trash"></i>
+                </button>
               </form>
               @endcan
               @endif
@@ -247,6 +242,27 @@
 <script>
   document.getElementById('chkAll')?.addEventListener('change', e => {
     document.querySelectorAll('.chk').forEach(c => c.checked = e.target.checked);
+  });
+
+  // SweetAlert for Delete
+  document.querySelectorAll('.btn-delete').forEach(button => {
+    button.addEventListener('click', function() {
+      const form = this.closest('form');
+      Swal.fire({
+        title: '{{ __('reviews.admin.sweetalert.delete_title') }}',
+        text: '{{ __('reviews.admin.sweetalert.delete_text') }}',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '{{ __('reviews.admin.sweetalert.delete_confirm') }}',
+        cancelButtonText: '{{ __('reviews.admin.sweetalert.delete_cancel') }}'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          form.submit();
+        }
+      });
+    });
   });
 
   @if(session('ok'))

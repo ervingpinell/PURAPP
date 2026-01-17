@@ -38,6 +38,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Use Bootstrap pagination for AdminLTE compatibility
+        \Illuminate\Pagination\Paginator::useBootstrap();
+
         // =========================
         // URLs: fuerza host/esquema desde APP_URL
         // =========================
