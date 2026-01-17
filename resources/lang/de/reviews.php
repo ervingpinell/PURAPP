@@ -235,6 +235,7 @@ return [
         'errors' => [
             'used'    => 'Diese Anfrage wurde bereits genutzt.',
             'expired' => 'Diese Anfrage ist abgelaufen.',
+            'wait_one_minute' => 'Bitte warten Sie mindestens eine Minute, bevor Sie es erneut senden.',
         ],
         'no_requests' => 'Keine Anfragen gefunden.',
     ],
@@ -261,10 +262,19 @@ return [
         'body_placeholder'  => 'Erzählen Sie uns von Ihrer Erfahrung... Was hat Ihnen am besten gefallen? Was könnte verbessert werden?',
         'body_help'         => 'Mindestens 10 Zeichen, maximal 1000',
         'privacy_note'      => 'Ihre Bewertung könnte nach Moderation veröffentlicht werden',
+        'select_rating'     => 'Wählen Sie Ihre Bewertung',
+
+        // Rating levels
+        'rating_excellent'     => 'Ausgezeichnet',
+        'rating_good'          => 'Gut',
+        'rating_average'       => 'Durchschnittlich',
+        'rating_below_average' => 'Unterdurchschnittlich',
+        'rating_poor'          => 'Schlecht',
+
         'labels'       => [
-            'rating'       => 'Rating',
+            'rating'       => 'Bewertung',
             'title'        => 'Bewertungstitel',
-            'body'         => 'Your experience',
+            'body'         => 'Ihre Erfahrung',
             'author_name'  => 'Your name (optional)',
             'author_email' => 'Your email (optional)',
             'submit'       => 'Submit review',

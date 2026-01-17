@@ -241,6 +241,7 @@ return [
         'errors' => [
             'used'    => 'This request has already been used.',
             'expired' => 'This request is expired.',
+            'wait_one_minute' => 'Please wait at least one minute before resending.',
         ],
         'no_requests' => 'No requests found.',
     ],
@@ -267,6 +268,15 @@ return [
         'body_placeholder'  => 'Tell us about your experience... What did you enjoy most? What could be improved?',
         'body_help'         => 'Minimum 10 characters, maximum 1000',
         'privacy_note'      => 'Your review could be published publicly after moderation',
+        'select_rating'     => 'Select your rating',
+
+        // Rating levels
+        'rating_excellent'     => 'Excellent',
+        'rating_good'          => 'Good',
+        'rating_average'       => 'Average',
+        'rating_below_average' => 'Below Average',
+        'rating_poor'          => 'Poor',
+
         'labels'       => [
             'rating'       => 'Rating',
             'title'        => 'Review Title',

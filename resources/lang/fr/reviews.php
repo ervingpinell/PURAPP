@@ -235,6 +235,7 @@ return [
         'errors' => [
             'used'    => 'Cette demande a déjà été utilisée.',
             'expired' => 'Cette demande a expiré.',
+            'wait_one_minute' => 'Veuillez attendre au moins une minute avant de renvoyer.',
         ],
         'no_requests' => 'Aucune demande trouvée.',
     ],
@@ -261,10 +262,19 @@ return [
         'body_placeholder'  => 'Parlez-nous de votre expérience... Qu\'avez-vous le plus apprécié ? Que pourrait-on améliorer ?',
         'body_help'         => 'Minimum 10 caractères, maximum 1000',
         'privacy_note'      => 'Votre avis pourrait être publié après modération',
+        'select_rating'     => 'Sélectionnez votre note',
+
+        // Rating levels
+        'rating_excellent'     => 'Excellent',
+        'rating_good'          => 'Bon',
+        'rating_average'       => 'Moyen',
+        'rating_below_average' => 'En dessous de la moyenne',
+        'rating_poor'          => 'Mauvais',
+
         'labels'       => [
-            'rating'       => 'Rating',
-            'title'        => 'Titre de l\'Avis',
-            'body'         => 'Your experience',
+            'rating'       => 'Note',
+            'title'        => 'Titre de l\'avis',
+            'body'         => 'Votre expérience',
             'author_name'  => 'Your name (optional)',
             'author_email' => 'Your email (optional)',
             'submit'       => 'Submit review',

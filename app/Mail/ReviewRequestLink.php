@@ -33,7 +33,7 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
 
         // === URL del CTA ===
         // Appending lang parameter to ensure correct locale on landing
-        $ctaUrl = route('reviews.request.show', ['token' => $rr->token, 'lang' => $loc]);
+        $ctaUrl = route('reviews.request.show', ['token' => $rr->token]);
 
         // === Nombre del cliente ===
         $userName = optional($rr->user)->full_name

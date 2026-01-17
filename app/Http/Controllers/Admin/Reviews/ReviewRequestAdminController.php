@@ -251,6 +251,11 @@ class ReviewRequestAdminController extends Controller
             return back()->withErrors(__('reviews.requests.errors.expired'));
         }
 
+        // Rate limit: 1 per minute
+        if (Schema::hasColumn($table, 'sent_at') && $rr->sent_at && $rr->sent_at->gt(now()->subMinute())) {
+            return back()->withErrors(__('reviews.requests.errors.wait_one_minute'));
+        }
+
         // Load tour language from booking details for language detection
         $rr->load('booking.detail.tourLanguage', 'booking.tour.translations');
 
