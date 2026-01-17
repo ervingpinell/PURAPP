@@ -20,8 +20,8 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
     {
         $this->rr = $rr->loadMissing(['booking.tour', 'user']);
 
-        // Locale simple es/en
-        $current = strtolower($locale ?? app()->getLocale() ?: config('app.locale', 'es'));
+        // Detect locale: Spanish or English (controller determines based on tour language)
+        $current = strtolower($locale ?? app()->getLocale() ?: config('app.locale', 'en'));
         $this->mailLocale = str_starts_with($current, 'es') ? 'es' : 'en';
     }
 
@@ -124,6 +124,18 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
             ->withSymfonyMessage(function (\Symfony\Component\Mime\Email $message) {
                 // Marcar como importante (otra señal suave; no siempre respeta el tab)
                 $message->priority(1);
+                
+                // Headers para mejorar deliverability y evitar carpeta de promociones
+                $headers = $message->getHeaders();
+                
+                // Marcar como transaccional, no marketing
+                $headers->addTextHeader('X-Auto-Response-Suppress', 'OOF, AutoReply');
+                $headers->addTextHeader('X-Entity-Ref-ID', 'review-request');
+                $headers->addTextHeader('X-Mailer-Type', 'transactional');
+                
+                // Categoría de Gmail (intenta que vaya a Primary)
+                $headers->addTextHeader('X-Google-Appengine-App-Id', 'transactional');
+                
                 // No añadimos cosas tipo Precedence: bulk ni List-Unsubscribe
             });
 

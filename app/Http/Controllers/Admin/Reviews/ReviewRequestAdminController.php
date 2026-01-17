@@ -228,7 +228,19 @@ class ReviewRequestAdminController extends Controller
         ]);
 
         if ($rr->email) {
-            Mail::to($rr->email)->queue(new ReviewRequestLink($rr));
+            // Detect locale from tour: Spanish if tour is in Spanish, English otherwise
+            $tour = $booking->tour;
+            $locale = 'en'; // default to English
+            
+            if ($tour) {
+                // Check if tour has Spanish translation
+                $tourLocale = optional($tour->translate('es'))->locale ?? null;
+                if ($tourLocale && str_starts_with(strtolower($tourLocale), 'es')) {
+                    $locale = 'es';
+                }
+            }
+            
+            Mail::to($rr->email)->queue(new ReviewRequestLink($rr, $locale));
         }
 
         return back()->with('ok', __('reviews.requests.send_ok'));
@@ -246,7 +258,19 @@ class ReviewRequestAdminController extends Controller
         }
 
         if ($rr->email) {
-            Mail::to($rr->email)->queue(new ReviewRequestLink($rr));
+            // Detect locale from tour: Spanish if tour is in Spanish, English otherwise
+            $tour = optional($rr->booking)->tour;
+            $locale = 'en'; // default to English
+            
+            if ($tour) {
+                // Check if tour has Spanish translation
+                $tourLocale = optional($tour->translate('es'))->locale ?? null;
+                if ($tourLocale && str_starts_with(strtolower($tourLocale), 'es')) {
+                    $locale = 'es';
+                }
+            }
+            
+            Mail::to($rr->email)->queue(new ReviewRequestLink($rr, $locale));
         }
 
         if (Schema::hasColumn($table, 'sent_at'))  $rr->sent_at = now();
@@ -268,7 +292,19 @@ class ReviewRequestAdminController extends Controller
         }
 
         if ($rr->email) {
-            Mail::to($rr->email)->queue(new ReviewRequestLink($rr));
+            // Detect locale from tour: Spanish if tour is in Spanish, English otherwise
+            $tour = optional($rr->booking)->tour;
+            $locale = 'en'; // default to English
+            
+            if ($tour) {
+                // Check if tour has Spanish translation
+                $tourLocale = optional($tour->translate('es'))->locale ?? null;
+                if ($tourLocale && str_starts_with(strtolower($tourLocale), 'es')) {
+                    $locale = 'es';
+                }
+            }
+            
+            Mail::to($rr->email)->queue(new ReviewRequestLink($rr, $locale));
         }
 
         if (Schema::hasColumn($table, 'reminded_at')) $rr->reminded_at = now();
