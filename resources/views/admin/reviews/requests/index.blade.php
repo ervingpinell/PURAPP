@@ -225,9 +225,9 @@
             @endcan
 
             @can('delete-review-requests')
-            <form method="POST" action="{{ route('admin.review-requests.destroy', $r) }}" class="d-inline" onsubmit="return confirm(@js(__('reviews.requests.actions.confirm_delete')));">
+            <form method="POST" action="{{ route('admin.review-requests.destroy', $r) }}" class="d-inline delete-review-request-form">
               @csrf @method('DELETE')
-              <button class="btn btn-sm btn-outline-danger">{{ __('reviews.common.delete') }}</button>
+              <button type="button" class="btn btn-sm btn-outline-danger delete-review-request-btn">{{ __('reviews.common.delete') }}</button>
             </form>
             @endcan
           </td>
@@ -242,4 +242,31 @@
   </div>
 </div>
 @endif
+@stop
+
+@section('js')
+<script>
+$(document).ready(function() {
+    // SweetAlert for delete review request
+    $('.delete-review-request-btn').on('click', function(e) {
+        e.preventDefault();
+        const form = $(this).closest('form');
+        
+        Swal.fire({
+            title: @js(__('reviews.requests.sweetalert.delete_title')),
+            text: @js(__('reviews.requests.sweetalert.delete_text')),
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: @js(__('reviews.requests.sweetalert.delete_confirm')),
+            cancelButtonText: @js(__('reviews.requests.sweetalert.delete_cancel'))
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+});
+</script>
 @stop

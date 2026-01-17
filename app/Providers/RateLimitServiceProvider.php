@@ -68,6 +68,11 @@ class RateLimitServiceProvider extends ServiceProvider
 
         // Rate limiter para emails (resend verification, password setup, etc)
         RateLimiter::for('email', function (Request $request) {
+            // Skip rate limiting in debug mode
+            if (config('app.debug')) {
+                return Limit::none();
+            }
+
             $email = $request->input('email') ?: $request->user()?->email;
             $key = $email ? 'email:' . $email : 'email:' . $request->ip();
 

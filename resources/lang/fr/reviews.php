@@ -193,6 +193,13 @@ return [
             'confirm_delete' => 'Supprimer cette demande ?',
         ],
 
+        'sweetalert' => [
+            'delete_title'   => 'Supprimer la Demande d\'Avis ?',
+            'delete_text'    => 'Cette action ne peut pas être annulée.',
+            'delete_confirm' => 'Oui, supprimer',
+            'delete_cancel'  => 'Annuler',
+        ],
+
         'status' => [
             'active'    => 'Actif',
             'sent'      => 'Envoyé',
@@ -230,10 +237,27 @@ return [
     // Public (review form)
     // =========================
     'public' => [
-        'form_title'   => 'Leave a review',
+        'form_title'        => 'Laisser un avis',
+        'form_heading'      => 'Partagez Votre Expérience',
+        'form_subheading'   => 'Parlez-nous de votre expérience sur :tour',
+        'form_description'  => 'Vos commentaires nous aident à nous améliorer et aident les autres voyageurs',
+        'booking_date'      => 'Date du Tour',
+        'participants'      => 'Participants',
+        'adults'            => 'adultes',
+        'children'          => 'enfants',
+        'booking_code'      => 'Réservation',
+        'help_title'        => 'Pourquoi laisser un avis ?',
+        'help_text'         => 'Vos commentaires honnêtes nous aident à améliorer nos services et aident les autres voyageurs à prendre des décisions éclairées.',
+        'error_title'       => 'Veuillez corriger les erreurs suivantes :',
+        'optional'          => 'facultatif',
+        'rating_help'       => 'Cliquez sur les étoiles pour évaluer votre expérience',
+        'title_placeholder' => 'Résumez votre expérience en quelques mots',
+        'body_placeholder'  => 'Parlez-nous de votre expérience... Qu\'avez-vous le plus apprécié ? Que pourrait-on améliorer ?',
+        'body_help'         => 'Minimum 10 caractères, maximum 1000',
+        'privacy_note'      => 'Votre avis pourrait être publié après modération',
         'labels'       => [
             'rating'       => 'Rating',
-            'title'        => 'Title (optional)',
+            'title'        => 'Titre de l\'Avis',
             'body'         => 'Your experience',
             'author_name'  => 'Your name (optional)',
             'author_email' => 'Your email (optional)',
@@ -244,8 +268,8 @@ return [
         'thanks_farewell' => "We hope you enjoyed your time with us and we hope to see you again soon.\n\n🇨🇷 Pura Vida mae! 🇨🇷",
         'thanks_dup'   => 'Thank you! We already had your review on file 🙌',
         'expired'      => 'This link has expired, but thank you so much for your intention 💚',
-        'used'         => 'This request has already been used.',
-        'used_help'    => 'This review link has already been used. If you think this is an error or want to update your comment, contact us and we will gladly help you.',
+        'used'         => 'Cette demande a déjà été utilisée.',
+        'used_help'    => 'Ce lien d\'avis a déjà été utilisé. Si vous pensez qu\'il s\'agit d\'une erreur ou si vous souhaitez mettre à jour votre commentaire, contactez-nous.',
         'not_found'    => 'Request not found.',
         'back_home'    => 'Go back',
     ],

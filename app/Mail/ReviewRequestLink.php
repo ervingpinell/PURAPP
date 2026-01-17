@@ -68,8 +68,15 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
         }
 
         // === Tour y textos ===
-        $tourName = optional(optional($rr->booking)->tour)->name
-            ?: __('reviews.generic.our_tour', [], $loc);
+        $tour = optional($rr->booking)->tour;
+        
+        // Get tour name in the email's language
+        if ($tour) {
+            $translation = $tour->translate($loc);
+            $tourName = $translation ? $translation->name : $tour->name;
+        } else {
+            $tourName = __('reviews.generic.our_tour', [], $loc);
+        }
 
         $bk = $rr->booking;
         $activityDateText = $this->fmtDate(

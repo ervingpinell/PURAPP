@@ -193,6 +193,13 @@ return [
             'confirm_delete' => 'Delete this request?',
         ],
 
+        'sweetalert' => [
+            'delete_title'   => 'Delete Review Request?',
+            'delete_text'    => 'This action cannot be undone.',
+            'delete_confirm' => 'Yes, delete it',
+            'delete_cancel'  => 'Cancel',
+        ],
+
         'status' => [
             'active'    => 'Active',
             'sent'      => 'Sent',
@@ -230,10 +237,27 @@ return [
     // Public (review form)
     // =========================
     'public' => [
-        'form_title'   => 'Leave a review',
+        'form_title'        => 'Leave a review',
+        'form_heading'      => 'Share Your Experience',
+        'form_subheading'   => 'Tell us about your experience on :tour',
+        'form_description'  => 'Your feedback helps us improve and helps other travelers',
+        'booking_date'      => 'Tour Date',
+        'participants'      => 'Participants',
+        'adults'            => 'adults',
+        'children'          => 'children',
+        'booking_code'      => 'Booking',
+        'help_title'        => 'Why leave a review?',
+        'help_text'         => 'Your honest feedback helps us improve our services and helps other travelers make informed decisions.',
+        'error_title'       => 'Please correct the following errors:',
+        'optional'          => 'optional',
+        'rating_help'       => 'Click on the stars to rate your experience',
+        'title_placeholder' => 'Summarize your experience in a few words',
+        'body_placeholder'  => 'Tell us about your experience... What did you enjoy most? What could be improved?',
+        'body_help'         => 'Minimum 10 characters, maximum 1000',
+        'privacy_note'      => 'Your review could be published publicly after moderation',
         'labels'       => [
             'rating'       => 'Rating',
-            'title'        => 'Title (optional)',
+            'title'        => 'Review Title',
             'body'         => 'Your experience',
             'author_name'  => 'Your name (optional)',
             'author_email' => 'Your email (optional)',

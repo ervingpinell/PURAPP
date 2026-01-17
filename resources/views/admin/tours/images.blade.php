@@ -469,7 +469,7 @@ $isFull = $count >= $max;
           </button>
           @unless($image->is_cover)
           <button type="button" class="btn btn-success btn-compact w-auto flex-grow-1 set-cover"
-            data-url="{{ route('admin.tours.images.cover', [$tour, $image]) }}">
+            data-url="{{ route('admin.tours.images.setCover', [$tour, $image]) }}">
             <i class="fas fa-star me-1"></i> {{ __('m_tours.image.ui.cover_btn') }}
           </button>
           @endunless
@@ -532,20 +532,17 @@ $isFull = $count >= $max;
     toast_success: @json(__('m_tours.image.ui.success_title')),
     toast_error: @json(__('m_tours.image.ui.error_title')),
     toast_warning: @json(__('m_tours.image.ui.warning_title')),
-
-    saving: @json(__('m_tours.image.ui.saving_label', [], false) ?? '...'),
+    saving: @json(__('m_tours.image.ui.saving_label') ?? 'Guardando...'),
     saved: @json(__('m_tours.image.saved')),
     save_ok: @json(__('m_tours.image.caption_updated')),
     save_error: @json(__('m_tours.image.errors.update_caption')),
-    none: @json(__('m_tours.image.ui.none_label', [], false) ?? ''),
-    limit_word: @json(__('m_tours.image.ui.limit_word', [], false) ?? 'Límite'),
-
-    // Confirmaciones
-    confirm_set_cover_title: @json(__('m_tours.image.ui.confirm_set_cover_title', [], false) ?? '¿Establecer como portada?'),
-    confirm_set_cover_text: @json(__('m_tours.image.ui.confirm_set_cover_text', [], false) ?? 'Esta imagen será la principal del tour'),
+    none: @json(__('m_tours.image.ui.none_label') ?? ''),
+    limit_word: @json(__('m_tours.image.ui.limit_word') ?? 'Límite'),
+    confirm_set_cover_title: @json(__('m_tours.image.ui.confirm_set_cover_title') ?? '¿Establecer como portada?'),
+    confirm_set_cover_text: @json(__('m_tours.image.ui.confirm_set_cover_text') ?? 'Esta imagen será la principal del tour'),
     confirm_delete_title: @json(__('m_tours.image.ui.confirm_delete_title')),
     confirm_delete_text: @json(__('m_tours.image.ui.confirm_delete_text')),
-    confirm_btn: @json(__('m_tours.image.ui.confirm_btn', [], false) ?? 'Sí'),
+    confirm_btn: @json(__('m_tours.image.ui.confirm_btn') ?? 'Sí'),
     cancel_btn: @json(__('m_tours.image.ui.cancel_btn')),
   };
 
@@ -557,6 +554,7 @@ $isFull = $count >= $max;
     showConfirmButton: false,
     timer: 3000
   });
+  
   const confirm = (title, text) => Swal.fire({
     title,
     text,
@@ -589,6 +587,9 @@ $isFull = $count >= $max;
     const preview = document.getElementById('filePreview');
     const btn = document.getElementById('uploadBtn');
     const MAX_MB = 100;
+    const filesWord = 'archivos';
+
+    if (!zone || !input) return;
 
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => {
       zone.addEventListener(e, ev => {
@@ -596,6 +597,7 @@ $isFull = $count >= $max;
         ev.stopPropagation();
       }, false);
     });
+    
     ['dragenter', 'dragover'].forEach(e => zone.addEventListener(e, () => zone.classList.add('dragover')));
     ['dragleave', 'drop'].forEach(e => zone.addEventListener(e, () => zone.classList.remove('dragover')));
 
@@ -603,23 +605,27 @@ $isFull = $count >= $max;
       input.files = e.dataTransfer.files;
       handleFiles(input.files);
     });
+    
     input.addEventListener('change', e => handleFiles(e.target.files));
 
     function handleFiles(files) {
-      if (!files.length) {
-        preview.innerHTML = '';
-        btn?.style && (btn.style.display = 'none');
+      if (!files || !files.length) {
+        if (preview) preview.innerHTML = '';
+        if (btn) btn.style.display = 'none';
         return;
       }
+      
       const arr = Array.from(files);
       const totalMB = (arr.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(2);
       const over = totalMB > MAX_MB;
 
-      preview.innerHTML = `<div class="alert alert-${over?'danger':'light'} py-2 px-3 mb-0 border">
-      <i class="fas fa-${over?'exclamation-triangle text-danger':'images text-secondary'} me-2"></i>
-      <strong>${arr.length}</strong> ${@json(__('m_tours.image.ui.files_word', [], false) ?? 'archivos')} (<strong>${totalMB} MB</strong> / ${MAX_MB} MB)
-      ${over ? '<br><strong>WARNING ' + i18n.limit_word + '</strong>' : ''}
-    </div>`;
+      if (preview) {
+        preview.innerHTML = '<div class="alert alert-' + (over ? 'danger' : 'light') + ' py-2 px-3 mb-0 border">' +
+          '<i class="fas fa-' + (over ? 'exclamation-triangle text-danger' : 'images text-secondary') + ' me-2"></i>' +
+          '<strong>' + arr.length + '</strong> ' + filesWord + ' (<strong>' + totalMB + ' MB</strong> / ' + MAX_MB + ' MB)' +
+          (over ? '<br><strong>WARNING ' + i18n.limit_word + '</strong>' : '') +
+        '</div>';
+      }
       if (btn) btn.style.display = over ? 'none' : 'inline-block';
     }
   }
@@ -633,11 +639,10 @@ $isFull = $count >= $max;
 
       input.addEventListener('input', () => {
         clearTimeout(timer);
-        status.innerHTML = '<i class="fas fa-clock text-muted"></i> ' + (i18n.saving || '{{ __('
-          m_tours.image.ui.saving_fallback ', [], false) ?? '
-          Guardando...' }}');
+        status.innerHTML = '<i class="fas fa-clock text-muted"></i> ' + i18n.saving;
         timer = setTimeout(() => saveCaption(input, url, status), 900);
       });
+      
       input.addEventListener('blur', () => {
         clearTimeout(timer);
         saveCaption(input, url, status);
@@ -650,10 +655,7 @@ $isFull = $count >= $max;
       fd.append('_method', 'PATCH');
       fd.append('caption', input.value);
 
-      fetch(url, {
-          method: 'POST',
-          body: fd
-        })
+      fetch(url, { method: 'POST', body: fd })
         .then(r => r.ok ? r.json().catch(() => ({})) : Promise.reject())
         .then(() => {
           status.innerHTML = '<i class="fas fa-check text-success"></i> ' + i18n.saved;
@@ -680,8 +682,7 @@ $isFull = $count >= $max;
 
       checks.forEach(c => {
         const card = c.closest('.image-card');
-        if (!card) return;
-        card.classList.toggle('selected', c.checked);
+        if (card) card.classList.toggle('selected', c.checked);
       });
 
       if (all) {
@@ -697,6 +698,7 @@ $isFull = $count >= $max;
         }
       }
     }
+    
     all?.addEventListener('change', () => {
       checks.forEach(c => c.checked = all.checked);
       update();
@@ -734,7 +736,8 @@ $isFull = $count >= $max;
     // Bulk delete
     document.getElementById('bulkDeleteBtn')?.addEventListener('click', () => {
       const selected = Array.from(document.querySelectorAll('.img-check:checked'));
-      confirm(@json(__('m_tours.image.ui.confirm_bulk_delete_title', [], false) ?? '¿Eliminar seleccionadas?'), @json(__('m_tours.image.ui.confirm_bulk_delete_text', [], false) ?? 'Se eliminarán :count imágenes')).then(r => {
+      confirm(@json(__('m_tours.image.ui.confirm_bulk_delete_title') ?? '¿Eliminar seleccionadas?'), 
+              @json(__('m_tours.image.ui.confirm_bulk_delete_text') ?? 'Se eliminarán las imágenes seleccionadas')).then(r => {
         if (r.isConfirmed) {
           document.getElementById('bulkIds').value = selected.map(c => c.value).join(',');
           document.getElementById('bulkDeleteForm').submit();
@@ -744,25 +747,28 @@ $isFull = $count >= $max;
 
     // Delete all
     document.getElementById('deleteAllBtn')?.addEventListener('click', () => {
-      confirm(@json(__('m_tours.image.ui.confirm_delete_all_title', [], false) ?? '¿Eliminar TODAS?'), @json(__('m_tours.image.ui.confirm_delete_all_text', [], false) ?? 'Se eliminarán todas las imágenes del tour')).then(r => {
+      confirm(@json(__('m_tours.image.ui.confirm_delete_all_title') ?? '¿Eliminar TODAS?'), 
+              @json(__('m_tours.image.ui.confirm_delete_all_text') ?? 'Se eliminarán todas las imágenes del tour')).then(r => {
         if (r.isConfirmed) document.getElementById('deleteAllForm').submit();
       });
     });
   }
 
-  // Flash
-  @if(session('success')) toast('success', @json(__('m_tours.image.done').
-    ': '.session('success')));
+  // Flash messages
+  @if(session('success'))
+    toast('success', @json(__('m_tours.image.done') . ': ' . session('success')));
   @endif
-  @if(session('error')) toast('error', @json(__('m_tours.image.ui.error_title').
-    ': '.session('error')));
+  
+  @if(session('error'))
+    toast('error', @json(__('m_tours.image.ui.error_title') . ': ' . session('error')));
   @endif
-  @if($errors-> any())
-  Swal.fire({
-    icon: 'error',
-    title: @json(__('m_tours.image.ui.error_title')),
-    html: '<ul style="text-align:left;">@foreach($errors->all() as $e)<li>{{$e}}</li>@endforeach</ul>'
-  });
+  
+  @if($errors->any())
+    Swal.fire({
+      icon: 'error',
+      title: @json(__('m_tours.image.ui.error_title')),
+      html: '<ul style="text-align:left;">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>'
+    });
   @endif
 </script>
 @endpush

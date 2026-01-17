@@ -64,7 +64,7 @@ class PublicReviewController extends Controller
     public function submit(Request $request, string $token)
 {
     /** @var \App\Models\ReviewRequest|null $rr */
-    $rr = ReviewRequest::with(['booking.tour', 'user'])
+    $rr = ReviewRequest::with(['booking.tour.coverImage', 'booking.detail', 'user'])
         ->where('token', $token)
         ->first();
 

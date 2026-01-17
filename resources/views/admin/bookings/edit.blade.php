@@ -423,22 +423,10 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         const LABEL_REMOVE = @json(__('m_bookings.bookings.buttons.remove_promo'));
 
         // Bootstrap promo desde backend
-        let promoValue = {
-            {
-                $promoBootstrapValue ? : 0
-            }
-        };
-        let promoType = {
-            !!json_encode($promoBootstrapType) !!
-        }; // "percentage" | "fixed" | null
-        let promoOperation = {
-            !!json_encode($promoBootstrapOperation) !!
-        }; // "add" | "subtract"
-        let promoActive = {
-            {
-                ($promoBootstrapValue > 0 && $promoBootstrapType) ? 'true' : 'false'
-            }
-        };
+        let promoValue = {{ $promoBootstrapValue ?: 0 }};
+        let promoType = {!! json_encode($promoBootstrapType) !!}; // "percentage" | "fixed" | null
+        let promoOperation = {!! json_encode($promoBootstrapOperation) !!}; // "add" | "subtract"
+        let promoActive = {{ ($promoBootstrapValue > 0 && $promoBootstrapType) ? 'true' : 'false' }};
 
         if (promoActive) {
             $promoBtn
@@ -457,30 +445,34 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
             const tourData = $(this).find(':selected').data('tour');
             if (!tourData) return;
 
+            // Get current selected values before clearing (for edit mode)
+            const currentScheduleId = $scheduleSelect.val();
+            const currentLanguageId = $languageSelect.val();
+
             // Horarios
             $scheduleSelect.empty().append(
-                '<option value="">{{ __('
-                m_bookings.bookings.ui.select_tour_first ') }}</option>'
+                '<option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>'
             );
             if (tourData.schedules && tourData.schedules.length > 0) {
                 tourData.schedules.forEach(s => {
                     const startTime = s.start_time ? s.start_time.substring(0, 5) : '';
                     const endTime = s.end_time ? s.end_time.substring(0, 5) : '';
+                    const isSelected = currentScheduleId && s.schedule_id == currentScheduleId;
                     $scheduleSelect.append(
-                        `<option value="${s.schedule_id}">${startTime} - ${endTime}</option>`
+                        `<option value="${s.schedule_id}" ${isSelected ? 'selected' : ''}>${startTime} - ${endTime}</option>`
                     );
                 });
             }
 
             // Idiomas
             $languageSelect.empty().append(
-                '<option value="">{{ __('
-                m_bookings.bookings.ui.select_tour_first ') }}</option>'
+                '<option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>'
             );
             if (tourData.languages && tourData.languages.length > 0) {
                 tourData.languages.forEach(l => {
+                    const isSelected = currentLanguageId && l.tour_language_id == currentLanguageId;
                     $languageSelect.append(
-                        `<option value="${l.tour_language_id}">${l.name}</option>`
+                        `<option value="${l.tour_language_id}" ${isSelected ? 'selected' : ''}>${l.name}</option>`
                     );
                 });
             }
@@ -874,13 +866,23 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         const initialLanguageId = @json(old('tour_language_id', $booking -> tour_language_id));
 
         if (initialTourId) {
+            // Pre-set the values in the selects so the change handler can detect them
+            if (initialScheduleId) $scheduleSelect.val(initialScheduleId);
+            if (initialLanguageId) $languageSelect.val(initialLanguageId);
+            
+            // Now trigger the tour change which will populate and re-select
             $tourSelect.val(initialTourId).trigger('change');
-
+            
+            // Ensure values are set after a short delay (in case of async issues)
             setTimeout(() => {
-                if (initialScheduleId) $scheduleSelect.val(initialScheduleId);
-                if (initialLanguageId) $languageSelect.val(initialLanguageId);
+                if (initialScheduleId && !$scheduleSelect.val()) {
+                    $scheduleSelect.val(initialScheduleId);
+                }
+                if (initialLanguageId && !$languageSelect.val()) {
+                    $languageSelect.val(initialLanguageId);
+                }
                 updateTotal();
-            }, 200);
+            }, 100);
         }
     });
 </script>

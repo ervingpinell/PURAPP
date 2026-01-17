@@ -59,7 +59,9 @@ class ReviewRequestAdminController extends Controller
         $q = Booking::query()
             ->with([
                 'tour:tour_id,name',
+                'tour.translations',
                 'user:user_id,first_name,last_name,email',
+                'detail.tourLanguage:tour_language_id,name',
             ]);
 
         // (opcional) selección explícita de columna de referencia si existe
@@ -228,17 +230,9 @@ class ReviewRequestAdminController extends Controller
         ]);
 
         if ($rr->email) {
-            // Detect locale from tour: Spanish if tour is in Spanish, English otherwise
-            $tour = $booking->tour;
-            $locale = 'en'; // default to English
-            
-            if ($tour) {
-                // Check if tour has Spanish translation
-                $tourLocale = optional($tour->translate('es'))->locale ?? null;
-                if ($tourLocale && str_starts_with(strtolower($tourLocale), 'es')) {
-                    $locale = 'es';
-                }
-            }
+            // Detect locale from tour language name in booking details
+            $tourLanguageName = optional(optional($booking->detail)->tourLanguage)->name ?? '';
+            $locale = $this->detectLocaleFromLanguageName($tourLanguageName);
             
             Mail::to($rr->email)->queue(new ReviewRequestLink($rr, $locale));
         }
@@ -257,18 +251,13 @@ class ReviewRequestAdminController extends Controller
             return back()->withErrors(__('reviews.requests.errors.expired'));
         }
 
+        // Load tour language from booking details for language detection
+        $rr->load('booking.detail.tourLanguage', 'booking.tour.translations');
+
         if ($rr->email) {
-            // Detect locale from tour: Spanish if tour is in Spanish, English otherwise
-            $tour = optional($rr->booking)->tour;
-            $locale = 'en'; // default to English
-            
-            if ($tour) {
-                // Check if tour has Spanish translation
-                $tourLocale = optional($tour->translate('es'))->locale ?? null;
-                if ($tourLocale && str_starts_with(strtolower($tourLocale), 'es')) {
-                    $locale = 'es';
-                }
-            }
+            // Detect locale from tour language name in booking details
+            $tourLanguageName = optional(optional(optional($rr->booking)->detail)->tourLanguage)->name ?? '';
+            $locale = $this->detectLocaleFromLanguageName($tourLanguageName);
             
             Mail::to($rr->email)->queue(new ReviewRequestLink($rr, $locale));
         }
@@ -291,18 +280,13 @@ class ReviewRequestAdminController extends Controller
             return back()->withErrors(__('reviews.requests.errors.expired'));
         }
 
+        // Load tour language from booking details for language detection
+        $rr->load('booking.detail.tourLanguage', 'booking.tour.translations');
+
         if ($rr->email) {
-            // Detect locale from tour: Spanish if tour is in Spanish, English otherwise
-            $tour = optional($rr->booking)->tour;
-            $locale = 'en'; // default to English
-            
-            if ($tour) {
-                // Check if tour has Spanish translation
-                $tourLocale = optional($tour->translate('es'))->locale ?? null;
-                if ($tourLocale && str_starts_with(strtolower($tourLocale), 'es')) {
-                    $locale = 'es';
-                }
-            }
+            // Detect locale from tour language name in booking details
+            $tourLanguageName = optional(optional(optional($rr->booking)->detail)->tourLanguage)->name ?? '';
+            $locale = $this->detectLocaleFromLanguageName($tourLanguageName);
             
             Mail::to($rr->email)->queue(new ReviewRequestLink($rr, $locale));
         }
@@ -355,5 +339,26 @@ class ReviewRequestAdminController extends Controller
             if (Schema::hasColumn($bkTable, $c)) return $c;
         }
         return null;
+    }
+
+    /**
+     * Detect email locale from tour language name
+     * 
+     * @param string $languageName
+     * @return string 'es' or 'en'
+     */
+    private function detectLocaleFromLanguageName(string $languageName): string
+    {
+        $languageName = strtolower(trim($languageName));
+        
+        // Check if language name contains Spanish indicators
+        if (str_contains($languageName, 'español') || 
+            str_contains($languageName, 'spanish') ||
+            $languageName === 'es') {
+            return 'es';
+        }
+        
+        // Default to English for all other languages
+        return 'en';
     }
 }

@@ -304,8 +304,8 @@ Route::middleware([SetLocale::class])->group(function () {
         return $response->header('X-Robots-Tag', 'noindex, nofollow');
     })->where('provider', '[A-Za-z0-9_-]+')->name('reviews.embed');
 
-    Route::get('/r/{token}', [PublicReviewController::class, 'show'])->name('reviews.request.show');
-    Route::post('/r/{token}', [PublicReviewController::class, 'submit'])
+    Route::get('/feedback/{token}', [PublicReviewController::class, 'show'])->name('reviews.request.show');
+    Route::post('/feedback/{token}', [PublicReviewController::class, 'submit'])
         ->middleware('throttle:sensitive')
         ->name('reviews.request.submit');
     Route::view('/reviews/thanks', 'reviews.thanks')->name('reviews.thanks');

@@ -193,6 +193,13 @@ return [
             'confirm_delete' => 'Diese Anfrage löschen?',
         ],
 
+        'sweetalert' => [
+            'delete_title'   => 'Bewertungsanfrage Löschen?',
+            'delete_text'    => 'Diese Aktion kann nicht rückgängig gemacht werden.',
+            'delete_confirm' => 'Ja, löschen',
+            'delete_cancel'  => 'Abbrechen',
+        ],
+
         'status' => [
             'active'    => 'Aktiv',
             'sent'      => 'Gesendet',
@@ -230,10 +237,27 @@ return [
     // Public (review form)
     // =========================
     'public' => [
-        'form_title'   => 'Leave a review',
+        'form_title'        => 'Eine Bewertung hinterlassen',
+        'form_heading'      => 'Teilen Sie Ihre Erfahrung',
+        'form_subheading'   => 'Erzählen Sie uns von Ihrer Erfahrung bei :tour',
+        'form_description'  => 'Ihr Feedback hilft uns, uns zu verbessern und hilft anderen Reisenden',
+        'booking_date'      => 'Tour-Datum',
+        'participants'      => 'Teilnehmer',
+        'adults'            => 'Erwachsene',
+        'children'          => 'Kinder',
+        'booking_code'      => 'Buchung',
+        'help_title'        => 'Warum eine Bewertung hinterlassen?',
+        'help_text'         => 'Ihr ehrliches Feedback hilft uns, unsere Dienstleistungen zu verbessern und hilft anderen Reisenden, informierte Entscheidungen zu treffen.',
+        'error_title'       => 'Bitte korrigieren Sie die folgenden Fehler:',
+        'optional'          => 'optional',
+        'rating_help'       => 'Klicken Sie auf die Sterne, um Ihre Erfahrung zu bewerten',
+        'title_placeholder' => 'Fassen Sie Ihre Erfahrung in wenigen Worten zusammen',
+        'body_placeholder'  => 'Erzählen Sie uns von Ihrer Erfahrung... Was hat Ihnen am besten gefallen? Was könnte verbessert werden?',
+        'body_help'         => 'Mindestens 10 Zeichen, maximal 1000',
+        'privacy_note'      => 'Ihre Bewertung könnte nach Moderation veröffentlicht werden',
         'labels'       => [
             'rating'       => 'Rating',
-            'title'        => 'Title (optional)',
+            'title'        => 'Bewertungstitel',
             'body'         => 'Your experience',
             'author_name'  => 'Your name (optional)',
             'author_email' => 'Your email (optional)',
@@ -244,8 +268,8 @@ return [
         'thanks_farewell' => "We hope you enjoyed your time with us and we hope to see you again soon.\n\n🇨🇷 Pura Vida mae! 🇨🇷",
         'thanks_dup'   => 'Thank you! We already had your review on file 🙌',
         'expired'      => 'This link has expired, but thank you so much for your intention 💚',
-        'used'         => 'This request has already been used.',
-        'used_help'    => 'This review link has already been used. If you think this is an error or want to update your comment, contact us and we will gladly help you.',
+        'used'         => 'Diese Anfrage wurde bereits verwendet.',
+        'used_help'    => 'Dieser Bewertungslink wurde bereits verwendet. Wenn Sie glauben, dass dies ein Fehler ist oder Ihren Kommentar aktualisieren möchten, kontaktieren Sie uns bitte.',
         'not_found'    => 'Request not found.',
         'back_home'    => 'Go back',
     ],

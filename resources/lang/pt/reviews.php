@@ -193,6 +193,13 @@ return [
             'confirm_delete' => 'Excluir esta solicitação?',
         ],
 
+        'sweetalert' => [
+            'delete_title'   => 'Excluir Solicitação de Avaliação?',
+            'delete_text'    => 'Esta ação não pode ser desfeita.',
+            'delete_confirm' => 'Sim, excluir',
+            'delete_cancel'  => 'Cancelar',
+        ],
+
         'status' => [
             'active'    => 'Ativo',
             'sent'      => 'Enviado',
@@ -230,10 +237,27 @@ return [
     // Public (review form)
     // =========================
     'public' => [
-        'form_title'   => 'Leave a review',
+        'form_title'        => 'Deixar uma avaliação',
+        'form_heading'      => 'Compartilhe Sua Experiência',
+        'form_subheading'   => 'Conte-nos sobre sua experiência em :tour',
+        'form_description'  => 'Seu feedback nos ajuda a melhorar e ajuda outros viajantes',
+        'booking_date'      => 'Data do Tour',
+        'participants'      => 'Participantes',
+        'adults'            => 'adultos',
+        'children'          => 'crianças',
+        'booking_code'      => 'Reserva',
+        'help_title'        => 'Por que deixar uma avaliação?',
+        'help_text'         => 'Seu feedback honesto nos ajuda a melhorar nossos serviços e ajuda outros viajantes a tomar decisões informadas.',
+        'error_title'       => 'Por favor, corrija os seguintes erros:',
+        'optional'          => 'opcional',
+        'rating_help'       => 'Clique nas estrelas para avaliar sua experiência',
+        'title_placeholder' => 'Resuma sua experiência em poucas palavras',
+        'body_placeholder'  => 'Conte-nos sobre sua experiência... O que você mais gostou? O que poderia melhorar?',
+        'body_help'         => 'Mínimo 10 caracteres, máximo 1000',
+        'privacy_note'      => 'Sua avaliação poderá ser publicada após moderação',
         'labels'       => [
             'rating'       => 'Rating',
-            'title'        => 'Title (optional)',
+            'title'        => 'Título da Avaliação',
             'body'         => 'Your experience',
             'author_name'  => 'Your name (optional)',
             'author_email' => 'Your email (optional)',
@@ -244,8 +268,8 @@ return [
         'thanks_farewell' => "We hope you enjoyed your time with us and we hope to see you again soon.\n\n🇨🇷 Pura Vida mae! 🇨🇷",
         'thanks_dup'   => 'Thank you! We already had your review on file 🙌',
         'expired'      => 'This link has expired, but thank you so much for your intention 💚',
-        'used'         => 'This request has already been used.',
-        'used_help'    => 'This review link has already been used. If you think this is an error or want to update your comment, contact us and we will gladly help you.',
+        'used'         => 'Esta solicitação já foi utilizada.',
+        'used_help'    => 'Este link de avaliação já foi usado. Se você acha que é um erro ou deseja atualizar seu comentário, entre em contato conosco.',
         'not_found'    => 'Request not found.',
         'back_home'    => 'Go back',
     ],
