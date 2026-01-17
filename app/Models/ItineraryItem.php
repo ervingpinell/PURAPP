@@ -42,8 +42,24 @@ class ItineraryItem extends Model
             'itinerary_id'
         )
             ->withPivot('item_order', 'is_active')
+            ->where('itineraries.is_active', true)
+            ->wherePivot('is_active', true)
             ->withTimestamps()
             ->orderBy('itinerary_item_itinerary.item_order');
+    }
+
+    public function allItineraries()
+    {
+        return $this->belongsToMany(
+            Itinerary::class,
+            'itinerary_item_itinerary',
+            'itinerary_item_id',
+            'itinerary_id'
+        )
+            ->withPivot('item_order', 'is_active')
+            ->withTimestamps()
+            ->orderBy('itinerary_item_itinerary.item_order')
+            ->withTrashed();
     }
 
     // Translations

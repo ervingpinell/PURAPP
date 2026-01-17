@@ -269,7 +269,7 @@ class TourWizardController extends Controller
             $tour->schedules()->detach();
             $tour->prices()->delete();
 
-            if ($tour->itinerary_id && $tour->itinerary) {
+            if ($tour->itinerary_id && $tour->allItinerary) {
                 LoggerHelper::info(
                     'TourWizardController',
                     'deleteDraft',
@@ -280,7 +280,7 @@ class TourWizardController extends Controller
                     ]
                 );
 
-                $tour->itinerary->delete();
+                $tour->allItinerary->delete();
             }
 
             LoggerHelper::info(
@@ -366,8 +366,8 @@ class TourWizardController extends Controller
                 $draft->schedules()->detach();
                 $draft->prices()->delete();
 
-                if ($draft->itinerary_id && $draft->itinerary) {
-                    $draft->itinerary->delete();
+                if ($draft->itinerary_id && $draft->allItinerary) {
+                    $draft->allItinerary->delete();
                 }
 
                 $draft->forceDelete();
@@ -640,11 +640,11 @@ class TourWizardController extends Controller
         $data = [
             'tour'  => $tour->load([
                 'languages',
-                'amenities',
-                'excludedAmenities',
+                'allAmenities',
+                'allExcludedAmenities',
                 'schedules',
                 'prices.category',
-                'itinerary.items',
+                'allItinerary.allItems',
             ]),
             'step'  => $step,
             'steps' => self::STEPS,
@@ -658,7 +658,9 @@ class TourWizardController extends Controller
                 break;
 
             case 'itinerary':
-                $data['itineraries'] = Itinerary::active()->with(['allItems.translations', 'translations'])->get();
+                $data['itineraries'] = Itinerary::withTrashed()
+                    ->with(['allItems.translations', 'translations'])
+                    ->get();
                 break;
 
             case 'schedules':
@@ -666,7 +668,8 @@ class TourWizardController extends Controller
                 break;
 
             case 'amenities':
-                $data['amenities'] = Amenity::active()->get();
+                // Cargar todas para que el admin pueda gestionar las inactivas si ya estaban asignadas
+                $data['amenities'] = Amenity::withTrashed()->get();
                 break;
 
             case 'prices':

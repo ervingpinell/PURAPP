@@ -441,6 +441,21 @@ class Tour extends Model
             'amenity_tour',
             'tour_id',
             'amenity_id'
+        )
+            ->where('amenities.is_active', true) // Only active amenities
+            ->withTimestamps();
+    }
+
+    /**
+     * Relationship including inactive amenities (for admin usage)
+     */
+    public function allAmenities()
+    {
+        return $this->belongsToMany(
+            Amenity::class,
+            'amenity_tour',
+            'tour_id',
+            'amenity_id'
         )->withTimestamps()->withTrashed();
     }
 
@@ -451,7 +466,21 @@ class Tour extends Model
             'excluded_amenity_tour',
             'tour_id',
             'amenity_id'
-        )->withTimestamps()->withTrashed();
+        )
+            ->where('amenities.is_active', true)
+            ->withTimestamps();
+    }
+
+    public function allExcludedAmenities()
+    {
+        return $this->belongsToMany(
+            Amenity::class,
+            'excluded_amenity_tour',
+            'tour_id',
+            'amenity_id'
+        )
+            ->withTimestamps()
+            ->withTrashed();
     }
 
     public function schedules()
@@ -488,7 +517,13 @@ class Tour extends Model
 
     public function itinerary()
     {
-        return $this->belongsTo(Itinerary::class, 'itinerary_id', 'itinerary_id');
+        return $this->belongsTo(Itinerary::class, 'itinerary_id', 'itinerary_id')
+            ->where('is_active', true);
+    }
+
+    public function allItinerary()
+    {
+        return $this->belongsTo(Itinerary::class, 'itinerary_id', 'itinerary_id')->withTrashed();
     }
 
     public function excludedDates()

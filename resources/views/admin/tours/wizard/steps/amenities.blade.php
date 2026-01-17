@@ -407,12 +407,12 @@
     @php
     $oldIncluded = old(
     'included_amenities',
-    $tour->amenities->pluck('amenity_id')->toArray()
+    $tour->allAmenities->pluck('amenity_id')->toArray()
     );
 
     $oldExcludedRaw = old(
     'excluded_amenities',
-    $tour->excludedAmenities->pluck('amenity_id')->toArray()
+    $tour->allExcludedAmenities->pluck('amenity_id')->toArray()
     );
 
     if (empty($oldExcludedRaw)) {

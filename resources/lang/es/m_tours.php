@@ -89,6 +89,7 @@ return [
             'page_title'    => 'Amenidades',
             'page_heading'  => 'Gestión de Amenidades',
             'list_title'    => 'Listado de Amenidades',
+            'deleted'       => 'Eliminado',
 
             'add'            => 'Añadir Amenidad',
             'create_title'   => 'Registrar Amenidad',

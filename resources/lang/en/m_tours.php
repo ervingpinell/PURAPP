@@ -1119,6 +1119,7 @@ return [
             'color'                  => 'Tour color',
             'remove'                 => 'Remove',
             'delete'                 => 'Delete',
+            'deleted'                => 'Deleted',
             'choose_itinerary'       => 'Choose itinerary',
             'select_type'            => 'Select type',
             'empty_means_default'    => 'Default',
