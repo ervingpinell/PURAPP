@@ -78,8 +78,13 @@ class PolicyController extends Controller
         ]);
 
         // Normalizar base
+        $slug = $data['slug'] ?? null;
+        if (empty($slug) && !empty($data['name'])) {
+            $slug = \Illuminate\Support\Str::slug($data['name']);
+        }
+
         $base = [
-            'slug'           => $data['slug'] ?? null,
+            'slug'           => $slug,
             'type'           => !empty($data['type']) ? $data['type'] : null,
             'is_active'      => (bool)($data['is_active'] ?? false),
             'effective_from' => $data['effective_from'] ?? null,
@@ -131,6 +136,19 @@ class PolicyController extends Controller
                 $baseUpdates[$k] = $validated[$k];
             }
         }
+
+        // Auto-generate slug if cleared or empty
+        if (array_key_exists('slug', $baseUpdates) && empty($baseUpdates['slug'])) {
+            // Try to get name from input update or fallback to existing translation
+            $nameForSlug = $validated['translations']['es']['name'] 
+                ?? $policy->translation('es')?->name 
+                ?? null;
+
+            if ($nameForSlug) {
+                $baseUpdates['slug'] = \Illuminate\Support\Str::slug($nameForSlug);
+            }
+        }
+
         if (!empty($baseUpdates)) {
             if (array_key_exists('is_active', $baseUpdates)) {
                 $baseUpdates['is_active'] = (bool)$baseUpdates['is_active'];
