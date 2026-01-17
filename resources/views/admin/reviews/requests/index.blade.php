@@ -46,16 +46,16 @@
 
     @if($tab === 'eligible')
     <div class="col-sm-2 mb-2">
-      <label>{{ __('reviews.requests.window_days') }}</label>
-      <input type="number" name="days" class="form-control" value="{{ $daysWindow }}" min="7" max="180" />
+      <label>{{ __('reviews.requests.filters.from') }}</label>
+      <input type="date" name="from" class="form-control" value="{{ $from }}">
+    </div>
+    <div class="col-sm-2 mb-2">
+      <label>{{ __('reviews.requests.filters.to') }}</label>
+      <input type="date" name="to" class="form-control" value="{{ $to }}">
     </div>
     <div class="col-sm-2 mb-2">
       <label>{{ __('reviews.requests.date_column') }}</label>
       <input type="text" class="form-control" value="{{ $dateCol }}" disabled>
-    </div>
-    <div class="col-sm-3 mb-2">
-      <label>{{ __('reviews.requests.calculated_range') }}</label>
-      <div class="form-control bg-light">{{ $from }} → {{ $to }}</div>
     </div>
     @else
     <div class="col-sm-2 mb-2">

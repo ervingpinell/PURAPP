@@ -84,6 +84,7 @@ return [
 
         'new_local'     => 'New (local)',
         'bulk_apply'    => 'Apply to selected',
+        'external_provider_note' => 'External provider note',
 
         'responded'     => 'Responded?',
         'last_reply'    => 'Last:',
@@ -217,6 +218,7 @@ return [
             'used'    => 'This request has already been used.',
             'expired' => 'This request is expired.',
         ],
+        'no_requests' => 'No requests found.',
     ],
 
     // =========================

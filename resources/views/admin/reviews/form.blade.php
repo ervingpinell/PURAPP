@@ -70,23 +70,8 @@
             </div>
           </div>
 
-          <div class="col-md-3">
-            <div class="form-group">
-              <label>{{ __('reviews.common.status') }}</label>
-              <select name="status" class="form-control">
-                @foreach(['pending','published','hidden','flagged'] as $st)
-                  <option value="{{ $st }}" @selected(old('status',$review->status)===$st)>{{ __('reviews.status.'.$st) }}</option>
-                @endforeach
-              </select>
-            </div>
-          </div>
 
-          <div class="col-md-3 align-self-center">
-            <div class="form-check mt-4">
-              <input class="form-check-input" type="checkbox" name="is_public" value="1" id="is_public"
-                     @checked(old('is_public',$review->is_public))>
-              <label class="form-check-label" for="is_public">{{ __('reviews.form.visible_publicly') }}</label>
-            </div>
+
           </div>
         </div>
 
