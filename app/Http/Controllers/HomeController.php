@@ -284,7 +284,14 @@ class HomeController extends Controller
         }
 
         $tours = $query
-            ->orderBy('name')
+            ->leftJoin('tour_type_tour_order as o', function ($join) {
+                $join->on('o.tour_id', '=', 'tours.tour_id')
+                    ->on('o.tour_type_id', '=', 'tours.tour_type_id');
+            })
+            ->orderBy('tours.tour_type_id')
+            ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('o.position')
+            ->orderBy('tours.name')
             ->paginate(12)
             ->withQueryString()
             ->through(function ($tour) use ($loc, $fb) {

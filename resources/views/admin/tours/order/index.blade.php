@@ -268,7 +268,7 @@
     btn.disabled = true;
     if(btnText) btnText.textContent = 'Guardando…';
 
-    const res = await fetch(`{{ url('admin/tour-order') }}/${typeId}/save`, {
+    const res = await fetch(`{{ url('admin/tours/order') }}/${typeId}/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
