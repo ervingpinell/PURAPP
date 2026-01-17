@@ -39,7 +39,12 @@
               <i class="fas fa-plus"></i>
               <i class="fas fa-minus"></i>
             </span>
-            <a href="{{ localized_route('policies.show', ['policy' => $policy->slug]) }}"
+            @php
+              $policyUrl = !empty($policy->slug)
+                  ? localized_route('policies.show', ['policy' => $policy->slug])
+                  : localized_route('policies.show.id', ['policy' => $policy->policy_id]);
+            @endphp
+            <a href="{{ $policyUrl }}"
               class="policy-link ms-2">
               {{ $translatedPolicy?->name ?? $policy->name ?? __('policies.untitled') }}
             </a>
