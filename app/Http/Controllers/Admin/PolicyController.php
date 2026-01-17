@@ -94,11 +94,21 @@ class PolicyController extends Controller
         // 1) Crea la base (solo columnas de policies)
         $policy = Policy::create($base);
 
-        // 2) Traducción ES en policies_translations
-        PolicyTranslation::updateOrCreate(
-            ['policy_id' => $policy->policy_id, 'locale' => 'es'],
-            ['name' => $data['name'], 'content' => $data['content']]
-        );
+        // 2) Generar traducciones (auto-translate)
+        // Asumimos que el input 'name' y 'content' están en ES (o idioma base)
+        $names    = $translator->translateAll($data['name']);       // ['es'=>'...', 'en'=>'...', ...]
+        $contents = $translator->translateAll($data['content']);    // ['es'=>'...', 'en'=>'...', ...]
+
+        foreach ($names as $locale => $transName) {
+             $transContent = $contents[$locale] ?? '';
+             
+             if (!empty($transName)) {
+                 PolicyTranslation::updateOrCreate(
+                     ['policy_id' => $policy->policy_id, 'locale' => $locale],
+                     ['name' => $transName, 'content' => $transContent]
+                 );
+             }
+        }
 
 
 
@@ -157,8 +167,44 @@ class PolicyController extends Controller
         }
 
         // 2) Actualizar traducciones
-        if (!empty($validated['translations'])) {
-            foreach ($validated['translations'] as $locale => $data) {
+        $inputTrans = $validated['translations'] ?? [];
+
+        // --- Auto-translate logic (fill gaps) ---
+        // Find source (prefer 'es')
+        $sourceName = $inputTrans['es']['name'] ?? null;
+        $sourceContent = $inputTrans['es']['content'] ?? null;
+
+        // If 'es' missing, try first available
+        if (!$sourceName) {
+            foreach ($inputTrans as $locale => $d) {
+                if (!empty($d['name'])) {
+                    $sourceName = $d['name'];
+                    $sourceContent = $d['content'] ?? '';
+                    break; 
+                }
+            }
+        }
+
+        if ($sourceName) {
+            $transNames = $translator->translateAll($sourceName);
+            // Translate content only if we have source content
+            $transContents = $sourceContent ? $translator->translateAll($sourceContent) : [];
+
+            // Fill gaps in inputTrans
+            foreach ($transNames as $loc => $val) {
+                // If input for this locale is missing 'name', fill it
+                if (empty($inputTrans[$loc]['name']) && !empty($val)) {
+                    $inputTrans[$loc]['name'] = $val;
+                    // Also fill content if available
+                    if (empty($inputTrans[$loc]['content']) && !empty($transContents[$loc])) {
+                        $inputTrans[$loc]['content'] = $transContents[$loc];
+                    }
+                }
+            }
+        }
+
+        if (!empty($inputTrans)) {
+            foreach ($inputTrans as $locale => $data) {
                 // Normalizar locale (aunque venga como 'es', 'en', etc.)
                 $norm = Policy::canonicalLocale($locale);
 

@@ -42,51 +42,15 @@ class CustomerCategoryController extends Controller
         return view('admin.customer_categories.create');
     }
 
-    public function store(StoreCustomerCategoryRequest $request, \App\Services\Contracts\TranslatorInterface $translator)
+    public function store(StoreCustomerCategoryRequest $request)
     {
         try {
             DB::beginTransaction();
 
             $category = CustomerCategory::create($request->validated());
-            $names = $request->input('names', []);
-
-            // Auto-translate if only one name is provided (or fill gaps)
-            $sourceLocale = null;
-            $sourceText = null;
-
-            // 1. Find a source text
-            foreach (['es', 'en'] as $try) {
-                if (!empty($names[$try])) {
-                    $sourceLocale = $try;
-                    $sourceText = $names[$try];
-                    break;
-                }
-            }
-            // Fallback to first available if not es/en
-            if (!$sourceText && !empty($names)) {
-                foreach ($names as $l => $t) {
-                    if (!empty($t)) {
-                        $sourceLocale = $l;
-                        $sourceText = $t;
-                        break;
-                    }
-                }
-            }
-
-            // 2. Translate if we have a source
-            if ($sourceText) {
-                // translateAll returns array [es=>..., en=>..., etc]
-                $translations = $translator->translateAll($sourceText);
-                foreach ($translations as $loc => $trans) {
-                    // Only fill if empty in input
-                    if (empty($names[$loc]) && !empty($trans)) {
-                        $names[$loc] = $trans;
-                    }
-                }
-            }
 
             // Handle translations
-            foreach ($names as $locale => $name) {
+            foreach ($request->input('names', []) as $locale => $name) {
                 if (!empty($name)) {
                     CustomerCategoryTranslation::create([
                         'category_id' => $category->category_id,
@@ -116,42 +80,15 @@ class CustomerCategoryController extends Controller
         return view('admin.customer_categories.edit', compact('category'));
     }
 
-    public function update(StoreCustomerCategoryRequest $request, CustomerCategory $category, \App\Services\Contracts\TranslatorInterface $translator)
+    public function update(StoreCustomerCategoryRequest $request, CustomerCategory $category)
     {
         try {
             DB::beginTransaction();
 
             $category->update($request->validated());
-            $names = $request->input('names', []);
-
-            // Auto-translate logic (same as store)
-            $sourceText = null;
-            // 1. Find source
-            foreach (['es', 'en'] as $try) {
-                if (!empty($names[$try])) {
-                    $sourceText = $names[$try];
-                    break;
-                }
-            }
-            if (!$sourceText && !empty($names)) {
-                // Fallback
-                foreach ($names as $t) {
-                    if (!empty($t)) { $sourceText = $t; break; }
-                }
-            }
-
-            // 2. Translate gaps
-            if ($sourceText) {
-                $translations = $translator->translateAll($sourceText);
-                foreach ($translations as $loc => $trans) {
-                    if (empty($names[$loc]) && !empty($trans)) {
-                        $names[$loc] = $trans;
-                    }
-                }
-            }
 
             // Update translations
-            foreach ($names as $locale => $name) {
+            foreach ($request->input('names', []) as $locale => $name) {
                 if (!empty($name)) {
                     $category->translations()->updateOrCreate(
                         ['locale' => $locale],
