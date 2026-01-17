@@ -179,6 +179,7 @@ return [
             'reference' => 'Referencia',
             'sent_at'   => 'Enviado el',
             'states'    => 'Estados',
+            'expires_days' => 'Expira (días)',
         ],
 
         'labels' => [

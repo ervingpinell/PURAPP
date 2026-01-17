@@ -175,10 +175,11 @@ return [
         'no_eligible'      => 'No eligible bookings.',
 
         'table' => [
-            'booking'   => 'Booking',
-            'reference' => 'Reference',
-            'sent_at'   => 'Sent at',
-            'states'    => 'States',
+            'booking'      => 'Booking',
+            'reference'    => 'Reference',
+            'sent_at'      => 'Sent at',
+            'states'       => 'States',
+            'expires_days' => 'Expires (days)',
         ],
 
         'labels' => [

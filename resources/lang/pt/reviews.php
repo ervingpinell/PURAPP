@@ -175,10 +175,11 @@ return [
         'no_eligible'      => 'Nenhuma reserva elegível.',
 
         'table' => [
-            'booking'   => 'Reserva',
-            'reference' => 'Referência',
-            'sent_at'   => 'Enviado em',
-            'states'    => 'Estados',
+            'booking'      => 'Reserva',
+            'reference'    => 'Referência',
+            'sent_at'      => 'Enviado em',
+            'states'       => 'Estados',
+            'expires_days' => 'Expira (dias)',
         ],
 
         'labels' => [

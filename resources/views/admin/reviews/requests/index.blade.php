@@ -101,7 +101,8 @@
           <th style="width:160px;">{{ __('reviews.requests.table.reference') }}</th>
           <th>{{ __('reviews.admin.table.client') }}</th>
           <th>{{ __('reviews.admin.table.tour') }}</th>
-          <th class="text-right" style="width:200px;">{{ __('reviews.common.actions') }}</th>
+          <th class="text-center" style="width:120px;">{{ __('reviews.requests.table.expires_days') }}</th>
+          <th class="text-right" style="width:140px;">{{ __('reviews.common.actions') }}</th>
         </tr>
       </thead>
       <tbody>
@@ -127,23 +128,23 @@
             {{ optional($b->tour)->name }}
             <small class="text-muted d-block">ID: {{ $b->tour_id }}</small>
           </td>
-          <td class="text-right">
+          <td class="text-center align-middle">
             @can('create-review-requests')
-            <form method="POST" action="{{ route('admin.review-requests.send', $b) }}">
+            <form method="POST" action="{{ route('admin.review-requests.send', $b) }}" class="d-inline">
               @csrf
-              <div class="input-group input-group-sm" style="max-width: 220px; float:right;">
-                <input type="number" name="expires_in_days" value="30" min="1" max="120" class="form-control" title="{{ __('reviews.requests.labels.expires_in_days') }}">
-                <div class="input-group-append">
-                  <button class="btn btn-primary">{{ __('reviews.requests.btn_request') }}</button>
-                </div>
-              </div>
+              <input type="number" name="expires_in_days" value="30" min="1" max="120" class="form-control form-control-sm" style="width:70px; display:inline-block;" title="{{ __('reviews.requests.labels.expires_in_days') }}">
+            @endcan
+          </td>
+          <td class="text-right align-middle">
+            @can('create-review-requests')
+              <button class="btn btn-primary btn-sm">{{ __('reviews.requests.btn_request') }}</button>
             </form>
             @endcan
           </td>
         </tr>
         @empty
         <tr>
-          <td colspan="5" class="text-center text-muted p-3">{{ __('reviews.requests.no_eligible') }}</td>
+          <td colspan="6" class="text-center text-muted p-3">{{ __('reviews.requests.no_eligible') }}</td>
         </tr>
         @endforelse
       </tbody>

@@ -175,10 +175,11 @@ return [
         'no_eligible'      => 'Keine berechtigten Buchungen.',
 
         'table' => [
-            'booking'   => 'Buchung',
-            'reference' => 'Referenz',
-            'sent_at'   => 'Gesendet am',
-            'states'    => 'Status',
+            'booking'      => 'Buchung',
+            'reference'    => 'Referenz',
+            'sent_at'      => 'Gesendet am',
+            'states'       => 'Status',
+            'expires_days' => 'Läuft ab (Tage)',
         ],
 
         'labels' => [
