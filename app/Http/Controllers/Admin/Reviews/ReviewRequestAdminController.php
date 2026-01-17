@@ -43,15 +43,8 @@ class ReviewRequestAdminController extends Controller
         $to   = $request->get('to') ?: now()->toDateString();
         $from = $request->get('from') ?: now()->subDays(60)->toDateString();
 
-        // Keep explicit window param for backward compat or UI convenience if needed, 
-        // but prioritize explicit dates if logic demands. 
-        // Use 'days' only if 'from' is not set to calculate defaults? 
-        // Simplified: just use from/to.
-        // If users use the 'days' input in the UI, we might want to keep calculating it, 
-        // but the goal is "choose range", so from/to is better.
-        // We will respect 'from' and 'to' from request.
-
-        $dateCol = $this->bookingDateColumn() ?? 'created_at';
+        // Allow user to select date column, or auto-detect
+        $dateCol = $request->get('date_col') ?: $this->bookingDateColumn() ?? 'created_at';
 
         $revTable = (new Review())->getTable();
         $rrTable  = (new ReviewRequest())->getTable();

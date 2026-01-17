@@ -132,7 +132,7 @@ return [
         'label_is_public'  => 'Public',
         'label_notify'     => 'Send email to customer',
         'notify_to'        => 'It will be sent to: :email',
-        'warn_no_email'    => 'Warning: we did not find an email address for the customer in this review. The reply will be saved, but no email will be sent.',
+        'warn_no_email'    => 'Avertissement : nous n\'avons pas trouvé d\'adresse e-mail pour le client dans cet avis. La réponse sera enregistrée, mais aucun e-mail ne sera envoyé.',
         'saved_notified'   => 'Reply published and emailed to :email.',
         'saved_no_email'   => 'Reply published. No email was sent because no recipient was found.',
         'deleted'          => 'Reply deleted.',
@@ -165,6 +165,10 @@ return [
 
         'window_days'      => 'Fenêtre (jours)',
         'date_column'      => 'Colonne de date',
+        'date_options'     => [
+            'created_at' => 'Réservation créée',
+            'tour_date'  => 'Date du tour',
+        ],
         'calculated_range' => 'Plage calculée',
         'tour_id'          => 'ID du tour',
         'btn_request'      => 'Demander un avis',

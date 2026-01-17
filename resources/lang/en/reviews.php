@@ -165,6 +165,10 @@ return [
 
         'window_days'      => 'Window (days)',
         'date_column'      => 'Date column',
+        'date_options'     => [
+            'created_at' => 'Booking created',
+            'tour_date'  => 'Tour date',
+        ],
         'calculated_range' => 'Calculated range',
         'tour_id'          => 'Tour ID',
         'btn_request'      => 'Request review',

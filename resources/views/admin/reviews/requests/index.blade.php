@@ -55,7 +55,10 @@
     </div>
     <div class="col-sm-2 mb-2">
       <label>{{ __('reviews.requests.date_column') }}</label>
-      <input type="text" class="form-control" value="{{ $dateCol }}" disabled>
+      <select name="date_col" class="form-control">
+        <option value="created_at" {{ ($dateCol ?? 'created_at') === 'created_at' ? 'selected' : '' }}>{{ __('reviews.requests.date_options.created_at') }}</option>
+        <option value="start_date" {{ ($dateCol ?? '') === 'start_date' ? 'selected' : '' }}>{{ __('reviews.requests.date_options.tour_date') }}</option>
+      </select>
     </div>
     @else
     <div class="col-sm-2 mb-2">

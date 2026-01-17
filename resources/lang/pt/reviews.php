@@ -132,7 +132,7 @@ return [
         'label_is_public'  => 'Public',
         'label_notify'     => 'Send email to customer',
         'notify_to'        => 'It will be sent to: :email',
-        'warn_no_email'    => 'Warning: we did not find an email address for the customer in this review. The reply will be saved, but no email will be sent.',
+        'warn_no_email'    => 'Aviso: não encontramos um endereço de e-mail para o cliente nesta avaliação. A resposta será salva, mas nenhum e-mail será enviado.',
         'saved_notified'   => 'Reply published and emailed to :email.',
         'saved_no_email'   => 'Reply published. No email was sent because no recipient was found.',
         'deleted'          => 'Reply deleted.',
@@ -165,6 +165,10 @@ return [
 
         'window_days'      => 'Janela (dias)',
         'date_column'      => 'Coluna de data',
+        'date_options'     => [
+            'created_at' => 'Reserva criada',
+            'tour_date'  => 'Data do tour',
+        ],
         'calculated_range' => 'Intervalo calculado',
         'tour_id'          => 'ID do Tour',
         'btn_request'      => 'Solicitar avaliação',
