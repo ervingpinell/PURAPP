@@ -85,4 +85,5 @@ return [
         'review_template' => 'Plantillas de Reseña',
         'cart' => 'Carrito',
         'configuration' => 'Configuración',
+        'email_previews' => 'Previsualización de Emails',
 ];

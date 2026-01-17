@@ -97,6 +97,10 @@ class BookingCancelledMail extends Mailable implements ShouldQueue
             ->replyTo($replyTo)
             ->subject($subject)
             ->view('emails.booking_cancelled')
+            ->text('emails.booking_cancelled_plain')
+            ->withSymfonyMessage(function ($message) {
+                $message->getHeaders()->addTextHeader('X-Entity-Ref-ID', $this->reference);
+            })
             ->with([
                 'booking'           => $this->booking,
                 'mailLocale'        => $this->mailLocale,

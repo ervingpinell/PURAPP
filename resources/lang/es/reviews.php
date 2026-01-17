@@ -320,6 +320,7 @@ return [
             'cancelled_subject' => 'Reserva Cancelada - Pago No Recibido #:ref',
             'payment_success_subject' => '¡Pago Confirmado! #:ref',
             'payment_reminder_subject' => 'Recordatorio de Pago - ¡Tu Tour se Acerca! #:ref',
+            'payment_failed_subject' => 'Pago Fallido - Acción Requerida #:ref',
         ],
     ],
 

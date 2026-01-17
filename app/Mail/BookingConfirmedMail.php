@@ -89,6 +89,10 @@ class BookingConfirmedMail extends Mailable implements ShouldQueue
             ->replyTo($replyTo)
             ->subject($subject)
             ->view('emails.booking_confirmed')
+            ->text('emails.booking_confirmed_plain')
+            ->withSymfonyMessage(function ($message) {
+                $message->getHeaders()->addTextHeader('X-Entity-Ref-ID', $this->reference);
+            })
             ->with([
                 'booking'             => $this->booking,
                 'mailLocale'          => $this->mailLocale,

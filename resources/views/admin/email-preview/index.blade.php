@@ -1,10 +1,10 @@
 @extends('adminlte::page')
 
-@section('title', 'Email Previews')
+@section('title', __('adminlte::adminlte.email_preview.page_title'))
 
 @section('content_header')
 <h1>
-    <i class="fas fa-envelope"></i> Email Template Previews
+    <i class="fas fa-envelope"></i> {{ __('adminlte::adminlte.email_preview.page_title') }}
 </h1>
 @stop
 
@@ -13,8 +13,8 @@
     <div class="col-12">
         <div class="alert alert-info">
             <i class="fas fa-info-circle"></i>
-            <strong>Email Preview System</strong><br>
-            Preview all email templates without sending them. This uses real booking data when available, or sample data for demonstration.
+            <strong>{{ __('adminlte::adminlte.email_preview.title') }}</strong><br>
+            {{ __('adminlte::adminlte.email_preview.description') }}
         </div>
     </div>
 </div>
@@ -36,9 +36,14 @@
                             <i class="fas fa-external-link-alt text-muted mr-2"></i>
                             {{ $label }}
                         </a>
-                        <div>
-                            <a href="{{ route('admin.email-preview.show', $type) }}?locale=es" target="_blank" class="badge badge-warning mr-1">ES</a>
-                            <a href="{{ route('admin.email-preview.show', $type) }}?locale=en" target="_blank" class="badge badge-primary">EN</a>
+                        <div class="d-flex align-items-center">
+                            <a href="{{ route('admin.email-preview.show', $type) }}?locale=es" target="_blank" class="badge badge-warning mr-1" title="Español">ES</a>
+                            <a href="{{ route('admin.email-preview.show', $type) }}?locale=en" target="_blank" class="badge badge-primary mr-1" title="English">EN</a>
+                            {{-- 
+                            <a href="{{ route('admin.email-preview.show', $type) }}?locale=fr" target="_blank" class="badge badge-info mr-1" title="Français">FR</a>
+                            <a href="{{ route('admin.email-preview.show', $type) }}?locale=de" target="_blank" class="badge badge-secondary mr-1" title="Deutsch">DE</a>
+                            <a href="{{ route('admin.email-preview.show', $type) }}?locale=pt" target="_blank" class="badge badge-success" title="Português">PT</a>
+                            --}}
                         </div>
                     </li>
                     @endforeach
@@ -54,25 +59,25 @@
     <div class="col-md-12">
         <div class="card card-info">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-tools"></i> Email Tools</h3>
+                <h3 class="card-title"><i class="fas fa-tools"></i> {{ __('adminlte::adminlte.email_preview.tools_title') }}</h3>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <a href="/telescope/mail" target="_blank" class="btn btn-info btn-block">
-                            <i class="fas fa-satellite-dish"></i> View Sent Emails (Telescope)
+                            <i class="fas fa-satellite-dish"></i> {{ __('adminlte::adminlte.email_preview.view_telescope') }}
                         </a>
                     </div>
                     <div class="col-md-6 mb-3">
                         <a href="{{ route('admin.settings.index') }}" class="btn btn-secondary btn-block">
-                            <i class="fas fa-cog"></i> Email Configuration
+                            <i class="fas fa-cog"></i> {{ __('adminlte::adminlte.email_preview.config_button') }}
                         </a>
                     </div>
                 </div>
                 <div class="alert alert-warning mb-0">
                     <small>
                         <i class="fas fa-lightbulb"></i>
-                        <strong>Tip:</strong> Click any email link to open it in a new tab. The preview uses the same layout and styling as actual emails.
+                        <strong>{{ __('adminlte::adminlte.email_preview.tip_title') }}</strong> {{ __('adminlte::adminlte.email_preview.tip_text') }}
                     </small>
                 </div>
             </div>
@@ -84,35 +89,35 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title"><i class="fas fa-info-circle"></i> Email Addresses Configuration</h3>
+                <h3 class="card-title"><i class="fas fa-info-circle"></i> {{ __('adminlte::adminlte.email_preview.config_title') }}</h3>
             </div>
             <div class="card-body">
                 <table class="table table-sm table-bordered">
                     <thead>
                         <tr>
-                            <th>Purpose</th>
-                            <th>Address</th>
-                            <th>Environment Variable</th>
+                            <th>{{ __('adminlte::adminlte.email_preview.table.purpose') }}</th>
+                            <th>{{ __('adminlte::adminlte.email_preview.table.address') }}</th>
+                            <th>{{ __('adminlte::adminlte.email_preview.table.env_var') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>From (No-Reply)</strong></td>
+                            <td><strong>{{ __('adminlte::adminlte.email_preview.table.from') }}</strong></td>
                             <td><code>{{ config('mail.from.address') }}</code></td>
                             <td><code>MAIL_FROM_ADDRESS</code></td>
                         </tr>
                         <tr>
-                            <td><strong>Reply-To (Support)</strong></td>
+                            <td><strong>{{ __('adminlte::adminlte.email_preview.table.reply_to') }}</strong></td>
                             <td><code>{{ config('mail.reply_to.address') }}</code></td>
                             <td><code>MAIL_REPLY_TO_ADDRESS</code></td>
                         </tr>
                         <tr>
-                            <td><strong>Admin Notifications</strong></td>
+                            <td><strong>{{ __('adminlte::adminlte.email_preview.table.admin_notify') }}</strong></td>
                             <td><code>{{ config('mail.notifications.address') }}</code></td>
                             <td><code>MAIL_NOTIFY_ADDRESS</code></td>
                         </tr>
                         <tr>
-                            <td><strong>Booking Notifications</strong></td>
+                            <td><strong>{{ __('adminlte::adminlte.email_preview.table.booking_notify') }}</strong></td>
                             <td><code>{{ config('mail.booking_notify') ?: 'Not configured' }}</code></td>
                             <td><code>BOOKING_NOTIFY</code></td>
                         </tr>

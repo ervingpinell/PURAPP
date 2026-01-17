@@ -76,4 +76,5 @@ return [
         'email_templates' => 'E-Mail-Vorlagen',
         'app_settings' => 'App-Einstellungen',
         'app' => 'App',
+        'email_previews' => 'E-Mail-Vorschau',
 ];

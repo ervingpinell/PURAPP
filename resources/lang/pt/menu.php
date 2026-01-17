@@ -76,4 +76,5 @@ return [
     'app' => 'App',
     'taxes' => 'Impostos',
     'email_templates' => 'Modelos de Email',
+    'email_previews'  => 'Pré-vis. E-mails',
 ];

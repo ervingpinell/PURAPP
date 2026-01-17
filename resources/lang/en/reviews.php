@@ -320,6 +320,7 @@ return [
             'cancelled_subject' => 'Booking Cancelled - Payment Not Received #:ref',
             'payment_success_subject' => 'Payment Confirmed! #:ref',
             'payment_reminder_subject' => 'Payment Reminder - Your Tour is Coming Soon! #:ref',
+            'payment_failed_subject' => 'Payment Failed - Action Required #:ref',
         ],
     ],
 

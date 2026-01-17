@@ -84,4 +84,5 @@ return [
         'review_template' => 'Review Templates',
         'cart' => 'Cart',
         'configuration' => 'Configuration',
+        'email_previews' => 'Email Previews',
 ];

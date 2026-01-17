@@ -45,51 +45,51 @@ class EmailPreviewController extends Controller
     {
         $emailTypes = [
             'bookings' => [
-                'label' => 'Customer Bookings',
+                'label' => __('adminlte::adminlte.email_preview.labels.bookings'),
                 'icon' => 'fas fa-calendar-check',
                 'items' => [
-                    'booking-created' => 'Booking Created',
-                    'booking-confirmed' => 'Booking Confirmed',
-                    'booking-updated' => 'Booking Updated',
-                    'booking-cancelled' => 'Booking Cancelled',
-                    'booking-expired' => 'Booking Expired (Unpaid)',
-                    'payment-success' => 'Payment Success',
-                    'payment-failed' => 'Payment Failed',
-                    'payment-reminder' => 'Payment Reminder',
+                    'booking-created' => __('adminlte::adminlte.email_preview.types.booking-created'),
+                    'booking-confirmed' => __('adminlte::adminlte.email_preview.types.booking-confirmed'),
+                    'booking-updated' => __('adminlte::adminlte.email_preview.types.booking-updated'),
+                    'booking-cancelled' => __('adminlte::adminlte.email_preview.types.booking-cancelled'),
+                    'booking-expired' => __('adminlte::adminlte.email_preview.types.booking-expired'),
+                    'payment-success' => __('adminlte::adminlte.email_preview.types.payment-success'),
+                    'payment-failed' => __('adminlte::adminlte.email_preview.types.payment-failed'),
+                    'payment-reminder' => __('adminlte::adminlte.email_preview.types.payment-reminder'),
                 ]
             ],
             'reviews' => [
-                'label' => 'Reviews',
+                'label' => __('adminlte::adminlte.email_preview.labels.reviews'),
                 'icon' => 'fas fa-star',
                 'items' => [
-                    'review-request' => 'Review Request Link',
-                    'review-reply' => 'Review Reply Notification',
-                    'review-submitted' => 'Review Submitted (Admin Notification)',
+                    'review-request' => __('adminlte::adminlte.email_preview.types.review-request'),
+                    'review-reply' => __('adminlte::adminlte.email_preview.types.review-reply'),
+                    'review-submitted' => __('adminlte::adminlte.email_preview.types.review-submitted'),
                 ]
             ],
             'auth' => [
-                'label' => 'User & Account',
+                'label' => __('adminlte::adminlte.email_preview.labels.auth'),
                 'icon' => 'fas fa-user-shield',
                 'items' => [
-                    'welcome' => 'Welcome Email',
-                    'password-setup' => 'Account Setup (Set Password)',
-                    'verify-email' => 'Verify Email Address',
-                    'reset-password' => 'Reset Password Request',
-                    'password-updated' => 'Password Updated Notice',
-                    'account-locked' => 'Account Locked Notification',
-                    'email-change-verification' => 'Email Change Verification',
-                    'email-change-completed' => 'Email Change Completed',
+                    'welcome' => __('adminlte::adminlte.email_preview.types.welcome'),
+                    'password-setup' => __('adminlte::adminlte.email_preview.types.password-setup'),
+                    'verify-email' => __('adminlte::adminlte.email_preview.types.verify-email'),
+                    'reset-password' => __('adminlte::adminlte.email_preview.types.reset-password'),
+                    'password-updated' => __('adminlte::adminlte.email_preview.types.password-updated'),
+                    'account-locked' => __('adminlte::adminlte.email_preview.types.account-locked'),
+                    'email-change-verification' => __('adminlte::adminlte.email_preview.types.email-change-verification'),
+                    'email-change-completed' => __('adminlte::adminlte.email_preview.types.email-change-completed'),
                 ]
             ],
             'admin' => [
-                'label' => 'Admin & Reports',
+                'label' => __('adminlte::adminlte.email_preview.labels.admin'),
                 'icon' => 'fas fa-cogs',
                 'items' => [
-                    'admin-booking-created' => 'New Booking Notification',
-                    'admin-paid-booking' => 'Paid Booking Notification',
-                    'admin-booking-expiring' => 'Booking Expiring Alert',
-                    'admin-daily-report' => 'Daily Operations Report',
-                    'contact-message' => 'Contact Form Message',
+                    'admin-booking-created' => __('adminlte::adminlte.email_preview.types.admin-booking-created'),
+                    'admin-paid-booking' => __('adminlte::adminlte.email_preview.types.admin-paid-booking'),
+                    'admin-booking-expiring' => __('adminlte::adminlte.email_preview.types.admin-booking-expiring'),
+                    'admin-daily-report' => __('adminlte::adminlte.email_preview.types.admin-daily-report'),
+                    'contact-message' => __('adminlte::adminlte.email_preview.types.contact-message'),
                 ]
             ],
         ];

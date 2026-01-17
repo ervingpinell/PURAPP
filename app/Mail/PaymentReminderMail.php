@@ -49,4 +49,13 @@ class PaymentReminderMail extends Mailable
             ],
         );
     }
+
+    public function headers(): \Illuminate\Mail\Mailables\Headers
+    {
+        return new \Illuminate\Mail\Mailables\Headers(
+            text: [
+                'X-Entity-Ref-ID' => $this->booking->booking_reference,
+            ],
+        );
+    }
 }

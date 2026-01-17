@@ -17,8 +17,11 @@ class PaymentFailedMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $locale = $this->booking->tour->lang ?? config('app.locale');
+        $subject = __('reviews.emails.booking.payment_failed_subject', ['ref' => $this->booking->booking_reference], $locale);
+
         return new Envelope(
-            subject: "Payment Failed - Action Required #{$this->booking->booking_reference}",
+            subject: $subject,
             replyTo: [config('booking.email_config.reply_to', 'info@greenvacationscr.com')],
         );
     }
@@ -27,10 +30,20 @@ class PaymentFailedMail extends Mailable
     {
         return new Content(
             markdown: 'emails.customer.payment-failed',
+            text: 'emails.customer.payment-failed_plain',
             with: [
                 'booking' => $this->booking,
                 'paymentUrl' => route('booking.payment', $this->booking->booking_reference),
                 'graceHours' => 24,
+            ],
+        );
+    }
+
+    public function headers(): Headers
+    {
+        return new Headers(
+            text: [
+                'X-Entity-Ref-ID' => $this->booking->booking_reference,
             ],
         );
     }

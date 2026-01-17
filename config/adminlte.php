@@ -583,10 +583,11 @@ return [
                     'trans' => true,
                 ],
                 [
-                    'text'  => 'Email Previews',
+                    'text'  => 'menu.email_previews',
                     'route' => 'admin.email-preview.index',
                     'icon'  => 'fas fa-eye',
                     'can'   => 'view-email-templates',
+                    'trans' => true,
                 ],
             ],
         ],
