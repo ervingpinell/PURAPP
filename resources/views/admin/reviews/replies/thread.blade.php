@@ -93,7 +93,7 @@
             @php $vis = isset($rep->public) ? (bool)$rep->public : (bool)($rep->is_public ?? true); @endphp
             <tr>
               <td class="align-middle">{{ $rep->created_at->format('d-M-Y H:i') }}</td>
-              <td class="align-middle">#{{ $rep->admin_user_id ?? '—' }}</td>
+              <td class="align-middle">{{ optional($rep->admin)->full_name ?? '—' }}</td>
               <td class="align-middle">
                 <span class="badge {{ $vis ? 'badge-success' : 'badge-secondary' }}">
                   {{ $vis ? __('reviews.common.public') : __('reviews.common.private') }}

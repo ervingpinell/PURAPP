@@ -66,7 +66,7 @@ class ReviewRequestAdminController extends Controller
         $q = Booking::query()
             ->with([
                 'tour:tour_id,name',
-                'user:user_id,full_name,email',
+                'user:user_id,first_name,last_name,email',
             ]);
 
         // (opcional) selección explícita de columna de referencia si existe
@@ -151,7 +151,7 @@ class ReviewRequestAdminController extends Controller
                 // incluye booking_reference si existe
                 'booking:booking_id,tour_id' . ($hasBkRef ? ',booking_reference' : ''),
                 'tour:tour_id,name',
-                'user:user_id,full_name,email',
+                'user:user_id,first_name,last_name,email',
             ]);
 
         // Filtros de estado

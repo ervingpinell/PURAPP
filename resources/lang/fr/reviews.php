@@ -31,13 +31,13 @@ return [
         'back'      => 'Retour',
         'save'      => 'Enregistrer',
         'create'    => 'Créer',
-        'edit'      => 'Edit',
-        'delete'    => 'Delete',
-        'publish'   => 'Publish',
-        'hide'      => 'Hide',
-        'flag'      => 'Flag',
-        'unflag'    => 'Unflag',
-        'apply'     => 'Apply',
+        'edit'      => 'Modifier',
+        'delete'    => 'Supprimer',
+        'publish'   => 'Publier',
+        'hide'      => 'Masquer',
+        'flag'      => 'Signaler',
+        'unflag'    => 'Retirer le signalement',
+        'apply'     => 'Appliquer',
         'yes'       => 'Oui',
         'no'        => 'Non',
         'not_found' => 'No results were found.',
@@ -86,8 +86,8 @@ return [
         'bulk_apply'    => 'Appliquer à la sélection',
         'external_provider_note' => 'Note du fournisseur externe',
 
-        'responded'     => 'Responded?',
-        'last_reply'    => 'Last:',
+        'responded'     => 'Répondu ?',
+        'last_reply'    => 'Dernière :',
 
         'filters'       => [
             'provider'  => 'Fournisseur',
@@ -100,7 +100,7 @@ return [
 
         'table' => [
             'date'     => 'Date',
-            'review'   => 'Review',
+            'review'   => 'Avis',
             'client'   => 'Client',
             'tour'     => 'Tour',
         ],
@@ -339,18 +339,18 @@ return [
     // Thread / conversation
     // =========================
     'thread' => [
-        'title'             => 'Review thread #:id',
-        'header'            => 'Thread — Review #:id',
+        'title'             => 'Fil d\'avis #:id',
+        'header'            => 'Fil — Avis #:id',
         'replies_header'    => 'Réponses',
         'th_date'           => 'Date',
         'th_admin'          => 'Admin',
         'th_visible'        => 'Visible',
-        'th_body'           => 'Content',
+        'th_body'           => 'Contenu',
         'th_actions'        => 'Actions',
-        'toggle_visibility' => 'Toggle visibility',
-        'delete'            => 'Delete',
-        'confirm_delete'    => 'Delete reply?',
-        'empty'             => 'No replies yet.',
+        'toggle_visibility' => 'Basculer la visibilité',
+        'delete'            => 'Supprimer',
+        'confirm_delete'    => 'Supprimer la réponse ?',
+        'empty'             => 'Aucune réponse pour le moment.',
     ],
 
     // =========================

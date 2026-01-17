@@ -101,6 +101,7 @@ class ReviewReplyController extends Controller
 
         $review->load([
             'replies' => fn($q) => $q->orderBy('created_at'),
+            'replies.admin:user_id,first_name,last_name',
             'user:user_id,first_name,last_name,email',
             'booking.tour',
         ]);

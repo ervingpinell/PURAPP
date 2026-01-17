@@ -31,13 +31,13 @@ return [
         'back'      => 'Voltar',
         'save'      => 'Salvar',
         'create'    => 'Criar',
-        'edit'      => 'Edit',
-        'delete'    => 'Delete',
-        'publish'   => 'Publish',
-        'hide'      => 'Hide',
-        'flag'      => 'Flag',
-        'unflag'    => 'Unflag',
-        'apply'     => 'Apply',
+        'edit'      => 'Editar',
+        'delete'    => 'Excluir',
+        'publish'   => 'Publicar',
+        'hide'      => 'Ocultar',
+        'flag'      => 'Sinalizar',
+        'unflag'    => 'Remover sinalização',
+        'apply'     => 'Aplicar',
         'yes'       => 'Sim',
         'no'        => 'Não',
         'not_found' => 'No results were found.',
@@ -86,8 +86,8 @@ return [
         'bulk_apply'    => 'Aplicar à seleção',
         'external_provider_note' => 'Nota do fornecedor externo',
 
-        'responded'     => 'Responded?',
-        'last_reply'    => 'Last:',
+        'responded'     => 'Respondido?',
+        'last_reply'    => 'Última:',
 
         'filters'       => [
             'provider'  => 'Fornecedor',
@@ -99,9 +99,9 @@ return [
         ],
 
         'table' => [
-            'date'     => 'Date',
-            'review'   => 'Review',
-            'client'   => 'Client',
+            'date'     => 'Data',
+            'review'   => 'Avaliação',
+            'client'   => 'Cliente',
             'tour'     => 'Tour',
         ],
 
@@ -339,18 +339,18 @@ return [
     // Thread / conversation
     // =========================
     'thread' => [
-        'title'             => 'Review thread #:id',
-        'header'            => 'Thread — Review #:id',
+        'title'             => 'Thread de avaliação #:id',
+        'header'            => 'Thread — Avaliação #:id',
         'replies_header'    => 'Respostas',
-        'th_date'           => 'Date',
+        'th_date'           => 'Data',
         'th_admin'          => 'Admin',
-        'th_visible'        => 'Visible',
-        'th_body'           => 'Content',
-        'th_actions'        => 'Actions',
-        'toggle_visibility' => 'Toggle visibility',
-        'delete'            => 'Delete',
-        'confirm_delete'    => 'Delete reply?',
-        'empty'             => 'No replies yet.',
+        'th_visible'        => 'Visível',
+        'th_body'           => 'Conteúdo',
+        'th_actions'        => 'Ações',
+        'toggle_visibility' => 'Alternar visibilidade',
+        'delete'            => 'Excluir',
+        'confirm_delete'    => 'Excluir resposta?',
+        'empty'             => 'Ainda não há respostas.',
     ],
 
     // =========================
