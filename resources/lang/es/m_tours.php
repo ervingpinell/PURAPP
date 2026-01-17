@@ -1149,6 +1149,7 @@ return [
             'color'                  => 'Color del Tour',
             'remove'                 => 'Eliminar',
             'delete'                 => 'Eliminar',
+            'deleted'                => 'Eliminado',
             'choose_itinerary'       => 'Elegir itinerario',
             'select_type'            => 'Seleccionar tipo',
             'empty_means_default'    => 'Por defecto',

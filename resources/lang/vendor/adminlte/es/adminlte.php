@@ -400,6 +400,7 @@ return [
     'customHotelHelp' => 'Si ingresas un hotel personalizado, la selección de la lista será ignorada.',
     'inactive' => 'Inactivo',
     'notSpecified' => 'No especificado',
+    'noItemsSelected' => 'No hay elementos seleccionados',
     'saving' => 'Guardando…',
 
     // 19. SWEETALERTS (ACCIONES)
