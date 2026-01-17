@@ -17,8 +17,11 @@ class PaymentSuccessMail extends Mailable
 
     public function envelope(): Envelope
     {
+        $locale = $this->booking->tour->lang ?? config('app.locale');
+        $subject = __('reviews.emails.booking.payment_success_subject', ['ref' => $this->booking->booking_reference], $locale);
+
         return new Envelope(
-            subject: "Payment Confirmed! #{$this->booking->booking_reference}",
+            subject: $subject,
             replyTo: [config('booking.email_config.reply_to', 'info@greenvacationscr.com')],
         );
     }
@@ -37,7 +40,8 @@ class PaymentSuccessMail extends Mailable
         }
 
         return new Content(
-            markdown: 'emails.customer.payment-success',
+            view: 'emails.customer.payment-success',
+            text: 'emails.customer.payment-success_plain',
             with: [
                 'booking' => $this->booking,
                 'passwordSetupUrl' => $passwordSetupUrl,

@@ -41,9 +41,6 @@
         If you have any questions, please don't hesitate to contact us.
     </p>
 
-    <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
-        Thanks,<br>
-        {{ config('app.name') }}
-    </p>
+
 </div>
 @endsection

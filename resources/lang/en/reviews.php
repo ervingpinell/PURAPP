@@ -126,6 +126,11 @@ return [
             'delete_confirm' => 'Yes, delete it',
             'delete_cancel'  => 'Cancel',
         ],
+
+        // New form fields
+        'booking_ref'      => 'Booking Reference',
+        'user_email'       => 'User Email',
+        'optional_parens'  => '(Optional)',
     ],
 
     // =========================
@@ -146,6 +151,7 @@ return [
         'thread_title'     => 'Conversation — Review #:id',
         'thread_empty'     => 'No replies.',
         'last_reply'       => 'Last:',
+
     ],
 
     // =========================
@@ -309,6 +315,11 @@ return [
         ],
         'submitted' => [
             'subject' => 'New review received',
+        ],
+        'booking' => [
+            'cancelled_subject' => 'Booking Cancelled - Payment Not Received #:ref',
+            'payment_success_subject' => 'Payment Confirmed! #:ref',
+            'payment_reminder_subject' => 'Payment Reminder - Your Tour is Coming Soon! #:ref',
         ],
     ],
 

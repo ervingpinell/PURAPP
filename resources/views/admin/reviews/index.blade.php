@@ -123,7 +123,7 @@
           @foreach($reviews as $r)
           @php
           $isExternal = isset($r->is_external) && $r->is_external;
-          $ref = !$isExternal ? (optional($r->booking)->booking_reference ?? optional($r->booking)->reference ?? null) : null;
+          $ref = !$isExternal ? (optional($r->booking)->booking_reference ?? optional($r->booking)->reference ?? $r->manual_booking_ref ?? null) : null;
           $bkid = !$isExternal ? (optional($r->booking)->booking_id ?? null) : null;
           @endphp
           <tr>

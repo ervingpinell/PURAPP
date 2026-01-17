@@ -126,6 +126,11 @@ return [
             'delete_confirm' => 'Sí, eliminar',
             'delete_cancel'  => 'Cancelar',
         ],
+
+        // New form fields
+        'booking_ref'      => 'Ref. Reserva',
+        'user_email'       => 'Email de Usuario',
+        'optional_parens'  => '(Opcional)',
     ],
 
     // =========================
@@ -146,6 +151,7 @@ return [
         'thread_title'     => 'Conversation — Review #:id',
         'thread_empty'     => 'No replies.',
         'last_reply'       => 'Última:',
+
     ],
 
     // =========================
@@ -300,15 +306,20 @@ return [
             'fallback'  => 'Si el botón no funciona, copia y pega este enlace en tu navegador:',
         ],
         'reply' => [
-            'subject'  => 'Reply to your review',
-            'greeting' => 'Hi :name,',
-            'intro'    => 'Our team has replied to your review :extra.',
+            'subject'  => 'Respuesta a tu reseña',
+            'greeting' => 'Hola :name,',
+            'intro'    => 'Nuestro equipo ha respondido a tu reseña :extra.',
             'quote'    => '“:text”',
             'sign'     => '— :admin',
             'closing'  => 'Si tienes alguna duda o quieres ampliar tu comentario, solo responde a este correo. ¡Pura vida! 🌿',
         ],
         'submitted' => [
             'subject' => 'New review received',
+        ],
+        'booking' => [
+            'cancelled_subject' => 'Reserva Cancelada - Pago No Recibido #:ref',
+            'payment_success_subject' => '¡Pago Confirmado! #:ref',
+            'payment_reminder_subject' => 'Recordatorio de Pago - ¡Tu Tour se Acerca! #:ref',
         ],
     ],
 
@@ -401,15 +412,15 @@ return [
     // Alias for reply emails (if used outside "emails")
     // =========================
     'reply' => [
-        'subject'          => 'Reply to your review',
-        'greeting'         => 'Hi :name,',
-        'about_html'       => 'about <strong>:tour</strong>',
-        'about_text'       => 'about :tour',
-        'intro'            => 'Our team has replied to your review :extra.',
+        'subject'          => 'Respuesta a tu reseña',
+        'greeting'         => 'Hola :name,',
+        'about_html'       => 'sobre <strong>:tour</strong>',
+        'about_text'       => 'sobre :tour',
+        'intro'            => 'Nuestro equipo ha respondido a tu reseña :extra.',
         'quote'            => '“:text”',
         'sign'             => '— :admin',
-        'closing'          => 'If you have any questions or would like to expand on your comment, just reply to this email. Pura vida! 🌿',
-        'rights_reserved'  => 'All rights reserved',
+        'closing'          => 'Si tienes alguna duda o quieres ampliar tu comentario, solo responde a este correo. ¡Pura vida! 🌿',
+        'rights_reserved'  => 'Todos los derechos reservados',
     ],
 
     // Fallback for greeting if there is no name

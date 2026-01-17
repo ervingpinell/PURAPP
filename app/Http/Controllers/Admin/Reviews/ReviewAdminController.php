@@ -166,6 +166,8 @@ class ReviewAdminController extends Controller
             'language'    => ['nullable', 'string', 'max:10'],
             'status'      => ['nullable', Rule::in(['pending', 'published', 'hidden', 'flagged'])],
             'is_public'   => ['nullable', 'boolean'],
+            'booking_ref' => ['nullable', 'string'],
+            'user_email'  => ['nullable', 'email'],
         ]);
 
         $data = [
@@ -176,6 +178,25 @@ class ReviewAdminController extends Controller
             'body'        => $validated['body'],
             'author_name' => $validated['author_name'] ?? null,
         ];
+
+        // 1. Save manual inputs
+        if (!empty($validated['booking_ref'])) {
+            $data['manual_booking_ref'] = trim($validated['booking_ref']);
+        }
+        if (!empty($validated['user_email'])) {
+            $data['author_email'] = trim($validated['user_email']);
+        }
+
+        // 2. Attempt to link real IDs if match found (case-insensitive)
+        if (!empty($data['manual_booking_ref'])) {
+            $bk = Booking::whereRaw('LOWER(booking_reference) = ?', [strtolower($data['manual_booking_ref'])])->first();
+            if ($bk) $data['booking_id'] = $bk->booking_id;
+        }
+
+        if (!empty($data['author_email'])) {
+            $u = \App\Models\User::whereRaw('LOWER(email) = ?', [strtolower($data['author_email'])])->first();
+            if ($u) $data['user_id'] = $u->user_id;
+        }
 
         if (Schema::hasColumn('reviews', 'language'))  $data['language']  = $validated['language'] ?? null;
         if (Schema::hasColumn('reviews', 'status'))    $data['status']    = 'pending';
@@ -216,6 +237,8 @@ class ReviewAdminController extends Controller
             'language'    => ['nullable', 'string', 'max:10'],
             'status'      => ['nullable', Rule::in(['pending', 'published', 'hidden', 'flagged'])],
             'is_public'   => ['nullable', 'boolean'],
+            'booking_ref' => ['nullable', 'string'],
+            'user_email'  => ['nullable', 'email'],
         ]);
 
         $payload = [
@@ -224,6 +247,37 @@ class ReviewAdminController extends Controller
             'body'        => $validated['body'],
             'author_name' => $validated['author_name'] ?? null,
         ];
+
+        // 1. Save and Link Booking Ref
+        if (array_key_exists('booking_ref', $validated)) {
+             $val = trim($validated['booking_ref'] ?? '');
+             $payload['manual_booking_ref'] = $val ?: null;
+
+             if ($val) {
+                 $bk = Booking::whereRaw('LOWER(booking_reference) = ?', [strtolower($val)])->first();
+                 $payload['booking_id'] = $bk?->booking_id; // Link if found, otherwise null is implicit? No, explicit null on not found ok?
+                 // Note: If no match, we just save manual_booking_ref. booking_id can be cleared or kept?
+                 // Usually if manual ref changes, we should re-resolve booking_id. If not found, booking_id should be null.
+                 $payload['booking_id'] = $bk ? $bk->booking_id : null;
+             } else {
+                 $payload['manual_booking_ref'] = null;
+                 $payload['booking_id'] = null;
+             }
+        }
+
+        // 2. Save and Link Email
+        if (array_key_exists('user_email', $validated)) {
+            $val = trim($validated['user_email'] ?? '');
+            $payload['author_email'] = $val ?: null;
+
+            if ($val) {
+                $u = \App\Models\User::whereRaw('LOWER(email) = ?', [strtolower($val)])->first();
+                $payload['user_id'] = $u ? $u->user_id : null;
+            } else {
+                $payload['author_email'] = null;
+                $payload['user_id'] = null;
+            }
+        }
 
         if (Schema::hasColumn($review->getTable(), 'language')) $payload['language'] = $validated['language'] ?? $review->language;
         if (Schema::hasColumn($review->getTable(), 'status'))   $payload['status']   = $validated['status'] ?? $review->status ?? 'pending';

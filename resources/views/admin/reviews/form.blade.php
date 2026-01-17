@@ -18,14 +18,14 @@
 
   <div class="card">
     <div class="card-body">
-      <form method="post" action="{{ $review->exists ? route('admin.reviews.update',$review) : route('admin.reviews.store') }}">
+      <form id="reviewForm" method="post" action="{{ $review->exists ? route('admin.reviews.update',$review) : route('admin.reviews.store') }}">
         @csrf
         @if($review->exists) @method('PUT') @endif
 
         <div class="row">
           <div class="col-md-3">
             <div class="form-group">
-              <label>{{ __('reviews.admin.filters.tour_id') }}</label>
+              <label>{{ __('reviews.admin.filters.tour_id') }} (Required)</label>
               <input type="number" name="tour_id" class="form-control"
                      value="{{ old('tour_id',$review->tour_id) }}"
                      {{ $review->exists ? 'disabled' : 'required' }}>
@@ -56,6 +56,23 @@
             </div>
           </div>
 
+          {{-- New Fields --}}
+          <div class="col-md-4">
+            <div class="form-group">
+              <label>{{ __('reviews.admin.booking_ref') }} <small class="text-muted">{{ __('reviews.admin.optional_parens') }}</small></label>
+              <input type="text" name="booking_ref" class="form-control" placeholder="{{ __('reviews.admin.booking_ref') }}"
+                     value="{{ old('booking_ref', $review->manual_booking_ref ?? optional($review->booking)->booking_reference) }}">
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="form-group">
+              <label>{{ __('reviews.admin.user_email') }} <small class="text-muted">{{ __('reviews.admin.optional_parens') }}</small></label>
+              <input type="email" name="user_email" class="form-control" placeholder="user@example.com"
+                     value="{{ old('user_email', $review->author_email ?? optional($review->user)->email) }}">
+            </div>
+          </div>
+          <div class="col-md-3"></div>
+
           <div class="col-12">
             <div class="form-group">
               <label>{{ __('reviews.common.title') }}</label>
@@ -76,7 +93,7 @@
         </div>
 
         <div class="mt-3 d-flex gap-2">
-          <button class="btn btn-primary">{{ $review->exists ? __('reviews.common.save') : __('reviews.common.create') }}</button>
+          <button type="submit" id="submitBtn" class="btn btn-primary">{{ $review->exists ? __('reviews.common.save') : __('reviews.common.create') }}</button>
           <a class="btn btn-secondary" href="{{ route('admin.reviews.index') }}">{{ __('reviews.common.back') }}</a>
         </div>
       </form>
@@ -89,4 +106,16 @@
   @if (session('ok'))
     <script>Swal.fire({icon:'success', title:@json(session('ok'))});</script>
   @endif
+  <script>
+    // Prevent double submission
+    document.getElementById('reviewForm').addEventListener('submit', function(e) {
+        var btn = document.getElementById('submitBtn');
+        if (btn.disabled) {
+            e.preventDefault();
+            return;
+        }
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    });
+  </script>
 @stop

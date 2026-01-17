@@ -32,7 +32,8 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
         Carbon::setLocale($loc);
 
         // === URL del CTA ===
-        $ctaUrl = route('reviews.request.show', ['token' => $rr->token]);
+        // Appending lang parameter to ensure correct locale on landing
+        $ctaUrl = route('reviews.request.show', ['token' => $rr->token, 'lang' => $loc]);
 
         // === Nombre del cliente ===
         $userName = optional($rr->user)->full_name

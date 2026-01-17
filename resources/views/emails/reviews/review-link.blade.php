@@ -72,7 +72,6 @@
         $expiresLabel  = "Este enlace estará activo hasta: :date.";
         $footerText    = "Gracias por apoyar el turismo local. ¡Esperamos verte de nuevo pronto! 🌿";
 
-        $contactLineTemplate = "Si necesitas ayuda, contáctanos en :email o :phone. Visítanos en :url.";
     } else {
         $greeting = "Hi {$nameForGreeting},";
         $intro    = "Pura vida! 🙌 Thanks for choosing us. We’d love to know how it went on {$tourLabel}.";
@@ -82,8 +81,6 @@
         $fallbackLabel = "If the button does not work, copy and paste this link in your browser:";
         $expiresLabel  = "This link will be active until: :date.";
         $footerText    = "Thanks for supporting local tourism. We hope to see you again soon! 🌿";
-
-        $contactLineTemplate = "If you need help, contact us at :email or :phone. Visit us at :url.";
     }
 
     // Preheader (puedes ajustar si quieres algo más descriptivo)
@@ -94,17 +91,6 @@
     if (!empty($expiresAtText)) {
         $expiresText = str_replace(':date', $expiresAtText, $expiresLabel);
     }
-
-    // Línea de contacto con HTML
-    $emailHtml = '<a href="mailto:'.e($contact['email']).'" style="color:#6b7280">'.e($contact['email']).'</a>';
-    $phoneHtml = '<a href="tel:'.preg_replace("/\s+/", "", e($contact['phone'])).'" style="color:#6b7280">'.e($contact['phone']).'</a>';
-    $urlHtml   = '<a href="'.e($contact['site']).'" style="color:#6b7280">'.e($contact['site']).'</a>';
-
-    $contactLineHtml = strtr($contactLineTemplate, [
-        ':email' => $emailHtml,
-        ':phone' => $phoneHtml,
-        ':url'   => $urlHtml,
-    ]);
 @endphp
 
 {{-- Preheader oculto --}}
@@ -148,7 +134,7 @@
   </p>
 
   <div style="font-size:13px;color:#6b7280;">
-    {!! $contactLineHtml !!}
+    {{-- Footer contact info is handled by base layout footer now --}}
   </div>
 </div>
 

@@ -195,39 +195,73 @@
               <div class="modal-content">
                 <form action="{{ route('admin.policies.sections.update', [$policy, $s]) }}" method="POST" class="js-confirm-edit">
                   @csrf @method('PUT')
-                  <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
                   <div class="modal-header">
-                    <h5 class="modal-title">
-                      {{ __('m_config.policies.edit_section') }}
-                      <small class="text-muted ms-2">({{ strtoupper(app()->getLocale()) }})</small>
-                    </h5>
+                    <h5 class="modal-title">{{ __('m_config.policies.edit_section') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                   </div>
                   <div class="modal-body">
-                    <div class="row g-3">
-                      <div class="col-md-6">
-                        <label class="form-label">{{ __('m_config.policies.name') }}</label>
-                        <input type="text" name="name" class="form-control" value="{{ old('name', $tr?->name) }}">
-                      </div>
-
-                      <div class="col-md-3">
-                        <label class="form-label">{{ __('m_config.policies.order') }}</label>
-                        <input type="number" min="0" name="sort_order" class="form-control" value="{{ old('sort_order', $s->sort_order) }}">
-                      </div>
-                      <div class="col-md-3 d-flex align-items-end">
-                        <div class="form-check">
-                          <input type="hidden" name="is_active" value="0">
-                          <input type="checkbox" name="is_active" value="1"
-                            id="is_active_{{ $s->section_id }}" class="form-check-input" {{ $s->is_active ? 'checked' : '' }}>
-                          <label for="is_active_{{ $s->section_id }}" class="form-check-label">{{ __('m_config.policies.active') }}</label>
+                      <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                          <label class="form-label">{{ __('m_config.policies.order') }}</label>
+                          <input type="number" min="0" name="sort_order" class="form-control" value="{{ old('sort_order', $s->sort_order) }}">
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                          <div class="form-check">
+                            <input type="hidden" name="is_active" value="0">
+                            <input type="checkbox" name="is_active" value="1"
+                              id="is_active_{{ $s->section_id }}" class="form-check-input" {{ $s->is_active ? 'checked' : '' }}>
+                            <label for="is_active_{{ $s->section_id }}" class="form-check-label">{{ __('m_config.policies.active') }}</label>
+                          </div>
                         </div>
                       </div>
 
-                      <div class="col-12">
-                        <label class="form-label">{{ __('m_config.policies.translation_content') }}</label>
-                        <textarea name="content" class="form-control" rows="10">{{ old('content', $tr?->content) }}</textarea>
+                      <hr>
+
+                      {{-- Tabs de idiomas --}}
+                      <ul class="nav nav-tabs mb-3" id="policySectionTabs-{{ $s->section_id }}" role="tablist">
+                        @foreach(['es', 'en', 'fr', 'pt', 'de'] as $lang)
+                        <li class="nav-item" role="presentation">
+                          <button class="nav-link {{ $loop->first ? 'active' : '' }}"
+                            id="tab-sec-{{ $s->section_id }}-{{ $lang }}"
+                            data-bs-toggle="tab"
+                            data-bs-target="#content-sec-{{ $s->section_id }}-{{ $lang }}"
+                            type="button" role="tab">
+                            {{ strtoupper($lang) }}
+                            @php
+                            $hasTrans = $s->translations->where('locale', $lang)->first();
+                            @endphp
+                            @if(!$hasTrans)
+                            <span class="text-danger small ms-1" title="Sin traducción"><i class="fas fa-exclamation-circle"></i></span>
+                            @endif
+                          </button>
+                        </li>
+                        @endforeach
+                      </ul>
+
+                      <div class="tab-content" id="policySectionTabContent-{{ $s->section_id }}">
+                        @foreach(['es', 'en', 'fr', 'pt', 'de'] as $lang)
+                        @php
+                        $trans = $s->translations->firstWhere('locale', $lang);
+                        $valName = $trans ? $trans->name : '';
+                        $valContent = $trans ? $trans->content : '';
+                        @endphp
+                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                          id="content-sec-{{ $s->section_id }}-{{ $lang }}"
+                          role="tabpanel">
+
+                          <div class="mb-3">
+                            <label class="form-label">{{ __('m_config.policies.name') }} ({{ strtoupper($lang) }})</label>
+                            <input type="text" name="translations[{{ $lang }}][name]" class="form-control"
+                              value="{{ $valName }}">
+                          </div>
+
+                          <div class="mb-3">
+                            <label class="form-label">{{ __('m_config.policies.translation_content') }} ({{ strtoupper($lang) }})</label>
+                            <textarea name="translations[{{ $lang }}][content]" class="form-control" rows="10">{{ $valContent }}</textarea>
+                          </div>
+                        </div>
+                        @endforeach
                       </div>
-                    </div>
                   </div>
                   <div class="modal-footer">
                     <button class="btn btn-primary">{{ __('m_config.policies.save_changes') }}</button>

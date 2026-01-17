@@ -37,7 +37,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         $this->customerName  = $customerName;
         $this->adminPanelUrl = $adminPanelUrl;
 
-        $current = strtolower(app()->getLocale());
+        $current = strtolower(config('app.locale'));
         $this->mailLocale = str_starts_with($current, 'es') ? 'es' : 'en';
     }
 

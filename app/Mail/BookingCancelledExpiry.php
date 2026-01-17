@@ -19,8 +19,16 @@ class BookingCancelledExpiry extends Mailable
 
     public function envelope(): Envelope
     {
+        // Calculate locale based on booking->tour connection if possible, fallback to app locale
+        $locale = $this->booking->tour->lang ?? config('app.locale');
+
+        // Set the application locale for this email sending process if needed, 
+        // though typically it's better to just translate the subject here.
+        // We will assume 'reviews.php' is loaded or available.
+        $subject = __('reviews.emails.booking.cancelled_subject', ['ref' => $this->booking->booking_reference], $locale);
+
         return new Envelope(
-            subject: "Booking Cancelled - Payment Not Received #{$this->booking->booking_reference}",
+            subject: $subject,
             replyTo: [config('booking.email_config.reply_to', 'info@greenvacationscr.com')],
         );
     }
@@ -28,7 +36,8 @@ class BookingCancelledExpiry extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.customer.booking-cancelled-expiry',
+            view: 'emails.customer.booking-cancelled-expiry',
+            text: 'emails.customer.booking-cancelled-expiry_plain',
             with: ['booking' => $this->booking],
         );
     }

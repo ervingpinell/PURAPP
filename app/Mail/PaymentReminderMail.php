@@ -25,8 +25,11 @@ class PaymentReminderMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $locale = $this->booking->tour->lang ?? config('app.locale');
+        $subject = __('reviews.emails.booking.payment_reminder_subject', ['ref' => $this->booking->booking_reference], $locale);
+
         return new Envelope(
-            subject: "Payment Reminder - Your Tour is Coming Soon! #{$this->booking->booking_reference}",
+            subject: $subject,
             replyTo: [config('booking.email_config.reply_to', 'info@greenvacationscr.com')],
         );
     }
@@ -37,7 +40,8 @@ class PaymentReminderMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.customer.payment-reminder',
+            view: 'emails.customer.payment-reminder',
+            text: 'emails.customer.payment-reminder_plain',
             with: [
                 'booking' => $this->booking,
                 'paymentUrl' => route('booking.payment', $this->booking->booking_reference),

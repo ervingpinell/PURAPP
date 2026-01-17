@@ -30,9 +30,6 @@
         </a>
     </div>
 
-    <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
-        Thanks,<br>
-        {{ config('app.name') }}
-    </p>
+
 </div>
 @endsection

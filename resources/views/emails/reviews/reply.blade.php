@@ -16,9 +16,13 @@
     // Intro con “sobre <strong>Tour</strong>” (HTML)
     $introHtml = __('reviews.emails.reply.intro', [
         'extra' => $tourName
-            ? __('reviews.emails.reply.about_html', ['tour' => e($tourName)])
+            ? __('reviews.reply.about_html', ['tour' => e($tourName)])
             : '',
     ]);
+
+    // Force locale for this render
+    $oldLocale = app()->getLocale();
+    app()->setLocale($mailLocale);
 @endphp
 
 {{-- Preheader opcional (oculto visualmente) --}}
@@ -31,7 +35,7 @@
 
   <div style="font-size:16px;line-height:1.6;color:#111827;">
     <p style="margin:0 0 12px;">
-      {{ __('reviews.emails.reply.greeting', ['name' => $customerName ?: __('reviews.emails.traveler')]) }}
+      {{ __('reviews.emails.reply.greeting', ['name' => $customerName ?: __('reviews.traveler')]) }}
     </p>
 
     <p style="margin:0 0 12px;">{!! $introHtml !!}</p>
@@ -48,13 +52,10 @@
   </div>
 </div>
 
-<div class="section-card" style="margin-top:8px;">
-  <div style="font-size:13px;color:#6b7280;">
-    {!! __('reviews.emails.contact_line', [
-        'email' => '<a href="mailto:'.e($contact['email']).'" style="color:#6b7280">'.e($contact['email']).'</a>',
-        'phone' => '<a href="tel:'.preg_replace("/\s+/", "", e($contact['phone'])).'" style="color:#6b7280">'.e($contact['phone']).'</a>',
-        'url'   => '<a href="'.e($contact['site']).'" style="color:#6b7280">'.e($contact['site']).'</a>',
-    ]) !!}
-  </div>
-</div>
+
+@php
+  if(isset($oldLocale)) {
+      app()->setLocale($oldLocale);
+  }
+@endphp
 @endsection

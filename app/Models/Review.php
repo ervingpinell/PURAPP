@@ -15,7 +15,8 @@ class Review extends Model
         'tour_id','booking_id','user_id',
         'provider','provider_review_id',
         'rating','title','body','language',
-        'author_name','author_country',
+        'author_name','author_email','manual_booking_ref', // Added manual fields
+        'author_country',
         'is_verified','is_public','status',
         'source_url',
     ];

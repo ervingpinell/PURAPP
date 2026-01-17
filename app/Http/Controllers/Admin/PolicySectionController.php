@@ -150,42 +150,25 @@ class PolicySectionController extends Controller
     /**
      * Actualizar:
      * - Base: sort_order / is_active
-     * - Traducción: name/content del locale indicado (o app()->getLocale())
-     * No re-traduce al resto de idiomas.
+     * - Traducciones: array de traducciones (es, en, fr...)
      */
     public function update(Request $request, Policy $policy, PolicySection $section)
     {
         $rules = [
-            'locale'     => ['nullable', 'in:es,en,fr,pt,de'],
-            // Traducción (opcional)
-            'name'       => ['nullable', 'string', 'max:255'],
-            'content'    => ['nullable', 'string'],
+            // Traducciones
+            'translations'             => ['nullable', 'array'],
+            'translations.*.name'      => ['nullable', 'string', 'max:255'],
+            'translations.*.content'   => ['nullable', 'string'],
+
             // Base
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'is_active'  => ['nullable', 'in:0,1'],
         ];
 
-        $messages = [
-            'string'     => __('validation.string',   ['attribute' => ':attribute']),
-            'max.string' => __('validation.max.string', ['attribute' => ':attribute', 'max' => ':max']),
-            'integer'    => __('validation.integer',  ['attribute' => ':attribute']),
-            'min'        => __('validation.min.numeric', ['attribute' => ':attribute', 'min' => ':min']),
-            'in'         => __('validation.in',       ['attribute' => ':attribute']),
-        ];
-
-        $attributes = [
-            'name'       => __('m_config.policies.section_name'),
-            'content'    => __('m_config.policies.section_content'),
-            'sort_order' => __('m_config.policies.order'),
-            'is_active'  => __('m_config.policies.active'),
-        ];
-
-        $validated = $request->validate($rules, $messages, $attributes);
-
-        $locale     = Policy::canonicalLocale($validated['locale'] ?? app()->getLocale());
+        $validated = $request->validate($rules);
 
         try {
-            DB::transaction(function () use ($request, $validated, $section, $locale, $policy) {
+            DB::transaction(function () use ($request, $validated, $section, $policy) {
                 // 1) Base
                 $baseUpdates = [];
                 if ($request->filled('sort_order')) {
@@ -198,29 +181,28 @@ class PolicySectionController extends Controller
                     $section->update($baseUpdates);
                 }
 
-                // 2) Traducción (del locale solicitado)
-                $tr = PolicySectionTranslation::firstOrNew([
-                    'section_id' => $section->section_id,
-                    'locale'     => $locale,
-                ]);
+                // 2) Traducciones
+                if (!empty($validated['translations'])) {
+                    foreach ($validated['translations'] as $locale => $data) {
+                        $norm = Policy::canonicalLocale($locale);
+                        
+                        // Solo guardar si hay algo
+                        if (empty($data['name']) && empty($data['content'])) {
+                            continue;
+                        }
 
-                $didTranslateUpdate = false;
-
-                if ($request->filled('name')) {
-                    $tr->name = trim((string) $validated['name']);
-                    $didTranslateUpdate = true;
-                }
-                if ($request->filled('content')) {
-                    $tr->content = trim((string) $validated['content']);
-                    $didTranslateUpdate = true;
-                }
-                if ($didTranslateUpdate) {
-                    $tr->save();
+                        PolicySectionTranslation::updateOrCreate(
+                            ['section_id' => $section->section_id, 'locale' => $norm],
+                            [
+                                'name'    => trim($data['name'] ?? ''),
+                                'content' => trim($data['content'] ?? ''),
+                            ]
+                        );
+                    }
                 }
 
                 LoggerHelper::mutated($this->controller, 'update', 'policy_section', $section->section_id, [
                     'policy_id' => $policy->policy_id,
-                    'locale'    => $locale,
                     'user_id'   => optional($request->user())->getAuthIdentifier(),
                 ]);
             });
