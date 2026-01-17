@@ -33,7 +33,7 @@ class PolicyController extends Controller
      */
     public function index(Request $request)
     {
-        $status = $request->get('status', 'active');
+        $status = $request->get('status', 'all'); // Default to 'all' (active + inactive)
 
         $base = Policy::query()
             ->with(['translations', 'sections'])
@@ -41,13 +41,11 @@ class PolicyController extends Controller
 
         if ($status === 'archived') {
             $base->onlyTrashed();
-        } elseif ($status === 'all') {
-            $base->withTrashed();
-        } elseif ($status === 'inactive') {
-            $base->where('is_active', false);
+        } elseif ($status === 'trash') { // Alias
+            $base->onlyTrashed();
         } else {
-            // default: active
-            $base->where('is_active', true);
+            // Default: Show ALL (Active + Inactive), excluding trash
+            // No filtering by is_active
         }
 
         $policies = $base
@@ -98,6 +96,10 @@ class PolicyController extends Controller
         // Asumimos que el input 'name' y 'content' están en ES (o idioma base)
         $names    = $translator->translateAll($data['name']);       // ['es'=>'...', 'en'=>'...', ...]
         $contents = $translator->translateAll($data['content']);    // ['es'=>'...', 'en'=>'...', ...]
+
+        // FIX: Force preserve original content for ES (or app locale) to keep formatting/newlines
+        $names['es'] = $data['name'];
+        $contents['es'] = $data['content'];
 
         foreach ($names as $locale => $transName) {
              $transContent = $contents[$locale] ?? '';
@@ -173,6 +175,7 @@ class PolicyController extends Controller
         // Find source (prefer 'es')
         $sourceName = $inputTrans['es']['name'] ?? null;
         $sourceContent = $inputTrans['es']['content'] ?? null;
+        $sourceLocale = 'es';
 
         // If 'es' missing, try first available
         if (!$sourceName) {
@@ -180,6 +183,7 @@ class PolicyController extends Controller
                 if (!empty($d['name'])) {
                     $sourceName = $d['name'];
                     $sourceContent = $d['content'] ?? '';
+                    $sourceLocale = $locale;
                     break; 
                 }
             }
@@ -189,6 +193,14 @@ class PolicyController extends Controller
             $transNames = $translator->translateAll($sourceName);
             // Translate content only if we have source content
             $transContents = $sourceContent ? $translator->translateAll($sourceContent) : [];
+
+            // FIX: Force preserve original content for Source Locale
+            if ($sourceLocale) {
+                $transNames[$sourceLocale] = $sourceName;
+                if ($sourceContent) {
+                    $transContents[$sourceLocale] = $sourceContent;
+                }
+            }
 
             // Fill gaps in inputTrans
             foreach ($transNames as $loc => $val) {

@@ -266,7 +266,7 @@ Route::middleware([SetLocale::class])->group(function () {
         Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
         // FAQ
-        Route::view('/faq', 'public.faq')->name('faq');
+        // Route::view('/faq', 'public.faq')->name('faq');
         Route::post('/contact', [HomeController::class, 'sendContact'])
             ->middleware('throttle:sensitive')
             ->name('contact.send');
@@ -1437,6 +1437,8 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::patch('faqs/{id}/restore', [AdminFaqController::class, 'restore'])->name('faqs.restore');
                     Route::delete('faqs/{id}/force', [AdminFaqController::class, 'forceDelete'])->name('faqs.forceDelete');
 
+                    Route::post('faqs/reorder', [AdminFaqController::class, 'reorder'])->name('faqs.reorder');
+                    Route::post('faqs/reorder-bulk', [AdminFaqController::class, 'reorderBulk'])->name('faqs.reorderBulk');
                     Route::resource('faqs', AdminFaqController::class)->except(['show']);
                     Route::patch('faqs/{faq}/toggle-status', [AdminFaqController::class, 'toggleStatus'])->name('faqs.toggleStatus');
                 });

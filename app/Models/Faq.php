@@ -27,6 +27,7 @@ class Faq extends Model
         'translated_question',
         'translated_answer',
         'is_active',
+        'sort_order',
         'deleted_by',
     ];
 

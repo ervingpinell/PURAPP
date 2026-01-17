@@ -13,42 +13,53 @@
         <h1 class="big-title text-center">{{ __('adminlte::adminlte.faqpage') }}</h1>
 
         @if($faqs->isEmpty())
-        <p class="text-muted">{{ __('adminlte::adminlte.no_faqs_available') }}</p>
+        <p class="text-muted text-center">{{ __('adminlte::adminlte.no_faqs_available') }}</p>
         @else
         <div class="accordion" id="faqAccordion">
-            @foreach ($faqs as $faq)
+            @foreach ($faqs as $index => $faq)
             @php
-            $uid = 'faq-'.($faq->id ?? $loop->index);
+                // Determine active locale translation or fallback
+                $locale = app()->getLocale();
+                $translation = $faq->translations->firstWhere('locale', $locale);
+                // Fallback mechanisms: specific translation -> ES translation -> base columns
+                $question = $translation ? $translation->question : $faq->question;
+                $answer   = $translation ? $translation->answer : $faq->answer;
+                
+                $uid = 'faq-'.($faq->faq_id ?? $loop->index); 
             @endphp
 
             <div class="accordion-item">
                 <h2 class="accordion-header" id="heading-{{ $uid }}">
                     <button
-                        class="accordion-button collapsed"
+                        class="accordion-button {{ $index === 0 ? '' : 'collapsed' }}"
                         type="button"
                         data-bs-toggle="collapse"
                         data-bs-target="#collapse-{{ $uid }}"
-                        aria-expanded="false"
+                        aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"
                         aria-controls="collapse-{{ $uid }}">
-                        <i class="fas fa-question-circle"></i>
-                        {{ $faq->translate()?->question ?? $faq->question }}
+                        <i class="fas fa-question-circle me-2"></i>
+                        {!! nl2br(e($question)) !!}
                     </button>
                 </h2>
 
                 <div
                     id="collapse-{{ $uid }}"
-                    class="accordion-collapse collapse"
+                    class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}"
                     aria-labelledby="heading-{{ $uid }}"
                     data-bs-parent="#faqAccordion">
                     <div class="accordion-body">
-                        <span class="text-success">✓</span>
-                        <span>{!! nl2br(e($faq->translate()?->answer ?? $faq->answer)) !!}</span>
+                        <span>{!! nl2br(e($answer)) !!}</span>
                     </div>
                 </div>
             </div>
             @endforeach
         </div>
         @endif
+
+        <div class="text-center mt-5">
+            <p>{{ __('adminlte::adminlte.faq_more_questions') ?? '¿Tiene más preguntas?' }}</p>
+            <a href="{{ route(app()->getLocale() . '.contact') }}" class="btn btn-success">{{ __('adminlte::adminlte.contact_us') ?? 'Contáctenos' }}</a>
+        </div>
     </div>
 </section>
 

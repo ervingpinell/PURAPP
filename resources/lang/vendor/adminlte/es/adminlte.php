@@ -611,4 +611,5 @@ return [
         'contact_description' => '¿Tienes preguntas? Contáctanos para planificar tu viaje a Costa Rica. Estamos aquí para ayudarte con tu reserva de tours y transporte.',
         'faq_description' => 'Encuentra respuestas a preguntas frecuentes sobre nuestros tours en La Fortuna, proceso de reserva, cancelaciones y más. Planifica tu aventura en Costa Rica con facilidad.',
     ],
+    'faq_more_questions' => '¿Tiene más preguntas?',
 ];

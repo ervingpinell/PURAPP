@@ -37,21 +37,16 @@
 {{-- Barra de filtros (igual estilo que tours) --}}
 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
   <div class="btn-group" role="group" aria-label="{{ __('m_config.policies.filter_status_aria') }}">
-    <a href="{{ route('admin.policies.index', ['status' => 'active']) }}"
-      class="btn btn-outline-primary {{ ($status ?? 'active') === 'active' ? 'active' : '' }}">
-      {{ __('m_config.policies.filter_active') }}
-    </a>
-    <a href="{{ route('admin.policies.index', ['status' => 'inactive']) }}"
-      class="btn btn-outline-primary {{ ($status ?? '') === 'inactive' ? 'active' : '' }}">
-      {{ __('m_config.policies.filter_inactive') }}
-    </a>
-    <a href="{{ route('admin.policies.index', ['status' => 'archived']) }}"
-      class="btn btn-outline-primary {{ ($status ?? '') === 'archived' ? 'active' : '' }}">
-      {{ __('m_config.policies.filter_archived') }}
-    </a>
-    <a href="{{ route('admin.policies.index', ['status' => 'all']) }}"
-      class="btn btn-outline-secondary {{ ($status ?? '') === 'all' ? 'active' : '' }}">
+    <!-- Default: Show All (Active + Inactive) -->
+    <a href="{{ route('admin.policies.index') }}"
+      class="btn btn-outline-primary {{ ($status ?? 'all') === 'all' ? 'active' : '' }}">
       {{ __('m_config.policies.filter_all') }}
+    </a>
+    
+    <!-- Trash / Archived -->
+    <a href="{{ route('admin.policies.index', ['status' => 'archived']) }}"
+      class="btn btn-outline-danger {{ ($status ?? '') === 'archived' ? 'active' : '' }}">
+      <i class="fas fa-trash"></i> {{ __('m_config.policies.filter_archived') }}
     </a>
   </div>
 </div>

@@ -28,16 +28,81 @@
     @endcan
   </ul>
 
-  {{-- Botón Crear --}}
-  @can('create-faqs')
-  <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#createFaqModal">
-    <i class="fas fa-plus"></i> {{ __('m_config.faq.new') }}
-  </button>
-  @endcan
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    {{-- Botón Crear --}}
+    @can('create-faqs')
+    <button class="btn btn-success" data-toggle="modal" data-target="#createFaqModal">
+      <i class="fas fa-plus"></i> {{ __('m_config.faq.new') }}
+    </button>
+    @endcan
+
+    {{-- Controles de Ordenamiento (Actions) --}}
+    <div class="btn-group" role="group">
+      {{-- Custom Order (Default) --}}
+      <a href="{{ route('admin.faqs.index') }}" class="btn btn-secondary" title="Recargar orden actual (Arrastrar y Soltar para modificar)">
+         <i class="fas fa-th-list"></i> Personalizado
+      </a>
+      
+      <div class="btn-group" role="group">
+        <button id="sortDropdown" type="button" class="btn btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-sort"></i> Aplicar orden...
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+            {{-- ID DESC (Newest First) --}}
+            <li>
+                <form action="{{ route('admin.faqs.reorderBulk') }}" method="POST" class="d-inline js-confirm-reorder">
+                    @csrf
+                    <input type="hidden" name="type" value="id">
+                    <input type="hidden" name="direction" value="desc">
+                    <button type="submit" class="dropdown-item">
+                        <i class="fas fa-arrow-down"></i> Por ID (Más recientes)
+                    </button>
+                </form>
+            </li>
+            {{-- ID ASC (Oldest First) --}}
+            <li>
+                <form action="{{ route('admin.faqs.reorderBulk') }}" method="POST" class="d-inline js-confirm-reorder">
+                    @csrf
+                    <input type="hidden" name="type" value="id">
+                    <input type="hidden" name="direction" value="asc">
+                    <button type="submit" class="dropdown-item">
+                        <i class="fas fa-arrow-up"></i> Por ID (Más antiguos)
+                    </button>
+                </form>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            {{-- Alpha ASC (A-Z) --}}
+            <li>
+                <form action="{{ route('admin.faqs.reorderBulk') }}" method="POST" class="d-inline js-confirm-reorder">
+                    @csrf
+                    <input type="hidden" name="type" value="alpha">
+                    <input type="hidden" name="direction" value="asc">
+                    <button type="submit" class="dropdown-item">
+                        <i class="fas fa-sort-alpha-down"></i> Alfabético (A-Z)
+                    </button>
+                </form>
+            </li>
+            {{-- Alpha DESC (Z-A) --}}
+            <li>
+                <form action="{{ route('admin.faqs.reorderBulk') }}" method="POST" class="d-inline js-confirm-reorder">
+                    @csrf
+                    <input type="hidden" name="type" value="alpha">
+                    <input type="hidden" name="direction" value="desc">
+                    <button type="submit" class="dropdown-item">
+                        <i class="fas fa-sort-alpha-up"></i> Alfabético (Z-A)
+                    </button>
+                </form>
+            </li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
   <table class="table table-bordered table-striped table-hover align-middle">
     <thead class="bg-primary text-white">
       <tr>
+        <th style="width: 50px;"></th> <!-- Drag Handle -->
+        <th style="width: 60px;">ID</th>
         <th>{{ __('m_config.faq.question') }}</th>
         <th>{{ __('m_config.faq.answer') }}</th>
         <th>{{ __('m_config.faq.status') }}</th>
@@ -46,7 +111,13 @@
     </thead>
     <tbody>
       @foreach ($faqs as $faq)
-      <tr>
+      <tr data-id="{{ $faq->faq_id }}">
+        <td class="align-middle text-center sort-handle" style="cursor: move;">
+            <i class="fas fa-bars text-secondary"></i>
+        </td>
+        <td class="text-center font-monospace small">
+            {{ $faq->faq_id }}
+        </td>
         <td>{{ $faq->question }}</td>
         <td>
           <div class="faq-answer position-relative" style="max-height: 3.5em; overflow: hidden;" data-expanded="false">
@@ -68,8 +139,8 @@
           @can('edit-faqs')
           <button
             class="btn btn-edit btn-sm"
-            data-bs-toggle="modal"
-            data-bs-target="#editFaqModal{{ $faq->faq_id }}"
+            data-toggle="modal"
+            data-target="#editFaqModal{{ $faq->faq_id }}"
             title="{{ __('m_config.faq.edit') }}">
             <i class="fas fa-edit"></i>
           </button>
@@ -112,7 +183,9 @@
             <div class="modal-content">
               <div class="modal-header">
                 <h5 class="modal-title">{{ __('m_config.faq.edit') }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.faq.close') }}"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_config.faq.close') }}">
+                  <span aria-hidden="true">&times;</span>
+                </button>
               </div>
               <div class="modal-body">
                 @php
@@ -148,12 +221,12 @@
                       <label class="form-label">
                         {{ __('m_config.faq.question') }} ({{ strtoupper($locale) }})
                       </label>
-                      <input type="text"
+                      <textarea
                         name="translations[{{ $locale }}][question]"
                         class="form-control"
-                        value="{{ $questionValue }}"
+                        rows="2"
                         required
-                        maxlength="500">
+                        maxlength="500">{{ $questionValue }}</textarea>
                     </div>
                     <div class="mb-3">
                       <label class="form-label">
@@ -170,7 +243,7 @@
                 </div>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
                   {{ __('m_config.faq.cancel') }}
                 </button>
                 <button type="submit" class="btn btn-warning">
@@ -194,12 +267,14 @@
         @csrf
         <div class="modal-header">
           <h5 class="modal-title">{{ __('m_config.faq.new') }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.faq.close') }}"></button>
+          <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_config.faq.close') }}">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">{{ __('m_config.faq.question') }}</label>
-            <input type="text" name="question" class="form-control" required>
+            <textarea name="question" class="form-control" rows="2" required></textarea>
           </div>
           <div class="mb-3">
             <label class="form-label">{{ __('m_config.faq.answer') }}</label>
@@ -207,7 +282,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.faq.close') }}</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_config.faq.close') }}</button>
           <button type="submit" class="btn btn-primary">{{ __('m_config.faq.create') }}</button>
         </div>
       </form>
@@ -218,6 +293,9 @@
 
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(($sortMode ?? 'order') === 'order')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+@endif
 
 {{-- Éxito / Error --}}
 @if(session('success'))
@@ -243,6 +321,53 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    // Sortable (Only if loaded and handle exists)
+    const tbody = document.querySelector('tbody');
+    const handle = document.querySelector('.sort-handle');
+    
+    if (tbody && handle && typeof Sortable !== 'undefined') {
+        new Sortable(tbody, {
+            handle: '.sort-handle',
+            animation: 150,
+            onEnd: function (evt) {
+                const order = [];
+                document.querySelectorAll('tbody tr').forEach(row => {
+                    order.push(row.dataset.id);
+                });
+
+                fetch("{{ route('admin.faqs.reorder') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                    },
+                    body: JSON.stringify({ order: order })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                        toast.fire({
+                            icon: 'success',
+                            title: 'Orden actualizado'
+                        });
+                    } else {
+                        Swal.fire('Error', 'No se pudo actualizar el orden', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'Hubo un error de conexión', 'error');
+                });
+            }
+        });
+    }
+
     const valErrors = @json($errors -> any() ? $errors -> all() : []);
     if (valErrors && valErrors.length) {
       const list = '<ul class="text-start mb-0">' + valErrors.map(e => `<li>${e}</li>`).join('') + '</ul>';
@@ -303,6 +428,25 @@
           cancelButtonColor: '#6c757d',
           confirmButtonText: isActive ? @json(__('m_config.faq.deactivate')) : @json(__('m_config.faq.activate')),
           cancelButtonText: @json(__('m_config.faq.cancel')),
+        }).then((res) => {
+          if (res.isConfirmed) form.submit();
+        });
+      });
+    });
+
+    // Confirmación REORDENAR MASIVO
+    document.querySelectorAll('.js-confirm-reorder').forEach(form => {
+      form.addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        Swal.fire({
+          title: '¿Estás seguro?',
+          text: "Esto sobrescribirá el orden personalizado actual.",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Sí, aplicar orden',
+          cancelButtonText: 'Cancelar'
         }).then((res) => {
           if (res.isConfirmed) form.submit();
         });

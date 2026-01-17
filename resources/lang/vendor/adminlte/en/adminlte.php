@@ -605,4 +605,5 @@ return [
         'contact_description' => 'Have questions? Contact us to plan your trip to Costa Rica. We are here to help with your tour and transportation booking.',
         'faq_description' => 'Find answers to frequently asked questions about our tours in La Fortuna, booking process, cancellations, and more. Plan your Costa Rica adventure with ease.',
     ],
+    'faq_more_questions' => 'Do you have more questions?',
 ];
