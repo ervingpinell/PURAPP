@@ -639,11 +639,11 @@ class TourWizardController extends Controller
         // Datos comunes
         $data = [
             'tour'  => $tour->load([
-                'languages',
+                'allLanguages',
                 'allAmenities',
                 'allExcludedAmenities',
-                'schedules',
-                'prices.category',
+                'allSchedules',
+                'allPrices.category',
                 'allItinerary.allItems',
             ]),
             'step'  => $step,
@@ -665,6 +665,9 @@ class TourWizardController extends Controller
 
             case 'schedules':
                 $data['schedules'] = Schedule::active()->orderBy('start_time')->get();
+                $tour->load(['allSchedules' => function ($query) {
+                    $query->withPivot(['is_active', 'cutoff_hour', 'lead_days', 'base_capacity']);
+                }]);
                 break;
 
             case 'amenities':
@@ -680,8 +683,8 @@ class TourWizardController extends Controller
                 $data['taxes'] = Tax::where('is_active', true)->orderBy('sort_order')->get();
 
                 // Group existing prices by periods
-                $tour->load(['prices.category']);
-                $data['pricingPeriods'] = \App\Models\TourPrice::groupByPeriods($tour->prices);
+                $tour->load(['allPrices.category']);
+                $data['pricingPeriods'] = \App\Models\TourPrice::groupByPeriods($tour->allPrices);
 
                 break;
         }

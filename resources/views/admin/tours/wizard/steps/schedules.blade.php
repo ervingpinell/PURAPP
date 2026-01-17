@@ -507,11 +507,11 @@
                                         $schedule->schedule_id,
                                         old(
                                             'schedules',
-                                            $tour->schedules->pluck('schedule_id')->toArray()
+                                            $tour->allSchedules->pluck('schedule_id')->toArray()
                                         )
                                     );
 
-                                    $pivot = $tour->schedules
+                                    $pivot = $tour->allSchedules
                                         ->firstWhere('schedule_id', $schedule->schedule_id);
 
                                     $existingCapacity = $pivot?->pivot?->base_capacity;

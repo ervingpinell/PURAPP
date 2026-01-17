@@ -431,7 +431,19 @@ class Tour extends Model
             'tour_language_tour',
             'tour_id',
             'tour_language_id'
-        )->withTimestamps();
+        )
+            ->where('tour_languages.is_active', true)
+            ->withTimestamps();
+    }
+
+    public function allLanguages()
+    {
+        return $this->belongsToMany(
+            TourLanguage::class,
+            'tour_language_tour',
+            'tour_id',
+            'tour_language_id'
+        )->withTimestamps()->withTrashed();
     }
 
     public function amenities()
@@ -491,8 +503,23 @@ class Tour extends Model
             'tour_id',
             'schedule_id'
         )
+            ->where('schedules.is_active', true)
             ->withPivot(['is_active', 'cutoff_hour', 'lead_days', 'base_capacity'])
+            ->wherePivot('is_active', true)
             ->withTimestamps();
+    }
+
+    public function allSchedules()
+    {
+        return $this->belongsToMany(
+            Schedule::class,
+            'schedule_tour',
+            'tour_id',
+            'schedule_id'
+        )
+            ->withPivot(['is_active', 'cutoff_hour', 'lead_days', 'base_capacity'])
+            ->withTimestamps()
+            ->withTrashed();
     }
 
     public function activeSchedules()
@@ -557,6 +584,12 @@ class Tour extends Model
      * Relación con precios por categoría
      */
     public function prices()
+    {
+        return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id')
+            ->where('is_active', true);
+    }
+
+    public function allPrices()
     {
         return $this->hasMany(TourPrice::class, 'tour_id', 'tour_id');
     }

@@ -445,7 +445,7 @@ $itineraryItems = $tour->itineraryItems;
                         </li>
                         @endif
 
-                        @if($tour->schedules->isNotEmpty())
+                        @if($tour->allSchedules->isNotEmpty())
                         <li class="nav-item">
                             <a class="nav-link {{ (!$tour->itinerary || $itineraryItems->isEmpty()) ? 'active' : '' }}"
                                 data-toggle="tab" href="#schedules-tab">
@@ -454,16 +454,16 @@ $itineraryItems = $tour->itineraryItems;
                         </li>
                         @endif
 
-                        @if($tour->amenities->isNotEmpty() || $tour->excludedAmenities->isNotEmpty())
+                        @if($tour->allAmenities->isNotEmpty() || $tour->allExcludedAmenities->isNotEmpty())
                         <li class="nav-item">
-                            <a class="nav-link {{ (!$tour->itinerary || $itineraryItems->isEmpty()) && $tour->schedules->isEmpty() ? 'active' : '' }}"
+                            <a class="nav-link {{ (!$tour->itinerary || $itineraryItems->isEmpty()) && $tour->allSchedules->isEmpty() ? 'active' : '' }}"
                                 data-toggle="tab" href="#amenities-tab">
                                 <i class="fas fa-star"></i> {{ __('m_tours.tour.summary.amenities_title') ?? 'Amenidades' }}
                             </a>
                         </li>
                         @endif
 
-                        @if($tour->languages->isNotEmpty())
+                        @if($tour->allLanguages->isNotEmpty())
                         <li class="nav-item">
                             <a class="nav-link" data-toggle="tab" href="#languages-tab">
                                 <i class="fas fa-language"></i> {{ __('m_tours.tour.summary.languages_title') }}
@@ -471,7 +471,7 @@ $itineraryItems = $tour->itineraryItems;
                         </li>
                         @endif
 
-                        @if($tour->prices->isNotEmpty())
+                        @if($tour->allPrices->isNotEmpty())
                         <li class="nav-item">
                             <a class="nav-link" data-toggle="tab" href="#prices-tab">
                                 <i class="fas fa-dollar-sign"></i> {{ __('m_tours.tour.summary.prices_title') }}
@@ -513,11 +513,11 @@ $itineraryItems = $tour->itineraryItems;
                         @endif
 
                         {{-- Tab de Horarios --}}
-                        @if($tour->schedules->isNotEmpty())
+                        @if($tour->allSchedules->isNotEmpty())
                         <div class="tab-pane fade {{ (!$tour->itinerary || $itineraryItems->isEmpty()) ? 'show active' : '' }}"
                             id="schedules-tab">
                             <ul class="icon-list">
-                                @foreach($tour->schedules as $schedule)
+                                @foreach($tour->allSchedules as $schedule)
                                 <li>
                                     <i class="fas fa-clock text-primary"></i>
                                     <div class="flex-grow-1">
@@ -539,18 +539,18 @@ $itineraryItems = $tour->itineraryItems;
                         @endif
 
                         {{-- Tab de Amenidades --}}
-                        @if($tour->amenities->isNotEmpty() || $tour->excludedAmenities->isNotEmpty())
-                        <div class="tab-pane fade {{ (!$tour->itinerary || $itineraryItems->isEmpty()) && $tour->schedules->isEmpty() ? 'show active' : '' }}"
+                        @if($tour->allAmenities->isNotEmpty() || $tour->allExcludedAmenities->isNotEmpty())
+                        <div class="tab-pane fade {{ (!$tour->itinerary || $itineraryItems->isEmpty()) && $tour->allSchedules->isEmpty() ? 'show active' : '' }}"
                             id="amenities-tab">
                             <div class="row">
-                                @if($tour->amenities->isNotEmpty())
+                                @if($tour->allAmenities->isNotEmpty())
                                 <div class="col-md-6">
                                     <h6 class="text-success mb-3">
                                         <i class="fas fa-check-circle"></i>
                                         {{ __('m_tours.tour.ui.amenities_included') }}
                                     </h6>
                                     <ul class="icon-list">
-                                        @foreach($tour->amenities as $amenity)
+                                        @foreach($tour->allAmenities as $amenity)
                                         @php
                                         $amTranslations = $amenity->translations ?? collect();
                                         $amTr = $amTranslations->firstWhere('locale', $currentLocale)
@@ -570,14 +570,14 @@ $itineraryItems = $tour->itineraryItems;
                                 </div>
                                 @endif
 
-                                @if($tour->excludedAmenities->isNotEmpty())
+                                @if($tour->allExcludedAmenities->isNotEmpty())
                                 <div class="col-md-6">
                                     <h6 class="text-danger mb-3">
                                         <i class="fas fa-times-circle"></i>
                                         {{ __('m_tours.tour.ui.amenities_excluded') }}
                                     </h6>
                                     <ul class="icon-list">
-                                        @foreach($tour->excludedAmenities as $amenity)
+                                        @foreach($tour->allExcludedAmenities as $amenity)
                                         @php
                                         $amTranslations = $amenity->translations ?? collect();
                                         $amTr = $amTranslations->firstWhere('locale', $currentLocale)
@@ -601,10 +601,10 @@ $itineraryItems = $tour->itineraryItems;
                         @endif
 
                         {{-- Tab de Idiomas --}}
-                        @if($tour->languages->isNotEmpty())
+                        @if($tour->allLanguages->isNotEmpty())
                         <div class="tab-pane fade" id="languages-tab">
                             <ul class="icon-list">
-                                @foreach($tour->languages as $language)
+                                @foreach($tour->allLanguages as $language)
                                 @php
                                 $langTranslations = $language->translations ?? collect();
                                 $langTr = $langTranslations->firstWhere('locale', $currentLocale)
@@ -621,11 +621,11 @@ $itineraryItems = $tour->itineraryItems;
                         @endif
 
                         {{-- Tab de Precios por reglas / fechas --}}
-                        @if($tour->prices->isNotEmpty())
+                        @if($tour->allPrices->isNotEmpty())
                         <div class="tab-pane fade" id="prices-tab">
                             @php
                             // Agrupar por rango (o default) usando campos en la propia tabla de precios
-                            $groupedPrices = $tour->prices
+                            $groupedPrices = $tour->allPrices
                             ->filter(fn($p) => $p->category) // sólo con categoría
                             ->groupBy(function ($p) {
                             $from = $p->valid_from ?? null;

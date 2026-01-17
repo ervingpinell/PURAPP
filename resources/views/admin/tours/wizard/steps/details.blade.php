@@ -444,7 +444,7 @@ $currentStep = $step ?? 1;
                             <div class="border rounded p-3" id="languages-container">
                                 @php
                                 $oldLanguages = old('languages', $isEditing
-                                ? $tour->languages->pluck('tour_language_id')->toArray()
+                                ? $tour->allLanguages->pluck('tour_language_id')->toArray()
                                 : []);
                                 @endphp
 
