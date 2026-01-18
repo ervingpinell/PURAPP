@@ -59,7 +59,7 @@ if (preg_match('/<(p|div|ul|ol|li|h[1-6]|br)\s*[^>]*>/i', $html)) {
     .policy-body {
       padding: 1rem 1.25rem;
       line-height: 1.75;
-      color: var(--g700)
+      color: var(--g700);
     }
 
     .policy-body ul {

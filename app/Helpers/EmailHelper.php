@@ -5,15 +5,22 @@ namespace App\Helpers;
 class EmailHelper
 {
     /**
-     * Get the company logo as a base64 data URI for email embedding.
-     * This ensures the logo always displays in email clients (Gmail, Outlook, etc.)
-     * even when external images are blocked.
+     * Get the company logo for email display.
+     * Priorities:
+     * 1. Public URL (env COMPANY_LOGO_URL) - Best for Gmail/Webmail.
+     * 2. Base64 Data URI - Fallback for local dev or specific clients (Note: Gmail blocks data URIs).
      *
-     * @return string Base64 data URI
+     * @return string URL or Base64 data URI
      */
     public static function getEmbeddedLogo(): string
     {
-        // Path to optimized logo for emails
+        // 1. Try public URL from .env (Best for Gmail)
+        $publicUrl = env('COMPANY_LOGO_URL');
+        if (!empty($publicUrl) && filter_var($publicUrl, FILTER_VALIDATE_URL)) {
+            return $publicUrl;
+        }
+
+        // 2. Fallback: Local Base64 (Optimized logo)
         $logoPath = public_path('cdn/logos/brand-logo-white-email-optimized.png');
 
         // Fallback to original if optimized doesn't exist

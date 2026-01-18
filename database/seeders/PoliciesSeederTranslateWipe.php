@@ -39,15 +39,59 @@ class PoliciesSeederTranslateWipe extends Seeder
                 return in_array($lang, ['es', 'en', 'fr', 'de', 'pt'], true) ? $lang : 'es';
             };
 
-            // Traducción masiva con fallback
+            // Traducción masiva con fallback, preservando saltos de línea y viñetas
             $translateAll = function (string $text) use ($translator): array {
-                $out = ['en' => null, 'fr' => null, 'de' => null, 'pt' => null];
-                if ($translator) {
-                    try {
-                        $res = (array) ($translator->translateAll($text) ?? []);
-                        foreach ($out as $k => $_) { $out[$k] = $res[$k] ?? null; }
-                    } catch (\Throwable $e) { /* silent fallback */ }
+                $out = ['en' => '', 'fr' => '', 'de' => '', 'pt' => ''];
+                
+                // Dividir por líneas para asegurar que bullets no se mezclen
+                $lines = explode("\n", $text);
+                
+                // Arrays temporales para reconstruir cada idioma
+                $buffer = [
+                    'en' => [],
+                    'fr' => [],
+                    'de' => [],
+                    'pt' => [],
+                ];
+
+                foreach ($lines as $line) {
+                    $trimmed = trim($line);
+                    if ($trimmed === '') {
+                        // Línea vacía: agregar vacía a todos
+                        foreach ($buffer as $k => $v) {
+                            $buffer[$k][] = '';
+                        }
+                        continue;
+                    }
+
+                    // Traducir la línea
+                    if ($translator) {
+                        try {
+                            $res = (array) ($translator->translateAll($line) ?? []);
+                            // Si falla algo, fallback al original
+                            foreach (array_keys($buffer) as $lang) {
+                                $trans = $res[$lang] ?? null;
+                                $buffer[$lang][] = $trans ?: $line;
+                            }
+                        } catch (\Throwable $e) {
+                            // Fallback total para esta línea
+                            foreach (array_keys($buffer) as $lang) {
+                                $buffer[$lang][] = $line;
+                            }
+                        }
+                    } else {
+                        // Sin traductor
+                        foreach (array_keys($buffer) as $lang) {
+                            $buffer[$lang][] = $line;
+                        }
+                    }
                 }
+
+                // Reconstruir
+                foreach ($buffer as $lang => $arr) {
+                    $out[$lang] = implode("\n", $arr);
+                }
+                
                 return $out;
             };
 
@@ -58,9 +102,9 @@ class PoliciesSeederTranslateWipe extends Seeder
                     ['policy_id' => $policyId, 'locale' => 'es'],
                     ['name' => $nameEs, 'content' => $contentEs]
                 );
-                // Otros idiomas (fallback a ES)
+                // Otros idiomas
                 $nameAll = $translateAll($nameEs);
-                $contAll = $translateAll($contentEs);
+                $contAll = $translateAll($contentEs); // Ahora preserva estructura
                 foreach (['en', 'fr', 'de', 'pt'] as $lang) {
                     $locale = $canon($lang);
                     PolicyTranslation::updateOrCreate(
@@ -72,29 +116,26 @@ class PoliciesSeederTranslateWipe extends Seeder
                     );
                 }
             };
+            
+            // ... (rest of helper functions) ...
 
-            // === Detección del nombre del FK real en la tabla de traducciones
+            // === Detección del nombre del FK real
             $sectionFkCol = Schema::hasColumn('policy_section_translations', 'policy_section_id')
                 ? 'policy_section_id'
                 : 'section_id';
 
-            // === Helper: crear/actualizar sección base + traducciones
             $upsertSectionWithTranslations = function (
                 int $policyId,
-                string $sectionKey,   // <— se ignora porque tu tabla base no tiene name/slug/code
+                string $sectionKey,
                 int $sort,
                 string $nameEs,
                 string $contentEs
             ) use ($sectionFkCol, $translateAll, $canon) {
-
-                // 1) Base (policy_sections) — identificar por (policy_id, sort_order)
-                //    Usamos firstOrCreate para no depender de 'name/slug'
+                // 1) Base
                 $section = PolicySection::firstOrCreate(
                     ['policy_id' => $policyId, 'sort_order' => $sort],
                     ['is_active' => true]
                 );
-
-                // Detectar el nombre real de la PK del modelo (policy_section_id o section_id)
                 $sectionId = $section->policy_section_id ?? $section->section_id ?? $section->getKey();
 
                 // 2) Traducción ES
@@ -103,9 +144,9 @@ class PoliciesSeederTranslateWipe extends Seeder
                     ['name' => $nameEs, 'content' => $contentEs]
                 );
 
-                // 3) Otras traducciones (fallback a ES)
+                // 3) Otras traducciones
                 $nameAll = $translateAll($nameEs);
-                $contAll = $translateAll($contentEs);
+                $contAll = $translateAll($contentEs); // Preserva estructura
                 foreach (['en', 'fr', 'de', 'pt'] as $lang) {
                     $loc = $canon($lang);
                     PolicySectionTranslation::updateOrCreate(
@@ -114,6 +155,14 @@ class PoliciesSeederTranslateWipe extends Seeder
                     );
                 }
             };
+
+            // =========================
+            // 1) TÉRMINOS Y CONDICIONES (contenido omitido para brevedad en reemplazo, usar contexto anterior si necesario)
+            // ... (se asume que no se toca el contenido de Terms aquí, solo se redefinen los helpers arriba)
+            // ERROR: replace_file_content no puede "ignorar" el medio. Debo reemplazar el bloque exacto.
+            // Dado que el bloque es grande, mejor uso multi_replace o targeteo específicamente la función.
+            // Voy a usar replace_file_content SOLAMENTE en la función $translateAll y luego otro cambio para el slug.
+
 
 
             // =========================
@@ -258,7 +307,7 @@ TXT
             // 2) CANCELACIÓN
             // =========================
             $cancel = Policy::updateOrCreate(
-                ['slug' => 'cancellation-policies'],
+                ['slug' => 'cancellations-policies'],
                 ['is_active' => true, 'effective_from' => $today, 'effective_to' => null]
             );
             $savePolicyTranslations(

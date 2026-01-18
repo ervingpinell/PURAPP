@@ -9,6 +9,9 @@
 
   $terms = $getPolicy(Policy::TYPE_TERMS);
   $privacy = $getPolicy(Policy::TYPE_PRIVACY);
+  $cancellation = $getPolicy(Policy::TYPE_CANCELLATION);
+  $refund = $getPolicy(Policy::TYPE_REFUND);
+  $warranty = $getPolicy(Policy::TYPE_WARRANTY);
 
   // URL estable por ID (redirige al slug actual)
   $policy_url = fn(App\Models\Policy $p) => localized_route('policies.show.id', ['policy' => $p->getKey()]);
@@ -64,24 +67,26 @@
 
       <h4 class="mt-3"><i class="fas fa-file-contract me-2"></i>{{ __('adminlte::adminlte.policies') }}</h4>
       <ul>
-        @if($terms)
+        @if($cancellation)
         <li class="d-flex align-items-center mb-2">
-          <i class="fas fa-balance-scale me-2"></i>
-          <a href="{{ $policy_url($terms) }}">{{ __('adminlte::adminlte.terms_and_conditions') }}</a>
+          <i class="fas fa-ban me-2"></i>
+          <a href="{{ $policy_url($cancellation) }}">{{ $cancellation->display_name }}</a>
         </li>
         @endif
 
-        @if($privacy)
+        @if($refund)
         <li class="d-flex align-items-center mb-2">
-          <i class="fas fa-shield-alt me-2"></i>
-          <a href="{{ $policy_url($privacy) }}">{{ __('adminlte::adminlte.privacy_policy') }}</a>
+          <i class="fas fa-undo me-2"></i>
+          <a href="{{ $policy_url($refund) }}">{{ $refund->display_name }}</a>
         </li>
         @endif
 
+        @if($warranty)
         <li class="d-flex align-items-center mb-2">
-          <i class="fas fa-list me-2"></i>
-          <a href="{{ localized_route('policies.index') }}">{{ __('adminlte::adminlte.all_policies') }}</a>
+          <i class="fas fa-certificate me-2"></i>
+          <a href="{{ $policy_url($warranty) }}">{{ $warranty->display_name }}</a>
         </li>
+        @endif
       </ul>
     </div>
 
@@ -107,16 +112,28 @@
   </div>
 
   <div class="footer-bottom text-center">
+    <!-- Legal Links -->
+    <div class="mb-2">
+      @if($terms)
+        <a href="{{ $policy_url($terms) }}" class="text-white mx-2 small">{{ __('adminlte::adminlte.terms_and_conditions') }}</a>
+      @endif
+      @if($privacy)
+        <span class="text-white opacity-50">|</span>
+        <a href="{{ $policy_url($privacy) }}" class="text-white mx-2 small">{{ __('adminlte::adminlte.privacy_policy') }}</a>
+      @endif
+      <span class="text-white opacity-50">|</span>
+      <a href="#" id="cookie-settings-link" class="text-white mx-2 small">
+        {{ __('adminlte::adminlte.cookies.change_preferences') }}
+      </a>
+    </div>
+
     &copy; {{ date('Y') }} {{ config('company.name') }}. {{ __('adminlte::adminlte.rights_reserved') }}
+    
     <div class="small opacity-75 mt-1">
       Developed by
       <a href="https://github.com/ervingpinell" target="_blank" rel="noopener" class="text-white text-decoration-underline">Erving Pinell</a>
       &amp;
       <a href="https://github.com/AxlPaniagua" target="_blank" rel="noopener" class="text-white text-decoration-underline">Axel Paniagua</a>.
-      <span class="mx-2">|</span>
-      <a href="#" id="cookie-settings-link" class="text-white text-decoration-underline">
-        {{ __('adminlte::adminlte.cookies.change_preferences') }}
-      </a>
     </div>
   </div>
 </footer>
