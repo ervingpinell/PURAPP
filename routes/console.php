@@ -151,3 +151,16 @@ Schedule::command('reviews:sync --all')
     ->onOneServer()
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/reviews-sync.log'));
+
+/*
+|--------------------------------------------------------------------------
+| Prune Review Requests
+|--------------------------------------------------------------------------
+| Permanently delete soft-deleted review requests older than 30 days.
+| Keeps database clean and respects loop prevention logic (trash vs skip).
+*/
+Schedule::command('reviews:prune-requests --days=30')
+    ->dailyAt('04:00')
+    ->timezone(config('app.timezone', 'UTC'))
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/prune-reviews.log'));

@@ -308,7 +308,7 @@ Route::middleware([SetLocale::class])->group(function () {
     Route::post('/feedback/{token}', [PublicReviewController::class, 'submit'])
         ->middleware('throttle:sensitive')
         ->name('reviews.request.submit');
-    Route::view('/reviews/thanks', 'reviews.thanks')->name('reviews.thanks');
+    Route::view('/feedback/thanks', 'reviews.thanks')->name('reviews.thanks');
 
     // ============================
     // AUTH & VERIFICATION
@@ -1421,9 +1421,13 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::post('/{booking}/send', [ReviewRequestAdminController::class, 'send'])
                             ->middleware('throttle:email')
                             ->name('send');
+                        Route::post('/{booking}/discard', [ReviewRequestAdminController::class, 'discard'])->name('discard');
                         Route::post('/{rr}/resend', [ReviewRequestAdminController::class, 'resend'])
                             ->middleware('throttle:email')
                             ->name('resend');
+                        Route::post('/{rr}/skip', [ReviewRequestAdminController::class, 'skip'])->name('skip');
+                        Route::post('/{id}/restore', [ReviewRequestAdminController::class, 'restore'])->name('restore');
+                        Route::delete('/{id}/perm', [ReviewRequestAdminController::class, 'destroyPerm'])->name('destroy-perm');
                         Route::delete('/{rr}', [ReviewRequestAdminController::class, 'destroy'])->name('destroy');
                     });
                 });

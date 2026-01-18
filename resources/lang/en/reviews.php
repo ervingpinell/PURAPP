@@ -203,6 +203,7 @@ return [
         'actions' => [
             'resend'         => 'Resend',
             'confirm_delete' => 'Delete this request?',
+            'discard'        => 'Discard',
         ],
 
         'sweetalert' => [
@@ -235,6 +236,9 @@ return [
         'resend_ok' => 'Request resent.',
         'remind_ok' => 'Reminder sent.',
         'expire_ok' => 'Request expired.',
+        'skipped_ok' => 'Review request skipped successfully.',
+        'restored_ok' => 'Review request restored successfully.',
+        'deleted_perm' => 'Review request deleted permanently.',
         'deleted'   => 'Request deleted.',
         'none'      => 'No requests.',
 

@@ -89,6 +89,7 @@ class DashBoardController extends Controller
             'admin',
             'carts/add',
             'feedback',
+            'feedback/thanks',
         ];
 
         $first = ltrim($pathNoLocale, '/');

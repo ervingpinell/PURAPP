@@ -197,6 +197,7 @@ return [
         'actions' => [
             'resend'         => 'Renvoyer',
             'confirm_delete' => 'Supprimer cette demande ?',
+            'discard'        => 'Ignorer',
         ],
 
         'sweetalert' => [
@@ -229,6 +230,9 @@ return [
         'resend_ok' => 'Demande renvoyée.',
         'remind_ok' => 'Rappel envoyé.',
         'expire_ok' => 'Demande expirée.',
+        'skipped_ok' => 'Demande d\'avis ignorée avec succès.',
+        'restored_ok' => 'Demande d\'avis restaurée avec succès.',
+        'deleted_perm' => 'Demande d\'avis supprimée définitivement.',
         'deleted'   => 'Demande supprimée.',
         'none'      => 'Aucune demande.',
 
@@ -279,10 +283,10 @@ return [
             'author_email' => 'Your email (optional)',
             'submit'       => 'Submit review',
         ],
-        'thanks'       => 'Thank you for your review! 🌿',
-        'thanks_body'  => 'Your opinion is very important and helps us improve. We truly appreciate it.',
-        'thanks_farewell' => "We hope you enjoyed your time with us and we hope to see you again soon.\n\n🇨🇷 Pura Vida mae! 🇨🇷",
-        'thanks_dup'   => 'Thank you! We already had your review on file 🙌',
+        'thanks'       => 'Merci pour votre avis ! 🌿',
+        'thanks_body'  => 'Votre opinion est très importante et nous aide à nous améliorer. Nous l\'apprécions vraiment.',
+        'thanks_farewell' => "Nous espérons que vous avez apprécié votre temps avec nous et nous espérons vous revoir bientôt.\n\n🇨🇷 Pura Vida mae ! 🇨🇷",
+        'thanks_dup'   => 'Merci ! Nous avions déjà votre avis enregistré 🙌',
         'expired'      => 'This link has expired, but thank you so much for your intention 💚',
         'used'         => 'Cette demande a déjà été utilisée.',
         'used_help'    => 'Ce lien d\'avis a déjà été utilisé. Si vous pensez qu\'il s\'agit d\'une erreur ou si vous souhaitez mettre à jour votre commentaire, contactez-nous.',

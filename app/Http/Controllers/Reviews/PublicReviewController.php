@@ -107,10 +107,9 @@ class PublicReviewController extends Controller
         ->exists();
 
     if ($already) {
-        // Marca la solicitud como cumplida para no insistir
-        if ($rr->status !== 'fulfilled') {
-            $rr->status = 'fulfilled';
-            $rr->save();
+        // Marca la solicitud como cumplida para no insistir (Soft Delete)
+        if ($rr->exists) {
+            $rr->delete();
         }
         return redirect()
             ->route('reviews.thanks')
@@ -147,10 +146,9 @@ class PublicReviewController extends Controller
     // Crear la reseña
     $review = Review::create($payload);
 
-    // Marcar la solicitud como cumplida
-    if ($rr->status !== 'fulfilled') {
-        $rr->status = 'fulfilled';
-        $rr->save();
+    // Marcar la solicitud como cumplida (Soft Delete)
+    if ($rr->exists) {
+        $rr->delete();
     }
 
     // Notificar al admin por email

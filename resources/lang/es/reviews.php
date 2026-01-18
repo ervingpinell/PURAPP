@@ -203,6 +203,7 @@ return [
         'actions' => [
             'resend'         => 'Reenviar',
             'confirm_delete' => '¿Eliminar esta solicitud?',
+            'discard'        => 'Descartar',
         ],
 
         'sweetalert' => [
@@ -219,6 +220,7 @@ return [
             'used'      => 'Usado',
             'expired'   => 'Expirado',
             'cancelled' => 'Cancelado',
+            'skipped'   => 'Descartado',
         ],
 
         'status_labels' => [
@@ -229,12 +231,16 @@ return [
             'expired'   => 'expirado',
             'cancelled' => 'cancelado',
             'active'    => 'activo',
+            'skipped'   => 'descartado',
         ],
 
         'send_ok'   => 'Solicitud de reseña enviada.',
         'resend_ok' => 'Solicitud reenviada.',
         'remind_ok' => 'Recordatorio enviado.',
         'expire_ok' => 'Solicitud expirada.',
+        'skipped_ok' => 'Solicitud descartada correctamente.',
+        'restored_ok' => 'Solicitud restaurada correctamente.',
+        'deleted_perm' => 'Solicitud eliminada permanentemente.',
         'deleted'   => 'Solicitud eliminada.',
         'none'      => 'No hay solicitudes.',
 

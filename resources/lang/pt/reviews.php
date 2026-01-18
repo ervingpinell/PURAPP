@@ -197,6 +197,7 @@ return [
         'actions' => [
             'resend'         => 'Reenviar',
             'confirm_delete' => 'Excluir esta solicitação?',
+            'discard'        => 'Descartar',
         ],
 
         'sweetalert' => [
@@ -229,6 +230,9 @@ return [
         'resend_ok' => 'Solicitação reenviada.',
         'remind_ok' => 'Lembrete enviado.',
         'expire_ok' => 'Solicitação expirada.',
+        'skipped_ok' => 'Solicitação de avaliação descartada com sucesso.',
+        'restored_ok' => 'Solicitação de avaliação restaurada com sucesso.',
+        'deleted_perm' => 'Solicitação de avaliação excluída permanentemente.',
         'deleted'   => 'Solicitação excluída.',
         'none'      => 'Nenhuma solicitação.',
 
@@ -279,10 +283,10 @@ return [
             'author_email' => 'Your email (optional)',
             'submit'       => 'Submit review',
         ],
-        'thanks'       => 'Thank you for your review! 🌿',
-        'thanks_body'  => 'Your opinion is very important and helps us improve. We truly appreciate it.',
-        'thanks_farewell' => "We hope you enjoyed your time with us and we hope to see you again soon.\n\n🇨🇷 Pura Vida mae! 🇨🇷",
-        'thanks_dup'   => 'Thank you! We already had your review on file 🙌',
+        'thanks'       => 'Obrigado pela sua avaliação! 🌿',
+        'thanks_body'  => 'A sua opinião é muito importante e ajuda-nos a melhorar. Agradecemos imenso.',
+        'thanks_farewell' => "Esperamos que tenha gostado do seu tempo connosco e esperamos vê-lo novamente em breve.\n\n🇨🇷 Pura Vida mae! 🇨🇷",
+        'thanks_dup'   => 'Obrigado! Já tínhamos a sua avaliação registada 🙌',
         'expired'      => 'This link has expired, but thank you so much for your intention 💚',
         'used'         => 'Esta solicitação já foi utilizada.',
         'used_help'    => 'Este link de avaliação já foi usado. Se você acha que é um erro ou deseja atualizar seu comentário, entre em contato conosco.',

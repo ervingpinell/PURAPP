@@ -23,17 +23,17 @@ class ReviewRequestAdminController extends Controller
     public function __construct()
     {
         $this->middleware(['can:view-review-requests'])->only(['index', 'indexEligible', 'indexRequested']);
-        $this->middleware(['can:create-review-requests'])->only(['send']);
-        $this->middleware(['can:edit-review-requests'])->only(['resend', 'remind', 'expire']);
-        $this->middleware(['can:delete-review-requests'])->only(['destroy']);
+        $this->middleware(['can:create-review-requests'])->only(['send', 'discard']);
+        $this->middleware(['can:edit-review-requests'])->only(['resend', 'remind', 'expire', 'restore', 'skip']);
+        $this->middleware(['can:delete-review-requests'])->only(['destroy', 'destroyPerm']);
     }
 
     public function index(Request $request)
     {
         $tab = $request->get('tab', 'eligible');
-        return $tab === 'requested'
-            ? $this->indexRequested($request)
-            : $this->indexEligible($request);
+        if ($tab === 'requested') return $this->indexRequested($request);
+        if ($tab === 'trash')     return $this->indexTrash($request);
+        return $this->indexEligible($request);
     }
 
     /** --------- TAB: ELEGIBLES (reservas) --------- */
@@ -159,7 +159,7 @@ class ReviewRequestAdminController extends Controller
                     if ($hasExpires)   $w->where(function ($x) use ($rrTable) {
                         $x->whereNull("$rrTable.expires_at")->orWhere("$rrTable.expires_at", '>', now());
                     });
-                } elseif (in_array($status, ['sent', 'reminded'], true)) {
+                } elseif (in_array($status, ['sent', 'reminded', 'skipped'], true)) {
                     if ($hasStatus) $w->where("$rrTable.status", $status);
                 } elseif ($status === 'used' && $hasUsed) {
                     $w->whereNotNull("$rrTable.used_at");
@@ -169,6 +169,9 @@ class ReviewRequestAdminController extends Controller
                     $w->whereNotNull("$rrTable.cancelled_at");
                 }
             });
+        } elseif ($hasStatus) {
+             // Default: Exclude skipped (hide from default view)
+             $q->where("$rrTable.status", '!=', 'skipped');
         }
 
         // Rango fechas
@@ -365,5 +368,90 @@ class ReviewRequestAdminController extends Controller
         
         // Default to English for all other languages
         return 'en';
+    }
+    public function discard(Booking $booking)
+    {
+        $email = optional($booking->user)->email 
+            ?: ($booking->customer_email ?? $booking->email ?? 'no-email@example.com');
+
+        ReviewRequest::create([
+            'booking_id' => $booking->getKey(),
+            'user_id'    => $booking->user_id,
+            'tour_id'    => $booking->tour_id,
+            'email'      => $email,
+            'token'      => Str::random(40),
+            'sent_at'    => now(),
+            'expires_at' => null, // Permanent (never "expires" so stays valid for blocking)
+            'status'     => 'skipped',
+        ]);
+
+        return back()->with('ok', __('reviews.requests.discard_ok') ?? 'Review request discarded.');
+    }
+
+    /** Mover solicitud existente a Skipped (ocultar de tabla, mantiene validez) */
+    public function skip(ReviewRequest $rr)
+    {
+        if (Schema::hasColumn($rr->getTable(), 'status')) {
+            $rr->status = 'skipped';
+        }
+        if (Schema::hasColumn($rr->getTable(), 'expires_at')) {
+            $rr->expires_at = null; // Nunca expira (para que siga bloqueando elegibles)
+        }
+        $rr->save();
+        return back()->with('ok', __('reviews.requests.skipped_ok') ?? 'Request skipped.');
+    }
+
+    /** Restaurar de papelera */
+    public function restore($id)
+    {
+        $rr = ReviewRequest::withTrashed()->findOrFail($id);
+        $rr->restore();
+        return back()->with('ok', __('reviews.requests.restored_ok') ?? 'Request restored.');
+    }
+
+    /** Eliminar permanentemente (solo desde trash) */
+    public function destroyPerm($id)
+    {
+        $rr = ReviewRequest::withTrashed()->findOrFail($id);
+        $rr->forceDelete();
+        return back()->with('ok', __('reviews.requests.deleted_perm') ?? 'Request deleted permanently.');
+    }
+
+    /** --------- TAB: TRASH (Papelera) --------- */
+    private function indexTrash(Request $request)
+    {
+        $rrTable = (new ReviewRequest())->getTable();
+        $bkTable = (new Booking())->getTable();
+        $hasBkRef = Schema::hasColumn($bkTable, 'booking_reference');
+        $hasSentAt = Schema::hasColumn($rrTable, 'sent_at');
+
+        $q = ReviewRequest::onlyTrashed()
+            ->with([
+                'booking:booking_id,tour_id' . ($hasBkRef ? ',booking_reference' : ''),
+                'tour:tour_id,name',
+                'user:user_id,first_name,last_name,email',
+            ]);
+
+        // Search
+        $q->when($request->filled('q'), function ($w) use ($request, $rrTable, $hasBkRef) {
+            $qstr = trim((string) $request->get('q'));
+            $w->where(function ($qq) use ($qstr, $rrTable, $hasBkRef) {
+                $qq->where("$rrTable.booking_id", (int) $qstr)
+                    ->orWhere("$rrTable.email", 'ilike', "%{$qstr}%");
+                if ($hasBkRef) {
+                    $qq->orWhereHas('booking', function ($bq) use ($qstr) {
+                        $bq->where('booking_reference', 'ilike', "%{$qstr}%");
+                    });
+                }
+            });
+        });
+
+        $dateCol = $hasSentAt ? 'sent_at' : 'created_at';
+        $requests = $q->orderByDesc($dateCol)->paginate(25)->withQueryString();
+
+        return view('admin.reviews.requests.index', [
+            'tab'      => 'trash',
+            'requests' => $requests,
+        ]);
     }
 }

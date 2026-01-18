@@ -29,6 +29,9 @@
       {{ __('reviews.requests.tabs.requested') }}
     </a>
   </li>
+  <li class="nav-item">
+    <a class="nav-link {{ $tab === 'trash' ? 'active' : '' }}" href="{{ route('admin.review-requests.index', ['tab'=>'trash']) }}">Papelera</a>
+  </li>
 </ul>
 
 {{-- Filtros --}}
@@ -71,6 +74,7 @@
         <option value="used" {{ request('status')==='used'     ? 'selected':'' }}>{{ __('reviews.requests.status.used') }}</option>
         <option value="expired" {{ request('status')==='expired'  ? 'selected':'' }}>{{ __('reviews.requests.status.expired') }}</option>
         <option value="cancelled" {{ request('status')==='cancelled'? 'selected':'' }}>{{ __('reviews.requests.status.cancelled') }}</option>
+        <option value="skipped" {{ request('status')==='skipped'? 'selected':'' }}>{{ __('reviews.requests.status.skipped') }}</option>
       </select>
     </div>
     <div class="col-sm-2 mb-2">
@@ -139,6 +143,13 @@
             @can('create-review-requests')
               <button class="btn btn-primary btn-sm">{{ __('reviews.requests.btn_request') }}</button>
             </form>
+
+            <form method="POST" action="{{ route('admin.review-requests.discard', $b) }}" class="d-inline ml-1">
+                @csrf
+                <button class="btn btn-outline-secondary btn-sm" title="{{ __('reviews.requests.actions.discard') }}">
+                    {{ __('reviews.requests.actions.discard') }}
+                </button>
+            </form>
             @endcan
           </td>
         </tr>
@@ -153,7 +164,7 @@
 </div>
 
 <div class="mt-3">{{ $bookings->withQueryString()->links() }}</div>
-@else
+@elseif($tab === 'requested')
 <div class="card">
   <div class="card-body p-0">
     <table class="table table-sm mb-0">
@@ -174,7 +185,11 @@
         $badge = function($txt,$cls){ return '<span class="badge badge-'.$cls.'">'.$txt.'</span>'; };
         $ref = optional($r->booking)->booking_reference ?? null;
         $states = [];
-        if ($has('status') && $r->status) $states[] = $badge(e(__("reviews.requests.status_labels.".$r->status)), 'info');
+        if ($has('status') && $r->status) {
+           $color = 'info';
+           if($r->status === 'skipped') $color = 'secondary';
+           $states[] = $badge(e(__("reviews.requests.status_labels.".$r->status)), $color);
+        }
         if ($has('used_at') && $r->used_at) $states[] = $badge(__('reviews.requests.status.used'), 'success');
         if ($has('cancelled_at') && $r->cancelled_at) $states[] = $badge(__('reviews.requests.status.cancelled'), 'secondary');
         if ($has('expires_at') && $r->expires_at) {
@@ -213,34 +228,111 @@
             <div><small class="text-muted">{{ __('reviews.requests.labels.used_at') }}: {{ $r->used_at->toDateString() }}</small></div>
             @endif
           </td>
-          <td class="text-right">
+          <td class="text-right align-middle">
+            <div class="btn-group btn-group-sm">
             @can('edit-review-requests')
-            <form method="POST" action="{{ route('admin.review-requests.resend', $r) }}" class="d-inline">
-              @csrf
-              <button class="btn btn-sm btn-outline-primary"
-                @if(\Illuminate\Support\Facades\Schema::hasColumn($r->getTable(),'expires_at') && $r->expires_at && $r->expires_at->isPast()) disabled @endif>
-                {{ __('reviews.requests.actions.resend') }}
-              </button>
-            </form>
+              {{-- Actions for Sent/Reminded --}}
+              @if(in_array($r->status, ['sent', 'reminded']))
+                <form method="POST" action="{{ route('admin.review-requests.resend', $r) }}" class="d-inline">
+                    @csrf
+                    <button class="btn btn-outline-primary" title="{{ __('reviews.requests.actions.resend') }}">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                {{-- SKIP Action --}}
+                <form method="POST" action="{{ route('admin.review-requests.skip', $r) }}" class="d-inline ml-1">
+                    @csrf
+                    <button class="btn btn-outline-secondary" title="{{ __('reviews.requests.actions.discard') }}">
+                        <i class="fas fa-ban"></i>
+                    </button>
+                </form>
+              @endif
             @endcan
 
             @can('delete-review-requests')
-            <form method="POST" action="{{ route('admin.review-requests.destroy', $r) }}" class="d-inline delete-review-request-form">
-              @csrf @method('DELETE')
-              <button type="button" class="btn btn-sm btn-outline-danger delete-review-request-btn">{{ __('reviews.common.delete') }}</button>
-            </form>
+              <form method="POST" action="{{ route('admin.review-requests.destroy', $r) }}" class="d-inline ml-1" onsubmit="return confirm('{{ __('reviews.requests.actions.confirm_delete') }}')">
+                  @csrf
+                  @method('DELETE')
+                  <button class="btn btn-outline-danger" title="{{ __('reviews.common.delete') }}">
+                      <i class="fas fa-trash"></i>
+                  </button>
+              </form>
             @endcan
+            </div>
           </td>
         </tr>
         @empty
         <tr>
-          <td colspan="6" class="text-center text-muted p-3">{{ __('reviews.requests.no_requests') ?? 'No requests found' }}</td>
+          <td colspan="6" class="text-center text-muted p-3">{{ __('reviews.requests.no_requests') }}</td>
         </tr>
         @endforelse
       </tbody>
     </table>
   </div>
 </div>
+<div class="mt-3">{{ $requests->links() }}</div>
+
+@elseif($tab === 'trash')
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <thead>
+        <tr>
+          <th style="width:110px;">{{ __('reviews.requests.table.sent_at') }}</th>
+          <th>{{ __('reviews.admin.table.client') }}</th>
+          <th>{{ __('reviews.admin.table.tour') }}</th>
+          <th style="width:160px;">{{ __('reviews.requests.table.reference') }}</th>
+          <th class="text-right" style="width:210px;">{{ __('reviews.common.actions') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        @forelse($requests as $r)
+        @php
+           $sentAt = $r->sent_at ?? $r->created_at;
+        @endphp
+        <tr>
+          <td>{{ \Illuminate\Support\Carbon::parse($sentAt)->toDateString() }}</td>
+          <td>
+             {{ optional($r->user)->full_name ?? $r->email }}
+             <small class="text-muted d-block">{{ $r->email }}</small>
+          </td>
+          <td>
+             {{ optional($r->tour)->name }}
+             <small class="text-muted d-block">ID: {{ $r->tour_id }}</small>
+          </td>
+          <td>
+             <code>{{ optional($r->booking)->booking_reference }}</code>
+          </td>
+          <td class="text-right align-middle">
+            @can('edit-review-requests')
+              <form method="POST" action="{{ route('admin.review-requests.restore', $r->id) }}" class="d-inline">
+                  @csrf
+                  <button class="btn btn-sm btn-success" title="Restaurar">
+                      <i class="fas fa-trash-restore"></i> Restaurar
+                  </button>
+              </form>
+            @endcan
+            @can('delete-review-requests')
+              <form method="POST" action="{{ route('admin.review-requests.destroy-perm', $r->id) }}" class="d-inline ml-1" onsubmit="return confirm('¿Eliminar permanentemente?')">
+                  @csrf
+                  @method('DELETE')
+                  <button class="btn btn-sm btn-danger" title="Eliminar Permanentemente">
+                      <i class="fas fa-times"></i>
+                  </button>
+              </form>
+            @endcan
+          </td>
+        </tr>
+        @empty
+        <tr>
+          <td colspan="5" class="text-center text-muted p-3">Papelera vacía.</td>
+        </tr>
+        @endforelse
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="mt-3">{{ $requests->links() }}</div>
 @endif
 @stop
 

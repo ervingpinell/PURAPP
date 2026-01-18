@@ -37,8 +37,8 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         $this->customerName  = $customerName;
         $this->adminPanelUrl = $adminPanelUrl;
 
-        $current = strtolower(config('app.locale'));
-        $this->mailLocale = str_starts_with($current, 'es') ? 'es' : 'en';
+        // Forzar idioma español como default (APP_LOCALE)
+        $this->mailLocale = 'es';
     }
 
     /**
@@ -98,23 +98,12 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         // DESTINO: lista de correos de admin (pueden ser varios)
         $adminRecipients = $this->resolveAdminRecipients($fromAddress);
 
-        // URL al panel admin (edit como preferencia, index como fallback)
+        // URL al panel admin (INDEX siempre, como solicitado)
         $adminUrl = $this->adminPanelUrl;
         if (!$adminUrl) {
-            try {
-                if (\function_exists('route')) {
-                    $adminUrl = route('admin.reviews.edit', $this->review->id ?? $this->review);
-                }
-            } catch (\Throwable $e) {
-                try {
-                    $adminUrl = route('admin.reviews.index');
-                } catch (\Throwable $e2) {
-                    $adminUrl = null;
-                }
-            }
+           $adminUrl = route('admin.reviews.index');
         }
 
-        $company      = $fromName;
         $contactEmail = $adminRecipients[0] ?? $fromAddress;
         $appUrl       = rtrim(config('app.url'), '/');
         $companyPhone = env('COMPANY_PHONE');
