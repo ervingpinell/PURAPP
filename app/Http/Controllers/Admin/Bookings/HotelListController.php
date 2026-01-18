@@ -30,9 +30,7 @@ class HotelListController extends Controller
      */
     public function index(): RedirectResponse|\Illuminate\View\View
     {
-        $hotels = HotelList::orderByRaw('sort_order IS NULL, sort_order ASC')
-            ->orderBy('name', 'asc')
-            ->get();
+        $hotels = HotelList::orderBy('name', 'asc')->get();
 
         return view('admin.hotels.index', compact('hotels'));
     }

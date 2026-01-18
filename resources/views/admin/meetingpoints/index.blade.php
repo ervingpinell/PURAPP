@@ -205,7 +205,7 @@
             <td class="text-center">
               <div class="btn-group btn-group-sm">
                 @can('edit-meeting-points')
-                <button class="btn btn-primary edit-btn"
+                <button class="btn btn-edit edit-btn"
                   data-id="{{ $p->id }}"
                   data-name="{{ $p->name }}"
                   data-pickup-time="{{ $p->pickup_time }}"
@@ -218,12 +218,12 @@
                 </button>
                 @endcan
                 @can('publish-meeting-points')
-                <button type="button" class="btn btn-{{ $p->is_active ? 'warning' : 'success' }} toggle-btn"
+                <button type="button" class="btn btn-{{ $p->is_active ? 'warning' : 'secondary' }} toggle-btn"
                   data-id="{{ $p->id }}"
-                  data-name="{{ $p->name }}"
+                  data-name="{{ $p->name_localized }}"
                   data-active="{{ $p->is_active ? 1 : 0 }}"
                   title="{{ $p->is_active ? __('pickups.meeting_point.actions.deactivate') : __('pickups.meeting_point.actions.activate') }}">
-                  <i class="fas fa-power-off"></i>
+                  <i class="fas fa-toggle-{{ $p->is_active ? 'on' : 'off' }}"></i>
                 </button>
                 @endcan
                 @can('soft-delete-meeting-points')
@@ -331,12 +331,12 @@
           </button>
           @endcan
           @can('publish-meeting-points')
-          <button type="button" class="btn btn-sm btn-{{ $p->is_active ? 'warning' : 'success' }} toggle-btn-mobile"
+          <button type="button" class="btn btn-sm btn-{{ $p->is_active ? 'warning' : 'secondary' }} toggle-btn-mobile"
             data-id="{{ $p->id }}"
-            data-name="{{ $p->name }}"
+            data-name="{{ $p->name_localized }}"
             data-active="{{ $p->is_active ? 1 : 0 }}"
             title="{{ $p->is_active ? __('pickups.meeting_point.actions.deactivate') : __('pickups.meeting_point.actions.activate') }}">
-            <i class="fas fa-power-off"></i>
+            <i class="fas fa-toggle-{{ $p->is_active ? 'on' : 'off' }}"></i>
           </button>
           @endcan
           @can('delete-meeting-points')
@@ -672,11 +672,23 @@
       e.preventDefault();
       const id = this.dataset.id;
       const name = this.dataset.name || '';
+      // Si el botón tiene data-active="1", es que está activo y queremos desactivar (confirmar desactivación).
+      // Si tiene data-active="0", está inactivo y queremos activar (confirmar activación).
       const isActive = this.dataset.active === '1';
+      
       const route = "{{ route('admin.meetingpoints.toggle', ':id') }}".replace(':id', id);
+
+      const confirmTitle = isActive 
+        ? @json(__('pickups.meeting_point.confirm.deactivate_title')) 
+        : @json(__('pickups.meeting_point.confirm.activate_title'));
+        
+      const confirmText = isActive
+        ? @json(__('pickups.meeting_point.confirm.deactivate_text')).replace(':name', name)
+        : @json(__('pickups.meeting_point.confirm.activate_text')).replace(':name', name);
+
       confirmAction(
-        isActive ? @json(__('pickups.meeting_point.confirm.deactivate_title')) : @json(__('pickups.meeting_point.confirm.activate_title')),
-        (isActive ? @json(__('pickups.meeting_point.confirm.deactivate_text')) : @json(__('pickups.meeting_point.confirm.activate_text'))).replace(':name', name),
+        confirmTitle,
+        confirmText,
         'warning'
       ).then(result => {
         if (result.isConfirmed) {
@@ -696,9 +708,18 @@
       const name = this.dataset.name || '';
       const isActive = this.dataset.active === '1';
       const route = "{{ route('admin.meetingpoints.toggle', ':id') }}".replace(':id', id);
+
+      const confirmTitle = isActive 
+        ? @json(__('pickups.meeting_point.confirm.deactivate_title_short')) 
+        : @json(__('pickups.meeting_point.confirm.activate_title_short'));
+        
+      const confirmText = isActive
+        ? @json(__('pickups.meeting_point.confirm.deactivate_text')).replace(':name', name)
+        : @json(__('pickups.meeting_point.confirm.activate_text')).replace(':name', name);
+
       confirmAction(
-        isActive ? @json(__('pickups.meeting_point.confirm.deactivate_title_short')) : @json(__('pickups.meeting_point.confirm.activate_title_short')),
-        (isActive ? @json(__('pickups.meeting_point.confirm.deactivate_text')) : @json(__('pickups.meeting_point.confirm.activate_text'))).replace(':name', name),
+        confirmTitle,
+        confirmText,
         'warning'
       ).then(result => {
         if (result.isConfirmed) {
