@@ -397,37 +397,28 @@ TXT
      */
     protected function wipePolicyTables(): void
     {
-        $driver = DB::getDriverName();
-
-        $tblPolicies        = 'policies';
-        $tblPolTranslations = 'policies_translations';
-        $tblSections        = 'policy_sections';
-        $tblSecTranslations = 'policy_section_translations'; 
-
         $tablesInOrder = [
-            $tblSecTranslations,   // depende de policy_sections
-            $tblPolTranslations,   // depende de policies
-            $tblSections,          // depende de policies
-            $tblPolicies,
+            'policy_section_translations',
+            'policies_translations',
+            'policy_sections',
+            'policies',
         ];
 
-        if ($driver === 'pgsql') {
-            foreach ($tablesInOrder as $t) {
-                if (!Schema::hasTable($t)) continue;
-                DB::statement('TRUNCATE TABLE "'.$t.'" RESTART IDENTITY CASCADE');
+        // Disable constraints to be safe across drivers (though Postgres Truncate Cascade overrides this usually)
+        Schema::disableForeignKeyConstraints();
+
+        foreach ($tablesInOrder as $t) {
+            // We use DB::table()->truncate() which handles grammar specific syntax.
+            // Postgres grammar adds 'RESTART IDENTITY CASCADE'.
+            // MySQL/etc adds 'TRUNCATE TABLE'.
+            try {
+                DB::table($t)->truncate();
+            } catch (\Throwable $e) {
+                // If table doesn't exist or other error, we log/ignore but try to continue
+                // usually purely because table might not exist in fresh db
             }
-        } else {
-            Schema::disableForeignKeyConstraints();
-            foreach ($tablesInOrder as $t) {
-                if (!Schema::hasTable($t)) continue;
-                try {
-                    DB::table($t)->truncate();
-                } catch (\Throwable $e) {
-                    DB::statement("DELETE FROM {$t}");
-                    try { DB::statement("DELETE FROM sqlite_sequence WHERE name = '{$t}'"); } catch (\Throwable $e2) {}
-                }
-            }
-            Schema::enableForeignKeyConstraints();
         }
+
+        Schema::enableForeignKeyConstraints();
     }
 }
