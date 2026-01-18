@@ -170,9 +170,9 @@ class PoliciesSeeder extends Seeder
             // 1) TÉRMINOS Y CONDICIONES
             // =========================
             $terms = Policy::updateOrCreate(
-                ['slug' => 'terms-and-conditions'],
+                ['type' => Policy::TYPE_TERMS ?? 'terms'],
                 [
-                    'type'           => Policy::TYPE_TERMS ?? 'terms', // Fallback string if constant undefined
+                    'slug'           => 'terms-and-conditions',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
@@ -309,9 +309,9 @@ TXT
             // 2) CANCELACIÓN
             // =========================
             $cancel = Policy::updateOrCreate(
-                ['slug' => 'cancellations-policies'],
+                ['type' => Policy::TYPE_CANCELLATION ?? 'cancellation'],
                 [
-                    'type'           => Policy::TYPE_CANCELLATION ?? 'cancellation',
+                    'slug'           => 'cancellations-policies',
                     'is_active'      => true, 
                     'effective_from' => $today, 
                     'effective_to'   => null
@@ -327,9 +327,9 @@ TXT
             // 3) REEMBOLSOS
             // =========================
             $refund = Policy::updateOrCreate(
-                ['slug' => 'refund-policies'],
+                ['type' => Policy::TYPE_REFUND ?? 'refund'],
                 [
-                    'type'           => Policy::TYPE_REFUND ?? 'refund',
+                    'slug'           => 'refund-policies',
                     'is_active'      => true, 
                     'effective_from' => $today, 
                     'effective_to'   => null
@@ -345,9 +345,9 @@ TXT
             // 4) PRIVACIDAD
             // =========================
             $privacy = Policy::updateOrCreate(
-                ['slug' => 'privacy-policy'],
+                ['type' => Policy::TYPE_PRIVACY ?? 'privacy'],
                 [
-                    'type'           => Policy::TYPE_PRIVACY ?? 'privacy',
+                    'slug'           => 'privacy-policy',
                     'is_active'      => true, 
                     'effective_from' => $today, 
                     'effective_to'   => null
@@ -363,9 +363,9 @@ TXT
             // 5) GARANTÍAS
             // =========================
             $warranty = Policy::updateOrCreate(
-                ['slug' => 'warranty-policies'],
+                ['type' => Policy::TYPE_WARRANTY ?? 'warranty'],
                 [
-                    'type'           => Policy::TYPE_WARRANTY ?? 'warranty',
+                    'slug'           => 'warranty-policies',
                     'is_active'      => true, 
                     'effective_from' => $today, 
                     'effective_to'   => null
