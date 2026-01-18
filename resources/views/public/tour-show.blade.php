@@ -18,7 +18,7 @@ $tourSchema = SchemaHelper::generateTourSchema($tour, $tourReviews ?? null);
 $breadcrumbItems = [
 ['name' => __('adminlte::adminlte.home'), 'url' => url('/')],
 ['name' => __('adminlte::adminlte.tours'), 'url' => url('/tours')],
-['name' => $tour->getTranslatedName()],
+['name' => $tour->getTranslatedName(), 'url' => Request::url()],
 ];
 $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
 @endphp

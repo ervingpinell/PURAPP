@@ -47,7 +47,7 @@ class SchemaHelper
 
         $schema = [
             '@context' => 'https://schema.org',
-            '@type' => 'TouristAttraction',
+            '@type' => 'Product',
             'name' => $tourName,
             'description' => strip_tags($overview ?? ''),
         ];
@@ -89,31 +89,10 @@ class SchemaHelper
             }
         }
 
-        // Add duration if available
-        if ($tour->length) {
-            $schema['duration'] = 'PT' . $tour->length . 'H';
-        }
-
-        // Add geo coordinates (La Fortuna, Arenal area)
-        $schema['geo'] = [
-            '@type' => 'GeoCoordinates',
-            'latitude' => '10.463',
-            'longitude' => '-84.703',
-        ];
-
-        // Add address
-        $schema['address'] = [
-            '@type' => 'PostalAddress',
-            'addressLocality' => 'La Fortuna',
-            'addressRegion' => 'Alajuela',
-            'addressCountry' => 'CR',
-        ];
-
-        // Add provider
-        $schema['provider'] = [
-            '@type' => 'TravelAgency',
+        // Product specific: Brand (instead of provider)
+        $schema['brand'] = [
+            '@type' => 'Brand',
             'name' => config('company.name'),
-            'url' => url('/'),
         ];
 
         return $schema;

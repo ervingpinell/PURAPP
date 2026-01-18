@@ -13,8 +13,8 @@
   $refund = $getPolicy(Policy::TYPE_REFUND);
   $warranty = $getPolicy(Policy::TYPE_WARRANTY);
 
-  // URL estable por ID (redirige al slug actual)
-  $policy_url = fn(App\Models\Policy $p) => localized_route('policies.show.id', ['policy' => $p->getKey()]);
+  // URL directa al slug (evita redirección SEO)
+  $policy_url = fn(App\Models\Policy $p) => localized_route('policies.show', ['policy' => $p]);
 
   $mapUrl = 'https://www.google.com/maps?ll=10.455662,-84.653203&z=16&t=m&hl=en&gl=US&mapclient=embed&cid=8940439748623688530';
   @endphp

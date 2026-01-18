@@ -98,6 +98,7 @@ Route::get('/robots.txt', function (): Response {
         'Disallow: /bookings/',
         'Disallow: /user/',
         'Disallow: /api/',
+        'Disallow: /cookies/',
         '',
         'Sitemap: ' . url('sitemap.xml'),
         'Disallow: /reviews/embed/',
