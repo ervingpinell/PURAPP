@@ -304,11 +304,11 @@ Route::middleware([SetLocale::class])->group(function () {
         return $response->header('X-Robots-Tag', 'noindex, nofollow');
     })->where('provider', '[A-Za-z0-9_-]+')->name('reviews.embed');
 
+    Route::view('/feedback/thanks', 'reviews.thanks')->name('reviews.thanks');
     Route::get('/feedback/{token}', [PublicReviewController::class, 'show'])->name('reviews.request.show');
     Route::post('/feedback/{token}', [PublicReviewController::class, 'submit'])
         ->middleware('throttle:sensitive')
         ->name('reviews.request.submit');
-    Route::view('/feedback/thanks', 'reviews.thanks')->name('reviews.thanks');
 
     // ============================
     // AUTH & VERIFICATION

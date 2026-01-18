@@ -43,20 +43,28 @@ class ReviewRequestAdminController extends Controller
         $to   = $request->get('to') ?: now()->toDateString();
         $from = $request->get('from') ?: now()->subDays(60)->toDateString();
 
+        $reviewTable = (new Review())->getTable();
+        $reviewRequestTable = (new ReviewRequest())->getTable();
+        $bookingTable = (new Booking())->getTable();
+
         // Allow user to select date column, or auto-detect
-        $dateCol = $request->get('date_col') ?: $this->bookingDateColumn() ?? 'created_at';
+        $reqDateCol = $request->get('date_col');
+        
+        // If request has a date_col, verify it exists. Else auto-detect.
+        if ($reqDateCol && Schema::hasColumn($bookingTable, $reqDateCol)) {
+            $dateCol = $reqDateCol;
+        } else {
+            // Fallback to auto-detection or created_at
+            $dateCol = $this->detectBookingDateColumn($bookingTable) ?? 'created_at';
+        }
 
-        $revTable = (new Review())->getTable();
-        $rrTable  = (new ReviewRequest())->getTable();
-        $bkTable  = (new Booking())->getTable();
+        $hasUsed       = Schema::hasColumn($reviewRequestTable, 'used_at');
+        $hasCancelled  = Schema::hasColumn($reviewRequestTable, 'cancelled_at');
+        $hasExpires    = Schema::hasColumn($reviewRequestTable, 'expires_at');
+        $hasStatus     = Schema::hasColumn($reviewRequestTable, 'status');
+        $hasBookingRef = Schema::hasColumn($bookingTable, 'booking_reference');
 
-        $hasUsed       = Schema::hasColumn($rrTable, 'used_at');
-        $hasCancelled  = Schema::hasColumn($rrTable, 'cancelled_at');
-        $hasExpires    = Schema::hasColumn($rrTable, 'expires_at');
-        $hasStatus     = Schema::hasColumn($rrTable, 'status');
-        $hasBkRef      = Schema::hasColumn($bkTable, 'booking_reference');
-
-        $q = Booking::query()
+        $query = Booking::query()
             ->with([
                 'tour:tour_id,name',
                 'tour.translations',
@@ -65,59 +73,65 @@ class ReviewRequestAdminController extends Controller
             ]);
 
         // (opcional) selección explícita de columna de referencia si existe
-        if ($hasBkRef) {
-            $q->select(["$bkTable.*", "$bkTable.booking_reference"]);
+        if ($hasBookingRef) {
+            $query->select(["$bookingTable.*", "$bookingTable.booking_reference"]);
         }
 
-        $q->whereIn('status', ['confirmed', 'completed', 'CONFIRMED', 'COMPLETED'])
+        $query->whereIn('status', ['confirmed', 'completed', 'CONFIRMED', 'COMPLETED'])
             ->whereDate($dateCol, '>=', $from)
             ->whereDate($dateCol, '<=', $to)
 
             // Sin review local previa (mismo user + tour)
-            ->whereNotExists(function ($sub) use ($revTable, $bkTable) {
-                $sub->select(DB::raw('1'))
-                    ->from($revTable)
-                    ->where("$revTable.provider", 'local')
-                    ->whereColumn("$revTable.tour_id", "$bkTable.tour_id")
-                    ->whereColumn("$revTable.user_id", "$bkTable.user_id");
+            ->whereNotExists(function ($subQuery) use ($reviewTable, $bookingTable) {
+                $subQuery->select(DB::raw('1'))
+                    ->from($reviewTable)
+                    ->where("$reviewTable.provider", 'local')
+                    ->whereColumn("$reviewTable.tour_id", "$bookingTable.tour_id")
+                    ->whereColumn("$reviewTable.user_id", "$bookingTable.user_id");
             })
 
             // Sin solicitud vigente
-            ->whereNotExists(function ($sub) use ($rrTable, $bkTable, $hasUsed, $hasCancelled, $hasExpires, $hasStatus) {
-                $sub->select(DB::raw('1'))
-                    ->from($rrTable)
-                    ->whereColumn("$rrTable.booking_id", "$bkTable.booking_id");
+            ->whereNotExists(function ($subQuery) use ($reviewRequestTable, $bookingTable, $hasUsed, $hasCancelled, $hasExpires, $hasStatus) {
+                $subQuery->select(DB::raw('1'))
+                    ->from($reviewRequestTable)
+                    ->whereColumn("$reviewRequestTable.booking_id", "$bookingTable.booking_id");
 
-                if ($hasUsed)      $sub->whereNull("$rrTable.used_at");
-                if ($hasCancelled) $sub->whereNull("$rrTable.cancelled_at");
+                if ($hasUsed)      $subQuery->whereNull("$reviewRequestTable.used_at");
+                if ($hasCancelled) $subQuery->whereNull("$reviewRequestTable.cancelled_at");
 
                 if ($hasExpires) {
-                    $sub->where(function ($x) use ($rrTable) {
-                        $x->whereNull("$rrTable.expires_at")->orWhere("$rrTable.expires_at", '>', now());
+                    $subQuery->where(function ($sub) use ($reviewRequestTable) {
+                        $sub->whereNull("$reviewRequestTable.expires_at")->orWhere("$reviewRequestTable.expires_at", '>', now());
                     });
                 } elseif ($hasStatus) {
-                    $sub->whereIn("$rrTable.status", ['sent', 'reminded']);
+                    $subQuery->whereIn("$reviewRequestTable.status", ['sent', 'reminded']);
                 }
             })
 
             // Búsqueda libre (incluye booking_reference si existe)
-            ->when($request->filled('q'), function ($w) use ($request, $bkTable, $hasBkRef) {
-                $qstr = trim((string) $request->get('q'));
-                $w->where(function ($qq) use ($qstr, $bkTable, $hasBkRef) {
-                    $qq->where("$bkTable.booking_id", (int) $qstr)
-                        ->orWhere("$bkTable.customer_name", 'ilike', "%{$qstr}%")
-                        ->orWhere("$bkTable.customer_email", 'ilike', "%{$qstr}%");
+            ->when($request->filled('q'), function ($sub) use ($request, $bookingTable, $hasBookingRef) {
+                $searchString = trim((string) $request->get('q'));
+                $sub->where(function ($qq) use ($searchString, $bookingTable, $hasBookingRef) {
+                    $qq->where("$bookingTable.booking_id", (int) $searchString)
+                        ->orWhere("$bookingTable.customer_name", 'ilike', "%{$searchString}%")
+                        ->orWhere("$bookingTable.customer_email", 'ilike', "%{$searchString}%");
 
-                    if ($hasBkRef) {
-                        $qq->orWhere("$bkTable.booking_reference", 'ilike', "%{$qstr}%");
+                    if ($hasBookingRef) {
+                        $qq->orWhere("$bookingTable.booking_reference", 'ilike', "%{$searchString}%");
                     }
                 });
             })
+        
+            // Strict Filter: Tour Date must be in the past (or today)
+            // Helps prevent future tours from showing up even if filtered by creation date.
+            ->whereHas('detail', function ($sub) {
+                $sub->where('tour_date', '<=', now());
+            })
 
-            ->when($request->filled('tour_id'), fn($w) => $w->where('tour_id', (int) $request->tour_id))
+            ->when($request->filled('tour_id'), fn($sub) => $sub->where('tour_id', (int) $request->tour_id))
             ->orderByDesc($dateCol);
 
-        $bookings = $q->paginate(25)->withQueryString();
+        $bookings = $query->paginate(25)->withQueryString();
 
         return view('admin.reviews.requests.index', [
             'tab'        => 'eligible',
@@ -131,20 +145,20 @@ class ReviewRequestAdminController extends Controller
     /** --------- TAB: SOLICITADAS (review_requests) --------- */
     private function indexRequested(Request $request)
     {
-        $rrTable = (new ReviewRequest())->getTable();
-        $bkTable = (new Booking())->getTable();
+        $reviewRequestTable = (new ReviewRequest())->getTable();
+        $bookingTable = (new Booking())->getTable();
 
-        $hasUsed       = Schema::hasColumn($rrTable, 'used_at');
-        $hasCancelled  = Schema::hasColumn($rrTable, 'cancelled_at');
-        $hasExpires    = Schema::hasColumn($rrTable, 'expires_at');
-        $hasStatus     = Schema::hasColumn($rrTable, 'status');
-        $hasSentAt     = Schema::hasColumn($rrTable, 'sent_at');
-        $hasBkRef      = Schema::hasColumn($bkTable, 'booking_reference');
+        $hasUsed       = Schema::hasColumn($reviewRequestTable, 'used_at');
+        $hasCancelled  = Schema::hasColumn($reviewRequestTable, 'cancelled_at');
+        $hasExpires    = Schema::hasColumn($reviewRequestTable, 'expires_at');
+        $hasStatus     = Schema::hasColumn($reviewRequestTable, 'status');
+        $hasSentAt     = Schema::hasColumn($reviewRequestTable, 'sent_at');
+        $hasBookingRef = Schema::hasColumn($bookingTable, 'booking_reference');
 
-        $q = ReviewRequest::query()
+        $query = ReviewRequest::query()
             ->with([
                 // incluye booking_reference si existe
-                'booking:booking_id,tour_id' . ($hasBkRef ? ',booking_reference' : ''),
+                'booking:booking_id,tour_id' . ($hasBookingRef ? ',booking_reference' : ''),
                 'tour:tour_id,name',
                 'user:user_id,first_name,last_name,email',
             ]);
@@ -152,26 +166,26 @@ class ReviewRequestAdminController extends Controller
         // Filtros de estado
         if ($status = $request->get('status')) {
             $status = strtolower($status);
-            $q->where(function ($w) use ($status, $rrTable, $hasUsed, $hasCancelled, $hasExpires, $hasStatus) {
+            $query->where(function ($sub) use ($status, $reviewRequestTable, $hasUsed, $hasCancelled, $hasExpires, $hasStatus) {
                 if ($status === 'active') {
-                    if ($hasUsed)      $w->whereNull("$rrTable.used_at");
-                    if ($hasCancelled) $w->whereNull("$rrTable.cancelled_at");
-                    if ($hasExpires)   $w->where(function ($x) use ($rrTable) {
-                        $x->whereNull("$rrTable.expires_at")->orWhere("$rrTable.expires_at", '>', now());
+                    if ($hasUsed)      $sub->whereNull("$reviewRequestTable.used_at");
+                    if ($hasCancelled) $sub->whereNull("$reviewRequestTable.cancelled_at");
+                    if ($hasExpires)   $sub->where(function ($x) use ($reviewRequestTable) {
+                        $x->whereNull("$reviewRequestTable.expires_at")->orWhere("$reviewRequestTable.expires_at", '>', now());
                     });
                 } elseif (in_array($status, ['sent', 'reminded', 'skipped'], true)) {
-                    if ($hasStatus) $w->where("$rrTable.status", $status);
+                    if ($hasStatus) $sub->where("$reviewRequestTable.status", $status);
                 } elseif ($status === 'used' && $hasUsed) {
-                    $w->whereNotNull("$rrTable.used_at");
+                    $sub->whereNotNull("$reviewRequestTable.used_at");
                 } elseif ($status === 'expired' && $hasExpires) {
-                    $w->whereNotNull("$rrTable.expires_at")->where("$rrTable.expires_at", '<=', now());
+                    $sub->whereNotNull("$reviewRequestTable.expires_at")->where("$reviewRequestTable.expires_at", '<=', now());
                 } elseif ($status === 'cancelled' && $hasCancelled) {
-                    $w->whereNotNull("$rrTable.cancelled_at");
+                    $sub->whereNotNull("$reviewRequestTable.cancelled_at");
                 }
             });
         } elseif ($hasStatus) {
              // Default: Exclude skipped (hide from default view)
-             $q->where("$rrTable.status", '!=', 'skipped');
+             $query->where("$reviewRequestTable.status", '!=', 'skipped');
         }
 
         // Rango fechas
@@ -179,28 +193,28 @@ class ReviewRequestAdminController extends Controller
         $to   = $request->get('to');
         $dateCol = $hasSentAt ? 'sent_at' : 'created_at';
 
-        if ($from) $q->whereDate($dateCol, '>=', $from);
-        if ($to)   $q->whereDate($dateCol, '<=', $to);
+        if ($from) $query->whereDate($dateCol, '>=', $from);
+        if ($to)   $query->whereDate($dateCol, '<=', $to);
 
         // Búsqueda (incluye booking.booking_reference si existe)
-        $q->when($request->filled('q'), function ($w) use ($request, $rrTable, $hasBkRef) {
-            $qstr = trim((string) $request->get('q'));
-            $w->where(function ($qq) use ($qstr, $rrTable, $hasBkRef) {
-                $qq->where("$rrTable.booking_id", (int) $qstr)
-                    ->orWhere("$rrTable.email", 'ilike', "%{$qstr}%");
+        $query->when($request->filled('q'), function ($sub) use ($request, $reviewRequestTable, $hasBookingRef) {
+            $searchString = trim((string) $request->get('q'));
+            $sub->where(function ($qq) use ($searchString, $reviewRequestTable, $hasBookingRef) {
+                $qq->where("$reviewRequestTable.booking_id", (int) $searchString)
+                    ->orWhere("$reviewRequestTable.email", 'ilike', "%{$searchString}%");
 
-                if ($hasBkRef) {
-                    $qq->orWhereHas('booking', function ($bq) use ($qstr) {
-                        $bq->where('booking_reference', 'ilike', "%{$qstr}%");
+                if ($hasBookingRef) {
+                    $qq->orWhereHas('booking', function ($bq) use ($searchString) {
+                        $bq->where('booking_reference', 'ilike', "%{$searchString}%");
                     });
                 }
             });
         });
 
         // Filtrar por tour
-        $q->when($request->filled('tour_id'), fn($w) => $w->where('tour_id', (int) request('tour_id')));
+        $query->when($request->filled('tour_id'), fn($sub) => $sub->where('tour_id', (int) request('tour_id')));
 
-        $requests = $q->orderByDesc($dateCol)->paginate(25)->withQueryString();
+        $requests = $query->orderByDesc($dateCol)->paginate(25)->withQueryString();
 
         return view('admin.reviews.requests.index', [
             'tab'      => 'requested',
@@ -221,7 +235,7 @@ class ReviewRequestAdminController extends Controller
         $email = optional($booking->user)->email
             ?: ($booking->customer_email ?? $booking->email ?? null);
 
-        $rr = ReviewRequest::create([
+        $reviewRequest = ReviewRequest::create([
             'booking_id' => $booking->getKey(),
             'user_id'    => $booking->user_id,
             'tour_id'    => $booking->tour_id,
@@ -232,119 +246,122 @@ class ReviewRequestAdminController extends Controller
             'status'     => Schema::hasColumn((new ReviewRequest())->getTable(), 'status') ? 'sent' : null,
         ]);
 
-        if ($rr->email) {
+        if ($reviewRequest->email) {
             // Detect locale from tour language name in booking details
             $tourLanguageName = optional(optional($booking->detail)->tourLanguage)->name ?? '';
             $locale = $this->detectLocaleFromLanguageName($tourLanguageName);
             
-            Mail::to($rr->email)->queue(new ReviewRequestLink($rr, $locale));
+            Mail::to($reviewRequest->email)->queue(new ReviewRequestLink($reviewRequest, $locale));
         }
 
         return back()->with('ok', __('reviews.requests.send_ok'));
     }
 
-    public function resend(ReviewRequest $rr)
+    public function resend(ReviewRequest $reviewRequest)
     {
-        $table = $rr->getTable();
+        $table = $reviewRequest->getTable();
 
-        if (Schema::hasColumn($table, 'used_at') && $rr->used_at) {
+        if (Schema::hasColumn($table, 'used_at') && $reviewRequest->used_at) {
             return back()->withErrors(__('reviews.requests.errors.used'));
         }
-        if (Schema::hasColumn($table, 'expires_at') && $rr->expires_at && $rr->expires_at->isPast()) {
+        if (Schema::hasColumn($table, 'expires_at') && $reviewRequest->expires_at && $reviewRequest->expires_at->isPast()) {
             return back()->withErrors(__('reviews.requests.errors.expired'));
         }
 
         // Rate limit: 1 per minute
-        if (Schema::hasColumn($table, 'sent_at') && $rr->sent_at && $rr->sent_at->gt(now()->subMinute())) {
+        if (Schema::hasColumn($table, 'sent_at') && $reviewRequest->sent_at && $reviewRequest->sent_at->gt(now()->subMinute())) {
             return back()->withErrors(__('reviews.requests.errors.wait_one_minute'));
         }
 
         // Load tour language from booking details for language detection
-        $rr->load('booking.detail.tourLanguage', 'booking.tour.translations');
+        $reviewRequest->load('booking.detail.tourLanguage', 'booking.tour.translations');
 
-        if ($rr->email) {
+        if ($reviewRequest->email) {
             // Detect locale from tour language name in booking details
-            $tourLanguageName = optional(optional(optional($rr->booking)->detail)->tourLanguage)->name ?? '';
+            $tourLanguageName = optional(optional(optional($reviewRequest->booking)->detail)->tourLanguage)->name ?? '';
             $locale = $this->detectLocaleFromLanguageName($tourLanguageName);
             
-            Mail::to($rr->email)->queue(new ReviewRequestLink($rr, $locale));
+            Mail::to($reviewRequest->email)->queue(new ReviewRequestLink($reviewRequest, $locale));
         }
 
-        if (Schema::hasColumn($table, 'sent_at'))  $rr->sent_at = now();
-        if (Schema::hasColumn($table, 'status'))   $rr->status  = 'reminded';
-        $rr->save();
+        if (Schema::hasColumn($table, 'sent_at'))  $reviewRequest->sent_at = now();
+        if (Schema::hasColumn($table, 'status'))   $reviewRequest->status  = 'reminded';
+        $reviewRequest->save();
 
         return back()->with('ok', __('reviews.requests.resend_ok'));
     }
 
-    public function remind(ReviewRequest $rr)
+    public function remind(ReviewRequest $reviewRequest)
     {
-        $table = $rr->getTable();
+        $table = $reviewRequest->getTable();
 
-        if (Schema::hasColumn($table, 'used_at') && $rr->used_at) {
+        if (Schema::hasColumn($table, 'used_at') && $reviewRequest->used_at) {
             return back()->withErrors(__('reviews.requests.errors.used'));
         }
-        if (Schema::hasColumn($table, 'expires_at') && $rr->expires_at && $rr->expires_at->isPast()) {
+        if (Schema::hasColumn($table, 'expires_at') && $reviewRequest->expires_at && $reviewRequest->expires_at->isPast()) {
             return back()->withErrors(__('reviews.requests.errors.expired'));
         }
 
         // Load tour language from booking details for language detection
-        $rr->load('booking.detail.tourLanguage', 'booking.tour.translations');
+        $reviewRequest->load('booking.detail.tourLanguage', 'booking.tour.translations');
 
-        if ($rr->email) {
+        if ($reviewRequest->email) {
             // Detect locale from tour language name in booking details
-            $tourLanguageName = optional(optional(optional($rr->booking)->detail)->tourLanguage)->name ?? '';
+            $tourLanguageName = optional(optional(optional($reviewRequest->booking)->detail)->tourLanguage)->name ?? '';
             $locale = $this->detectLocaleFromLanguageName($tourLanguageName);
             
-            Mail::to($rr->email)->queue(new ReviewRequestLink($rr, $locale));
+            Mail::to($reviewRequest->email)->queue(new ReviewRequestLink($reviewRequest, $locale));
         }
 
-        if (Schema::hasColumn($table, 'reminded_at')) $rr->reminded_at = now();
-        if (Schema::hasColumn($table, 'status'))      $rr->status      = 'reminded';
-        $rr->save();
+        if (Schema::hasColumn($table, 'reminded_at')) $reviewRequest->reminded_at = now();
+        if (Schema::hasColumn($table, 'status'))      $reviewRequest->status      = 'reminded';
+        $reviewRequest->save();
 
         return back()->with('ok', __('reviews.requests.remind_ok'));
     }
 
-    public function expire(ReviewRequest $rr)
+    public function expire(ReviewRequest $reviewRequest)
     {
-        $table = $rr->getTable();
+        $table = $reviewRequest->getTable();
 
         if (Schema::hasColumn($table, 'expires_at')) {
-            $rr->expires_at = now();
+            $reviewRequest->expires_at = now();
         }
         if (Schema::hasColumn($table, 'status')) {
-            $rr->status = 'expired';
+            $reviewRequest->status = 'expired';
         }
-        $rr->save();
+        $reviewRequest->save();
 
         return back()->with('ok', __('reviews.requests.expire_ok'));
     }
 
-    public function destroy(ReviewRequest $rr)
+    public function destroy(ReviewRequest $reviewRequest)
     {
-        $rr->delete();
+        $reviewRequest->delete();
         return back()->with('ok', __('reviews.requests.deleted'));
     }
 
-    private function bookingDateColumn(): ?string
+    private function getBookingDateColumns(string $table): array
     {
-        $bkTable = (new Booking())->getTable();
-        foreach (
-            [
-                'start_date',
-                'tour_date',
-                'service_date',
-                'activity_date',
-                'travel_date',
-                'date',
-                'experience_date',
-                'scheduled_for',
-                'start_at',
-                'created_at',
-            ] as $c
-        ) {
-            if (Schema::hasColumn($bkTable, $c)) return $c;
+        return [
+            'booking_date',
+            'start_date',
+            'tour_date',
+            'service_date',
+            'activity_date',
+            'travel_date',
+            'date',
+            'experience_date',
+            'scheduled_for',
+            'start_at',
+            'created_at',
+        ];
+    }
+
+    private function detectBookingDateColumn(string $table): ?string
+    {
+        foreach ($this->getBookingDateColumns($table) as $c) {
+            if (Schema::hasColumn($table, $c)) return $c;
         }
         return null;
     }
@@ -389,65 +406,68 @@ class ReviewRequestAdminController extends Controller
     }
 
     /** Mover solicitud existente a Skipped (ocultar de tabla, mantiene validez) */
-    public function skip(ReviewRequest $rr)
+    /** Mover solicitud existente a Skipped (ocultar de tabla, mantiene validez) */
+    public function skip(ReviewRequest $reviewRequest)
     {
-        if (Schema::hasColumn($rr->getTable(), 'status')) {
-            $rr->status = 'skipped';
+        if (Schema::hasColumn($reviewRequest->getTable(), 'status')) {
+            $reviewRequest->status = 'skipped';
         }
-        if (Schema::hasColumn($rr->getTable(), 'expires_at')) {
-            $rr->expires_at = null; // Nunca expira (para que siga bloqueando elegibles)
+        if (Schema::hasColumn($reviewRequest->getTable(), 'expires_at')) {
+            $reviewRequest->expires_at = null; // Nunca expira (para que siga bloqueando elegibles)
         }
-        $rr->save();
+        $reviewRequest->save();
         return back()->with('ok', __('reviews.requests.skipped_ok') ?? 'Request skipped.');
     }
 
     /** Restaurar de papelera */
+    /** Restaurar de papelera */
     public function restore($id)
     {
-        $rr = ReviewRequest::withTrashed()->findOrFail($id);
-        $rr->restore();
+        $reviewRequest = ReviewRequest::withTrashed()->findOrFail($id);
+        $reviewRequest->restore();
         return back()->with('ok', __('reviews.requests.restored_ok') ?? 'Request restored.');
     }
 
     /** Eliminar permanentemente (solo desde trash) */
+    /** Eliminar permanentemente (solo desde trash) */
     public function destroyPerm($id)
     {
-        $rr = ReviewRequest::withTrashed()->findOrFail($id);
-        $rr->forceDelete();
+        $reviewRequest = ReviewRequest::withTrashed()->findOrFail($id);
+        $reviewRequest->forceDelete();
         return back()->with('ok', __('reviews.requests.deleted_perm') ?? 'Request deleted permanently.');
     }
 
     /** --------- TAB: TRASH (Papelera) --------- */
     private function indexTrash(Request $request)
     {
-        $rrTable = (new ReviewRequest())->getTable();
-        $bkTable = (new Booking())->getTable();
-        $hasBkRef = Schema::hasColumn($bkTable, 'booking_reference');
-        $hasSentAt = Schema::hasColumn($rrTable, 'sent_at');
+        $reviewRequestTable = (new ReviewRequest())->getTable();
+        $bookingTable = (new Booking())->getTable();
+        $hasBookingRef = Schema::hasColumn($bookingTable, 'booking_reference');
+        $hasSentAt = Schema::hasColumn($reviewRequestTable, 'sent_at');
 
-        $q = ReviewRequest::onlyTrashed()
+        $query = ReviewRequest::onlyTrashed()
             ->with([
-                'booking:booking_id,tour_id' . ($hasBkRef ? ',booking_reference' : ''),
+                'booking:booking_id,tour_id' . ($hasBookingRef ? ',booking_reference' : ''),
                 'tour:tour_id,name',
                 'user:user_id,first_name,last_name,email',
             ]);
 
         // Search
-        $q->when($request->filled('q'), function ($w) use ($request, $rrTable, $hasBkRef) {
-            $qstr = trim((string) $request->get('q'));
-            $w->where(function ($qq) use ($qstr, $rrTable, $hasBkRef) {
-                $qq->where("$rrTable.booking_id", (int) $qstr)
-                    ->orWhere("$rrTable.email", 'ilike', "%{$qstr}%");
-                if ($hasBkRef) {
-                    $qq->orWhereHas('booking', function ($bq) use ($qstr) {
-                        $bq->where('booking_reference', 'ilike', "%{$qstr}%");
+        $query->when($request->filled('q'), function ($sub) use ($request, $reviewRequestTable, $hasBookingRef) {
+            $searchString = trim((string) $request->get('q'));
+            $sub->where(function ($qq) use ($searchString, $reviewRequestTable, $hasBookingRef) {
+                $qq->where("$reviewRequestTable.booking_id", (int) $searchString)
+                    ->orWhere("$reviewRequestTable.email", 'ilike', "%{$searchString}%");
+                if ($hasBookingRef) {
+                    $qq->orWhereHas('booking', function ($bq) use ($searchString) {
+                        $bq->where('booking_reference', 'ilike', "%{$searchString}%");
                     });
                 }
             });
         });
 
         $dateCol = $hasSentAt ? 'sent_at' : 'created_at';
-        $requests = $q->orderByDesc($dateCol)->paginate(25)->withQueryString();
+        $requests = $query->orderByDesc($dateCol)->paginate(25)->withQueryString();
 
         return view('admin.reviews.requests.index', [
             'tab'      => 'trash',
