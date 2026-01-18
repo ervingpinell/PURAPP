@@ -1381,7 +1381,7 @@ class BookingController extends Controller
      */
     private function notifyEmails(): array
     {
-        return collect([env('BOOKING_NOTIFY'), env('MAIL_NOTIFICATIONS')])
+        return collect([setting('email.booking_notifications')])
             ->filter()
             ->flatMap(fn($v) => array_map('trim', explode(',', $v)))
             ->filter()
@@ -1400,7 +1400,8 @@ class BookingController extends Controller
     {
         try {
             // Lista de admins
-            $notify = collect([env('BOOKING_NOTIFY'), env('MAIL_NOTIFICATIONS')])
+            // Lista de admins
+            $notify = collect([setting('email.booking_notifications')])
                 ->filter()
                 ->flatMap(fn($v) => array_map('trim', explode(',', $v)))
                 ->filter()

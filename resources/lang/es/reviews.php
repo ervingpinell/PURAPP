@@ -330,7 +330,7 @@ return [
             'closing'  => 'Si tienes alguna duda o quieres ampliar tu comentario, solo responde a este correo. ¡Pura vida! 🌿',
         ],
         'submitted' => [
-            'subject' => 'New review received',
+            'subject' => 'Nueva reseña recibida',
         ],
         'booking' => [
             'cancelled_subject' => 'Reserva Cancelada - Pago No Recibido #:ref',

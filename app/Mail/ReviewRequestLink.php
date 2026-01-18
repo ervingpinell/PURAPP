@@ -136,10 +136,12 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
                 // Headers para mejorar deliverability y evitar carpeta de promociones
                 $headers = $message->getHeaders();
                 
-                // Marcar como transaccional, no marketing
-                $headers->addTextHeader('X-Auto-Response-Suppress', 'OOF, AutoReply');
+                // Marcar como transaccional
                 $headers->addTextHeader('X-Entity-Ref-ID', 'review-request');
-                $headers->addTextHeader('X-Mailer-Type', 'transactional');
+                
+                // Evitar keywords de marketing que Google pueda penalizar
+                // pero sí indicar prioridad alta si es crítico
+
                 
                 // Categoría de Gmail (intenta que vaya a Primary)
                 $headers->addTextHeader('X-Google-Appengine-App-Id', 'transactional');

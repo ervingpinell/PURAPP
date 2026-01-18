@@ -76,11 +76,56 @@ class ReviewReplyController extends Controller
         $shouldNotify = array_key_exists('notify', $data) ? (bool)$data['notify'] : true;
 
         if ($shouldNotify && $to) {
-            $adminName = $admin?->full_name ?? $admin?->name ?? 'Administrador';
-            $tourName  = optional($review->tour)->name ?? optional(optional($review->booking)->tour)->name;
+            // Resolver idioma desde la reserva (Booking -> TourLanguage)
+            $locale = null;
+            if ($review->booking_id) {
+                // Asegurar que la reserva y su idioma estén cargados
+                $bk = $review->relationLoaded('booking')
+                    ? $review->booking
+                    : Booking::with('tourLanguage')->find($review->booking_id);
+
+                if ($bk && $bk->tourLanguage) {
+                    $langName = strtolower($bk->tourLanguage->name);
+
+                    // Mapeo simple de nombres a códigos ISO
+                    if (str_contains($langName, 'esp') || str_contains($langName, 'span')) {
+                        $locale = 'es';
+                    } elseif (str_contains($langName, 'ing') || str_contains($langName, 'eng')) {
+                        $locale = 'en';
+                    } elseif (str_contains($langName, 'fra') || str_contains($langName, 'fre')) {
+                        $locale = 'fr';
+                    } elseif (str_contains($langName, 'ale') || str_contains($langName, 'ger') || str_contains($langName, 'deu')) {
+                        $locale = 'de';
+                    } elseif (str_contains($langName, 'por')) {
+                        $locale = 'pt';
+                    }
+                }
+            }
+
+            // Fallback: idioma guardado en la reseña (si existe la columna)
+            if (!$locale && Schema::hasColumn($review->getTable(), 'language')) {
+                $locale = $review->language;
+            }
+
+            // Definir nombre de quien responde (User pidió usar Company Name)
+            // Se usa config o string fijo
+            $adminName = config('app.name', 'Green Vacations CR');
+
+            // Resolver nombre del tour TRADUCIDO
+            // 1. Intentar traducción con el locale detectado
+            // 2. Fallback al nombre default del tour
+            $tourName = null;
+            if ($review->tour) {
+                $tourTranslation = $review->tour->translate($locale);
+                $tourName = optional($tourTranslation)->name ?? $review->tour->name;
+            } elseif ($review->booking && $review->booking->tour) {
+                // Caso raro donde review no tiene tour_id directo pero booking sí (aunque normalmente van juntos)
+                $tourTranslation = $review->booking->tour->translate($locale);
+                $tourName = optional($tourTranslation)->name ?? $review->booking->tour->name;
+            }
 
             Mail::to(new Address($to, $customerName ?: null))
-                ->queue(new ReviewReplyNotification($reply, $adminName, $tourName, $customerName));
+                ->queue(new ReviewReplyNotification($reply, $adminName, $tourName, $customerName, $locale));
 
             return redirect()
                 ->route('admin.reviews.replies.thread', $review)

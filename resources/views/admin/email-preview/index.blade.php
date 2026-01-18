@@ -118,8 +118,8 @@
                         </tr>
                         <tr>
                             <td><strong>{{ __('adminlte::adminlte.email_preview.table.booking_notify') }}</strong></td>
-                            <td><code>{{ config('mail.booking_notify') ?: 'Not configured' }}</code></td>
-                            <td><code>BOOKING_NOTIFY</code></td>
+                            <td><code>{{ setting('email.booking_notifications') ?: 'Not configured' }}</code></td>
+                            <td><code>setting: email.booking_notifications</code></td>
                         </tr>
                     </tbody>
                 </table>

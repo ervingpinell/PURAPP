@@ -37,8 +37,8 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         $this->customerName  = $customerName;
         $this->adminPanelUrl = $adminPanelUrl;
 
-        // Forzar idioma español como default (APP_LOCALE)
-        $this->mailLocale = 'es';
+        // Usar idioma actual de la app
+        $this->mailLocale = app()->getLocale();
     }
 
     /**
@@ -46,8 +46,8 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
      */
     protected function resolveAdminRecipients(string $fallback): array
     {
-        // Igual que en tus mailables de booking
-        $raw = config('mail.booking_notify') ?? env('BOOKING_NOTIFY', '');
+        // Usar setting de base de datos como pide el usuario
+        $raw = setting('email.booking_notifications');
 
         $items = preg_split('/[,\s;]+/', (string) $raw, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
@@ -107,6 +107,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         $contactEmail = $adminRecipients[0] ?? $fromAddress;
         $appUrl       = rtrim(config('app.url'), '/');
         $companyPhone = env('COMPANY_PHONE');
+        $company      = config('app.name', 'Green Vacations CR');
 
         return $this
             ->locale($loc)

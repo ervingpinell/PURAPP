@@ -7,11 +7,8 @@
   <div class="card shadow-sm">
     <div class="card-body text-center">
 
-      <h1 class="h4 mb-3">{{ __('reviews.public.thanks') }}</h1>
+      <h1 class="h4 mb-3 text-success">{{ __('reviews.public.thanks') }}</h1>
 
-      @if(session('ok'))
-      <p class="text-success mb-2">{{ session('ok') }}</p>
-      @endif
 
       <div>
         <p class="text-muted mb-2">{{ __('reviews.public.thanks_body') }}</p>

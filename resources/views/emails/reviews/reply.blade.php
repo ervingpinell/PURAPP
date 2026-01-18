@@ -31,7 +31,6 @@
 </span>
 
 <div class="section-card">
-  <div class="section-title" style="margin-bottom:8px;">{{ $company }}</div>
 
   <div style="font-size:16px;line-height:1.6;color:#111827;">
     <p style="margin:0 0 12px;">

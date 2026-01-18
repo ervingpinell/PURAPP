@@ -162,7 +162,7 @@ class PublicReviewController extends Controller
         // Link directo al edit del review en el panel admin (si existe la ruta)
         $adminUrl = null;
         try {
-            $adminUrl = route('admin.reviews.edit', $review->id);
+            $adminUrl = route('admin.reviews.index');
         } catch (\Throwable $e) {
             try {
                 $adminUrl = route('admin.reviews.index');
@@ -181,7 +181,7 @@ class PublicReviewController extends Controller
         );
     } catch (\Throwable $e) {
         // Si falla la notificación, no rompemos el flujo del cliente
-        // Log::error('review.notify_admin_failed', ['msg' => $e->getMessage()]);
+        \Log::error('review.notify_admin_failed', ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
     }
 
     return redirect()

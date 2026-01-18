@@ -322,7 +322,7 @@ return [
             'closing'  => 'Si vous avez des questions ou souhaitez développer votre commentaire, il vous suffit de répondre à cet e-mail. Pura vida ! 🌿',
         ],
         'submitted' => [
-            'subject' => 'New review received',
+            'subject' => 'Nouvel avis reçu',
         ],
     ],
 

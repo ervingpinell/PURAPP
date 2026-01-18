@@ -313,10 +313,10 @@
               </form>
             @endcan
             @can('delete-review-requests')
-              <form method="POST" action="{{ route('admin.review-requests.destroy-perm', $r->id) }}" class="d-inline ml-1" onsubmit="return confirm('¿Eliminar permanentemente?')">
+              <form method="POST" action="{{ route('admin.review-requests.destroy-perm', $r->id) }}" class="d-inline ml-1">
                   @csrf
                   @method('DELETE')
-                  <button class="btn btn-sm btn-danger" title="Eliminar Permanentemente">
+                  <button class="btn btn-sm btn-danger delete-perm-review-request-btn" title="Eliminar Permanentemente">
                       <i class="fas fa-times"></i>
                   </button>
               </form>
@@ -353,6 +353,27 @@ $(document).ready(function() {
             cancelButtonColor: '#3085d6',
             confirmButtonText: @js(__('reviews.requests.sweetalert.delete_confirm')),
             cancelButtonText: @js(__('reviews.requests.sweetalert.delete_cancel'))
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+
+    // SweetAlert for PERMANENT delete review request
+    $('.delete-perm-review-request-btn').on('click', function(e) {
+        e.preventDefault();
+        const form = $(this).closest('form');
+        
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡Esta acción no se puede deshacer!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar permanentemente',
+            cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
                 form.submit();
