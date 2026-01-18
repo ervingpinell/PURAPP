@@ -169,13 +169,14 @@ class PoliciesSeeder extends Seeder
             // =========================
             // 1) TÉRMINOS Y CONDICIONES
             // =========================
-            $terms = Policy::updateOrCreate(
+            $terms = Policy::withTrashed()->updateOrCreate(
                 ['type' => Policy::TYPE_TERMS ?? 'terms'],
                 [
                     'slug'           => 'terms-and-conditions',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
+                    'deleted_at'     => null,
                 ]
             );
 
@@ -308,13 +309,14 @@ TXT
             // =========================
             // 2) CANCELACIÓN
             // =========================
-            $cancel = Policy::updateOrCreate(
+            $cancel = Policy::withTrashed()->updateOrCreate(
                 ['type' => Policy::TYPE_CANCELLATION ?? 'cancellation'],
                 [
                     'slug'           => 'cancellations-policies',
                     'is_active'      => true, 
                     'effective_from' => $today, 
-                    'effective_to'   => null
+                    'effective_to'   => null,
+                    'deleted_at'     => null,
                 ]
             );
             $savePolicyTranslations(
@@ -326,13 +328,14 @@ TXT
             // =========================
             // 3) REEMBOLSOS
             // =========================
-            $refund = Policy::updateOrCreate(
+            $refund = Policy::withTrashed()->updateOrCreate(
                 ['type' => Policy::TYPE_REFUND ?? 'refund'],
                 [
                     'slug'           => 'refund-policies',
                     'is_active'      => true, 
                     'effective_from' => $today, 
-                    'effective_to'   => null
+                    'effective_to'   => null,
+                    'deleted_at'     => null,
                 ]
             );
             $savePolicyTranslations(
@@ -344,13 +347,14 @@ TXT
             // =========================
             // 4) PRIVACIDAD
             // =========================
-            $privacy = Policy::updateOrCreate(
+            $privacy = Policy::withTrashed()->updateOrCreate(
                 ['type' => Policy::TYPE_PRIVACY ?? 'privacy'],
                 [
                     'slug'           => 'privacy-policy',
                     'is_active'      => true, 
                     'effective_from' => $today, 
-                    'effective_to'   => null
+                    'effective_to'   => null,
+                    'deleted_at'     => null,
                 ]
             );
             $savePolicyTranslations(
@@ -362,13 +366,14 @@ TXT
             // =========================
             // 5) GARANTÍAS
             // =========================
-            $warranty = Policy::updateOrCreate(
+            $warranty = Policy::withTrashed()->updateOrCreate(
                 ['type' => Policy::TYPE_WARRANTY ?? 'warranty'],
                 [
                     'slug'           => 'warranty-policies',
                     'is_active'      => true, 
                     'effective_from' => $today, 
-                    'effective_to'   => null
+                    'effective_to'   => null,
+                    'deleted_at'     => null,
                 ]
             );
             $savePolicyTranslations(
