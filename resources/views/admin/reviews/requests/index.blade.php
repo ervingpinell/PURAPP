@@ -250,10 +250,10 @@
             @endcan
 
             @can('delete-review-requests')
-              <form method="POST" action="{{ route('admin.review-requests.destroy', $r) }}" class="d-inline ml-1" onsubmit="return confirm('{{ __('reviews.requests.actions.confirm_delete') }}')">
+              <form method="POST" action="{{ route('admin.review-requests.destroy', $r) }}" class="d-inline ml-1">
                   @csrf
                   @method('DELETE')
-                  <button class="btn btn-outline-danger" title="{{ __('reviews.common.delete') }}">
+                  <button class="btn btn-outline-danger delete-review-request-btn" title="{{ __('reviews.common.delete') }}">
                       <i class="fas fa-trash"></i>
                   </button>
               </form>

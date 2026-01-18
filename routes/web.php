@@ -1422,13 +1422,13 @@ Route::middleware([SetLocale::class])->group(function () {
                             ->middleware('throttle:email')
                             ->name('send');
                         Route::post('/{booking}/discard', [ReviewRequestAdminController::class, 'discard'])->name('discard');
-                        Route::post('/{rr}/resend', [ReviewRequestAdminController::class, 'resend'])
+                        Route::post('/{reviewRequest}/resend', [ReviewRequestAdminController::class, 'resend'])
                             ->middleware('throttle:email')
                             ->name('resend');
-                        Route::post('/{rr}/skip', [ReviewRequestAdminController::class, 'skip'])->name('skip');
+                        Route::post('/{reviewRequest}/skip', [ReviewRequestAdminController::class, 'skip'])->name('skip');
                         Route::post('/{id}/restore', [ReviewRequestAdminController::class, 'restore'])->name('restore');
                         Route::delete('/{id}/perm', [ReviewRequestAdminController::class, 'destroyPerm'])->name('destroy-perm');
-                        Route::delete('/{rr}', [ReviewRequestAdminController::class, 'destroy'])->name('destroy');
+                        Route::delete('/{reviewRequest}', [ReviewRequestAdminController::class, 'destroy'])->name('destroy');
                     });
                 });
 

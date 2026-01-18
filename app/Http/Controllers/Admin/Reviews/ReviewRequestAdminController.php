@@ -186,6 +186,11 @@ class ReviewRequestAdminController extends Controller
         } elseif ($hasStatus) {
              // Default: Exclude skipped (hide from default view)
              $query->where("$reviewRequestTable.status", '!=', 'skipped');
+
+             // HIDE COMPLETED (Used) from default view to avoid clutter
+             if ($hasUsed) {
+                 $query->whereNull("$reviewRequestTable.used_at");
+             }
         }
 
         // Rango fechas
