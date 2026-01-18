@@ -614,7 +614,7 @@ return [
     'faq_more_questions' => '¿Tiene más preguntas?',
 
     // 28. EMAILS_TRANSACTIONAL
-    'email' => [
+    'email_templates' => [
         'payment_reminder' => [
             'title' => 'Recordatorio de Pago',
             'intro' => 'Este es un recordatorio sobre su próxima reserva.',

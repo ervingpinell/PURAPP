@@ -608,7 +608,7 @@ return [
     'faq_more_questions' => 'Do you have more questions?',
 
     // 28. EMAILS_TRANSACTIONAL
-    'email' => [
+    'email_templates' => [
         'payment_reminder' => [
             'title' => 'Payment Reminder',
             'intro' => 'This is a reminder regarding your upcoming booking.',

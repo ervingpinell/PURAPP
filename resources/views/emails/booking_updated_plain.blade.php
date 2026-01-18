@@ -21,6 +21,6 @@ Tour: {{ $tourName }}
 {{ $mailLocale === 'es' ? 'Total' : 'Total' }}: ${{ number_format($booking->total, 2) }}
 
 ----------------
-{{ __('adminlte::adminlte.email.contact_footer', [], $mailLocale) }}
+{{ __('adminlte::adminlte.email_templates.contact_footer', [], $mailLocale) }}
 
 {{ config('app.name') }}

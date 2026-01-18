@@ -13,6 +13,6 @@ $reference = $reference ?? ($booking->booking_reference ?? $booking->booking_id)
 {{ $mailLocale === 'es' ? 'Si tiene alguna pregunta, por favor contáctenos.' : 'If you have any questions, please contact us.' }}
 
 ----------------
-{{ __('adminlte::adminlte.email.contact_footer', [], $mailLocale) }}
+{{ __('adminlte::adminlte.email_templates.contact_footer', [], $mailLocale) }}
 
 {{ config('app.name') }}
