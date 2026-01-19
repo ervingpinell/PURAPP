@@ -717,4 +717,5 @@ return [
             'booking_notify' => 'Booking Notifications',
         ],
     ],
+    'follow_us' => 'Follow Us',
 ];

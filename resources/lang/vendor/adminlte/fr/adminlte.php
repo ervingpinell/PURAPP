@@ -659,4 +659,5 @@ return [
             'booking_notify' => 'Notifications Réservations',
         ],
     ],
+    'follow_us' => 'Suivez-nous',
 ];

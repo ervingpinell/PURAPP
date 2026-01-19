@@ -54,6 +54,10 @@ return [
         'twitter' => env('COMPANY_TWITTER', ''),
         'linkedin' => env('COMPANY_LINKEDIN', ''),
         'youtube' => env('COMPANY_YOUTUBE', ''),
+        'tripadvisor' => env('COMPANY_TRIPADVISOR', ''),
+        'getyourguide' => env('COMPANY_GETYOURGUIDE', ''),
+        'viator' => env('COMPANY_VIATOR', ''),
+        'google' => env('COMPANY_GOOGLE', ''),
     ],
 
     /*

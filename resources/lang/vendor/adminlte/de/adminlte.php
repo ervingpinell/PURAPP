@@ -662,4 +662,5 @@ return [
             'booking_notify' => 'Buchungsbenachrichtigungen',
         ],
     ],
+    'follow_us' => 'Folgen Sie uns',
 ];
