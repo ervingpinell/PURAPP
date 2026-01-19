@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 use Throwable;
 
 // === WebP (Intervention Image) ===
@@ -61,14 +62,23 @@ class TourImageController extends Controller
             $quality           = (int) ($webpCfg['quality'] ?? 82);
             $maxSide           = (int) ($webpCfg['max_side'] ?? 2560);
 
-            $validated = $request->validate([
+            // 1. Validar que exista el array 'files', pero NO validar contenido aquí (para partial uploads)
+            $request->validate([
                 'files'   => ['required', 'array'],
-                'files.*' => ['image', 'mimes:jpeg,jpg,png,webp', "max:{$maxImageKb}"],
             ]);
 
+            $uploadedFiles = $request->file('files', []);
+            if (!is_array($uploadedFiles) || empty($uploadedFiles)) {
+                return back()->with('swal', [
+                    'icon'  => 'info',
+                    'title' => __('m_tours.image.notice'),
+                    'text'  => __('m_tours.image.upload_none'),
+                ]);
+            }
+
+            // 2. Verificar cupo global
             $currentCount = (int) $tour->images()->count();
             $remainingCap = max(0, $maxImagesPerTour - $currentCount);
-            $uploadedFiles = $request->file('files', []);
 
             if ($remainingCap <= 0) {
                 return back()->with('swal', [
@@ -78,14 +88,7 @@ class TourImageController extends Controller
                 ]);
             }
 
-            if (!is_array($uploadedFiles) || empty($uploadedFiles)) {
-                return back()->with('swal', [
-                    'icon'  => 'info',
-                    'title' => __('m_tours.image.notice'),
-                    'text'  => __('m_tours.image.upload_none'),
-                ]);
-            }
-
+            // 3. Truncar si exceden el cupo restante
             $truncatedForLimit = false;
             if (count($uploadedFiles) > $remainingCap) {
                 $uploadedFiles     = array_slice($uploadedFiles, 0, $remainingCap);
@@ -96,57 +99,58 @@ class TourImageController extends Controller
             $nextPosition    = (int) ($tour->images()->max('position') ?? 0);
             $createdCount    = 0;
             $newImageRecords = [];
+            $skippedFiles    = [];
 
+            // 4. Procesar uno a uno
             foreach ($uploadedFiles as $uploaded) {
-                $inputExt = strtolower((string) $uploaded->getClientOriginalExtension());
-                if (!in_array($inputExt, ['jpg', 'jpeg', 'png', 'webp'], true)) {
-                    Log::warning('Skipped file due to invalid extension', [
+                $fileName = $uploaded->getClientOriginalName();
+
+                // 4.1. Validar archivo individual
+                $validator = Validator::make(['file' => $uploaded], [
+                    'file' => ['image', 'mimes:jpeg,jpg,png,webp', "max:{$maxImageKb}"],
+                ]);
+
+                if ($validator->fails()) {
+                    $errors = $validator->errors()->all(); // Lista de errores
+                    $reason = implode(', ', $errors);
+                    // O un mensaje corto genérico si prefieres
+                    $skippedFiles[] = "$fileName ($reason)";
+
+                    Log::warning('Skipped invalid image upload', [
                         'tour_id' => $tour->tour_id,
-                        'file'    => $uploaded->getClientOriginalName(),
-                        'ext'     => $inputExt,
-                        'user_id' => optional(Auth::user())->id,
+                        'file'    => $fileName,
+                        'errors'  => $errors,
                     ]);
                     continue;
                 }
 
-                $basename = pathinfo($uploaded->getClientOriginalName(), PATHINFO_FILENAME);
+                $inputExt = strtolower((string) $uploaded->getClientOriginalExtension());
+                $basename = pathinfo($fileName, PATHINFO_FILENAME);
                 $basename = Str::slug($basename) ?: 'image';
                 $stamp    = now()->format('YmdHis') . '-' . Str::random(6);
 
                 $finalPath = null;
 
-                // Intentar convertir a WebP; si falla, guardar original
+                // 4.2. Intentar convertir a WebP
                 try {
-                    // Leer y orientar
                     $img = Img::read($uploaded->getRealPath())->orient();
-
-                    // Limitar lado mayor
                     if ($maxSide > 0) {
                         $img->scaleDown($maxSide);
                     }
 
-                    // Codificar a WebP - CORRECCIÓN AQUÍ
                     $webpName = "{$basename}-{$stamp}.webp";
                     $webpPath = "{$storageFolder}/{$webpName}";
 
-                    // La forma correcta de codificar y guardar
                     $encoded = $img->encode(new WebpEncoder(quality: $quality));
                     Storage::disk('public')->put($webpPath, (string) $encoded);
 
                     $finalPath = $webpPath;
-
-                    Log::info('Image converted to WebP successfully', [
-                        'tour_id' => $tour->tour_id,
-                        'original_file' => $uploaded->getClientOriginalName(),
-                        'webp_path' => $webpPath,
-                    ]);
                 } catch (\Throwable $e) {
-                    // Fallback: guardar el archivo tal cual (sin conversión)
+                    // Fallback
                     Log::error('WebP encode failed, falling back to original', [
                         'tour_id' => $tour->tour_id,
-                        'file'    => $uploaded->getClientOriginalName(),
+                        'file'    => $fileName,
                         'error'   => $e->getMessage(),
-                        'trace'   => $e->getTraceAsString(),
                     ]);
 
                     $origName = "{$basename}-{$stamp}.{$inputExt}";
@@ -154,6 +158,7 @@ class TourImageController extends Controller
                     $finalPath = "{$storageFolder}/{$origName}";
                 }
 
+                // 4.3. Crear registro
                 $image = TourImage::create([
                     'tour_id'  => $tour->tour_id,
                     'path'     => $finalPath,
@@ -166,47 +171,83 @@ class TourImageController extends Controller
                 $createdCount++;
             }
 
+            // 5. Asignar portada si no había
             if (!$tour->coverImage && isset($newImageRecords[0])) {
                 $newImageRecords[0]->update(['is_cover' => true]);
             }
 
-            $feedback = $createdCount > 0
-                ? __('m_tours.image.upload_success')
-                : __('m_tours.image.upload_none');
-
-            if ($truncatedForLimit) {
-                $feedback .= ' ' . __('m_tours.image.upload_truncated');
-            }
-
             LoggerHelper::mutated('TourImageController', 'store', 'Tour', $tour->tour_id, ['count' => $createdCount]);
 
+            // 6. Construir mensaje de respuesta
+            // Caso A: Éxito total
+            if ($createdCount > 0 && empty($skippedFiles) && !$truncatedForLimit) {
+                return back()->with('swal', [
+                    'icon'  => 'success',
+                    'title' => __('m_tours.image.upload_success_title') ?? '¡Listo!',
+                    'text'  => __('Se subieron :n imágenes correctamente.', ['n' => $createdCount]),
+                ]);
+            }
+
+            // Caso B: Éxito parcial (algunos subidos, otros fallaron o se truncaron)
+            if ($createdCount > 0) {
+                $msg = __('Se subieron :n imágenes.', ['n' => $createdCount]);
+
+                if ($truncatedForLimit) {
+                    $msg .= ' ' . __('Algunas se omitieron por límite de cupo.');
+                }
+
+                if (!empty($skippedFiles)) {
+                    $msg .= ' ' . __('Archivos no permitidos:') . ' ' . implode(', ', $skippedFiles);
+                }
+
+                return back()->with('swal', [
+                    'icon'  => 'warning',
+                    'title' => __('Subida parcial'),
+                    'text'  => $msg,
+                ]);
+            }
+
+            // Caso C: Fallo total (ninguno subido)
+            if (!empty($skippedFiles)) {
+                return back()->with('swal', [
+                    'icon'  => 'error',
+                    'title' => __('Error al subir'),
+                    'text'  => __('No se pudo subir ningún archivo válido. Errores: ') . implode(', ', $skippedFiles),
+                ]);
+            }
+
+            // Caso D: Fallo total por límite (0 subidos porque no había cupo)
+            if ($remainingCap <= 0 && $truncatedForLimit) {
+                return back()->with('swal', [
+                    'icon'  => 'warning',
+                    'title' => __('Límite alcanzado'),
+                    'text'  => __('No tienes espacio para subir más imágenes.'),
+                ]);
+            }
+
+            // Fallback raro
             return back()->with('swal', [
-                'icon'  => $createdCount > 0 ? 'success' : 'info',
-                'title' => $createdCount > 0 ? __('m_tours.image.done') : __('m_tours.image.notice'),
-                'text'  => $feedback,
+                'icon'  => 'info',
+                'title' => __('Aviso'),
+                'text'  => __('No se procesaron imágenes.'),
             ]);
+
         } catch (ValidationException $e) {
-            Log::warning('Image upload validation failed', [
-                'tour_id' => $tour->tour_id ?? null,
-                'user_id' => optional(Auth::user())->id,
-                'errors'  => $e->errors(),
-            ]);
-            $firstMsg = collect($e->errors())->flatten()->first() ?? __('m_tours.image.errors.validation');
+            // Este catch atrapa fallos del $request->validate initial
             return back()->with('swal', [
                 'icon'  => 'warning',
-                'title' => __('m_tours.image.ui.warning_title'),
-                'text'  => $firstMsg,
+                'title' => __('Error de validación'),
+                'text'  => collect($e->errors())->flatten()->first() ?? 'Datos inválidos',
             ])->withInput();
         } catch (\Throwable $e) {
-            Log::error('Image upload failed', [
+            Log::error('Image upload failed (critical)', [
                 'tour_id' => $tour->tour_id ?? null,
-                'user_id' => optional(Auth::user())->id,
                 'error'   => $e->getMessage(),
             ]);
             return back()->with('swal', [
                 'icon'  => 'error',
-                'title' => __('m_tours.image.ui.error_title'),
-                'text'  => __('m_tours.image.errors.upload_generic'),
+                'title' => __('Error del servidor'),
+                'text'  => __('Ocurrió un error inesperado al procesar las imágenes.'),
             ])->withInput();
         }
     }

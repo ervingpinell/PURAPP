@@ -161,6 +161,16 @@ while ($images->count() < 5) {
               width="800"
               height="600"
               loading="lazy">
+            
+            {{-- Botón Expandir --}}
+            <button type="button" 
+                    class="btn btn-dark btn-sm position-absolute top-0 end-0 m-3 bg-opacity-50 border-0 rounded-circle d-flex align-items-center justify-content-center" 
+                    style="width: 36px; height: 36px; z-index: 5;"
+                    data-open-lightbox
+                    data-index="{{ $i }}"
+                    title="{{ __('adminlte::adminlte.expand_image') ?? 'Expandir' }}">
+                <i class="fas fa-expand fa-sm text-white"></i>
+            </button>
           </div>
           @endforeach
         </div>
@@ -237,11 +247,7 @@ while ($images->count() < 5) {
     document.addEventListener('DOMContentLoaded', () => {
       const mainEl = document.getElementById('tourCarousel');
       const main = bootstrap.Carousel.getOrCreateInstance(mainEl, {
-        interval: {
-          {
-            $intervalMs
-          }
-        },
+        interval: {{ $intervalMs }},
         ride: 'carousel',
         touch: true,
         pause: 'hover',

@@ -112,16 +112,8 @@ $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
     @endphp
     <script>
       window.tourData = @json($tourJsData);
-      window.tourId = {
-        {
-          $tour -> tour_id
-        }
-      };
-      window.maxCapacity = {
-        {
-          $tour -> max_capacity
-        }
-      };
+      window.tourId = {{ $tour->tour_id }};
+      window.maxCapacity = {{ $tour->max_capacity }};
       window.productCode = @json($tour -> viator_code);
       window.blockedGeneral = @json($blockedGeneral ?? []);
       window.blockedBySchedule = @json((object)($blockedBySchedule ?? []));

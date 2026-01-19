@@ -652,7 +652,7 @@ $isFull = $count >= $max;
     function saveCaption(input, url, status) {
       const fd = new FormData();
       fd.append('_token', '{{ csrf_token() }}');
-      fd.append('_method', 'PATCH');
+      fd.append('_method', 'PUT');
       fd.append('caption', input.value);
 
       fetch(url, { method: 'POST', body: fd })
