@@ -47,7 +47,112 @@ class TourTypeController extends Controller
         return view('admin.tourtypes.index', compact('tourTypes', 'currentLocale', 'trashedCount'));
     }
 
-    // ... (store, update, toggle maintained as is) ...
+    public function store(StoreTourTypeRequest $request)
+    {
+        try {
+            DB::beginTransaction();
+            $data = $request->validated();
+            
+            $tourType = TourType::create([
+                'is_active' => true,
+                // Add explicit fields if needed, but fillable only has is_active, cover_path, deleted_by
+            ]);
+
+            // Create initial translation (ES implied by request validation rules usually focusing on single language create)
+            // Or use app locale. Assuming 'es' or current.
+            $tourType->translations()->create([
+                'locale' => app()->getLocale(), 
+                'name' => $data['name'],
+                'description' => $data['description'] ?? null,
+                'duration' => $data['duration'] ?? null,
+            ]);
+
+            DB::commit();
+
+            LoggerHelper::mutated($this->controller, 'store', 'tour_type', $tourType->getKey(), [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()->route('admin.tourtypes.index')
+                ->with('success', 'm_config.tourtypes.created_success');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            LoggerHelper::exception($this->controller, 'store', 'tour_type', null, $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', 'Error al crear el tipo de tour.')->withInput();
+        }
+    }
+
+    public function update(UpdateTourTypeRequest $request, TourType $tourType)
+    {
+        try {
+            DB::beginTransaction();
+
+            $translations = $request->input('translations', []);
+
+            if (!empty($translations)) {
+                // Update via Translations Array (New Tabs Approach)
+                foreach ($translations as $locale => $transData) {
+                    $tourType->translations()->updateOrCreate(
+                        ['locale' => $locale],
+                        [
+                            'name' => $transData['name'],
+                            'description' => $transData['description'] ?? null,
+                            'duration' => $transData['duration'] ?? null,
+                        ]
+                    );
+                }
+            } else {
+                // Legacy / Single Field Update
+                // Assume 'es' or matches validation logic
+                $data = $request->validated(); // This might fail if we change Validation rules to expect translations
+                // But if request has 'name', we update current/fallback
+                $tourType->translations()->updateOrCreate(
+                    ['locale' => app()->getLocale()], // or 'es'
+                    [
+                        'name' => $data['name'] ?? $request->input('name'), 
+                        'description' => $data['description'] ?? $request->input('description'),
+                        'duration' => $data['duration'] ?? $request->input('duration'),
+                    ]
+                );
+            }
+
+            DB::commit();
+
+            LoggerHelper::mutated($this->controller, 'update', 'tour_type', $tourType->getKey(), [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+
+            return redirect()->route('admin.tourtypes.index')
+                ->with('success', 'm_config.tourtypes.updated_success');
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            LoggerHelper::exception($this->controller, 'update', 'tour_type', $tourType->getKey(), $e, [
+                'user_id' => optional($request->user())->getAuthIdentifier(),
+            ]);
+            return back()->with('error', 'Error al actualizar el tipo de tour.')->withInput();
+        }
+    }
+
+    public function toggle(TourType $tourType)
+    {
+        try {
+            $tourType->update(['is_active' => !$tourType->is_active]);
+
+            LoggerHelper::mutated($this->controller, 'toggle', 'tour_type', $tourType->getKey(), [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+                'new_status' => $tourType->is_active
+            ]);
+
+            return back()->with('success', $tourType->is_active ? 'Activado correctamente' : 'Desactivado correctamente');
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'toggle', 'tour_type', $tourType->getKey(), $e);
+            return back()->with('error', 'Error al cambiar el estado.');
+        }
+    }
 
     public function destroy(int $id): RedirectResponse
     {

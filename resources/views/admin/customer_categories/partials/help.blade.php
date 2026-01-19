@@ -5,6 +5,18 @@
         </h3>
     </div>
     <div class="card-body">
+        <h5>{{ __('Ayuda') }}</h5>
+        <div class="mb-3">
+            <strong>Full Slug (Identificador)</strong>
+            <p class="small text-muted mb-0">
+                El slug es el identificador único que se utiliza en la URL. Debe ser todo minúsculas, sin espacios (usar guiones <code>-</code>) y único.
+                <br>
+                <em>Ejemplo: <code>adulto-mayor</code>, <code>nino-3-12</code></em>
+            </p>
+        </div>
+
+        <hr>
+
         <h5>{{ __('customer_categories.help.examples_title') }}</h5>
 
         <div class="mb-3">

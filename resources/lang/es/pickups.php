@@ -105,6 +105,7 @@ return [
             'name_base'               => 'Nombre (base)',
             'description_base'        => 'Descripción (base)',
             'instructions_base'       => 'Instrucciones (base)',
+            'title'                   => 'Título',
             'locale'                  => 'Locale',
             'name_translation'        => 'Nombre (traducción)',
             'description_translation' => 'Descripción (traducción)',
@@ -150,6 +151,7 @@ return [
         'actions' => [
             'view_map'    => 'Ver mapa',
             'view_on_map' => 'Ver en mapa',
+            'title'       => 'Editar punto de encuentro',
             'edit'        => 'Editar',
             'delete'      => 'Eliminar',
             'activate'    => 'Activar',

@@ -367,19 +367,62 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="fas fa-edit me-2"></i>{{ __('pickups.meeting_point.edit.title') }}
+          <i class="fas fa-edit me-2"></i>{{ __('pickups.meeting_point.actions.title') }}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" title="{{ __('pickups.meeting_point.buttons.close') }}"></button>
       </div>
       <form id="editForm" method="POST">
         @csrf @method('PUT')
         <div class="modal-body">
-          {{-- Campos base (opcionales) --}}
-          <div class="mb-3">
-            <label class="form-label">{{ __('pickups.meeting_point.fields.name_base') }}</label>
-            <input type="text" name="name" id="edit_name" class="form-control" placeholder="{{ __('pickups.meeting_point.placeholders.optional') }}">
-            <small class="text-muted">{{ __('pickups.meeting_point.hints.name_base_sync') }}</small>
+          {{-- Traducción (Tabs) --}}
+          @php
+            $locales = supported_locales(); // ['es','en','fr','pt','de']
+          @endphp
+
+          <ul class="nav nav-tabs mb-3" id="editLangTabs" role="tablist">
+            @foreach($locales as $i => $loc)
+            <li class="nav-item" role="presentation">
+              <button class="nav-link {{ $i===0 ? 'active' : '' }}"
+                id="edit-tab-{{ $loc }}"
+                data-bs-toggle="tab"
+                data-bs-target="#edit-pane-{{ $loc }}"
+                type="button"
+                role="tab">
+                {{ strtoupper($loc) }}
+              </button>
+            </li>
+            @endforeach
+          </ul>
+
+          <div class="tab-content" id="editLangTabContent">
+            @foreach($locales as $i => $loc)
+            <div class="tab-pane fade {{ $i===0 ? 'show active' : '' }}" id="edit-pane-{{ $loc }}" role="tabpanel">
+              <div class="mb-3">
+                <label class="form-label">
+                  {{ __('pickups.meeting_point.fields.name_translation') }} ({{ strtoupper($loc) }})
+                  @if($i===0) <span class="text-danger">*</span> @endif
+                </label>
+                <input type="text" name="translations[{{ $loc }}][name]" id="edit_t_name_{{ $loc }}" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">{{ __('pickups.meeting_point.fields.description_translation') }} ({{ strtoupper($loc) }})</label>
+                <textarea name="translations[{{ $loc }}][description]" id="edit_t_description_{{ $loc }}" class="form-control" rows="2"></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">{{ __('pickups.meeting_point.fields.instructions_translation') }} ({{ strtoupper($loc) }})</label>
+                <textarea name="translations[{{ $loc }}][instructions]" id="edit_t_instructions_{{ $loc }}" class="form-control" rows="3"></textarea>
+              </div>
+            </div>
+            @endforeach
           </div>
+
+          <hr>
+
+          {{-- Campos base (opcionales) --}}
+          <input type="hidden" name="name" id="edit_name">
+          
           <div class="mb-3">
             <label class="form-label">{{ __('pickups.meeting_point.fields.pickup_time') }}</label>
             <input type="text" name="pickup_time" id="edit_pickup_time" class="form-control" placeholder="{{ __('pickups.meeting_point.placeholders.pickup_time') }}">
@@ -398,37 +441,6 @@
             <label class="form-check-label" for="edit_is_active">
               {{ __('pickups.meeting_point.fields.active') }}
             </label>
-          </div>
-
-          <hr>
-
-          {{-- Traducción específica (sin DeepL) --}}
-          <div class="row g-2">
-            <div class="col-sm-4 mb-2">
-              <label class="form-label">{{ __('pickups.meeting_point.fields.locale') }}</label>
-              <select name="locale" id="edit_locale" class="form-select" required>
-                @foreach($locales as $loc)
-                <option value="{{ $loc }}">{{ strtoupper($loc) }}</option>
-                @endforeach
-              </select>
-            </div>
-            <div class="col-sm-8 mb-2">
-              <label class="form-label">
-                {{ __('pickups.meeting_point.fields.name_translation') }} <span class="text-danger">*</span>
-              </label>
-              <input type="text" name="t_name" id="edit_t_name" class="form-control" required>
-            </div>
-            <div class="col-12">
-              <label class="form-label">{{ __('pickups.meeting_point.fields.description_translation') }}</label>
-              <textarea name="t_description" id="edit_t_description" class="form-control" rows="2"></textarea>
-            </div>
-            <div class="col-12">
-              <label class="form-label">{{ __('pickups.meeting_point.fields.instructions_translation') }}</label>
-              <textarea name="t_instructions" id="edit_t_instructions" class="form-control" rows="3"></textarea>
-              <small class="text-muted">
-                {!! __('pickups.meeting_point.hints.fallback_sync', ['fallback' => strtoupper(config('app.fallback_locale','es'))]) !!}
-              </small>
-            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -552,17 +564,6 @@
     editModalElement.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => btn.addEventListener('click', () => editModal.hide()));
   }
 
-  function fillTranslationFields(translations, locale) {
-    const t = (translations && translations[locale]) ? translations[locale] : {
-      name: '',
-      description: '',
-      instructions: ''
-    };
-    document.getElementById('edit_t_name').value = t.name || '';
-    document.getElementById('edit_t_description').value = t.description || '';
-    document.getElementById('edit_t_instructions').value = t.instructions || '';
-  }
-
   // Desktop edit buttons
   document.querySelectorAll('.edit-btn').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -585,14 +586,20 @@
       document.getElementById('edit_sort_order').value = this.dataset.sortOrder || 0;
       document.getElementById('edit_is_active').checked = this.dataset.isActive === '1';
 
-      // Traducción (por defecto fallback)
-      const localeSel = document.getElementById('edit_locale');
-      const fallback = @json(config('app.fallback_locale', 'es'));
-      localeSel.value = fallback;
-      fillTranslationFields(trans, fallback);
+      // Populate specific locale fields
+      const locales = @json(supported_locales());
+      
+      locales.forEach(loc => {
+        const t = (trans && trans[loc]) ? trans[loc] : {};
+        
+        const nameInput = document.getElementById(`edit_t_name_${loc}`);
+        const descInput = document.getElementById(`edit_t_description_${loc}`);
+        const instrInput = document.getElementById(`edit_t_instructions_${loc}`);
 
-      // Cambio de locale autocompleta
-      localeSel.onchange = () => fillTranslationFields(trans, localeSel.value);
+        if(nameInput) nameInput.value = t.name || '';
+        if(descInput) descInput.value = t.description || '';
+        if(instrInput) instrInput.value = t.instructions || '';
+      });
 
       editModal.show();
     });
@@ -604,11 +611,7 @@
       const id = this.dataset.id;
       const route = "{{ route('admin.meetingpoints.update', ':id') }}".replace(':id', id);
       const trans = (() => {
-        try {
-          return JSON.parse(this.dataset.translations || '{}');
-        } catch (e) {
-          return {};
-        }
+        try { return JSON.parse(this.dataset.translations || '{}'); } catch (e) { return {}; }
       })();
 
       editForm.action = route;
@@ -619,11 +622,19 @@
       document.getElementById('edit_sort_order').value = this.dataset.sortOrder || 0;
       document.getElementById('edit_is_active').checked = this.dataset.isActive === '1';
 
-      const localeSel = document.getElementById('edit_locale');
-      const fallback = @json(config('app.fallback_locale', 'es'));
-      localeSel.value = fallback;
-      fillTranslationFields(trans, fallback);
-      localeSel.onchange = () => fillTranslationFields(trans, localeSel.value);
+      // Populate locale fields
+      const locales = @json(supported_locales());
+      locales.forEach(loc => {
+        const t = (trans && trans[loc]) ? trans[loc] : {};
+        
+        const nameInput = document.getElementById(`edit_t_name_${loc}`);
+        const descInput = document.getElementById(`edit_t_description_${loc}`);
+        const instrInput = document.getElementById(`edit_t_instructions_${loc}`);
+
+        if(nameInput) nameInput.value = t.name || '';
+        if(descInput) descInput.value = t.description || '';
+        if(instrInput) instrInput.value = t.instructions || '';
+      });
 
       editModal.show();
     });
@@ -632,12 +643,16 @@
   // Submit edit form
   editForm.addEventListener('submit', function(e) {
     e.preventDefault();
-    const tname = document.getElementById('edit_t_name').value.trim();
+    // Validate default locale name (usually 'es')
+    const defaultLocale = @json(config('app.fallback_locale', 'es'));
+    const tnameInput = document.getElementById(`edit_t_name_${defaultLocale}`);
+    const tname = tnameInput ? tnameInput.value.trim() : '';
+    
     if (!tname) {
       return Swal.fire({
         icon: 'error',
         title: @json(__('pickups.meeting_point.validation.missing_translated_name_title')),
-        text: @json(__('pickups.meeting_point.validation.missing_translated_name_text'))
+        text: `{{ __('pickups.meeting_point.validation.missing_translated_name_text') }} (${defaultLocale.toUpperCase()})`
       });
     }
     confirmAction(

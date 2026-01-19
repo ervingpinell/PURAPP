@@ -35,21 +35,30 @@ class UpdateTourTypeRequest extends FormRequest
         /** @var TourType|null $tourType */
         $tourType = $this->route('tourType');
 
-        // Obtener el ID de la traducción en español para ignorarla en la validación de unicidad
-        $translationId = $tourType?->translations()->where('locale', 'es')->first()?->id;
+        $rules = [
+            'description' => ['nullable', 'string', 'max:1000'],
+            'duration'    => ['nullable', 'string', 'max:255'],
+        ];
 
-        return [
-            'name'        => [
+        if ($this->has('translations')) {
+             $rules['translations'] = ['required', 'array'];
+             $rules['translations.*.name'] = ['required', 'string', 'max:255'];
+             // You can add more specific rules here if needed
+        } else {
+            // Obtener el ID de la traducción en español para ignorarla en la validación de unicidad
+            $translationId = $tourType?->translations()->where('locale', 'es')->first()?->id;
+
+            $rules['name'] = [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('tour_type_translations', 'name')
                     ->where('locale', 'es')
                     ->ignore($translationId)
-            ],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'duration'    => ['nullable', 'string', 'max:255'],
-        ];
+            ];
+        }
+
+        return $rules;
     }
 
     public function messages(): array

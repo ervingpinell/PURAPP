@@ -96,12 +96,7 @@
                         <i class="fas fa-edit"></i>
                     </a>
 
-                    {{-- Traducciones --}}
-                    <a href="{{ route('admin.tourtypes.translations.edit', $tourtype) }}"
-                        class="btn btn-sm btn-info me-1"
-                        title="Gestionar traducciones">
-                        <i class="fas fa-language"></i>
-                    </a>
+                    {{-- (Botón Traducciones Eliminado) --}}
 
                     {{-- Activar/Desactivar (SweetAlert) --}}
                     <form action="{{ route('admin.tourtypes.toggle', $tourtype->tour_type_id) }}"
@@ -148,7 +143,7 @@
 
             {{-- Modal editar --}}
             <div class="modal fade" id="modalEditar{{ $tourtype->tour_type_id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-lg">
                     <form action="{{ route('admin.tourtypes.update', $tourtype->tour_type_id) }}" method="POST" autocomplete="off">
                         @csrf
                         @method('PUT')
@@ -158,49 +153,76 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                <div class="mb-3">
-                                    <label>{{ __('m_config.tourtypes.name') }}</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        class="form-control"
-                                        placeholder="{{ __('m_config.tourtypes.examples_placeholder') }}"
-                                        value="{{ session('edit_modal') == $tourtype->tour_type_id ? old('name', $tourtype->name) : $tourtype->name }}"
-                                        required>
-                                </div>
-                                @can('publish-tour-types')
-                                <button type="button"
-                                    class="btn btn-sm btn-{{ $tourtype->is_active ? 'success' : 'secondary' }}"
-                                    onclick="toggleType({{ $tourtype->tour_type_id }})"
-                                    title="{{ $tourtype->is_active ? 'Desactivar' : 'Activar' }}">
-                                    <i class="fas fa-power-off"></i>
-                                </button>
-                                @endcan
-                                <div class="mb-3">
-                                    <label>{{ __('m_config.tourtypes.description') }}</label>
-                                    <textarea
-                                        name="description"
-                                        class="form-control"
-                                        rows="3"
-                                        placeholder="{{ __('m_config.tourtypes.description') }} ({{ __('m_config.tourtypes.optional') ?? 'opcional' }})">{{ session('edit_modal') == $tourtype->tour_type_id ? old('description', $tourtype->description) : $tourtype->description }}</textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label>{{ __('m_config.tourtypes.duration') }}</label>
-                                    <input
-                                        type="text"
-                                        name="duration"
-                                        class="form-control"
-                                        list="durationOptions"
-                                        placeholder="{{ __('m_config.tourtypes.duration_placeholder') }}"
-                                        title="{{ __('m_config.tourtypes.suggested_duration_hint') }}"
-                                        value="{{ session('edit_modal') == $tourtype->tour_type_id ? old('duration', $tourtype->duration) : ($tourtype->duration ?: '4 horas') }}">
-                                    <datalist id="durationOptions">
-                                        <option value="4 horas"></option>
-                                        <option value="6 horas"></option>
-                                        <option value="8 horas"></option>
-                                        <option value="10 horas"></option>
-                                    </datalist>
-                                    <small class="text-muted">{{ __('m_config.tourtypes.suggested_duration_hint') }}</small>
+                                {{-- Pestañas de Idiomas --}}
+                                @php
+                                    $locales = ['es', 'en', 'fr', 'pt', 'de'];
+                                @endphp
+                                <ul class="nav nav-tabs mb-3" role="tablist">
+                                    @foreach($locales as $i => $loc)
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link {{ $i===0 ? 'active' : '' }}"
+                                            id="edit-tab-{{ $tourtype->tour_type_id }}-{{ $loc }}"
+                                            data-bs-toggle="tab"
+                                            data-bs-target="#edit-pane-{{ $tourtype->tour_type_id }}-{{ $loc }}"
+                                            type="button"
+                                            role="tab">
+                                            {{ strtoupper($loc) }}
+                                        </button>
+                                    </li>
+                                    @endforeach
+                                </ul>
+
+                                <div class="tab-content">
+                                    @foreach($locales as $i => $loc)
+                                    @php
+                                        $trans = $tourtype->translations->firstWhere('locale', $loc);
+                                        $t_name = $trans ? $trans->name : '';
+                                        $t_desc = $trans ? $trans->description : '';
+                                        $t_dur  = $trans ? $trans->duration : '';
+                                    @endphp
+                                    <div class="tab-pane fade {{ $i===0 ? 'show active' : '' }}" 
+                                         id="edit-pane-{{ $tourtype->tour_type_id }}-{{ $loc }}" 
+                                         role="tabpanel">
+                                        
+                                        {{-- Nombre --}}
+                                        <div class="mb-3">
+                                            <label>{{ __('m_config.tourtypes.name') }} ({{ strtoupper($loc) }})</label>
+                                            <input type="text"
+                                                name="translations[{{ $loc }}][name]"
+                                                class="form-control"
+                                                value="{{ old("translations.$loc.name", $t_name) }}"
+                                                placeholder="{{ __('m_config.tourtypes.examples_placeholder') }}">
+                                        </div>
+
+                                        {{-- Descripción --}}
+                                        <div class="mb-3">
+                                            <label>{{ __('m_config.tourtypes.description') }} ({{ strtoupper($loc) }})</label>
+                                            <textarea
+                                                name="translations[{{ $loc }}][description]"
+                                                class="form-control"
+                                                rows="3"
+                                                placeholder="{{ __('m_config.tourtypes.description') }}">{{ old("translations.$loc.description", $t_desc) }}</textarea>
+                                        </div>
+
+                                        {{-- Duración --}}
+                                        <div class="mb-3">
+                                            <label>{{ __('m_config.tourtypes.duration') }} ({{ strtoupper($loc) }})</label>
+                                            <input type="text"
+                                                name="translations[{{ $loc }}][duration]"
+                                                class="form-control"
+                                                list="durationOptions-{{ $tourtype->tour_type_id }}-{{ $loc }}"
+                                                value="{{ old("translations.$loc.duration", $t_dur) }}"
+                                                placeholder="{{ __('m_config.tourtypes.duration_placeholder') }}">
+                                            <datalist id="durationOptions-{{ $tourtype->tour_type_id }}-{{ $loc }}">
+                                                <option value="4 horas"></option>
+                                                <option value="6 horas"></option>
+                                                <option value="8 horas"></option>
+                                                <option value="10 horas"></option>
+                                            </datalist>
+                                        </div>
+
+                                    </div>
+                                    @endforeach
                                 </div>
                             </div>
                             <div class="modal-footer">

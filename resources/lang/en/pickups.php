@@ -150,6 +150,7 @@ return [
         'actions' => [
             'view_map'    => 'View map',
             'view_on_map' => 'View on map',
+            'title'       => 'Edit meeting point',
             'edit'        => 'Edit',
             'delete'      => 'Delete',
             'activate'    => 'Activate',
