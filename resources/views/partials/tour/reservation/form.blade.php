@@ -4,17 +4,14 @@
   @csrf
   <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
 
-  @include('partials.tour.reservation.header')
+
 
   <div class="form-body position-relative">
     <fieldset>
       @include('partials.tour.reservation.travelers')
       @include('partials.tour.reservation.fields')
 
-      {{-- Hidden fields para otros datos --}}
-      <input type="hidden" name="is_other_hotel" id="isOtherHotel" value="0">
-      <input type="hidden" name="selected_pickup_point" id="selectedPickupPoint">
-      <input type="hidden" name="selected_meeting_point" id="selectedMeetingPoint">
+      {{-- Hidden fields para otros datos (Moved/Handled in fields.blade.php) --}}
     </fieldset>
 
     {{-- Pay Later Option (Phase 10) - Fuera del fieldset para que funcione cuando esté autenticado --}}

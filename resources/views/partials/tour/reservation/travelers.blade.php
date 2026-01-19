@@ -93,41 +93,33 @@ return ($t === $key) ? $fallback : $t;
             const icon = getCategoryIcon(cat.slug);
 
             const row = document.createElement('div');
-            row.className = 'gv-trav-row d-flex align-items-center justify-content-between py-2 border rounded px-2 mb-2';
+            row.className = 'gv-trav-row d-flex align-items-center justify-content-between p-2 border-bottom';
             row.setAttribute('data-category-id', cat.id);
             row.setAttribute('data-category-slug', cat.slug);
 
             row.innerHTML = `
-            <div class="d-flex align-items-center gap-2">
-                <i class="fas ${icon}" aria-hidden="true"></i>
-                <div class="d-flex flex-column">
-                    <span class="fw-semibold">${cat.name}</span>
-                    ${cat.age_text ? `<small class="text-muted">(${cat.age_text})</small>` : ''}
-                    <small class="text-muted price-display">$${cat.price.toFixed(2)}</small>
-                    <small class="text-muted" style="font-size: 0.7rem;">Min: ${cat.min} - Máx: ${cat.max}</small>
+            <div class="d-flex flex-column" style="line-height:1.2;">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold" style="color: #30363c;">${cat.name || 'Category'}</span>
+                    <i class="fas ${icon}" aria-hidden="true" style="color: #30363c; font-size: 0.9em;"></i>
+                </div>
+                <div class="mt-1">
+                   <span class="fw-bold" style="color: var(--primary-red);">$${cat.price.toFixed(2)}</span>
+                   ${cat.age_text ? `<span class="text-muted ms-1" style="font-size:0.85em;">(${cat.age_text})</span>` : ''}
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <button type="button"
-                    class="btn btn-outline-secondary btn-sm category-minus-btn"
-                    data-category-id="${cat.id}"
-                    aria-label="Disminuir ${cat.name}">−</button>
-
-                <input class="form-control form-control-sm text-center category-input"
+            
+            <div class="d-flex align-items-center">
+                <button type="button" class="btn btn-sm btn-light border px-2 py-1 category-minus-btn" data-category-id="${cat.id}" aria-label="Disminuir">-</button>
+                <input class="form-control form-control-sm text-center mx-1 category-input shadow-none" 
                     type="number" inputmode="numeric" pattern="[0-9]*"
                     data-category-id="${cat.id}"
                     data-category-slug="${cat.slug}"
-                    min="${cat.min}"
-                    max="${cat.max}"
-                    step="1"
+                    min="${cat.min}" max="${cat.max}" step="1"
                     value="${cat.initial}"
-                    style="width: 60px;"
-                    aria-label="Cantidad ${cat.name}">
-
-                <button type="button"
-                    class="btn btn-outline-secondary btn-sm category-plus-btn"
-                    data-category-id="${cat.id}"
-                    aria-label="Aumentar ${cat.name}">+</button>
+                    style="width: 40px; padding: 0.25rem;"
+                    aria-label="Cantidad">
+                <button type="button" class="btn btn-sm btn-light border px-2 py-1 category-plus-btn" data-category-id="${cat.id}" aria-label="Aumentar">+</button>
             </div>
         `;
 

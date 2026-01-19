@@ -223,6 +223,12 @@ return [
     'open_map' => 'Open map',
     'openMap'  => 'Open map',
 
+    'openMap'  => 'Open map',
+    'select_pickup_type' => 'Select pickup preference',
+    'no_pickup' => 'I do not need pickup',
+    'other_hotel_option' => 'My hotel is not listed',
+    'custom_pickup_notice' => 'You have selected a custom location. Please contact us to verify if pickup is possible there, as it is outside our standard list.',
+
     // 9. CART AND BOOKINGS
     'cart' => 'Cart',
     'myCart' => 'My cart',

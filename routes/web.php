@@ -1059,10 +1059,10 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])
                             ->middleware('throttle:sensitive')
                             ->name('images.update');
+                        Route::delete('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
+                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroyAll');
                         Route::delete('{tour}/images/{image}', [TourImageController::class, 'destroy'])->name('images.destroy');
                         Route::post('{tour}/images/{image}/cover', [TourImageController::class, 'setCover'])->name('images.cover');
-                        Route::post('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
-                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroyAll');
                     });
                 });
 
@@ -1139,10 +1139,10 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])
                             ->middleware('throttle:sensitive')
                             ->name('images.update');
+                        Route::delete('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
+                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroyAll');
                         Route::delete('{tour}/images/{image}', [TourImageController::class, 'destroy'])->name('images.destroy');
                         Route::post('{tour}/images/{image}/cover', [TourImageController::class, 'setCover'])->name('images.setCover');
-                        Route::post('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
-                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroyAll');
                     });
 
                     // Tour Type Images

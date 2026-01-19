@@ -221,6 +221,10 @@ return [
     'meeting_time' => 'Treffzeit',
     'open_map' => 'Karte öffnen',
     'openMap'  => 'Karte öffnen',
+    'select_pickup_type' => 'Abholpräferenz wählen',
+    'no_pickup' => 'Ich brauche keine Abholung',
+    'other_hotel_option' => 'Mein Hotel ist nicht auf der Liste',
+    'custom_pickup_notice' => 'Sie haben einen benutzerdefinierten Standort ausgewählt. Bitte kontaktieren Sie uns, um zu überprüfen, ob eine Abholung dort möglich ist, da er außerhalb unserer Standardliste liegt.',
 
     // 9. WARENKORB UND BUCHUNGEN
     'cart' => 'Warenkorb',

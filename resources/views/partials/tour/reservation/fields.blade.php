@@ -74,7 +74,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 <div class="row g-2">
     {{-- Fecha --}}
     <div class="col-12 col-sm-6">
-        <label class="form-label gv-label-icon">
+        <label class="form-label gv-label-icon mb-1">
             <i class="fas fa-calendar-alt" aria-hidden="true"></i>
             <span>{{ $tr('adminlte::adminlte.select_date','Selecciona una fecha') }}</span>
         </label>
@@ -91,7 +91,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 
     {{-- Horario --}}
     <div class="col-12 col-sm-6">
-        <label class="form-label gv-label-icon">
+        <label class="form-label gv-label-icon mb-1">
             <i class="fas fa-clock" aria-hidden="true"></i>
             <span>{{ $tr('adminlte::adminlte.select_time','Selecciona una hora') }}</span>
         </label>
@@ -113,11 +113,11 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 </div>
 
 {{-- Idioma --}}
-<div class="section-title mt-3 d-flex align-items-center gap-2">
+<label class="form-label gv-label-icon mt-2 mb-1" for="languageSelect">
     <i class="fas fa-language" aria-hidden="true"></i>
     <span>{{ $tr('adminlte::adminlte.select_language','Selecciona un idioma') }}</span>
-</div>
-<label for="languageSelect" class="visually-hidden">{{ $tr('adminlte::adminlte.select_language','Selecciona un idioma') }}</label>
+</label>
+
 <select
     name="tour_language_id"
     class="form-select mb-1 w-100 @error('tour_language_id') is-invalid @enderror"
@@ -133,15 +133,41 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 <div id="langHelp" class="error-message text-danger"></div>
 @error('tour_language_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
 
-{{-- Pickup: Hotel O Punto de encuentro (excluyentes) --}}
+{{-- Pickup Selection Mode --}}
 <div class="pickup-options mt-3">
-    {{-- Hotel --}}
-    <div class="pickup-section" id="hotelSection">
-        <div class="section-title d-flex align-items-center gap-2">
-            <i class="fas fa-hotel" aria-hidden="true"></i>
-            <span>{{ $tr('adminlte::adminlte.select_hotel','Hotel') }}</span>
+    <label class="form-label gv-label-icon mb-2">
+        <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+        <span>{{ $tr('adminlte::adminlte.select_pickup_type', 'Preferencia de recogida') }}</span>
+    </label>
+    <div class="d-flex flex-wrap gap-3 mb-3">
+        <div class="form-check">
+            <input class="form-check-input pickup-radio" type="radio" name="pickup_type" id="radio_hotel" value="hotel" {{ old('pickup_type', ($oldHotel || $oldIsOther) ? 'hotel' : 'hotel') == 'hotel' ? 'checked' : '' }}>
+            <label class="form-check-label" for="radio_hotel">
+                <i class="fas fa-hotel me-1 text-muted"></i> {{ $tr('adminlte::adminlte.hotel', 'Hotel') }}
+            </label>
         </div>
-        <label for="hotelSelect" class="visually-hidden">{{ $tr('adminlte::adminlte.select_hotel','Hotel') }}</label>
+        @if($meetingPoints->count() > 0)
+        <div class="form-check">
+            <input class="form-check-input pickup-radio" type="radio" name="pickup_type" id="radio_meeting" value="meeting" {{ old('pickup_type', $oldMeeting ? 'meeting' : '') == 'meeting' ? 'checked' : '' }}>
+            <label class="form-check-label" for="radio_meeting">
+                <i class="fas fa-map-marker-alt me-1 text-muted"></i> {{ $tr('adminlte::adminlte.meeting_point', 'Punto de encuentro') }}
+            </label>
+        </div>
+        @endif
+        <div class="form-check">
+            <input class="form-check-input pickup-radio" type="radio" name="pickup_type" id="radio_none" value="none" {{ old('pickup_type') == 'none' ? 'checked' : '' }}>
+            <label class="form-check-label" for="radio_none">
+                <i class="fas fa-walking me-1 text-muted"></i> {{ $tr('adminlte::adminlte.no_pickup', 'No requiero recogida') }}
+            </label>
+        </div>
+    </div>
+
+    {{-- Hotel Section --}}
+    <div class="pickup-section d-none" id="hotelSection">
+        <label class="form-label gv-label-icon mb-1" for="hotelSelect">
+            <i class="fas fa-shuttle-van" aria-hidden="true"></i>
+            <span>{{ $tr('adminlte::adminlte.select_hotel','Hotel') }}</span>
+        </label>
         <select
             class="form-select mb-1 w-100 @error('hotel_id') is-invalid @enderror"
             id="hotelSelect"
@@ -152,13 +178,13 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
                 {{ $hotel->name }}
             </option>
             @endforeach
-            <option value="other" {{ $oldIsOther ? 'selected' : '' }}>{{ $tr('adminlte::adminlte.hotel_other','Otro hotel') }}</option>
+            <option value="other" {{ $oldIsOther ? 'selected' : '' }}>{{ $tr('adminlte::adminlte.other_hotel_option','Mi hotel no está en la lista') }}</option>
         </select>
         <div id="hotelHelp" class="error-message text-danger"></div>
 
         {{-- Otro hotel --}}
         <div class="mb-2 {{ $oldIsOther ? '' : 'd-none' }}" id="otherHotelWrapper">
-            <label for="otherHotelInput" class="form-label">{{ $tr('adminlte::adminlte.hotel_name','Nombre del hotel') }}</label>
+            <label for="otherHotelInput" class="form-label mt-2">{{ $tr('adminlte::adminlte.hotel_name','Nombre del hotel') }}</label>
             <input
                 type="text"
                 class="form-control @error('other_hotel_name') is-invalid @enderror"
@@ -168,23 +194,19 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
                 placeholder="{{ $tr('adminlte::adminlte.hotel_name','Nombre del hotel') }}">
             @error('other_hotel_name') <div class="invalid-feedback">{{ $message }}</div> @enderror
 
-            <div class="form-text text-danger mt-1 field-hint" id="outsideAreaMessage" style="display: {{ $oldIsOther ? 'block' : 'none' }};">
-                {{ $tr('adminlte::adminlte.outside_area','Has ingresado un hotel personalizado. Contáctanos para confirmar si podemos ofrecer transporte desde ese lugar.') }}
+            <div class="alert alert-warning mt-2 small" id="outsideAreaMessage" style="display: {{ $oldIsOther ? 'block' : 'none' }};">
+                <i class="fas fa-exclamation-triangle me-1"></i>
+                {{ $tr('adminlte::adminlte.custom_pickup_notice', 'Has seleccionado una ubicación personalizada. Contáctanos para verificar disponibilidad.') }}
             </div>
         </div>
     </div>
 
-    <div class="text-center my-2">
-        <span class="badge bg-secondary">{{ $tr('adminlte::adminlte.or','O') }}</span>
-    </div>
-
     {{-- Meeting point --}}
-    <div class="pickup-section" id="meetingPointSection">
-        <div class="section-title d-flex align-items-center gap-2">
-            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-            <span>{{ $tr('adminlte::adminlte.meetingPoint','Punto de encuentro') }}</span>
-        </div>
-        <label for="meetingPointSelect" class="visually-hidden">{{ $tr('adminlte::adminlte.meetingPoint','Punto de encuentro') }}</label>
+    <div class="pickup-section d-none" id="meetingPointSection">
+    <label class="form-label gv-label-icon mb-1" for="meetingPointSelect">
+        <i class="fas fa-location-dot" aria-hidden="true"></i>
+        <span>{{ $tr('adminlte::adminlte.meetingPoint','Punto de encuentro') }}</span>
+    </label>
         <select
             class="form-select w-100 @error('meeting_point_id') is-invalid @enderror"
             name="meeting_point_id"
@@ -211,7 +233,6 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
         {{-- Info dinámica --}}
         <div id="meetingPointInfo" class="meeting-info card card-body bg-light border rounded small d-none mt-2">
             <div id="mpDesc" class="mp-desc mb-2"></div>
-            <!-- Pickup time removed as requested -->
             <a id="mpLink" class="btn btn-sm btn-outline-success d-none" href="#" target="_blank" rel="noopener">
                 <i class="fas fa-map me-1"></i> {{ $tr('adminlte::adminlte.open_map','Ver ubicación') }}
             </a>
@@ -310,6 +331,8 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
             otherHotel: @json($oldOtherHotel),
             isOther: @json((bool) $oldIsOther),
             meeting: @json($oldMeeting),
+            // Determine initial pickup type from old data
+            pickupType: @json(old('pickup_type') ?: (($oldMeeting) ? 'meeting' : (($oldHotel || $oldIsOther || $oldOtherHotel) ? 'hotel' : 'hotel'))),
         };
 
         const T = {
@@ -344,6 +367,10 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
         const mpDesc = document.getElementById('mpDesc');
         const mpTime = document.getElementById('mpTime');
         const mpLink = document.getElementById('mpLink');
+        const outsideMsg = document.getElementById('outsideAreaMessage');
+
+        // Radio buttons
+        const pickupRadios = document.querySelectorAll('.pickup-radio');
 
         if (!dateInput || !scheduleSelect) return;
 
@@ -419,21 +446,24 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
             shouldSort: false,
             itemSelectText: '',
             placeholder: true,
-            placeholderValue: T.placeholder
+            placeholderValue: T.placeholder,
+            searchPlaceholderValue: @json($tr('adminlte::adminlte.type_to_search', 'Escribe para buscar...'))
         });
         const meetingChoices = new Choices(meetingPointSelect, {
             searchEnabled: true,
             shouldSort: false,
             itemSelectText: '',
             placeholder: true,
-            placeholderValue: T.placeholder
+            placeholderValue: T.placeholder,
+            searchPlaceholderValue: @json($tr('adminlte::adminlte.type_to_search', 'Escribe para buscar...'))
         });
         const languageChoices = new Choices(languageSelect, {
             searchEnabled: true,
             shouldSort: false,
             itemSelectText: '',
             placeholder: true,
-            placeholderValue: T.placeholder
+            placeholderValue: T.placeholder,
+            searchPlaceholderValue: @json($tr('adminlte::adminlte.type_to_search', 'Escribe para buscar...'))
         });
 
         function forceSchedulePlaceholder() {
@@ -548,15 +578,17 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
             }
         });
 
-        /* ========= Excluyente: Hotel vs Meeting ========= */
+        /* ========= Logic: Pickup Mode (Radio) ========= */
         function toggleOther() {
             const isOther = (hotelChoices.getValue(true) === 'other') || !!OLD.isOther;
             otherHotelWrapper.classList.toggle('d-none', !isOther);
             if (isOtherHotelInput) isOtherHotelInput.value = isOther ? '1' : '0';
+            if (outsideMsg) outsideMsg.style.display = isOther ? 'block' : 'none';
+
             if (isOther && !otherHotelInput.value && OLD.otherHotel) {
                 otherHotelInput.value = OLD.otherHotel;
             }
-            if (isOther) otherHotelInput?.focus();
+            // Optional: focus if manually switched
         }
 
         function refreshMeetingInfo() {
@@ -585,49 +617,72 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
             meetingPointInfo.classList.remove('d-none');
         }
 
-        function validatePickupUI() {
-            const hotelValue = hotelChoices.getValue(true);
-            const meetingVal = meetingChoices.getValue(true);
+        function getSelectedPickupType() {
+            const checked = document.querySelector('.pickup-radio:checked');
+            return checked ? checked.value : null;
+        }
 
-            if (hotelValue) {
-                meetingChoices.disable();
-                meetingPointSelect.value = '';
-                meetingChoices.removeActiveItems();
-                refreshMeetingInfo();
-                meetingPointSection.classList.add('disabled');
-            } else {
-                meetingChoices.enable();
-                meetingPointSection.classList.remove('disabled');
-            }
+        function updatePickupUI() {
+            const type = getSelectedPickupType();
 
-            if (meetingVal) {
-                hotelChoices.disable();
-                hotelSelect.value = '';
-                hotelChoices.removeActiveItems();
-                toggleOther();
-                if (isOtherHotelInput) isOtherHotelInput.value = '0';
-                hotelSection.classList.add('disabled');
+            if (type === 'hotel') {
+                hotelSection.classList.remove('d-none');
+                meetingPointSection.classList.add('d-none');
+                // Enable hotel logic
+                // Ensure meeting is cleared/disabled logic if needed for submission?
+                // Actually we just hide it, but if validation checks it...
+                // The Validation function should check based on Type.
+            } else if (type === 'meeting') {
+                hotelSection.classList.add('d-none');
+                meetingPointSection.classList.remove('d-none');
             } else {
-                hotelChoices.enable();
-                hotelSection.classList.remove('disabled');
+                // None
+                hotelSection.classList.add('d-none');
+                meetingPointSection.classList.add('d-none');
             }
         }
 
+        // Listeners for Radios
+        pickupRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                updatePickupUI();
+                // Clear values when switching?
+                // Optional, but safer to avoid validation errors if hidden fields have values
+                const type = radio.value;
+                if (type === 'hotel') {
+                    meetingChoices.removeActiveItems();
+                    meetingPointSelect.value = '';
+                } else if (type === 'meeting') {
+                    hotelChoices.removeActiveItems();
+                    hotelSelect.value = '';
+                    toggleOther(); // Reset other
+                } else {
+                    meetingChoices.removeActiveItems();
+                    meetingPointSelect.value = '';
+                    hotelChoices.removeActiveItems();
+                    hotelSelect.value = '';
+                    toggleOther();
+                }
+            });
+        });
+
+        // Initialize UI
         if (OLD.language) languageChoices.setChoiceByValue(String(OLD.language));
         if (OLD.hotel) hotelChoices.setChoiceByValue(String(OLD.hotel));
         else if (OLD.isOther) hotelChoices.setChoiceByValue('other');
         toggleOther();
+
         if (OLD.meeting) meetingChoices.setChoiceByValue(String(OLD.meeting));
         refreshMeetingInfo();
-        validatePickupUI();
+        
+        // Init Pickup UI visibility
+        updatePickupUI();
 
         hotelSelect.addEventListener('change', () => {
             toggleOther();
-            validatePickupUI();
         });
         meetingPointSelect.addEventListener('change', () => {
             refreshMeetingInfo();
-            validatePickupUI();
         });
 
         /* ========= Validación con SweetAlert2 ========= */
@@ -642,21 +697,36 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
                 return false;
             }
 
-            const hotelVal = hotelSelect.value;
-            const meetingVal = meetingPointSelect.value;
-            const isOther = (hotelVal === 'other');
-            const otherTxt = (otherHotelInput?.value || '').trim();
-            const hasHotel = (hotelVal && hotelVal !== '' && hotelVal !== 'other') || (isOther && otherTxt !== '');
-            const hasMeeting = !!meetingVal;
-
-            if (!hasHotel && !hasMeeting) {
-                await warn(T.needPickTitle, T.needPickText, hotelSelect);
-                return false;
+            const type = getSelectedPickupType();
+            if (!type) {
+                 // Should select a type? 'none' is a type.
+                 // If no radio selected (should default to hotel/none?), maybe warn?
+                 // But we have default checked logic in blade.
             }
+
+            if (type === 'hotel') {
+                const hotelVal = hotelSelect.value;
+                const isOther = (hotelVal === 'other');
+                const otherTxt = (otherHotelInput?.value || '').trim();
+                const hasHotel = (hotelVal && hotelVal !== '' && hotelVal !== 'other') || (isOther && otherTxt !== '');
+
+                if (!hasHotel) {
+                    await warn(T.needPickTitle, T.needPickText, hotelSelect);
+                    return false;
+                }
+            } else if (type === 'meeting') {
+                 if (!meetingPointSelect.value) {
+                    await warn(T.needPickTitle, T.needPickText, meetingPointSelect);
+                    return false;
+                 }
+            }
+            // If type === 'none', no validation needed for pickup.
+
             return true;
         }
 
         // ===== NUEVO: función anti doble submit =====
+
         async function validateAndSubmit(e, form) {
             e.preventDefault();
             e.stopPropagation();

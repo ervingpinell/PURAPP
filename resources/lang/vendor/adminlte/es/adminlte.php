@@ -224,6 +224,12 @@ return [
     'open_map' => 'Abrir mapa',
     'openMap'  => 'Abrir mapa',
 
+    'openMap'  => 'Abrir mapa',
+    'select_pickup_type' => 'Seleccione preferencia de recogida',
+    'no_pickup' => 'No necesito recogida',
+    'other_hotel_option' => 'Mi hotel no está en la lista',
+    'custom_pickup_notice' => 'Ha seleccionado una ubicación personalizada. Contáctenos para verificar si la recogida es posible allí, ya que está fuera de nuestra lista estándar.',
+
     // 9. CARRITO Y RESERVAS
     'cart' => 'Carrito',
     'myCart' => 'Mi carrito',

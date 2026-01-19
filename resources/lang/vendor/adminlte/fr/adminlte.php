@@ -221,6 +221,10 @@ return [
     'meeting_time' => 'Heure de rendez-vous',
     'open_map' => 'Ouvrir la carte',
     'openMap'  => 'Ouvrir la carte',
+    'select_pickup_type' => 'Sélectionnez la préférence de prise en charge',
+    'no_pickup' => 'Je n\'ai pas besoin de prise en charge',
+    'other_hotel_option' => 'Mon hôtel n\'est pas dans la liste',
+    'custom_pickup_notice' => 'Vous avez sélectionné un emplacement personnalisé. Veuillez nous contacter pour vérifier si la prise en charge est possible à cet endroit, car il est en dehors de notre liste standard.',
 
     // 9. PANIER ET RÉSERVATIONS
     'cart' => 'Panier',
