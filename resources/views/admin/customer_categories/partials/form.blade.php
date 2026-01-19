@@ -7,80 +7,68 @@
 
 {{-- 1. Traducciones / Nombre (Primero) --}}
 <div class="mb-4">
-    @if($mode === 'create')
-        {{-- Create Mode: Single Input (Fallback Locale) --}}
-        <h5 class="mb-3"><i class="fas fa-heading"></i> {{ __('customer_categories.form.name.label') }}</h5>
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <h5 class="mb-0"><i class="fas fa-language"></i> {{ __('customer_categories.form.translations.title') }}</h5>
         
-        <div class="form-group">
-            <label>
-                {{ __('customer_categories.form.name.label') }} <span class="text-danger">*</span>
+        {{-- Auto Translate Switch --}}
+        <div class="custom-control custom-switch">
+            <input type="checkbox" 
+                   class="custom-control-input" 
+                   id="auto_translate" 
+                   name="auto_translate" 
+                   value="1" 
+                   {{ old('auto_translate', true) ? 'checked' : '' }}>
+            <label class="custom-control-label" for="auto_translate">
+                {{ __('customer_categories.form.translations.auto_translate_hint') ?? 'Auto Translate (DeepL)' }}
             </label>
-            <input type="text"
-                   name="names[{{ $fallback }}]"
-                   class="form-control @error('names.'.$fallback) is-invalid @enderror"
-                   value="{{ old('names.'.$fallback) }}"
-                   required
-                   placeholder="{{ __('customer_categories.form.name.placeholder') }}">
-            @error('names.'.$fallback)
-                <span class="invalid-feedback">{{ $message ?: __('customer_categories.form.name.required') }}</span>
-            @enderror
-            <small class="form-text text-muted">
-                {{ __('customer_categories.form.translations.auto_translate_hint') ?? 'DeepL traducirá automáticamente a los demás idiomas.' }}
-            </small>
         </div>
+    </div>
 
-    @else
-        {{-- Edit Mode: Tabbed Interface --}}
-        <div class="d-flex align-items-center justify-content-between mb-2">
-            <h5 class="mb-0"><i class="fas fa-language"></i> {{ __('customer_categories.form.translations.title') }}</h5>
-        </div>
+    <ul class="nav nav-tabs mb-3" id="langTabs" role="tablist">
+        @foreach($locales as $i => $loc)
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {{ $i===0 ? 'active' : '' }}" 
+                        id="tab-{{ $loc }}" 
+                        data-bs-toggle="tab" 
+                        data-bs-target="#pane-{{ $loc }}" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="pane-{{ $loc }}" 
+                        aria-selected="{{ $i===0 ? 'true' : 'false' }}">
+                    {{ strtoupper($loc) }}
+                </button>
+            </li>
+        @endforeach
+    </ul>
 
-        <ul class="nav nav-tabs mb-3" id="langTabs" role="tablist">
-            @foreach($locales as $i => $loc)
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link {{ $i===0 ? 'active' : '' }}" 
-                            id="tab-{{ $loc }}" 
-                            data-bs-toggle="tab" 
-                            data-bs-target="#pane-{{ $loc }}" 
-                            type="button" 
-                            role="tab" 
-                            aria-controls="pane-{{ $loc }}" 
-                            aria-selected="{{ $i===0 ? 'true' : 'false' }}">
-                        {{ strtoupper($loc) }}
-                    </button>
-                </li>
-            @endforeach
-        </ul>
+    <div class="tab-content">
+        @foreach($locales as $i => $loc)
+            @php
+                $existing = $model
+                    ? optional($model->translations->firstWhere('locale', $loc))->name
+                    : null;
+                $val = old("names.$loc", $existing);
+            @endphp
 
-        <div class="tab-content">
-            @foreach($locales as $i => $loc)
-                @php
-                    $existing = $model
-                        ? optional($model->translations->firstWhere('locale', $loc))->name
-                        : null;
-                    $val = old("names.$loc", $existing);
-                @endphp
-
-                <div class="tab-pane fade {{ $i===0 ? 'show active' : '' }}" id="pane-{{ $loc }}" role="tabpanel" aria-labelledby="tab-{{ $loc }}">
-                    <div class="form-group mb-0">
-                        <label>
-                            {{ __('customer_categories.form.name.label') }} ({{ strtoupper($loc) }})
-                            @if($i===0) <span class="text-danger">*</span> @endif
-                        </label>
-                        <input type="text"
-                               name="names[{{ $loc }}]"
-                               class="form-control @error('names.' . $loc) is-invalid @enderror"
-                               value="{{ $val }}"
-                               @if($i===0) required @endif
-                               placeholder="{{ __('customer_categories.form.name.placeholder') }}">
-                        @error('names.' . $loc)
-                            <span class="invalid-feedback">{{ $message ?: __('customer_categories.form.name.required') }}</span>
-                        @enderror
-                    </div>
+            <div class="tab-pane fade {{ $i===0 ? 'show active' : '' }}" id="pane-{{ $loc }}" role="tabpanel" aria-labelledby="tab-{{ $loc }}">
+                <div class="form-group mb-0">
+                    <label>
+                        {{ __('customer_categories.form.name.label') }} ({{ strtoupper($loc) }})
+                        @if($loc === $fallback) <span class="text-danger">*</span> @endif
+                    </label>
+                    <input type="text"
+                           name="names[{{ $loc }}]"
+                           class="form-control @error('names.' . $loc) is-invalid @enderror"
+                           value="{{ $val }}"
+                           @if($loc === $fallback) required @endif
+                           placeholder="{{ __('customer_categories.form.name.placeholder') }}">
+                    @error('names.' . $loc)
+                        <span class="invalid-feedback">{{ $message ?: __('customer_categories.form.name.required') }}</span>
+                    @enderror
                 </div>
-            @endforeach
-        </div>
-    @endif
+            </div>
+        @endforeach
+    </div>
 </div>
 
 <hr>

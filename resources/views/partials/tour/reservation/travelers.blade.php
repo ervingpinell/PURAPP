@@ -101,7 +101,6 @@ return ($t === $key) ? $fallback : $t;
             <div class="d-flex flex-column" style="line-height:1.2;">
                 <div class="d-flex align-items-center gap-2">
                     <span class="fw-bold" style="color: #30363c;">${cat.name || 'Category'}</span>
-                    <i class="fas ${icon}" aria-hidden="true" style="color: #30363c; font-size: 0.9em;"></i>
                 </div>
                 <div class="mt-1">
                    <span class="fw-bold" style="color: var(--primary-red);">$${cat.price.toFixed(2)}</span>

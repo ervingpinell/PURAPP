@@ -628,14 +628,14 @@ class HomeController extends Controller
             $initial = $min; // Use the actual minimum from the category instead of hardcoded value
 
             // Texto de rango de edad
-            $ageMin       = $category->age_min;
-            $ageMax       = $category->age_max;
+            $ageMin       = $category->age_from;
+            $ageMax       = $category->age_to;
             $ageRangeText = null;
-            if ($ageMin && $ageMax) {
+            if ($ageMin !== null && $ageMax !== null) {
                 $ageRangeText = __('m_bookings.travelers.age_between', ['min' => $ageMin, 'max' => $ageMax]);
-            } elseif ($ageMin) {
+            } elseif ($ageMin !== null) {
                 $ageRangeText = __('m_bookings.travelers.age_from', ['min' => $ageMin]);
-            } elseif ($ageMax) {
+            } elseif ($ageMax !== null) {
                 $ageRangeText = __('m_bookings.travelers.age_to', ['max' => $ageMax]);
             }
 

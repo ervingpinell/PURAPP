@@ -42,15 +42,43 @@ class CustomerCategoryController extends Controller
         return view('admin.customer_categories.create');
     }
 
-    public function store(StoreCustomerCategoryRequest $request)
+    public function store(StoreCustomerCategoryRequest $request, DeepLTranslator $translator)
     {
         try {
             DB::beginTransaction();
 
             $category = CustomerCategory::create($request->validated());
 
+            $names = $request->input('names', []);
+            $autoTranslate = $request->boolean('auto_translate');
+
+            // Auto-Translate Logic
+            if ($autoTranslate) {
+                // 1. Find source text (first non-empty)
+                $sourceText = null;
+                foreach ($names as $txt) {
+                    if (!empty($txt)) {
+                        $sourceText = $txt;
+                        break;
+                    }
+                }
+
+                // 2. Translate to missing locales
+                if ($sourceText) {
+                    foreach (supported_locales() as $loc) {
+                        if (empty($names[$loc])) {
+                            try {
+                                $names[$loc] = $translator->translate($sourceText, $loc);
+                            } catch (\Throwable $e) {
+                                // Ignore errors, just leave empty
+                            }
+                        }
+                    }
+                }
+            }
+
             // Handle translations
-            foreach ($request->input('names', []) as $locale => $name) {
+            foreach ($names as $locale => $name) {
                 if (!empty($name)) {
                     CustomerCategoryTranslation::create([
                         'category_id' => $category->category_id,

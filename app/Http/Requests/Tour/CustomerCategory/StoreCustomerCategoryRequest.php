@@ -27,8 +27,8 @@ class StoreCustomerCategoryRequest extends FormRequest
             'names'     => ['required','array'],
         ];
 
-        // Al menos el primer idioma debe venir
-        $first = supported_locales()[0] ?? 'es';
+        // Al menos el idioma por defecto (fallback) debe venir
+        $first = config('app.fallback_locale', 'es');
         $rules["names.$first"] = ['required','string','max:120'];
 
         // El resto opcionales
