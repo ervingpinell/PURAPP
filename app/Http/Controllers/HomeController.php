@@ -572,9 +572,8 @@ class HomeController extends Controller
             $category   = $firstPrice->category;
             $slug       = $category->slug ?? strtolower($category->name ?? '');
 
-            // Traducción del nombre de la categoría
-            $catTr   = $this->pickTranslation($category->translations, $loc, $fb);
-            $catName = $catTr->name ?? $category->name;
+            // Traducción del nombre de la categoría (usando helper robusto del modelo)
+            $catName = $category->getTranslatedName($loc);
 
             // Reglas de precios crudas desde DB
             $priceRules = $prices->map(function ($price) {

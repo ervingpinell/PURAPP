@@ -45,6 +45,8 @@ return [
             'regen_missing'  => 'Remplir automatiquement les champs vides (DeepL)',
             'at_least_first' => 'Vous devez remplir au moins la première langue.',
             'locale_hint'    => 'Traduction pour le locale :loc.',
+            'auto_translate_hint' => 'Traduction automatique par DeepL',
+            'auto_translate_hint' => 'Traduction automatique par DeepL',
         ],
         'name' => [
             'label'       => 'Nom',

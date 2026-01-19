@@ -45,6 +45,8 @@ return [
             'regen_missing'  => 'Fehlende Einträge automatisch ausfüllen (DeepL)',
             'at_least_first' => 'Du musst mindestens die erste Sprache ausfüllen.',
             'locale_hint'    => 'Übersetzung für Locale :loc.',
+            'auto_translate_hint' => 'Automatische Übersetzung durch DeepL',
+            'auto_translate_hint' => 'Automatische Übersetzung durch DeepL',
         ],
         'name' => [
             'label'       => 'Name',

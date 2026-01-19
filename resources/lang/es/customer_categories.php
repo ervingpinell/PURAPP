@@ -49,6 +49,7 @@ return [
             'regen_missing'  => 'Rellenar automáticamente los vacíos (DeepL)',
             'at_least_first' => 'Debes completar al menos el primer idioma.',
             'locale_hint'    => 'Traducción para el locale :loc.',
+            'auto_translate_hint' => 'Traducción automática por DeepL',
         ],
         'name' => [
             'label'       => 'Nombre',
