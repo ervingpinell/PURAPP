@@ -236,7 +236,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
             <a href="{{ route('admin.bookings.receipt', $booking->booking_id) }}" class="btn btn-primary" target="_blank">
                 <i class="fas fa-file-pdf"></i> {{ __('m_bookings.bookings.ui.download_receipt') }}
             </a>
-            <a href="{{ route('admin.bookings.edit', $booking) }}" class="btn btn-warning">
+            <a href="{{ route('admin.bookings.edit', $booking) }}" class="btn btn-edit">
                 <i class="fas fa-edit"></i> {{ __('m_bookings.bookings.buttons.edit') }}
             </a>
             @if($booking->status === 'pending' && !$booking->isPaid())
@@ -251,7 +251,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
 
     @section('content')
     <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-8">
+        <div class="col-12 col-lg-10 col-xl-8">
             {{-- Status Alert with Actions --}}
             <div class="alert alert-{{ $booking->status === 'pending' ? 'warning' : ($booking->status === 'confirmed' ? 'success' : 'danger') }} d-flex justify-content-between align-items-center">
                 <div>
@@ -458,7 +458,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                 <div class="card-header bg-secondary py-2">
                     <h3 class="card-title mb-0"><strong>{{ __('Desglose de Precios') }}:</strong></h3>
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0 table-responsive">
                     <table class="table table-bordered table-sm mb-0">
                         <tbody>
                             <tr>

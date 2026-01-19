@@ -30,6 +30,7 @@ return [$c->slug => ($label ?: $c->slug)];
 })->all();
 @endphp
 
+<div class="d-none d-md-block">
 <table class="table table-bordered table-striped table-hover table-compact">
   <thead class="bg-primary text-white">
     <tr>
@@ -281,7 +282,7 @@ return [$c->slug => ($label ?: $c->slug)];
 
         {{-- Edit --}}
         <a href="{{ route('admin.bookings.edit', $booking) }}"
-          class="btn btn-sm btn-warning"
+          class="btn btn-sm btn-edit"
           title="{{ __('m_bookings.bookings.buttons.edit') }}">
           <i class="fas fa-edit"></i>
         </a>
@@ -331,6 +332,92 @@ return [$c->slug => ($label ?: $c->slug)];
     @endforeach
   </tbody>
 </table>
+</div>
+
+{{-- VISTA MÓVIL (Cards) --}}
+<div class="d-md-none">
+  @forelse ($bookings as $booking)
+  @php
+  // Re-calcular variables para móvil porque el scope del foreach anterior terminó
+  $detail = $booking->detail;
+  $liveName = optional($detail?->tour)->name;
+  $snapName = $detail->tour_name_snapshot ?: ($booking->tour_name_snapshot ?? null);
+  $tourCellText = $liveName ?? ($snapName ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName]) : __('m_bookings.bookings.messages.deleted_tour'));
+  
+  $scheduleLabel = $detail?->schedule ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') : '—';
+  
+  // Status badge logic
+  $statusClass = match($booking->status) {
+      'confirmed' => 'success',
+      'cancelled' => 'danger',
+      'pending'   => 'warning',
+      default     => 'secondary'
+  };
+  @endphp
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center py-2">
+      <span class="fw-bold">#{{ $booking->booking_reference }}</span>
+      <span class="badge bg-{{ $statusClass }}">{{ __('m_bookings.bookings.statuses.' . $booking->status) }}</span>
+    </div>
+    
+    <div class="card-body py-2">
+      <div class="mb-2">
+        <i class="fas fa-user text-muted me-1"></i>
+        <span class="fw-semibold">{{ $booking->getUserDisplayName() }}</span>
+      </div>
+      
+      <div class="mb-2">
+        <i class="fas fa-map text-muted me-1"></i>
+        <span class="text-secondary">{{ $tourCellText }}</span>
+      </div>
+      
+      <div class="d-flex justify-content-between mb-2 text-sm text-secondary">
+        <span><i class="far fa-calendar me-1"></i> {{ optional($detail?->tour_date)->format('d/M/Y') ?? '—' }}</span>
+        <span><i class="far fa-clock me-1"></i> {{ $scheduleLabel }}</span>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center border-top pt-2 mt-2">
+        <span class="fw-bold text-success">{{ $currency }}{{ number_format((float)$booking->total, 2) }}</span>
+        
+        <div class="d-flex gap-1">
+            <a href="{{ route('admin.bookings.show', $booking) }}" class="btn btn-sm btn-info text-dark">
+                <i class="fas fa-eye"></i>
+            </a>
+            <a href="{{ route('admin.bookings.edit', $booking) }}" class="btn btn-sm btn-edit text-white">
+                <i class="fas fa-edit"></i>
+            </a>
+            
+            @if($booking->trashed())
+                <form action="{{ route('admin.bookings.restore', $booking->booking_id) }}" method="POST" class="d-inline">
+                    @csrf
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                </form>
+            @else
+                <button type="button" class="btn btn-sm btn-danger btn-delete" 
+                    data-form-id="delete-form-mobile-{{ $booking->booking_id }}"
+                    data-booking-ref="{{ $booking->booking_reference }}">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <form action="{{ route('admin.bookings.destroy', $booking->booking_id) }}"
+                  method="POST" class="d-none delete-form"
+                  id="delete-form-mobile-{{ $booking->booking_id }}">
+                  @csrf @method('DELETE')
+                </form>
+            @endif
+        </div>
+      </div>
+    </div>
+  </div>
+  @empty
+  <div class="text-center py-4 text-muted">
+    <i class="fas fa-inbox fa-2x mb-2"></i>
+    <p>{{ __('m_bookings.bookings.ui.no_bookings_found') }}</p>
+  </div>
+  @endforelse
+</div>
 
 {{-- SweetAlert2 CDN --}}
 @push('css')
@@ -404,7 +491,6 @@ return [$c->slug => ($label ?: $c->slug)];
         }
       });
     });
-  });
   });
   });
 
@@ -554,8 +640,7 @@ return [$c->slug => ($label ?: $c->slug)];
       }
     });
   });
-  });
-  });
+
 </script>
 @endpush
 
