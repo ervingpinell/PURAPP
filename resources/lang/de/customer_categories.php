@@ -23,6 +23,8 @@ return [
         'back'         => 'Zurück',
         'delete'       => 'Löschen',
         'edit'         => 'Bearbeiten',
+        'restore'      => 'Wiederherstellen',
+        'force_delete' => 'Endgültig löschen',
     ],
 
     'table' => [
@@ -34,8 +36,10 @@ return [
         'actions'  => 'Aktionen',
 
         // Neu im Index verwendet
-        'order'    => 'Reihenfolge',
-        'slug'     => 'Slug',
+        'order'      => 'Reihenfolge',
+        'slug'       => 'Slug',
+        'deleted_by' => 'Gelöscht von',
+        'date'       => 'Datum',
     ],
 
     'form' => [
@@ -111,8 +115,10 @@ return [
 
     'rules' => [
         'title'                 => 'Wichtige Regeln',
-        'no_overlap'            => 'Altersbereiche dürfen sich zwischen aktiven Kategorien nicht überschneiden.',
-        'no_upper_limit_hint'   => 'Lass „Alter bis“ leer, um „kein oberes Limit“ anzugeben.',
+        'no_overlap'            => 'Altersbereiche dürfen sich nicht überschneiden.',
+        'drag_to_order'         => 'Ziehen Sie die Zeilen, um sie neu anzuordnen.',
+        'manual_save'           => 'Speichern Sie Änderungen manuell mit dem blauen Knopf.',
+        'no_upper_limit_hint'   => 'Lassen Sie „Alter bis“ leer, um „keine Obergrenze“ anzugeben.',
         'slug_unique'           => 'Der Slug muss eindeutig sein.',
         'order_affects_display' => 'Die Reihenfolge bestimmt, wie sie im System angezeigt werden.',
     ],
@@ -142,6 +148,20 @@ return [
     ],
 
     'validation' => [
-        'age_to_gte_age_from' => '„Alter bis“ muss größer oder gleich „Alter von“ sein.',
+        'age_to_gte_age_from' => 'Alter bis muss größer oder gleich Alter von sein.',
+        'age_overlap'         => 'Der Altersbereich überschneidet sich mit einer anderen bestehenden Kategorie.',
+        'required_name'       => 'Der Name ist erforderlich.',
+    ],
+
+    'messages' => [
+        'saved'              => 'Erfolgreich gespeichert.',
+        'created'            => 'Erfolgreich erstellt.',
+        'updated'            => 'Erfolgreich aktualisiert.',
+        'deleted'            => 'Erfolgreich gelöscht.',
+        'error_save'         => 'Fehler beim Speichern.',
+        'error_create'       => 'Fehler beim Erstellen.',
+        'reorder_success'    => 'Reihenfolge aktualisiert.',
+        'translations_saved' => 'Übersetzungen gespeichert.',
+        'translations_error' => 'Fehler beim Speichern der Übersetzungen.',
     ],
 ];

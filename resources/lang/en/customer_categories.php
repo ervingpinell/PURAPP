@@ -27,6 +27,8 @@ return [
         'back'         => 'Back',
         'delete'       => 'Delete',
         'edit'         => 'Edit',
+        'restore'      => 'Restore',
+        'force_delete' => 'Permanently Delete',
     ],
 
     'table' => [
@@ -38,8 +40,10 @@ return [
         'actions'  => 'Actions',
 
         // New used in index
-        'order'    => 'Order',
-        'slug'     => 'Slug',
+        'order'      => 'Order',
+        'slug'       => 'Slug',
+        'deleted_by' => 'Deleted by',
+        'date'       => 'Date',
     ],
 
     'form' => [
@@ -115,6 +119,8 @@ return [
     'rules' => [
         'title'                 => 'Important Rules',
         'no_overlap'            => 'Age ranges cannot overlap between active categories.',
+        'drag_to_order'         => 'Drag rows to reorder.',
+        'manual_save'           => 'Save changes manually using the blue button.',
         'no_upper_limit_hint'   => 'Leave “Age to” empty to indicate “no upper limit”.',
         'slug_unique'           => 'The slug must be unique.',
         'order_affects_display' => 'The order determines how they are displayed in the system.',
@@ -146,5 +152,19 @@ return [
 
     'validation' => [
         'age_to_gte_age_from' => 'Age to must be greater than or equal to age from.',
+        'age_overlap'         => 'The age range overlaps with another existing category.',
+        'required_name'       => 'The name is required.',
+    ],
+
+    'messages' => [
+        'saved'              => 'Saved successfully.',
+        'created'            => 'Created successfully.',
+        'updated'            => 'Updated successfully.',
+        'deleted'            => 'Deleted successfully.',
+        'error_save'         => 'Error saving.',
+        'error_create'       => 'Error creating.',
+        'reorder_success'    => 'Order updated.',
+        'translations_saved' => 'Translations saved.',
+        'translations_error' => 'Error saving translations.',
     ],
 ];

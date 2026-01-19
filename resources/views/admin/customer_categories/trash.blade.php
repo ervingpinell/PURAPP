@@ -1,161 +1,151 @@
-{{-- resources/views/admin/customer_categories/trash.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('customer_categories.ui.trash_title') ?? 'Papelera de Categorías')
+@section('title', __('customer_categories.ui.trash_title'))
 
 @section('content_header')
-<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <h1 class="m-0">
-        <i class="fas fa-trash me-2"></i>{{ __('customer_categories.ui.trash_header') ?? 'Papelera de Categorías' }}
-    </h1>
-    <a href="{{ route('admin.customer_categories.index') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left me-1"></i> {{ __('customer_categories.buttons.back') ?? 'Volver' }}
-    </a>
-</div>
+    <h1>{{ __('customer_categories.ui.trash_header') }}</h1>
 @stop
 
 @section('content')
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    {{ session('success') }}
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    {{ session('error') }}
+</div>
+@endif
+
+{{-- Tabs --}}
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route('admin.customer_categories.index') }}">
+            {{ __('customer_categories.states.active') }}
+        </a>
+    </li>
+    @can('restore-customer-categories')
+    <li class="nav-item">
+        <a class="nav-link active" href="{{ route('admin.customer_categories.trash') }}">
+            {{ __('customer_categories.ui.trash_title') }}
+        </a>
+    </li>
+    @endcan
+</ul>
+
 <div class="card shadow-sm">
-    <div class="card-body">
+    <div class="card-header bg-danger text-white">
+        <h3 class="card-title">
+            <i class="fas fa-trash-alt"></i> {{ __('customer_categories.ui.trash_title') }}
+        </h3>
+    </div>
+    <div class="card-body p-0 table-responsive">
         @if($categories->isEmpty())
-        <div class="alert alert-info mb-0">
-            <i class="fas fa-info-circle me-2"></i>{{ __('customer_categories.ui.trash_empty') ?? 'No hay categorías eliminadas' }}
+        <div class="alert alert-light text-center m-0 p-5">
+            <i class="fas fa-trash-restore fa-3x mb-3 text-muted"></i>
+            <h5>{{ __('customer_categories.ui.trash_empty') }}</h5>
         </div>
         @else
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="bg-light">
-                    <tr>
-                        <th>Categoría</th>
-                        <th class="text-center">Eliminado por</th>
-                        <th>Fecha de eliminación</th>
-                        <th class="text-center">Auto-eliminación</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($categories as $category)
-                    @php
-                    $daysLeft = max(0, 30 - now()->diffInDays($category->deleted_at));
-                    $catName = $category->getTranslatedName() ?: 'Sin nombre';
-                    @endphp
-                    <tr>
-                        <td>
-                            <strong>{{ $catName }}</strong>
-                            @if($category->slug)
-                            <br><small class="text-muted">{{ $category->slug }}</small>
-                            @endif
-                        </td>
-                        <td class="text-center">
-                            @if($category->deletedBy)
-                            <i class="fas fa-user-circle fa-2x text-primary"
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="top"
-                                title="{{ $category->deletedBy->name }}"
-                                style="cursor: help;">
-                            </i>
-                            @else
-                            <span class="text-muted">—</span>
-                            @endif
-                        </td>
-                        <td>{{ $category->deleted_at->format('d/m/Y H:i') }}</td>
-                        <td class="text-center">
-                            <span class="badge {{ $daysLeft <= 7 ? 'bg-danger' : 'bg-warning' }}">
-                                {{ $daysLeft }} {{ $daysLeft === 1 ? 'día' : 'días' }}
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                                @can('restore-customer-categories')
-                                <form action="{{ route('admin.customer_categories.restore', $category->category_id) }}" method="POST" class="d-inline restore-form">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-success" title="Restaurar">
-                                        <i class="fas fa-undo"></i>
-                                    </button>
-                                </form>
-                                @endcan
+        <table class="table table-hover table-striped text-nowrap">
+            <thead>
+                <tr>
+                    <th>{{ __('customer_categories.table.name') }}</th>
+                    <th>{{ __('customer_categories.table.slug') }}</th>
+                    <th class="text-center">{{ __('customer_categories.table.deleted_by') }}</th>
+                    <th>{{ __('customer_categories.table.date') }}</th>
+                    <th class="text-center">{{ __('customer_categories.table.actions') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($categories as $category)
+                <tr>
+                    <td><strong>{{ $category->getTranslatedName() }}</strong></td>
+                    <td><code>{{ $category->slug }}</code></td>
+                    <td class="text-center">
+                        @if($category->deletedBy)
+                        <span class="badge badge-info">{{ $category->deletedBy->name }}</span>
+                        @else
+                        <span class="text-muted">-</span>
+                        @endif
+                    </td>
+                    <td>{{ $category->deleted_at->format('d/m/Y H:i') }}</td>
+                    <td class="text-center">
+                        <div class="btn-group">
+                            @can('restore-customer-categories')
+                            <form action="{{ route('admin.customer_categories.restore', $category->category_id) }}" method="POST" class="d-inline restore-form">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="btn btn-sm btn-success" title="{{ __('customer_categories.buttons.restore') }}">
+                                    <i class="fas fa-trash-restore"></i>
+                                </button>
+                            </form>
+                            @endcan
 
-                                @can('hard-delete-customer-categories')
-                                <form action="{{ route('admin.customer_categories.forceDelete', $category->category_id) }}" method="POST" class="d-inline force-delete-form">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger" title="Eliminar permanentemente">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
-                                @endcan
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                            @can('hard-delete-customer-categories')
+                            <form action="{{ route('admin.customer_categories.forceDelete', $category->category_id) }}" method="POST" class="d-inline force-delete-form">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger" title="{{ __('customer_categories.buttons.force_delete') }}">
+                                    <i class="fas fa-times-circle"></i>
+                                </button>
+                            </form>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
         @endif
     </div>
 </div>
 @stop
 
-@push('js')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
-
+@section('js')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar tooltips de Bootstrap
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-
         // Restore confirmation
-        document.querySelectorAll('.restore-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                Swal.fire({
-                    title: '¿Restaurar categoría?',
-                    text: 'La categoría volverá a estar disponible',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, restaurar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.submit();
-                    }
-                });
+        $('.restore-form').on('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '{{ __('customer_categories.buttons.restore') }}?',
+                text: "La categoría volverá a estar activa.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '{{ __('customer_categories.buttons.restore') }}',
+                cancelButtonText: '{{ __('customer_categories.buttons.cancel') }}'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
             });
         });
 
         // Force delete confirmation
-        document.querySelectorAll('.force-delete-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                Swal.fire({
-                    title: '¿Eliminar permanentemente?',
-                    text: 'Esta acción no se puede deshacer.',
-                    icon: 'error',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar',
-                    confirmButtonColor: '#d33'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.submit();
-                    }
-                });
+        $('.force-delete-form').on('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: '{{ __('customer_categories.buttons.force_delete') }}?',
+                text: "Esta acción NO se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '{{ __('customer_categories.buttons.delete') }}',
+                cancelButtonText: '{{ __('customer_categories.buttons.cancel') }}'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
             });
         });
-
-        // Flash messages
-        @if(session('success'))
-        Swal.fire({
-            icon: 'success',
-            title: '{{ session("success") }}',
-            timer: 3000,
-            showConfirmButton: false
-        });
-        @endif
     });
 </script>
-@endpush
+@stop

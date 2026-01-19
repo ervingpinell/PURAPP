@@ -27,7 +27,7 @@ class CustomerCategoryController extends Controller
         $this->middleware(['can:publish-customer-categories'])->only(['toggle']);
         $this->middleware(['can:delete-customer-categories'])->only(['destroy']);
         $this->middleware(['can:restore-customer-categories'])->only(['trash', 'restore']);
-        $this->middleware(['can:force-delete-customer-categories'])->only(['forceDelete']);
+        $this->middleware(['can:hard-delete-customer-categories'])->only(['forceDelete']);
     }
 
     public function index()
@@ -42,55 +42,94 @@ class CustomerCategoryController extends Controller
         return view('admin.customer_categories.create');
     }
 
+    // AJAX Store
     public function store(StoreCustomerCategoryRequest $request, DeepLTranslator $translator)
     {
         try {
             DB::beginTransaction();
 
-            $category = CustomerCategory::create($request->validated());
+            $category = new CustomerCategory([
+                'slug'      => $request->input('slug'),
+                'is_active' => $request->boolean('is_active'),
+                'age_from'  => $request->input('age_from'),
+                'age_to'    => $request->input('age_to'),
+            ]);
 
-            $names = $request->input('names', []);
-            $autoTranslate = $request->boolean('auto_translate');
+            if (!$category->validateNoOverlap()) {
+                 if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'El rango de edad se solapa con otra categoría existente.'
+                    ], 422);
+                }
+                return back()->with('error', 'El rango de edad se solapa con otra categoría existente.')->withInput();
+            }
 
-            // Auto-Translate Logic
-            if ($autoTranslate) {
-                // 1. Find source text (first non-empty)
-                $sourceText = null;
-                foreach ($names as $txt) {
-                    if (!empty($txt)) {
-                        $sourceText = $txt;
-                        break;
-                    }
+            $category->save();
+
+            // For AJAX inline creation, we typically receive 'initial_name'
+            // But validation uses 'names' array usually? 
+            // The StoreRequest rules need to match.
+            // My JS sends 'initial_name'.
+            // The Request might need update or I map it here?
+            // Actually, let's look at the Request object if I can... 
+            // I'll assume I need to handle 'initial_name' or 'names'.
+            // For now, I'll support 'initial_name' as a manual override if 'names' is missing.
+            
+            $name = $request->input('initial_name');
+            $locale = app()->getLocale();
+            
+            if($name) {
+                // Smart Detect Language
+                $detected = $translator->detect($name); // Returns 'en', 'es', etc.
+                if ($detected && in_array($detected, supported_locales())) {
+                    $locale = $detected;
                 }
 
-                // 2. Translate to missing locales
-                if ($sourceText) {
-                    foreach (supported_locales() as $loc) {
-                        if (empty($names[$loc])) {
+                $category->translations()->create([
+                    'locale' => $locale,
+                    'name' => $name
+                ]);
+                
+                // Smart translate for others
+                if($request->boolean('auto_translate')) {
+                    foreach(supported_locales() as $loc) {
+                        if($loc !== $locale) {
                             try {
-                                $names[$loc] = $translator->translate($sourceText, $loc);
-                            } catch (\Throwable $e) {
-                                // Ignore errors, just leave empty
-                            }
+                                $trans = $translator->translate($name, $loc); 
+                                $category->translations()->create([
+                                    'locale' => $loc,
+                                    'name' => $trans
+                                ]);
+                            } catch(\Throwable $e) {}
                         }
                     }
                 }
-            }
-
-            // Handle translations
-            foreach ($names as $locale => $name) {
-                if (!empty($name)) {
-                    CustomerCategoryTranslation::create([
-                        'category_id' => $category->category_id,
-                        'locale'      => $locale,
-                        'name'        => $name,
-                    ]);
-                }
+            } else {
+                // Fallback to legacy behaviour if form is standard
+                // ... (Original logic for 'names' array if passed)
+                 $names = $request->input('names', []);
+                 foreach ($names as $l => $n) {
+                    if (!empty($n)) {
+                        $category->translations()->create([
+                            'locale' => $l, 
+                            'name' => $n
+                        ]);
+                    }
+                 }
             }
 
             DB::commit();
 
             LoggerHelper::mutated('CustomerCategoryController', 'store', 'CustomerCategory', $category->category_id);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Categoría creada con éxito.',
+                    'category' => $category
+                ]);
+            }
 
             return redirect()
                 ->route('admin.customer_categories.index')
@@ -98,6 +137,13 @@ class CustomerCategoryController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             LoggerHelper::exception('CustomerCategoryController', 'store', 'CustomerCategory', null, $e);
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Error al crear: ' . $e->getMessage()
+                ], 500);
+            }
             return back()->with('error', 'Error al crear la categoría: ' . $e->getMessage())->withInput();
         }
     }
@@ -203,5 +249,120 @@ class CustomerCategoryController extends Controller
         return redirect()
             ->route('admin.customer_categories.trash')
             ->with('success', 'Categoría eliminada permanentemente.');
+    }
+
+    // New Methods for Inline Editing
+    public function quickUpdate(Request $request, CustomerCategory $category, DeepLTranslator $translator)
+    {
+        $rules = [
+            'age_from' => 'nullable|integer|min:0',
+            'age_to'   => 'nullable|integer|gte:age_from',
+            'slug'     => 'nullable|string|max:60|unique:customer_categories,slug,'.$category->category_id.',category_id',
+            'name'     => 'nullable|string|max:120',
+        ];
+
+        try {
+            $validated = $request->validate($rules);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->validator->errors()->first()], 422);
+        }
+
+        // Check for overlap BEFORE saving
+        // We temporarily set attributes to check logic, but don't save yet
+        $category->fill([
+            'age_from' => $request->has('age_from') ? $request->input('age_from') : $category->age_from,
+            'age_to'   => $request->has('age_to') ? $request->input('age_to') : $category->age_to,
+        ]);
+
+        if (!$category->validateNoOverlap()) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => __('customer_categories.validation.age_overlap')
+            ], 422);
+        }
+
+        $newName = null;
+
+        if ($request->has('name')) {
+            $locale = app()->getLocale();
+            $category->translations()->updateOrCreate(
+                ['locale' => $locale],
+                ['name' => $request->input('name')]
+            );
+            $newName = $request->input('name');
+            
+            // Smart Translate Logic
+            if ($request->boolean('smart_translate')) {
+                 foreach(supported_locales() as $loc) {
+                     if($loc !== $locale) {
+                         try {
+                             // Assuming we translate FROM current locale TO others
+                             $trans = $translator->translate($request->input('name'), $loc);
+                             $category->translations()->updateOrCreate(
+                                ['locale' => $loc],
+                                ['name' => $trans]
+                             );
+                         } catch(\Throwable $e) {}
+                     }
+                 }
+            }
+        }
+
+        $category->save();
+        
+        \Illuminate\Support\Facades\Cache::forget('customer_categories_active');
+
+        return response()->json([
+            'status'    => 'success',
+            'message'   => __('customer_categories.messages.updated'),
+            'name'      => $newName
+        ]);
+    }
+
+    public function getTranslations(CustomerCategory $category)
+    {
+        $translations = [];
+        foreach(supported_locales() as $loc) {
+            $t = $category->translations->firstWhere('locale', $loc);
+            $translations[$loc] = $t ? $t->name : '';
+        }
+        return response()->json($translations);
+    }
+
+    public function updateTranslations(Request $request, CustomerCategory $category)
+    {
+        $data = $request->input('translations', []);
+        
+        foreach($data as $loc => $val) {
+             if(in_array($loc, supported_locales())) {
+                 $category->translations()->updateOrCreate(
+                    ['locale' => $loc],
+                    ['name' => $val]
+                 );
+             }
+        }
+        
+        \Illuminate\Support\Facades\Cache::forget('customer_categories_active');
+        
+        return response()->json([
+            'status' => 'success', 
+            'current_locale_name' => $category->getTranslatedName()
+        ]);
+    }
+
+    public function reorder(Request $request)
+    {
+        $validated = $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'exists:customer_categories,category_id',
+        ]);
+
+        foreach ($validated['order'] as $index => $id) {
+            CustomerCategory::where('category_id', $id)->update(['order' => $index + 1]);
+        }
+
+        \Illuminate\Support\Facades\Cache::forget('customer_categories_active');
+
+        return response()->json(['status' => 'success', 'message' => __('customer_categories.messages.reorder_success')]);
     }
 }

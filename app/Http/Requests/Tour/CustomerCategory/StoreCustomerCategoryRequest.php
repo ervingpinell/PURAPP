@@ -50,5 +50,15 @@ class StoreCustomerCategoryRequest extends FormRequest
             'is_active' => (bool) $this->boolean('is_active'),
             'order'     => $this->input('order', 0),
         ]);
+
+        // Compatibility for inline creation dealing with single input
+        if (!$this->has('names') && $this->input('initial_name')) {
+            $fallback = config('app.fallback_locale', 'es');
+            $this->merge([
+                'names' => [
+                    $fallback => $this->input('initial_name')
+                ]
+            ]);
+        }
     }
 }

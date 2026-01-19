@@ -23,6 +23,8 @@ return [
         'back'         => 'Retour',
         'delete'       => 'Supprimer',
         'edit'         => 'Modifier',
+        'restore'      => 'Restaurer',
+        'force_delete' => 'Supprimer définitivement',
     ],
 
     'table' => [
@@ -34,8 +36,10 @@ return [
         'actions'  => 'Actions',
 
         // Nouvelles utilisées dans l’index
-        'order'    => 'Ordre',
-        'slug'     => 'Slug',
+        'order'      => 'Ordre',
+        'slug'       => 'Slug',
+        'deleted_by' => 'Supprimé par',
+        'date'       => 'Date',
     ],
 
     'form' => [
@@ -111,8 +115,10 @@ return [
 
     'rules' => [
         'title'                 => 'Règles importantes',
-        'no_overlap'            => 'Les tranches d’âge ne peuvent pas se chevaucher entre les catégories actives.',
-        'no_upper_limit_hint'   => 'Laissez « Âge jusqu’à » vide pour indiquer « sans limite supérieure ».',
+        'no_overlap'            => 'Les tranches d\'âge ne peuvent pas se chevaucher.',
+        'drag_to_order'         => 'Faites glisser les lignes pour réorganiser.',
+        'manual_save'           => 'Enregistrez les modifications manuellement avec le bouton bleu.',
+        'no_upper_limit_hint'   => 'Laissez "Âge jusqu\'à" vide pour indiquer "sans limite supérieure".',
         'slug_unique'           => 'Le slug doit être unique.',
         'order_affects_display' => 'L’ordre détermine la façon dont elles sont affichées dans le système.',
     ],
@@ -142,6 +148,20 @@ return [
     ],
 
     'validation' => [
-        'age_to_gte_age_from' => 'L’« âge jusqu’à » doit être supérieur ou égal à « l’âge à partir de ».',
+        'age_to_gte_age_from' => 'L\'âge de fin doit être supérieur ou égal à l\'âge de début.',
+        'age_overlap'         => 'La tranche d\'âge chevauche une autre catégorie existante.',
+        'required_name'       => 'Le nom est obligatoire.',
+    ],
+
+    'messages' => [
+        'saved'              => 'Enregistré avec succès.',
+        'created'            => 'Créé avec succès.',
+        'updated'            => 'Mis à jour avec succès.',
+        'deleted'            => 'Supprimé avec succès.',
+        'error_save'         => 'Erreur lors de l\'enregistrement.',
+        'error_create'       => 'Erreur lors de la création.',
+        'reorder_success'    => 'Ordre mis à jour.',
+        'translations_saved' => 'Traductions enregistrées.',
+        'translations_error' => 'Erreur lors de l\'enregistrement des traductions.',
     ],
 ];

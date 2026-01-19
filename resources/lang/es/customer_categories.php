@@ -27,6 +27,8 @@ return [
         'back'         => 'Volver',
         'delete'       => 'Eliminar',
         'edit'         => 'Editar',
+        'restore'      => 'Restaurar',
+        'force_delete' => 'Eliminar permanentemente',
     ],
 
     'table' => [
@@ -38,8 +40,10 @@ return [
         'actions'  => 'Acciones',
 
         // Nuevas usadas en el index
-        'order'    => 'Orden',
-        'slug'     => 'Slug',
+        'order'      => 'Orden',
+        'slug'       => 'Slug',
+        'deleted_by' => 'Eliminado por',
+        'date'       => 'Fecha',
     ],
 
     'form' => [
@@ -114,7 +118,9 @@ return [
 
     'rules' => [
         'title'                 => 'Reglas Importantes',
-        'no_overlap'            => 'Los rangos de edad no pueden solaparse entre categorías activas.',
+        'no_overlap'            => 'Los rangos no deben solaparse.',
+        'drag_to_order'         => 'Arrastre las filas para ordenar.',
+        'manual_save'           => 'Guarde los cambios manualmente con el botón azul.',
         'no_upper_limit_hint'   => 'Deja “Edad hasta” vacío para indicar “sin límite superior”.',
         'slug_unique'           => 'El slug debe ser único.',
         'order_affects_display' => 'El orden determina cómo se muestran en el sistema.',
@@ -146,5 +152,19 @@ return [
 
     'validation' => [
         'age_to_gte_age_from' => 'La edad hasta debe ser mayor o igual que la edad desde.',
+        'age_overlap'         => 'El rango de edad se solapa con otra categoría existente.',
+        'required_name'       => 'El nombre es obligatorio.',
+    ],
+
+    'messages' => [
+        'saved'              => 'Guardado correctamente.',
+        'created'            => 'Creado correctamente.',
+        'updated'            => 'Actualizado correctamente.',
+        'deleted'            => 'Eliminado correctamente.',
+        'error_save'         => 'Error al guardar.',
+        'error_create'       => 'Error al crear.',
+        'reorder_success'    => 'Orden actualizado.',
+        'translations_saved' => 'Traducciones guardadas.',
+        'translations_error' => 'Error al guardar traducciones.',
     ],
 ];

@@ -23,6 +23,8 @@ return [
         'back'         => 'Voltar',
         'delete'       => 'Excluir',
         'edit'         => 'Editar',
+        'restore'      => 'Restaurar',
+        'force_delete' => 'Excluir permanentemente',
     ],
 
     'table' => [
@@ -34,8 +36,10 @@ return [
         'actions'  => 'Ações',
 
         // Novos usados no index
-        'order'    => 'Ordem',
-        'slug'     => 'Slug',
+        'order'      => 'Ordem',
+        'slug'       => 'Slug',
+        'deleted_by' => 'Excluído por',
+        'date'       => 'Data',
     ],
 
     'form' => [
@@ -111,7 +115,9 @@ return [
 
     'rules' => [
         'title'                 => 'Regras importantes',
-        'no_overlap'            => 'As faixas de idade não podem se sobrepor entre categorias ativas.',
+        'no_overlap'            => 'As faixas etárias não podem se sobrepor.',
+        'drag_to_order'         => 'Arraste as linhas para reordenar.',
+        'manual_save'           => 'Salve as alterações manualmente com o botão azul.',
         'no_upper_limit_hint'   => 'Deixe “Idade até” vazio para indicar “sem limite superior”.',
         'slug_unique'           => 'O slug deve ser único.',
         'order_affects_display' => 'A ordem define como elas são exibidas no sistema.',
@@ -142,6 +148,20 @@ return [
     ],
 
     'validation' => [
-        'age_to_gte_age_from' => 'A idade máxima deve ser maior ou igual à idade mínima.',
+        'age_to_gte_age_from' => 'A idade até deve ser maior ou igual à idade de.',
+        'age_overlap'         => 'A faixa etária se sobrepõe a outra categoria existente.',
+        'required_name'       => 'O nome é obrigatório.',
+    ],
+
+    'messages' => [
+        'saved'              => 'Salvo com sucesso.',
+        'created'            => 'Criado com sucesso.',
+        'updated'            => 'Atualizado com sucesso.',
+        'deleted'            => 'Excluído com sucesso.',
+        'error_save'         => 'Erro ao salvar.',
+        'error_create'       => 'Erro ao criar.',
+        'reorder_success'    => 'Ordem atualizada.',
+        'translations_saved' => 'Traduções salvas.',
+        'translations_error' => 'Erro ao salvar traduções.',
     ],
 ];
