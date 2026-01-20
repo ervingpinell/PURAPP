@@ -55,34 +55,7 @@
 </ul>
 
 {{-- Barra superior: filtros + acceso al carrito (solo en vista activos) --}}
-@if(!request()->routeIs('admin.tours.trash'))
-<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-  <div class="btn-group" role="group" aria-label="{{ __('m_tours.tour.ui.filter_status') }}">
-    <a href="{{ route('admin.tours.index', ['status' => 'active']) }}"
-      class="btn btn-outline-primary {{ ($status ?? '') === 'active' ? 'active' : '' }}">
-      {{ __('m_tours.tour.ui.actives') }}
-    </a>
-    <a href="{{ route('admin.tours.index', ['status' => 'inactive']) }}"
-      class="btn btn-outline-primary {{ ($status ?? '') === 'inactive' ? 'active' : '' }}">
-      {{ __('m_tours.tour.ui.inactives') }}
-    </a>
-    @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
-    <a href="{{ route('admin.tours.index', ['status' => 'archived']) }}"
-      class="btn btn-outline-danger {{ ($status ?? '') === 'archived' ? 'active' : '' }}">
-      {{ __('m_tours.tour.ui.deleted') }}
-    </a>
-    @endif
-    <a href="{{ route('admin.tours.index', ['status' => 'all']) }}"
-      class="btn btn-outline-secondary {{ ($status ?? '') === 'all' ? 'active' : '' }}">
-      {{ __('m_tours.tour.ui.all') }}
-    </a>
-  </div>
 
-  <a href="{{ route('admin.carts.index') }}" class="btn btn-primary">
-    <i class="fas fa-shopping-cart"></i> {{ __('m_tours.tour.ui.view_cart') }}
-  </a>
-</div>
-@endif
 
 {{-- Tabla de tours --}}
 <div class="card">

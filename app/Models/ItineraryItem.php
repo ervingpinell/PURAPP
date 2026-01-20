@@ -12,7 +12,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  */
 class ItineraryItem extends Model
 {
-    use HasFactory;
+    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
+
+    // public $translatedAttributes = ['title', 'description']; // Removed
+
 
     protected $table = 'itinerary_items';
     protected $primaryKey = 'item_id';
@@ -68,93 +71,39 @@ class ItineraryItem extends Model
         return $this->hasMany(ItineraryItemTranslation::class, 'item_id', 'item_id');
     }
 
-    /**
-     * Obtiene la traducción para un locale específico con fallback robusto.
-     *
-     * Jerarquía de fallback:
-     * 1. Locale solicitado (ej: 'en-US')
-     * 2. Idioma base del locale (ej: 'en')
-     * 3. Locale de fallback de la app (config)
-     * 4. Idioma base del fallback
-     * 5. Español ('es') como último recurso
-     *
-     * @param string|null $locale
-     * @return ItineraryItemTranslation|null
-     */
-    public function translate(?string $locale = null): ?ItineraryItemTranslation
+    public function translate(?string $locale = null)
     {
         $locale = $locale ?? app()->getLocale();
-        $locale = str_replace('_', '-', $locale);
 
-        // Lista de candidatos en orden de prioridad
-        $candidates = [$locale];
-
-        // Si el locale tiene región (ej: en-US), agregar el idioma base (en)
-        if (str_contains($locale, '-')) {
-            $base = explode('-', $locale)[0];
-            if (!in_array($base, $candidates, true)) {
-                $candidates[] = $base;
-            }
+        if ($this->relationLoaded('translations')) {
+            return $this->translations->firstWhere('locale', $locale)
+                ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
         }
 
-        // Agregar fallback de la aplicación
-        $appFallback = str_replace('_', '-', (string) config('app.fallback_locale', 'en'));
-        if (!in_array($appFallback, $candidates, true)) {
-            $candidates[] = $appFallback;
-        }
-
-        // Si el fallback tiene región, agregar su idioma base
-        if (str_contains($appFallback, '-')) {
-            $base = explode('-', $appFallback)[0];
-            if (!in_array($base, $candidates, true)) {
-                $candidates[] = $base;
-            }
-        }
-
-        // Español como último recurso
-        if (!in_array('es', $candidates, true)) {
-            $candidates[] = 'es';
-        }
-
-        // Obtener todas las traducciones (usar relación cargada si existe)
-        $translations = $this->relationLoaded('translations')
-            ? $this->getRelation('translations')
-            : $this->translations()->get();
-
-        if ($translations->isEmpty()) {
-            return null;
-        }
-
-        // Crear mapas para búsqueda eficiente
-        $byExact = [];
-        $byLang = [];
-
-        foreach ($translations as $tr) {
-            $loc = str_replace('_', '-', (string) $tr->locale);
-            $byExact[$loc] = $tr;
-
-            $lang = explode('-', $loc)[0];
-            if (!isset($byLang[$lang])) {
-                $byLang[$lang] = $tr;
-            }
-        }
-
-        // Buscar en orden de prioridad
-        foreach ($candidates as $cand) {
-            // Primero intentar match exacto
-            if (isset($byExact[$cand])) {
-                return $byExact[$cand];
-            }
-
-            // Luego intentar por idioma base
-            $lang = explode('-', $cand)[0];
-            if (isset($byLang[$lang])) {
-                return $byLang[$lang];
-            }
-        }
-
-        return null;
+        return $this->translations()
+            ->where('locale', $locale)
+            ->first()
+            ?? $this->translations()
+            ->where('locale', config('app.fallback_locale'))
+            ->first();
     }
+
+    public function getTitleTranslatedAttribute(): ?string
+    {
+        return optional($this->translate())?->title;
+    }
+
+    public function getDescriptionTranslatedAttribute(): ?string
+    {
+        return optional($this->translate())?->description;
+    }
+
+    public function deletedBy()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'deleted_by', 'user_id');
+    }
+
+
 
     /**
      * Obtiene una traducción específica por locale.
@@ -194,21 +143,7 @@ class ItineraryItem extends Model
      * ACCESSORS TRADUCIDOS (Mantener para compatibilidad)
      * ===================== */
 
-    /**
-     * Retorna el título traducido (usa el accessor mágico).
-     */
-    public function getTitleTranslatedAttribute(): ?string
-    {
-        return $this->title;
-    }
 
-    /**
-     * Retorna la descripción traducida (usa el accessor mágico).
-     */
-    public function getDescriptionTranslatedAttribute(): ?string
-    {
-        return $this->description;
-    }
 
     /**
      * Scope para cargar traducciones de un locale específico.

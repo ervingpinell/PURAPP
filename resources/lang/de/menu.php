@@ -41,6 +41,7 @@ return [
         'schedules'       => 'Zeitpläne',
         'languages'       => 'Sprachen',
         'itineraries'     => 'Reiserouten',
+        'itinerary_items' => 'Reiseplan-Elemente',
         'all_tours'       => 'Alle Touren',
         'order_tours'     => 'Touren sortieren',
 

@@ -591,16 +591,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
           <td class="actions-cell">
             <div class="d-flex flex-wrap">
-              @can('create-bookings')
-              <button type="button"
-                class="btn btn-primary btn-sm"
-                data-toggle="modal"
-                data-target="#modalCart{{ $tour->tour_id }}"
-                title="{{ __('m_tours.tour.ui.add_to_cart') }}"
-                aria-label="{{ __('m_tours.tour.ui.add_to_cart') }}">
-                <i class="fas fa-cart-plus"></i>
-              </button>
-              @endcan
+
 
               @can('edit-tours')
               <a href="{{ route('admin.tours.edit', $tour) }}"
@@ -911,15 +902,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
         {{-- Acciones --}}
         <div class="tour-mobile-actions border-top pt-2 pb-2">
-          @can('create-bookings')
-          <button type="button"
-            class="btn btn-primary btn-sm"
-            data-toggle="modal"
-            data-target="#modalCart{{ $tour->tour_id }}">
-            <i class="fas fa-cart-plus"></i>
-            {{ __('m_tours.tour.ui.add_to_cart') }}
-          </button>
-          @endcan
+
 
           @can('edit-tours')
           <a href="{{ route('admin.tours.edit', $tour) }}"

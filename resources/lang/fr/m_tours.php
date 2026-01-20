@@ -27,6 +27,9 @@ return [
         'hours' => 'heures',
         'success' => 'Succès',
         'error' => 'Erreur',
+        'search' => 'Rechercher',
+        'clear_search' => 'Effacer la recherche',
+        'delete' => 'Supprimer',
         'cancel' => 'Annuler',
         'confirm_delete' => 'Oui, supprimer',
         'unspecified' => 'Non précisé',
@@ -34,6 +37,7 @@ return [
         'required_fields_title' => 'Champs obligatoires',
         'required_fields_text' => 'Veuillez compléter les champs obligatoires : Nom et Capacité maximale.',
         'active' => 'Actif',
+        'status' => 'Statut',
         'inactive' => 'Inactif',
         'notice' => 'Avis',
         'na'    => 'Non configuré',
@@ -54,6 +58,12 @@ return [
         'actions' => 'Actions',
         'updated_at' => 'Dernière mise à jour',
         'not_set' => 'Non spécifié',
+        'confirm_force_delete' => 'Supprimer définitivement cet itinéraire ?',
+        'confirm_restore' => 'Restaurer cet itinéraire ?',
+        'force_delete' => 'Supprimer définitivement',
+        'restore' => 'Restaurer',
+        'deleted_at' => 'Supprimé le',
+        'deleted_by' => 'Supprimé par',
         'error_deleting' => 'Une erreur est survenue lors de la suppression. Veuillez réessayer.',
         'error_saving' => 'Une erreur est survenue lors de l’enregistrement. Veuillez réessayer.',
         'crud_go_to_index' => 'Gérer :element',
@@ -318,6 +328,10 @@ return [
             'assignment_toggle'    => 'Impossible de changer le statut de l’affectation.',
             'not_assigned_to_tour' => 'L’horaire n’est pas assigné à ce tour.',
             'delete'               => 'Un problème est survenu lors de la suppression de l’horaire.',
+            'capacity_override_help' => 'Seulement si vous avez besoin d\'une capacité différente pour cet horaire',
+            'capacity_override_placeholder' => 'Laisser vide pour utiliser la capacité du tour',
+            'capacity_definition_info' => 'La capacité est définie lors de l\'attribution de cet horaire à un tour spécifique',
+            'tour_base_capacity' => 'Capacité de base du tour :',
         ],
 
         'placeholders' => [
@@ -369,11 +383,14 @@ return [
             'delete_confirm_title' => 'Supprimer définitivement ?',
             'delete_confirm_html'  => '<b>:label</b> sera supprimé et cette action est irréversible.',
             'yes_delete'           => 'Oui, supprimer',
+            'yes_delete'           => 'Oui, supprimer',
+            'trash_empty'          => "Aucun élément d'itinéraire supprimé trouvé",
             'item_this'            => 'cet élément',
 
             'processing' => 'Traitement en cours...',
             'applying'   => 'Application...',
             'deleting'   => 'Suppression...',
+            'trash_title' => 'Corbeille d’éléments',
         ],
 
         'success' => [
@@ -382,6 +399,8 @@ return [
             'activated'   => 'Élément activé avec succès.',
             'deactivated' => 'Élément désactivé avec succès.',
             'deleted'     => 'Élément supprimé définitivement.',
+            'restored'    => 'Élément restauré avec succès.',
+            'force_deleted' => 'Élément supprimé définitivement.',
         ],
 
         'error' => [
@@ -389,6 +408,8 @@ return [
             'update' => 'Impossible de mettre à jour l’élément.',
             'toggle' => 'Impossible de changer le statut de l’élément.',
             'delete' => 'Impossible de supprimer l’élément.',
+            'restore'      => 'Impossible de restaurer l’élément.',
+            'force_delete' => 'Impossible de supprimer définitivement l’élément.',
         ],
 
         'validation' => [
@@ -433,6 +454,7 @@ return [
                 'name' => 'Nom',
             ],
             'new_itinerary' => 'Nouvel itinéraire',
+            'description_label' => 'Description',
             'select_or_create_hint' => 'Sélectionnez un itinéraire existant ou créez-en un nouveau pour ce tour.',
             'save_changes'          => 'Enregistrez l’itinéraire pour appliquer les modifications au tour.',
             'select_existing'       => 'Sélectionner un itinéraire existant',
@@ -441,6 +463,7 @@ return [
             'min_one_item'          => 'Il doit y avoir au moins un élément dans l’itinéraire.',
             'cannot_delete_item'    => 'Impossible de supprimer',
             'item_added'            => 'Élément ajouté',
+            'trash_empty'           => 'Aucun itinéraire supprimé trouvé',
             'item_added_success'    => 'L’élément a été ajouté à l’itinéraire avec succès.',
             'error_creating_item'   => 'Erreur de validation lors de la création de l’élément.',
             'translations_updated' => 'Traduction mise à jour',
@@ -503,6 +526,8 @@ return [
             'deactivated'    => 'Itinéraire désactivé avec succès.',
             'deleted'        => 'Itinéraire supprimé définitivement.',
             'items_assigned' => 'Éléments assignés avec succès.',
+            'restored'       => 'Itinéraire restauré avec succès.',
+            'force_deleted'  => 'Itinéraire supprimé définitivement.',
         ],
 
         'error' => [
@@ -556,6 +581,11 @@ return [
             'inactive' => 'Inactif',
         ],
 
+        'alerts' => [
+            'delete_title' => 'Supprimer la langue ?',
+            'delete_text'  => 'La langue <b>:label</b> sera supprimée définitivement.',
+        ],
+
         'ui' => [
             'page_title'   => 'Langues des tours',
             'page_heading' => 'Gestion des langues',
@@ -590,6 +620,7 @@ return [
             'toggle_confirm_off_title' => 'Désactiver la langue ?',
             'toggle_confirm_on_html'   => 'La langue <b>:label</b> sera <b>active</b>.',
             'toggle_confirm_off_html'  => 'La langue <b>:label</b> sera <b>inactive</b>.',
+            'delete_confirm_html'      => 'La langue <b>:label</b> sera supprimée définitivement.',
             'edit_confirm_title'       => 'Enregistrer les changements ?',
             'edit_confirm_button'      => 'Oui, enregistrer',
 

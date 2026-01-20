@@ -470,7 +470,14 @@ return [
                     'text'  => 'menu.itineraries',
                     'route' => 'admin.tours.itinerary.index',
                     'icon'  => 'fas fa-route',
-                    'can'   => 'view-tours', // Visibility via view, access protected by route
+                    'can'   => 'view-tours',
+                    'trans' => true,
+                ],
+                [
+                    'text'  => 'menu.itinerary_items',
+                    'route' => 'admin.tours.itinerary_items.index',
+                    'icon'  => 'fas fa-list-ul',
+                    'can'   => 'view-tours',
                     'trans' => true,
                 ],
                 [
@@ -592,28 +599,28 @@ return [
             ],
         ],
 
-        // ✅ CARRITOS
-        [
-            'text'    => 'menu.carts',
-            'icon'    => 'fas fa-shopping-cart',
-            'trans'   => true,
-            'submenu' => [
-                [
-                    'text'  => 'menu.my_cart',
-                    'route' => 'admin.carts.index',
-                    'icon'  => 'fas fa-shopping-cart',
-                    'can'   => 'view-carts',
-                    'trans' => true,
-                ],
-                [
-                    'text'  => 'menu.active_carts',
-                    'route' => 'admin.carts.all',
-                    'icon'  => 'fas fa-list',
-                    'can'   => 'view-carts',
-                    'trans' => true,
-                ],
-            ],
-        ],
+        // // ✅ CARRITOS
+        // [
+        //     'text'    => 'menu.carts',
+        //     'icon'    => 'fas fa-shopping-cart',
+        //     'trans'   => true,
+        //     'submenu' => [
+        //         [
+        //             'text'  => 'menu.my_cart',
+        //             'route' => 'admin.carts.index',
+        //             'icon'  => 'fas fa-shopping-cart',
+        //             'can'   => 'view-carts',
+        //             'trans' => true,
+        //         ],
+        //         [
+        //             'text'  => 'menu.active_carts',
+        //             'route' => 'admin.carts.all',
+        //             'icon'  => 'fas fa-list',
+        //             'can'   => 'view-carts',
+        //             'trans' => true,
+        //         ],
+        //     ],
+        // ],
         // ✅ USUARIOS
         [
             'text'    => 'menu.users',

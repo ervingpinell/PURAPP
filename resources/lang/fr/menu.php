@@ -42,6 +42,7 @@ return [
         'schedules'       => 'Horaires',
         'languages'       => 'Langues',
         'itineraries'     => 'Itinéraires',
+        'itinerary_items' => 'Éléments d\'itinéraire',
         'all_tours'       => 'Tous les Circuits',
         'order_tours'     => 'Trier les Circuits',
 

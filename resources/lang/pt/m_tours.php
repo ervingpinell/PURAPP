@@ -28,6 +28,9 @@ return [
         'hours' => 'horas',
         'success' => 'Sucesso',
         'error' => 'Erro',
+        'search' => 'Procurar',
+        'clear_search' => 'Limpar pesquisa',
+        'delete' => 'Excluir',
         'cancel' => 'Cancelar',
         'confirm_delete' => 'Sim, excluir',
         'unspecified' => 'Não especificado',
@@ -35,6 +38,7 @@ return [
         'required_fields_title' => 'Campos obrigatórios',
         'required_fields_text' => 'Por favor, preencha os campos obrigatórios: Nome e Capacidade Máxima',
         'active' => 'Ativo',
+        'status' => 'Status',
         'inactive' => 'Inativo',
         'notice' => 'Aviso',
         'na'    => 'Não configurado',
@@ -55,6 +59,12 @@ return [
         'actions' => 'Ações',
         'updated_at' => 'Última atualização',
         'not_set' => 'Não especificado',
+        'confirm_force_delete' => 'Excluir permanentemente este itinerário?',
+        'confirm_restore' => 'Restaurar este itinerário?',
+        'force_delete' => 'Excluir permanentemente',
+        'restore' => 'Restaurar',
+        'deleted_at' => 'Excluído em',
+        'deleted_by' => 'Excluído por',
         'error_deleting' => 'Ocorreu um erro ao excluir. Tente novamente.',
         'error_saving' => 'Ocorreu um erro ao salvar. Tente novamente.',
         'crud_go_to_index' => 'Gerenciar :element',
@@ -319,6 +329,10 @@ return [
             'assignment_toggle'    => 'Não foi possível alterar o status da vinculação.',
             'not_assigned_to_tour' => 'O horário não está vinculado a este tour.',
             'delete'               => 'Houve um problema ao excluir o horário.',
+            'capacity_override_help' => 'Apenas se precisar de uma capacidade diferente para este horário',
+            'capacity_override_placeholder' => 'Deixe em branco para usar a capacidade do tour',
+            'capacity_definition_info' => 'A capacidade é definida ao atribuir este horário a um tour específico',
+            'tour_base_capacity' => 'Capacidade base do tour:',
         ],
 
         'placeholders' => [
@@ -371,11 +385,14 @@ return [
             'delete_confirm_title' => 'Excluir permanentemente?',
             'delete_confirm_html'  => 'O item <b>:label</b> será excluído e não poderá ser desfeito.',
             'yes_delete'           => 'Sim, excluir',
+            'yes_delete'           => 'Sim, excluir',
+            'trash_empty'          => 'Nenhum item de itinerário excluído encontrado',
             'item_this'            => 'este item',
 
             'processing' => 'Processando...',
             'applying'   => 'Aplicando...',
             'deleting'   => 'Excluindo...',
+            'trash_title' => 'Lixeira de Itens',
         ],
 
         'success' => [
@@ -384,6 +401,8 @@ return [
             'activated'   => 'Item ativado com sucesso.',
             'deactivated' => 'Item desativado com sucesso.',
             'deleted'     => 'Item excluído permanentemente.',
+            'restored'    => 'Item restaurado com sucesso.',
+            'force_deleted' => 'Item excluído permanentemente.',
         ],
 
         'error' => [
@@ -391,6 +410,8 @@ return [
             'update' => 'Não foi possível atualizar o item.',
             'toggle' => 'Não foi possível alterar o status do item.',
             'delete' => 'Não foi possível excluir o item.',
+            'restore'      => 'Não foi possível restaurar o item.',
+            'force_delete' => 'Não foi possível excluir o item permanentemente.',
         ],
 
         'validation' => [
@@ -435,6 +456,7 @@ return [
                 'name' => 'Nome',
             ],
             'new_itinerary' => 'Novo Itinerário',
+            'description_label' => 'Descrição',
             'select_or_create_hint' => 'Selecione um itinerário existente ou crie um novo para este tour.',
             'save_changes'          => 'Salve o itinerário para aplicar as alterações ao tour.',
             'select_existing'       => 'Selecionar itinerário existente',
@@ -443,6 +465,7 @@ return [
             'min_one_item'          => 'Deve haver pelo menos um item no itinerário.',
             'cannot_delete_item'    => 'Não é possível excluir',
             'item_added'            => 'Item adicionado',
+            'trash_empty'           => 'Nenhum itinerário excluído encontrado',
             'item_added_success'    => 'O item foi adicionado ao itinerário com sucesso.',
             'error_creating_item'   => 'Erro de validação ao criar o item.',
             'translations_updated' => 'Tradução atualizada',
@@ -505,6 +528,8 @@ return [
             'deactivated'    => 'Itinerário desativado com sucesso.',
             'deleted'        => 'Itinerário excluído permanentemente.',
             'items_assigned' => 'Itens atribuídos com sucesso.',
+            'restored'       => 'Itinerário restaurado com sucesso.',
+            'force_deleted'  => 'Itinerário excluído permanentemente.',
         ],
 
         'error' => [
@@ -558,6 +583,11 @@ return [
             'inactive' => 'Inativo',
         ],
 
+        'alerts' => [
+            'delete_title' => 'Excluir idioma?',
+            'delete_text'  => 'O idioma <b>:label</b> será excluído permanentemente.',
+        ],
+
         'ui' => [
             'page_title'   => 'Idiomas de Tours',
             'page_heading' => 'Gestão de Idiomas',
@@ -592,6 +622,7 @@ return [
             'toggle_confirm_off_title' => 'Desativar idioma?',
             'toggle_confirm_on_html'   => 'O idioma <b>:label</b> ficará <b>ativo</b>.',
             'toggle_confirm_off_html'  => 'O idioma <b>:label</b> ficará <b>inativo</b>.',
+            'delete_confirm_html'      => 'O idioma <b>:label</b> será excluído permanentemente.',
             'edit_confirm_title'       => 'Salvar alterações?',
             'edit_confirm_button'      => 'Sim, salvar',
 

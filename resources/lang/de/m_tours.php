@@ -28,6 +28,9 @@ return [
         'hours' => 'Stunden',
         'success' => 'Erfolg',
         'error' => 'Fehler',
+        'search' => 'Suchen',
+        'clear_search' => 'Suche löschen',
+        'delete' => 'Löschen',
         'cancel' => 'Abbrechen',
         'confirm_delete' => 'Ja, löschen',
         'unspecified' => 'Nicht angegeben',
@@ -35,6 +38,7 @@ return [
         'required_fields_title' => 'Erforderliche Felder',
         'required_fields_text' => 'Bitte füllen Sie die Pflichtfelder aus: Name und maximale Kapazität.',
         'active' => 'Aktiv',
+        'status' => 'Status',
         'inactive' => 'Inaktiv',
         'notice' => 'Hinweis',
         'na'    => 'Nicht konfiguriert',
@@ -55,6 +59,12 @@ return [
         'actions' => 'Aktionen',
         'updated_at' => 'Letzte Aktualisierung',
         'not_set' => 'Nicht angegeben',
+        'confirm_force_delete' => 'Diesen Reiseplan dauerhaft löschen?',
+        'confirm_restore' => 'Diesen Reiseplan wiederherstellen?',
+        'force_delete' => 'Endgültig löschen',
+        'restore' => 'Wiederherstellen',
+        'deleted_at' => 'Gelöscht am',
+        'deleted_by' => 'Gelöscht von',
         'error_deleting' => 'Beim Löschen ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         'error_saving' => 'Beim Speichern ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.',
         'crud_go_to_index' => ':element verwalten',
@@ -315,6 +325,10 @@ return [
             'assignment_toggle'    => 'Der Status der Zuweisung konnte nicht geändert werden.',
             'not_assigned_to_tour' => 'Die Zeit ist dieser Tour nicht zugewiesen.',
             'delete'               => 'Beim Löschen der Zeit ist ein Problem aufgetreten.',
+            'capacity_override_help' => 'Nur wenn Sie eine andere Kapazität für diesen Zeitplan benötigen',
+            'capacity_override_placeholder' => 'Leer lassen, um die Tour-Kapazität zu verwenden',
+            'capacity_definition_info' => 'Die Kapazität wird festgelegt, wenn dieser Zeitplan einem bestimmten Tour zugewiesen wird',
+            'tour_base_capacity' => 'Tour-Basiskapazität:',
         ],
 
         'placeholders' => [
@@ -365,11 +379,14 @@ return [
             'delete_confirm_title' => 'Endgültig löschen?',
             'delete_confirm_html'  => '<b>:label</b> wird gelöscht und kann nicht rückgängig gemacht werden.',
             'yes_delete'           => 'Ja, löschen',
+            'yes_delete'           => 'Ja, löschen',
+            'trash_empty'          => 'Keine gelöschten Reiseplanelemente gefunden',
             'item_this'            => 'dieses Element',
 
             'processing' => 'Verarbeite...',
             'applying'   => 'Wendet an...',
             'deleting'   => 'Lösche...',
+            'trash_title' => 'Papierkorb Elemente',
         ],
 
         'success' => [
@@ -378,6 +395,8 @@ return [
             'activated'   => 'Element erfolgreich aktiviert.',
             'deactivated' => 'Element erfolgreich deaktiviert.',
             'deleted'     => 'Element endgültig gelöscht.',
+            'restored'    => 'Element erfolgreich wiederhergestellt.',
+            'force_deleted' => 'Element endgültig gelöscht.',
         ],
 
         'error' => [
@@ -385,6 +404,8 @@ return [
             'update' => 'Das Element konnte nicht aktualisiert werden.',
             'toggle' => 'Der Status des Elements konnte nicht geändert werden.',
             'delete' => 'Das Element konnte nicht gelöscht werden.',
+            'restore'      => 'Das Element konnte nicht wiederhergestellt werden.',
+            'force_delete' => 'Das Element konnte nicht endgültig gelöscht werden.',
         ],
 
         'validation' => [
@@ -429,6 +450,7 @@ return [
                 'name' => 'Name',
             ],
             'new_itinerary' => 'Neuer Reiseplan',
+            'description_label' => 'Beschreibung',
             'select_or_create_hint' => 'Wählen Sie einen vorhandenen Reiseplan oder erstellen Sie einen neuen für diese Tour.',
             'save_changes'          => 'Speichern Sie den Reiseplan, um die Änderungen auf die Tour anzuwenden.',
             'select_existing' => 'Bestehenden Reiseplan auswählen',
@@ -437,6 +459,7 @@ return [
             'min_one_item' => 'Der Reiseplan muss mindestens ein Element enthalten.',
             'cannot_delete_item' => 'Kann nicht gelöscht werden',
             'item_added' => 'Element hinzugefügt',
+            'trash_empty'        => 'Keine gelöschten Reiserouten gefunden',
             'item_added_success' => 'Das Element wurde erfolgreich zum Reiseplan hinzugefügt.',
             'error_creating_item' => 'Validierungsfehler beim Erstellen des Elements.',
             'translations_updated' => 'Übersetzung aktualisiert',
@@ -505,6 +528,8 @@ return [
             'deactivated'    => 'Reiseplan erfolgreich deaktiviert.',
             'deleted'        => 'Reiseplan endgültig gelöscht.',
             'items_assigned' => 'Elemente erfolgreich zugewiesen.',
+            'restored'       => 'Reiseplan erfolgreich wiederhergestellt.',
+            'force_deleted'  => 'Reiseplan endgültig gelöscht.',
         ],
 
         'error' => [
@@ -558,6 +583,11 @@ return [
             'inactive' => 'Inaktiv',
         ],
 
+        'alerts' => [
+            'delete_title' => 'Sprache löschen?',
+            'delete_text'  => 'Die Sprache <b>:label</b> wird dauerhaft gelöscht.',
+        ],
+
         'ui' => [
             'page_title'   => 'Tour-Sprachen',
             'page_heading' => 'Sprachenverwaltung',
@@ -592,6 +622,7 @@ return [
             'toggle_confirm_off_title' => 'Sprache deaktivieren?',
             'toggle_confirm_on_html'   => 'Die Sprache <b>:label</b> wird <b>aktiv</b> sein.',
             'toggle_confirm_off_html'  => 'Die Sprache <b>:label</b> wird <b>inaktiv</b> sein.',
+            'delete_confirm_html'      => 'Die Sprache <b>:label</b> wird dauerhaft gelöscht.',
             'edit_confirm_title'       => 'Änderungen speichern?',
             'edit_confirm_button'      => 'Ja, speichern',
 

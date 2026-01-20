@@ -35,20 +35,32 @@ class ItineraryItemController extends Controller
         // Re-reading task description: "Identified Modules... ItineraryItemController... needs publish-itinerary-items".
         // Use separate permissions logic:
         $this->middleware(['can:view-itineraries'])->only(['index']);
-        $this->middleware(['can:edit-itineraries'])->only(['store', 'update', 'updateTranslations', 'destroy']);
+        $this->middleware(['can:edit-itineraries'])->only(['store', 'update', 'updateTranslations', 'destroy', 'trash', 'restore', 'forceDelete']);
         $this->middleware(['can:publish-itinerary-items'])->only(['toggle']);
     }
 
     protected string $controller = 'ItineraryItemController';
 
-    public function index()
+    public function index(Request $request)
     {
-        $activeItems = ItineraryItem::where('is_active', true)
-            ->with('translations')
-            ->get()
-            ->sortBy('title');
+        $search = $request->input('search');
+        
+        $query = ItineraryItem::with('translations');
+        
+        if ($search) {
+            $query->whereHas('translations', function($q) use ($search) {
+                $q->where('title', 'ilike', "%{$search}%");
+            });
+        } else {
+             $query->where('is_active', true);
+        }
 
-        return view('admin.tours.itinerary.items.crud', ['items' => $activeItems]);
+        $items = $query->get()->sortBy('title');
+
+        return view('admin.tours.itinerary.items.index', [
+            'items' => $items,
+            'search' => $search
+        ]);
     }
 
     public function store(StoreItineraryItemRequest $request, TranslatorInterface $translator)
@@ -255,6 +267,80 @@ class ItineraryItemController extends Controller
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
             return back()->with('error', __('m_tours.itinerary_item.error.delete'));
+        }
+    }
+
+    /**
+     * View trash list for items.
+     */
+    public function trash()
+    {
+        $items = ItineraryItem::onlyTrashed()
+            ->with(['translations'])
+            ->get()
+            ->sortBy('title');
+
+        return view('admin.tours.itinerary.items.trash', ['items' => $items]);
+    }
+
+    /**
+     * Restore soft-deleted itinerary item.
+     */
+    public function restore($id)
+    {
+        try {
+            $item = ItineraryItem::withTrashed()->findOrFail($id);
+            $item->restore();
+
+            LoggerHelper::mutated($this->controller, 'restore', 'itinerary_item', $id, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', __('m_tours.itinerary_item.success.restored'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'restore', 'itinerary_item', $id, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('error', __('m_tours.itinerary_item.error.restored'));
+        }
+    }
+
+    /**
+     * Force delete itinerary item permanently.
+     */
+    public function forceDelete($id)
+    {
+        try {
+            $item = ItineraryItem::withTrashed()->findOrFail($id);
+            $idCaptured = $item->item_id;
+
+            DB::transaction(function () use ($item) {
+                // Detach from all itineraries
+                if (method_exists($item, 'itineraries')) {
+                    $item->itineraries()->detach();
+                }
+                // Delete translations
+                if (method_exists($item, 'translations')) {
+                    $item->translations()->delete();
+                } else {
+                    ItineraryItemTranslation::where('item_id', $item->item_id)->delete();
+                }
+                
+                $item->forceDelete();
+            });
+
+            LoggerHelper::mutated($this->controller, 'forceDelete', 'itinerary_item', $idCaptured, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('success', __('m_tours.itinerary_item.success.force_deleted'));
+        } catch (Exception $e) {
+            LoggerHelper::exception($this->controller, 'forceDelete', 'itinerary_item', $id, $e, [
+                'user_id' => optional(request()->user())->getAuthIdentifier(),
+            ]);
+
+            return back()->with('error', __('m_tours.itinerary_item.error.force_delete'));
         }
     }
 }

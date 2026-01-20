@@ -28,6 +28,9 @@ return [
         'hours' => 'hours',
         'success' => 'Success',
         'error' => 'Error',
+        'search' => 'Search',
+        'clear_search' => 'Clear search',
+        'delete' => 'Delete',
         'cancel' => 'Cancel',
         'confirm_delete' => 'Yes, delete',
         'unspecified' => 'Unspecified',
@@ -35,6 +38,7 @@ return [
         'required_fields_title' => 'Required fields',
         'required_fields_text' => 'Please complete the required fields: Name and Maximum Capacity.',
         'active' => 'Active',
+        'status' => 'Status',
         'inactive' => 'Inactive',
         'notice' => 'Notice',
         'na'    => 'Not configured',
@@ -55,6 +59,12 @@ return [
         'actions' => 'Actions',
         'updated_at' => 'Last Updated',
         'not_set' => 'Not specified',
+        'confirm_force_delete' => 'Permanently delete this itinerary?',
+        'confirm_restore' => 'Restore this itinerary?',
+        'force_delete' => 'Force Delete',
+        'restore' => 'Restore',
+        'deleted_at' => 'Deleted At',
+        'deleted_by' => 'Deleted By',
         'error_deleting' => 'An error occurred while deleting. Please try again.',
         'error_saving' => 'An error occurred while saving. Please try again.',
         'crud_go_to_index' => 'Manage :element',
@@ -319,6 +329,10 @@ return [
             'assignment_toggle'    => 'Could not change the assignment status.',
             'not_assigned_to_tour' => 'The schedule is not assigned to this tour.',
             'delete'               => 'There was an error deleting the schedule.',
+            'capacity_override_help' => 'Only if you need a different capacity for this schedule',
+            'capacity_override_placeholder' => 'Leave empty to use tour capacity',
+            'capacity_definition_info' => 'Capacity is defined when assigning this schedule to a specific tour',
+            'tour_base_capacity' => 'Tour base capacity:',
         ],
 
         'placeholders' => [
@@ -371,11 +385,14 @@ return [
             'delete_confirm_title' => 'Delete permanently?',
             'delete_confirm_html'  => '<b>:label</b> will be deleted and cannot be undone.',
             'yes_delete'           => 'Yes, delete',
+            'yes_delete'           => 'Yes, delete',
+            'trash_empty'          => 'No deleted itinerary items found.',
             'item_this'            => 'this item',
 
             'processing' => 'Processing...',
             'applying'   => 'Applying...',
             'deleting'   => 'Deleting...',
+            'trash_title' => 'Trash Items',
         ],
 
         'success' => [
@@ -384,6 +401,8 @@ return [
             'activated'   => 'Item activated successfully.',
             'deactivated' => 'Item deactivated successfully.',
             'deleted'     => 'Item permanently deleted.',
+            'restored'    => 'Item restored successfully.',
+            'force_deleted' => 'Item permanently deleted.',
         ],
 
         'error' => [
@@ -391,6 +410,8 @@ return [
             'update' => 'Could not update the item.',
             'toggle' => 'Could not change the item status.',
             'delete' => 'Could not delete the item.',
+            'restore'      => 'Could not restore the item.',
+            'force_delete' => 'Could not permanently delete the item.',
         ],
 
         'validation' => [
@@ -411,6 +432,9 @@ return [
     // [05] ITINERARY
     // =========================================================
     'itinerary' => [
+        'table' => [
+            'name' => 'Name',
+        ],
         'plural'   => 'Itineraries',
         'singular' => 'Itinerary',
 
@@ -433,8 +457,10 @@ return [
             'page_heading'  => 'Itineraries and Item Management',
             'table' => [
                 'name' => 'Name',
+                'itinerary_items' => 'Itinerary Items',
             ],
             'new_itinerary' => 'New Itinerary',
+            'description_label' => 'Description',
             'select_or_create_hint' => 'Select an existing itinerary or create a new one for this tour.',
             'save_changes'          => 'Save the itinerary to apply the changes to the tour.',
             'select_existing'       => 'Select existing itinerary',
@@ -443,6 +469,7 @@ return [
             'min_one_item'          => 'There must be at least one item in the itinerary.',
             'cannot_delete_item'    => 'Cannot be deleted',
             'item_added'            => 'Item added',
+            'trash_empty'           => 'No deleted itineraries found.',
             'item_added_success'    => 'The item was successfully added to the itinerary.',
             'error_creating_item'   => 'Validation error while creating the item.',
             'translations_updated' => 'Translation updated',
@@ -505,6 +532,8 @@ return [
             'deactivated'    => 'Itinerary deactivated successfully.',
             'deleted'        => 'Itinerary permanently deleted.',
             'items_assigned' => 'Items assigned successfully.',
+            'restored'       => 'Itinerary restored successfully.',
+            'force_deleted'  => 'Itinerary permanently deleted.',
         ],
 
         'error' => [
@@ -558,6 +587,11 @@ return [
             'inactive' => 'Inactive',
         ],
 
+        'alerts' => [
+            'delete_title' => 'Delete language?',
+            'delete_text'  => 'The language <b>:label</b> will be permanently deleted.',
+        ],
+
         'ui' => [
             'page_title'   => 'Tour Languages',
             'page_heading' => 'Language Management',
@@ -591,7 +625,8 @@ return [
             'toggle_confirm_on_title'  => 'Activate language?',
             'toggle_confirm_off_title' => 'Deactivate language?',
             'toggle_confirm_on_html'   => 'Language <b>:label</b> will be <b>active</b>.',
-            'toggle_confirm_off_html'  => 'Language <b>:label</b> will be <b>inactive</b>.',
+            'toggle_confirm_off_html'  => 'The language <b>:label</b> will be <b>inactive</b>.',
+            'delete_confirm_html'      => 'The language <b>:label</b> will be permanently deleted.',
             'edit_confirm_title'       => 'Save changes?',
             'edit_confirm_button'      => 'Yes, save',
 

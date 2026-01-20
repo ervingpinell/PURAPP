@@ -249,7 +249,7 @@
       const name = form.getAttribute('data-name') || @json(__('m_tours.language.ui.item_this'));
       Swal.fire({
         title: @json(__('m_tours.language.alerts.delete_title')),
-        text: @json(__('m_tours.language.alerts.delete_text')),
+        html: @json(__('m_tours.language.ui.delete_confirm_html')).replace(':label', name),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: @json(__('m_tours.language.ui.yes_delete')),

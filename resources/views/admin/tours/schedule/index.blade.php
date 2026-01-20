@@ -496,7 +496,7 @@
 
               <div class="alert alert-info small">
                 <i class="fas fa-info-circle me-1"></i>
-                Capacidad base del tour: <strong>{{ $tour->max_capacity ?? 'No definida' }}</strong>
+                {{ __('m_tours.schedule.ui.tour_base_capacity') }} <strong>{{ $tour->max_capacity ?? 'No definida' }}</strong>
               </div>
 
               <div class="mb-3">
@@ -506,8 +506,8 @@
                   class="form-control"
                   min="1"
                   max="999"
-                  placeholder="Dejar vacío para usar capacidad del tour">
-                <small class="text-muted">Solo si necesitas una capacidad diferente para este horario</small>
+                  placeholder="{{ __('m_tours.schedule.ui.capacity_override_placeholder') }}">
+                <small class="text-muted">{{ __('m_tours.schedule.ui.capacity_override_help') }}</small>
               </div>
             </div>
             <div class="modal-footer">
@@ -547,7 +547,7 @@
 
               <div class="alert alert-info small mt-2">
                 <i class="fas fa-info-circle me-1"></i>
-                Capacidad base del tour: <strong>{{ $tour->max_capacity ?? 'No definida' }}</strong>
+                {{ __('m_tours.schedule.ui.tour_base_capacity') }} <strong>{{ $tour->max_capacity ?? 'No definida' }}</strong>
               </div>
 
               <div class="mt-2">
@@ -557,8 +557,8 @@
                   class="form-control"
                   min="1"
                   max="999"
-                  placeholder="Dejar vacío para usar capacidad del tour">
-                <small class="text-muted">Solo si necesitas una capacidad diferente para este horario</small>
+                  placeholder="{{ __('m_tours.schedule.ui.capacity_override_placeholder') }}">
+                <small class="text-muted">{{ __('m_tours.schedule.ui.capacity_override_help') }}</small>
               </div>
 
               <div class="form-check mt-3">
@@ -607,7 +607,7 @@
 
         <div class="alert alert-info small mt-3 mb-0">
           <i class="fas fa-info-circle me-1"></i>
-          La capacidad se define al asignar este horario a un tour específico
+          {{ __('m_tours.schedule.ui.capacity_definition_info') }}
         </div>
 
         <div class="form-check mt-3">

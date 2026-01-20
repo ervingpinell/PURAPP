@@ -41,6 +41,7 @@ return [
     'schedules'       => 'Horários',
     'languages'       => 'Idiomas',
     'itineraries'     => 'Roteiros',
+    'itinerary_items' => 'Itens de Itinerário',
     'all_tours'       => 'Todos os Passeios',
     'order_tours'     => 'Ordenar Passeios',
 

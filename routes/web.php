@@ -1035,6 +1035,8 @@ Route::middleware([SetLocale::class])->group(function () {
                     // -------------------- ITINERARY --------------------
                     Route::resource('itinerary', ItineraryController::class)->except(['show']);
                     Route::get('itinerary/trash/list', [ItineraryController::class, 'trash'])->name('itinerary.trash');
+                    Route::post('itinerary/{itinerary}/restore', [ItineraryController::class, 'restore'])->name('itinerary.restore');
+                    Route::delete('itinerary/{itinerary}/force-delete', [ItineraryController::class, 'forceDelete'])->name('itinerary.force-delete');
                     Route::patch('itineraries/{itinerary}/toggle', [ItineraryController::class, 'toggle'])->name('itinerary.toggle');
                     Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])
                         ->middleware('throttle:sensitive')
@@ -1045,6 +1047,9 @@ Route::middleware([SetLocale::class])->group(function () {
 
                     // -------------------- ITINERARY ITEMS --------------------
                     Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
+                    Route::get('itinerary_items/trash/list', [ItineraryItemController::class, 'trash'])->name('itinerary_items.trash');
+                    Route::post('itinerary_items/{item}/restore', [ItineraryItemController::class, 'restore'])->name('itinerary_items.restore');
+                    Route::delete('itinerary_items/{item}/force-delete', [ItineraryItemController::class, 'forceDelete'])->name('itinerary_items.force-delete');
                     Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
                     Route::put('itinerary_items/{itinerary_item}/translations', [ItineraryItemController::class, 'updateTranslations'])
                         ->middleware('throttle:sensitive')

@@ -7,12 +7,12 @@
         <!-- Tabs de navegación -->
         <ul class="nav nav-tabs">
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('admin.tours.itinerary.index') }}">
+                <a class="nav-link" href="{{ route('admin.tours.itinerary_items.index') }}">
                     <i class="fas fa-list"></i> {{ __('m_tours.common.active') }}
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" href="{{ route('admin.tours.itinerary.trash') }}">
+                <a class="nav-link active" href="{{ route('admin.tours.itinerary_items.trash') }}">
                     <i class="fas fa-trash"></i> {{ __('m_tours.itinerary.ui.trash_title') }}
                 </a>
             </li>
@@ -23,9 +23,9 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                @if($itineraries->isEmpty())
+                @if($items->isEmpty())
                 <div class="alert alert-info mb-0">
-                    <i class="fas fa-info-circle me-2"></i>{{ __('m_tours.itinerary.ui.trash_empty') }}
+                    <i class="fas fa-info-circle me-2"></i>{{ __('m_tours.itinerary_item.ui.trash_empty') }}
                 </div>
                 @else
                 <div class="table-responsive">
@@ -40,27 +40,27 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($itineraries as $itinerary)
+                            @foreach($items as $item)
                             <tr>
-                                <td>{{ $itinerary->itinerary_id }}</td>
+                                <td>{{ $item->item_id }}</td>
                                 <td>
-                                    <strong>{{ $itinerary->name }}</strong>
+                                    <strong>{{ $item->title }}</strong>
                                     <br>
-                                    <small>{{ Str::limit(strip_tags($itinerary->description), 50) }}</small>
+                                    <small>{{ Str::limit(strip_tags($item->description), 50) }}</small>
                                 </td>
-                                <td>{{ $itinerary->deleted_at->format('d/m/Y H:i') }}</td>
+                                <td>{{ $item->deleted_at->format('d/m/Y H:i') }}</td>
                                 <td>
-                                    @if($itinerary->deletedBy)
-                                    <span class="badge badge-soft-danger">{{ $itinerary->deletedBy->name }}</span>
+                                    @if($item->deletedBy)
+                                    <span class="badge badge-soft-danger">{{ $item->deletedBy->name }}</span>
                                     @else
                                     <span class="badge badge-soft-secondary">System/Unknown</span>
                                     @endif
                                 </td>
                                 <td>
-                                    @can('restore-itineraries')
-                                    <form action="{{ route('admin.tours.itinerary.restore', $itinerary->itinerary_id) }}" 
+                                    @can('edit-itineraries')
+                                    <form action="{{ route('admin.tours.itinerary_items.restore', $item->item_id) }}" 
                                           method="POST" 
-                                          class="d-inline form-restore-itinerary">
+                                          class="d-inline form-restore-item">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-success" title="{{ __('m_tours.common.restore') }}">
                                             <i class="fas fa-trash-restore"></i>
@@ -68,10 +68,10 @@
                                     </form>
                                     @endcan
 
-                                    @can('force-delete-itineraries')
-                                    <form action="{{ route('admin.tours.itinerary.force-delete', $itinerary->itinerary_id) }}" 
+                                    @can('edit-itineraries')
+                                    <form action="{{ route('admin.tours.itinerary_items.force-delete', $item->item_id) }}" 
                                           method="POST" 
-                                          class="d-inline form-force-delete-itinerary">
+                                          class="d-inline form-force-delete-item">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger" title="{{ __('m_tours.common.force_delete') }}">
@@ -97,8 +97,8 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Restaurar Itinerario
-        document.querySelectorAll('.form-restore-itinerary').forEach(form => {
+        // Restaurar Itinerario Item
+        document.querySelectorAll('.form-restore-item').forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 Swal.fire({
@@ -117,8 +117,8 @@
             });
         });
 
-        // Force Delete Itinerario
-        document.querySelectorAll('.form-force-delete-itinerary').forEach(form => {
+        // Force Delete Itinerario Item
+        document.querySelectorAll('.form-force-delete-item').forEach(form => {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 Swal.fire({

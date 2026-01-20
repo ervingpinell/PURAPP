@@ -35,14 +35,29 @@ class ItineraryController extends Controller
 
     protected string $controller = 'ItineraryController';
 
-    public function index(ItineraryService $service)
+    public function index(Request $request, ItineraryService $service)
     {
-        $itineraryList  = Itinerary::with(['allItems.translations', 'translations'])->get();
+        $search = $request->input('search');
+        
+        $query = Itinerary::with(['allItems.translations', 'translations']);
+        
+        if ($search) {
+             $query->whereHas('translations', function($q) use ($search) {
+                 $q->where('name', 'ilike', "%{$search}%");
+             });
+        }
+
+        $itineraryList = $query->get();
+        // $availableItems = $service->getAvailableItems(); // No longer needed for index view if we separate them
+
+        // We might still need availableItems for the "Assign Items" modal which is included in the index view.
+        // Let's keep it but ideally we should load it via AJAX or View Composer if performance matters.
         $availableItems = $service->getAvailableItems();
 
         return view('admin.tours.itinerary.index', [
             'itineraries' => $itineraryList,
             'items'       => $availableItems,
+            'search'      => $search
         ]);
     }
 

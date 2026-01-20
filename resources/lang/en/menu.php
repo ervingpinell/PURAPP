@@ -41,6 +41,7 @@ return [
         'schedules'       => 'Schedules',
         'languages'       => 'Languages',
         'itineraries'     => 'Itineraries',
+        'itinerary_items' => 'Itinerary Items',
         'all_tours'       => 'All Tours',
         'order_tours'     => 'Sort Tours',
 
