@@ -88,7 +88,7 @@ class BookingCancelledMail extends Mailable implements ShouldQueue
 
         // === From info ===
         $fromAddress = config('mail.from.address');
-        $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+        $fromName    = config('mail.from.name', config('app.name', 'Company Name'));
 
         // === Construcción final del mailable ===
         $mailable = $this

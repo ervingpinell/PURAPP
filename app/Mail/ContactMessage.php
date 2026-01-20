@@ -51,7 +51,7 @@ public function build()
             : 'New contact message');
 
     $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
-    $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+    $fromName    = config('mail.from.name', config('app.name', 'Company Name'));
 
     // Reply-To: al correo del cliente que llenó el formulario
     $replyToAddress = $this->email ?: env('MAIL_TO_CONTACT', $fromAddress);

@@ -221,25 +221,25 @@ $initialNotes = old('notes', $cart->notes ?? '');
 {{-- ========== TIMER ========== --}}
 @if($cart && $cart->items->count() && !empty($expiresAtIso) && (($cart->is_guest_cart ?? false) || ($cart->is_active && !$cart->isExpired())))
 <div id="cart-timer"
-  class="gv-timer shadow-sm"
+  class="brand-timer shadow-sm"
   role="alert"
   data-expires-at="{{ $expiresAtIso }}"
   data-total-minutes="{{ $expiryMinutes }}"
   data-expire-endpoint="{{ ($cart->is_guest_cart ?? false) ? route('public.guest-carts.expire') : route('public.carts.expire') }}">
-  <div class="gv-timer-head">
-    <div class="gv-timer-icon">
+  <div class="brand-timer-head">
+    <div class="brand-timer-icon">
       <i class="fas fa-hourglass-half"></i>
     </div>
-    <div class="gv-timer-text">
-      <div class="gv-timer-title">{{ __('carts.timer.will_expire') }}</div>
-      <div class="gv-timer-sub">
+    <div class="brand-timer-text">
+      <div class="brand-timer-title">{{ __('carts.timer.will_expire') }}</div>
+      <div class="brand-timer-sub">
         {{ __('carts.timer.time_left') }}
-        <span id="cart-timer-remaining" class="gv-timer-remaining">--:--</span>
+        <span id="cart-timer-remaining" class="brand-timer-remaining">--:--</span>
       </div>
     </div>
   </div>
-  <div class="gv-timer-bar">
-    <div class="gv-timer-bar-fill" id="cart-timer-bar" style="width:100%"></div>
+  <div class="brand-timer-bar">
+    <div class="brand-timer-bar-fill" id="cart-timer-bar" style="width:100%"></div>
   </div>
 </div>
 @endif
@@ -629,7 +629,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
         <h4 class="mb-3">
           <strong>{{ __('adminlte::adminlte.totalEstimated') }}:</strong>
           <span class="currency-symbol">$</span>
-          <span id="cart-total" class="gv-total">{{ number_format($calculatedTotal, 2) }}</span>
+          <span id="cart-total" class="brand-total">{{ number_format($calculatedTotal, 2) }}</span>
         </h4>
       </div>
 

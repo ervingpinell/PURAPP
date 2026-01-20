@@ -305,7 +305,7 @@ return [
     // =========================
     'emails' => [
 
-        'brand_from'   => config('app.name', 'Green Vacations CR'),
+        'brand_from'   => config('app.name', 'Company Name'),
         'contact_line' => 'If you need help, contact us at :email or :phone. Visit us at :url.',
         'request' => [
             'preheader_with_date' => 'Tell us about your experience on :tour (:date). It only takes a minute.',

@@ -59,7 +59,7 @@ class ReviewReplyNotification extends Mailable implements ShouldQueue
 
         // ===== FROM / REPLY-TO =====
         $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
-        $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+        $fromName    = config('mail.from.name', config('app.name', 'Company Name'));
 
         // Email del cliente para reply-to si lo tienes en la reseña
         $customerEmail =

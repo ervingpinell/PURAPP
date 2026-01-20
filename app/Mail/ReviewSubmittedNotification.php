@@ -93,7 +93,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
 
         // FROM
         $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
-        $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+        $fromName    = config('mail.from.name', config('app.name', 'Company Name'));
 
         // DESTINO: lista de correos de admin (pueden ser varios)
         $adminRecipients = $this->resolveAdminRecipients($fromAddress);
@@ -107,7 +107,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         $contactEmail = $adminRecipients[0] ?? $fromAddress;
         $appUrl       = rtrim(config('app.url'), '/');
         $companyPhone = env('COMPANY_PHONE');
-        $company      = config('app.name', 'Green Vacations CR');
+        $company      = config('app.name', 'Company Name');
 
         return $this
             ->locale($loc)

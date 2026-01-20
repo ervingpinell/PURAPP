@@ -77,12 +77,12 @@ return [
     
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'noreply@greenvacationscr.com'),
-        'name'    => env('MAIL_FROM_NAME', 'Green Vacations CR'),
+        'name'    => env('MAIL_FROM_NAME', 'Company Name'),
     ],
 
     'reply_to' => [
         'address' => env('MAIL_REPLY_TO_ADDRESS', 'info@greenvacationscr.com'),
-        'name'    => env('MAIL_FROM_NAME', 'Green Vacations CR'),
+        'name'    => env('MAIL_FROM_NAME', 'Company Name'),
     ],
 
     'notifications' => [

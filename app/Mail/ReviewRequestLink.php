@@ -109,7 +109,7 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
         // === Remitente / Reply-To ===
         // Usa el mismo remitente que tus correos de confirmación de reserva (transaccionales)
         $fromAddress = config('mail.from.address', 'noreply@greenvacationscr.com');
-        $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+        $fromName    = config('mail.from.name', config('app.name', 'Company Name'));
 
         $replyTo = collect([
             env('MSFT_REPLY_TO'),

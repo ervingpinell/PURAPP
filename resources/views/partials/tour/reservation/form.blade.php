@@ -1,5 +1,5 @@
 <form action="/carts/add" method="POST"
-  class="reservation-box gv-ui is-compact is-compact-2 p-3 shadow-sm rounded bg-white mb-4 border"
+  class="reservation-box brand-ui is-compact is-compact-2 p-3 shadow-sm rounded bg-white mb-4 border"
   data-max-total="{{ $maxPersonsGlobal ?? 12 }}">
   @csrf
   <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">

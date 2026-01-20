@@ -96,7 +96,7 @@ class EmailTemplateController extends Controller
             'taxes' => '$25.00',
             'payment_url' => env('WEB_URL', config('app.url')) . '/payment',
             'booking_url' => env('WEB_URL', config('app.url')) . '/booking',
-            'company_name' => 'Green Vacations CR',
+            'company_name' => 'Company Name',
             'support_email' => config('mail.reply_to.address'),
             'company_phone' => env('COMPANY_PHONE'),
             'app_url' => env('WEB_URL', config('app.url')),

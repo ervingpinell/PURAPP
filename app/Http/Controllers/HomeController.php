@@ -771,7 +771,7 @@ class HomeController extends Controller
             // Ahora que tenemos CSP corregido, intentamos mostrar el negocio por nombre
             // para que aparezca la "Place Card" de Google.
             // Generamos el query dinámicamente desde la configuración.
-            $companyName = config('company.name', 'Green Vacations CR');
+            $companyName = config('company.name', 'Company Name');
             $city        = config('company.address.city', 'Costa Rica');
             
             $query = rawurlencode("{$companyName}, {$city}");

@@ -82,21 +82,21 @@
 
 /* === Unificación de alturas/tipografías (inputs, flatpickr, choices) === */
 .reservation-box{
-  --gv-field-h: 44px;
-  --gv-field-pad-y: .5rem;
-  --gv-field-pad-x: .75rem;
-  --gv-radius: .6rem;
+  --brand-field-h: 44px;
+  --brand-field-pad-y: .5rem;
+  --brand-field-pad-x: .75rem;
+  --brand-radius: .6rem;
 }
 
 /* Inputs/Selects mismo alto */
 .reservation-box .form-control,
 .reservation-box .flatpickr-input,
 .reservation-box .choices__inner{
-  min-height: var(--gv-field-h);
-  height: var(--gv-field-h);
-  padding: var(--gv-field-pad-y) var(--gv-field-pad-x);
+  min-height: var(--brand-field-h);
+  height: var(--brand-field-h);
+  padding: var(--brand-field-pad-y) var(--brand-field-pad-x);
   font-size: var(--fs-body);
-  border-radius: var(--gv-radius);
+  border-radius: var(--brand-radius);
 }
 
 /* Flatpickr input alterno */
@@ -114,23 +114,23 @@
 .reservation-box .choices[data-type*="select-one"]::after{ right:.75rem; }
 
 /* Fila viajeros (ancho de input base) */
-.gv-trav-row .btn{ min-width:2rem; }
-.gv-trav-row input[type="number"]{ max-width:84px; text-align:center; }
+.brand-trav-row .btn{ min-width:2rem; }
+.brand-trav-row input[type="number"]{ max-width:84px; text-align:center; }
 
 /* =========================
    GRID fecha/hora
    ========================= */
 @media (min-width: 576px){
-  .gv-grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; }
+  .brand-grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:.75rem; }
 }
 
 /* =========================
    TOTAL inline
    ========================= */
-.gv-total-inline{
+.brand-total-inline{
   background:#f8fafb; border:1px dashed #e2e8f0; border-radius:.5rem; padding:.5rem .75rem;
 }
-.gv-total-inline strong{ font-weight:700; color:var(--primary-red) }
+.brand-total-inline strong{ font-weight:700; color:var(--primary-red) }
 
 /* =========================
    MEETING POINT card
@@ -143,9 +143,9 @@
    MODO COMPACTO (−1 nivel tipográfico)
    ========================= */
 .reservation-box.is-compact{
-  --gv-field-h: 40px;             /* antes 44px */
-  --gv-field-pad-y: .45rem;       /* leve ajuste vertical */
-  --gv-field-pad-x: .65rem;       /* leve ajuste horizontal */
+  --brand-field-h: 40px;             /* antes 44px */
+  --brand-field-pad-y: .45rem;       /* leve ajuste vertical */
+  --brand-field-pad-x: .65rem;       /* leve ajuste horizontal */
 }
 
 /* Labels y textos */
@@ -164,9 +164,9 @@
 .reservation-box.is-compact .choices__inner,
 .reservation-box.is-compact .choices__list--single .choices__item{
   font-size: calc(var(--fs-body) - 1px);
-  min-height: var(--gv-field-h);
-  height: var(--gv-field-h);
-  padding: var(--gv-field-pad-y) var(--gv-field-pad-x);
+  min-height: var(--brand-field-h);
+  height: var(--brand-field-h);
+  padding: var(--brand-field-pad-y) var(--brand-field-pad-x);
 }
 
 /* Títulos internos del box */
@@ -187,23 +187,23 @@
 /* =========================
    TRAVELERS — control fino por variables
    ========================= */
-.gv-travelers{
+.brand-travelers{
   /* Valores por defecto (puedes sobreescribir inline o en .reservation-box) */
   --trav-row-font: var(--fs-body);
   --trav-label-font: calc(var(--fs-body) - 1px);
   --trav-btn-font: .9rem;
   --trav-input-w: 72px;
 }
-.gv-travelers .gv-trav-row{ font-size: var(--trav-row-font); }
-.gv-travelers .gv-trav-row .fw-semibold{ font-size: var(--trav-label-font); }
-.gv-travelers .gv-trav-row input[type="number"]{
+.brand-travelers .brand-trav-row{ font-size: var(--trav-row-font); }
+.brand-travelers .brand-trav-row .fw-semibold{ font-size: var(--trav-label-font); }
+.brand-travelers .brand-trav-row input[type="number"]{
   max-width: var(--trav-input-w);
   font-size: var(--trav-row-font);
 }
-.gv-travelers .gv-trav-row .btn{ font-size: var(--trav-btn-font); }
+.brand-travelers .brand-trav-row .btn{ font-size: var(--trav-btn-font); }
 
 /* Travelers en modo compacto: heredan reducción */
-.reservation-box.is-compact .gv-travelers{
+.reservation-box.is-compact .brand-travelers{
   --trav-row-font: calc(var(--fs-body) - 1px);
   --trav-label-font: calc(var(--fs-body) - 2px);
   --trav-btn-font: .85rem;
@@ -213,55 +213,55 @@
 /* ===== FIX: TRAVELERS — controles sin salto + tamaños adaptativos ===== */
 
 /* Nunca rompas los 3 controles a otra línea */
-.gv-travelers .gv-trav-row > .d-flex:last-child{
+.brand-travelers .brand-trav-row > .d-flex:last-child{
   flex-wrap: nowrap !important;
   gap: .5rem;
 }
-.gv-travelers .gv-trav-row > .d-flex:last-child > *{
+.brand-travelers .brand-trav-row > .d-flex:last-child > *{
   flex: 0 0 auto;
 }
 
 /* El bloque etiqueta no fuerza ancho */
-.gv-travelers .gv-trav-row > .d-flex:first-child{ min-width: 0; }
+.brand-travelers .brand-trav-row > .d-flex:first-child{ min-width: 0; }
 
 /* Alinear input y tamaño por variable */
-.gv-travelers .gv-trav-row input[type="number"]{
+.brand-travelers .brand-trav-row input[type="number"]{
   text-align: center;
   width: var(--trav-input-w);
   max-width: var(--trav-input-w);
 }
 
 /* Botones compactos sin encogerse */
-.gv-travelers .gv-trav-row .btn{
+.brand-travelers .brand-trav-row .btn{
   min-width: 2rem;
   padding: .25rem .5rem;
 }
 
 /* iPad/tablets y abajo: un poco más compacto */
 @media (max-width: 1024px){
-  .gv-travelers{ --trav-input-w: 64px; }
+  .brand-travelers{ --trav-input-w: 64px; }
 }
 
 /* Phones <= 420px: grid (etiqueta | controles) */
 @media (max-width: 420px){
-  .gv-travelers .gv-trav-row{
+  .brand-travelers .brand-trav-row{
     display: grid !important;
     grid-template-columns: 1fr auto;
     align-items: center;
     gap: .5rem;
   }
-  .gv-travelers{ --trav-input-w: 60px; }
+  .brand-travelers{ --trav-input-w: 60px; }
 }
 
 /* Phones muy pequeños */
 @media (max-width: 360px){
-  .gv-travelers{ --trav-input-w: 54px; }
-  .reservation-box{ --gv-field-h: 38px; }
+  .brand-travelers{ --trav-input-w: 54px; }
+  .reservation-box{ --brand-field-h: 38px; }
 }
 
 /* Mensajes/help y total */
 .reservation-box.is-compact #noSlotsHelp,
-.reservation-box.is-compact .gv-total-inline{
+.reservation-box.is-compact .brand-total-inline{
   font-size: calc(var(--fs-body) - 2px);
 }
 
@@ -279,12 +279,12 @@
   --brand-600: var(--primary-dark);
   --brand-50: #eaf5ef;
 }
-.tour-section .reservation-box .gv-cta{
+.tour-section .reservation-box .brand-cta{
   background: var(--brand) !important;
   border-color: var(--brand) !important;
   font-weight:700;
 }
-.tour-section .reservation-box .gv-cta:hover{
+.tour-section .reservation-box .brand-cta:hover{
   background: var(--brand-600) !important;
   border-color: var(--brand-600) !important;
 }
@@ -318,7 +318,7 @@
 .tour-section .reservation-box .flatpickr-day:hover{ background: var(--brand-50); }
 
 /* Fondo blanco seguro para integraciones */
-.gv-ui .form-control, .gv-ui .form-select, .gv-ui .choices__inner { background-color: #fff !important; }
+.brand-ui .form-control, .brand-ui .form-select, .brand-ui .choices__inner { background-color: #fff !important; }
 
 /* =========================
    INFO BOX
@@ -401,9 +401,9 @@
 
 /* Ultra compacto (un paso más que .is-compact) */
 .reservation-box.is-compact-2{
-  --gv-field-h: 36px;           /* antes 40–44 */
-  --gv-field-pad-y: .35rem;
-  --gv-field-pad-x: .55rem;
+  --brand-field-h: 36px;           /* antes 40–44 */
+  --brand-field-pad-y: .35rem;
+  --brand-field-pad-x: .55rem;
 }
 
 /* Tipos un poco más chicos aún */
@@ -412,7 +412,7 @@
   margin-bottom: .15rem;
 }
 .reservation-box.is-compact-2 .price-breakdown,
-.reservation-box.is-compact-2 .gv-total-inline{
+.reservation-box.is-compact-2 .brand-total-inline{
   font-size: calc(var(--fs-body) - 3px);
 }
 
@@ -423,19 +423,19 @@
 .reservation-box.is-compact-2 .choices__inner,
 .reservation-box.is-compact-2 .choices__list--single .choices__item{
   font-size: calc(var(--fs-body) - 2px);
-  min-height: var(--gv-field-h);
-  height: var(--gv-field-h);
-  padding: var(--gv-field-pad-y) var(--gv-field-pad-x);
+  min-height: var(--brand-field-h);
+  height: var(--brand-field-h);
+  padding: var(--brand-field-pad-y) var(--brand-field-pad-x);
 }
 
 /* Travelers aún más comprimido */
-.reservation-box.is-compact-2 .gv-travelers{
+.reservation-box.is-compact-2 .brand-travelers{
   --trav-row-font: calc(var(--fs-body) - 2px);
   --trav-label-font: calc(var(--fs-body) - 3px);
   --trav-btn-font: .8rem;
   --trav-input-w: 62px;  /* antes 68–72 */
 }
-.reservation-box.is-compact-2 .gv-trav-row .btn{
+.reservation-box.is-compact-2 .brand-trav-row .btn{
   min-width: 1.9rem;
   padding: .2rem .45rem;
 }

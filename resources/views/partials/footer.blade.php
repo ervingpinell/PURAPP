@@ -205,8 +205,6 @@
     <div class="small opacity-75 mt-1">
       Developed by
       <a href="https://github.com/ervingpinell" target="_blank" rel="noopener" class="text-white text-decoration-underline">Erving Pinell</a>
-      &amp;
-      <a href="https://github.com/AxlPaniagua" target="_blank" rel="noopener" class="text-white text-decoration-underline">Axel Paniagua</a>.
     </div>
   </div>
 </footer>

@@ -1,19 +1,19 @@
 {{-- ====== Date & Time + Pickup (Simplificado) ====== --}}
 @push('css')
 <style>
-    .gv-label-icon {
+    .brand-label-icon {
         display: flex;
         align-items: center;
         gap: .5rem;
         font-weight: 700
     }
 
-    .gv-label-icon i {
+    .brand-label-icon i {
         color: #30363c;
         line-height: 1
     }
 
-    .gv-label-icon span {
+    .brand-label-icon span {
         white-space: nowrap
     }
 
@@ -74,7 +74,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 <div class="row g-2">
     {{-- Fecha --}}
     <div class="col-12 col-sm-6">
-        <label class="form-label gv-label-icon mb-1">
+        <label class="form-label brand-label-icon mb-1">
             <i class="fas fa-calendar-alt" aria-hidden="true"></i>
             <span>{{ $tr('adminlte::adminlte.select_date','Selecciona una fecha') }}</span>
         </label>
@@ -91,7 +91,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 
     {{-- Horario --}}
     <div class="col-12 col-sm-6">
-        <label class="form-label gv-label-icon mb-1">
+        <label class="form-label brand-label-icon mb-1">
             <i class="fas fa-clock" aria-hidden="true"></i>
             <span>{{ $tr('adminlte::adminlte.select_time','Selecciona una hora') }}</span>
         </label>
@@ -113,7 +113,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 </div>
 
 {{-- Idioma --}}
-<label class="form-label gv-label-icon mt-2 mb-1" for="languageSelect">
+<label class="form-label brand-label-icon mt-2 mb-1" for="languageSelect">
     <i class="fas fa-language" aria-hidden="true"></i>
     <span>{{ $tr('adminlte::adminlte.select_language','Selecciona un idioma') }}</span>
 </label>
@@ -135,7 +135,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 
 {{-- Pickup Selection Mode --}}
 <div class="pickup-options mt-3">
-    <label class="form-label gv-label-icon mb-2">
+    <label class="form-label brand-label-icon mb-2">
         <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
         <span>{{ $tr('adminlte::adminlte.select_pickup_type', 'Preferencia de recogida') }}</span>
     </label>
@@ -164,7 +164,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 
     {{-- Hotel Section --}}
     <div class="pickup-section d-none" id="hotelSection">
-        <label class="form-label gv-label-icon mb-1" for="hotelSelect">
+        <label class="form-label brand-label-icon mb-1" for="hotelSelect">
             <i class="fas fa-shuttle-van" aria-hidden="true"></i>
             <span>{{ $tr('adminlte::adminlte.select_hotel','Hotel') }}</span>
         </label>
@@ -203,7 +203,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 
     {{-- Meeting point --}}
     <div class="pickup-section d-none" id="meetingPointSection">
-    <label class="form-label gv-label-icon mb-1" for="meetingPointSelect">
+    <label class="form-label brand-label-icon mb-1" for="meetingPointSelect">
         <i class="fas fa-location-dot" aria-hidden="true"></i>
         <span>{{ $tr('adminlte::adminlte.meetingPoint','Punto de encuentro') }}</span>
     </label>

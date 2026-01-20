@@ -910,7 +910,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 
 /* ===== Utilidades numéricas ===== */
 .currency-symbol{ font-weight:600; margin-right:2px; font-variant-numeric:tabular-nums; }
-.gv-total{ color: var(--primary-red); font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+.brand-total{ color: var(--primary-red); font-weight:700; text-decoration:underline; text-underline-offset:3px; }
 /* =========================
    MINI-CART – MOBILE XS (≤575px)
    ========================= */
@@ -1001,7 +1001,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 
 
 /* ===== Timer minimal ===== */
-.gv-timer {
+.brand-timer {
   background: linear-gradient(90deg, #fff7e6, #fff);
   border: 1px solid #ffe2b9;
   border-left: 6px solid #f0ad4e;
@@ -1011,13 +1011,13 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   max-width: 1100px;
 }
 
-.gv-timer-head {
+.brand-timer-head {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.gv-timer-icon {
+.brand-timer-icon {
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -1029,23 +1029,23 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   font-size: 22px;
 }
 
-.gv-timer-text {
+.brand-timer-text {
   flex: 1;
   line-height: 1.2;
 }
 
-.gv-timer-title {
+.brand-timer-title {
   font-weight: 700;
   font-size: 1.05rem;
   color: #8a5a00;
 }
 
-.gv-timer-sub {
+.brand-timer-sub {
   font-size: .95rem;
   color: #6c4a00;
 }
 
-.gv-timer-remaining {
+.brand-timer-remaining {
   display: inline-block;
   font-variant-numeric: tabular-nums;
   font-weight: 800;
@@ -1059,11 +1059,11 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   margin-left: 6px;
 }
 
-.gv-timer-btn {
+.brand-timer-btn {
   white-space: nowrap;
 }
 
-.gv-timer-bar {
+.brand-timer-bar {
   position: relative;
   height: 8px;
   background: #ffe7c4;
@@ -1072,7 +1072,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   margin-top: 10px;
 }
 
-.gv-timer-bar-fill {
+.brand-timer-bar-fill {
   position: absolute;
   left: 0;
   top: 0;
@@ -1084,19 +1084,19 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 
 /* --- Responsive tweaks --- */
 @media (max-width: 575.98px) {
-  .gv-timer {
+  .brand-timer {
     border-left-width: 5px;
     padding: 12px 12px 9px;
   }
-  .gv-timer-icon {
+  .brand-timer-icon {
     width: 42px;
     height: 42px;
     font-size: 20px;
   }
-  .gv-timer-title {
+  .brand-timer-title {
     font-size: 1rem;
   }
-  .gv-timer-remaining {
+  .brand-timer-remaining {
     font-size: 1.05rem;
   }
 }
@@ -1107,7 +1107,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   margin-right: 2px;
 }
 
-.gv-total {
+.brand-total {
   color: var(--primary-red);
   font-weight: 700;
   text-decoration: underline;

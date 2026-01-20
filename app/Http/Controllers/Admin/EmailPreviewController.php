@@ -333,7 +333,7 @@ class EmailPreviewController extends Controller
         // Create a mock ReviewReply
         $reply = new \App\Models\ReviewReply([
             'reply_text' => 'Thank you so much for your wonderful feedback! We are thrilled to hear you enjoyed the tour. We look forward to welcoming you again soon!',
-            'admin_name' => 'Green Vacations Team',
+            'admin_name' => 'Admin Team',
         ]);
 
         $reply->setRelation('review', $review);

@@ -106,7 +106,7 @@ return [
     'all_policies' => 'Todas nuestras políticas',
     'cancellation_and_refunds_policies' => 'Políticas de cancelación y reembolso',
     'reports' => 'Reportes',
-    'footer_text' => config('app.name', 'Green Vacations CR'),
+    'footer_text' => config('app.name', 'Company Name'),
     'quick_links' => 'Enlaces rápidos',
     'rights_reserved' => 'Todos los derechos reservados',
 
@@ -308,7 +308,7 @@ return [
     'location' => 'San José, Costa Rica',
 
     // 13. WHATSAPP
-    'whatsapp_title' => config('app.name', 'Green Vacations CR'),
+    'whatsapp_title' => config('app.name', 'Company Name'),
     'whatsapp_subtitle' => 'Normalmente responde al instante',
     'whatsapp_attention_schedule' => 'Lunes a domingo, de 7:30 a.m. a 7:30 p.m. (GMT-6)',
     'whatsapp_attention_language' => 'Atención solo en español e inglés',

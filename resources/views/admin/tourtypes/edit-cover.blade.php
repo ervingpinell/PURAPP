@@ -3,17 +3,17 @@
 @push('css')
 <style>
       /* ===== Header mejorado ===== */
-  .gv-header {
+  .brand-header {
     background: linear-gradient(135deg, rgba(13,110,253,.06), rgba(13,110,253,.02));
     border:1px solid var(--border);
     box-shadow: var(--shadow);
     border-radius: var(--radius);
     padding: .9rem 1rem;
   }
-  .gv-title {
+  .brand-title {
     display:flex; flex-wrap:wrap; gap:.5rem; align-items:flex-end;
   }
-  .gv-title h1 {
+  .brand-title h1 {
     font-size: clamp(1.05rem, 2.2vw, 1.35rem);
     margin:0;
   }
@@ -22,15 +22,15 @@
 @section('title', __('m_tours.image.cover_updated_title'))
 
 @section('content_header')
-  <div class="gv-header">
-    <div class="gv-title">
+  <div class="brand-header">
+    <div class="brand-title">
       <h1>
         <i class="fas fa-star me-2 text-primary"></i>
         {{ __('m_tours.image.cover_updated_title') }}
       </h1>
     </div>
     @isset($tourType)
-      <div class="gv-sub mt-1">
+      <div class="brand-sub mt-1">
         {{ $tourType->name }} • {{ __('m_tours.image.ui.id_label') }}: {{ $tourType->tour_type_id }}
       </div>
     @endisset

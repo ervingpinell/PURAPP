@@ -58,7 +58,7 @@ class BookingCreatedAdminMail extends Mailable implements ShouldQueue
         $replyTo = config('mail.reply_to.address');
 
         $fromAddress = config('mail.from.address');
-        $fromName    = config('mail.from.name', config('app.name', 'Green Vacations CR'));
+        $fromName    = config('mail.from.name', config('app.name', 'Company Name'));
 
         return $this
             ->locale($this->mailLocale)

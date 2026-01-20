@@ -7,18 +7,18 @@ return ($t === $key) ? $fallback : $t;
 };
 @endphp
 
-<div class="mb-3 gv-travelers"
+<div class="mb-3 brand-travelers"
     data-categories='@json($categoriesData)'
     data-max-total="{{ $maxPersonsGlobal }}"
     data-i18n='@json($travI18n)'>
 
     {{-- Contenedor de categorías (vacío hasta seleccionar fecha) --}}
-    <div class="gv-trav-rows mt-2" id="categoriesContainer">
+    <div class="brand-trav-rows mt-2" id="categoriesContainer">
         {{-- Las categorías se insertarán aquí dinámicamente SOLO después de seleccionar fecha --}}
     </div>
 
     {{-- Total (oculto hasta que haya categorías) --}}
-    <div class="gv-total-inline mt-3 p-2 bg-light border rounded d-none" id="totalSection">
+    <div class="brand-total-inline mt-3 p-2 bg-light border rounded d-none" id="totalSection">
         <div class="d-flex justify-content-between align-items-center mb-1">
             <span class="fw-bold">{{ __('adminlte::adminlte.total') }}:</span>
             <strong id="reservation-total-price-inline" class="text-success fs-5">$0.00</strong>
@@ -40,7 +40,7 @@ return ($t === $key) ? $fallback : $t;
         if (window.__gvTravelersInit) return;
         window.__gvTravelersInit = true;
 
-        const container = document.querySelector('.gv-travelers');
+        const container = document.querySelector('.brand-travelers');
         if (!container) return;
 
         // ===== i18n =====
@@ -93,7 +93,7 @@ return ($t === $key) ? $fallback : $t;
             const icon = getCategoryIcon(cat.slug);
 
             const row = document.createElement('div');
-            row.className = 'gv-trav-row d-flex align-items-center justify-content-between p-2 border-bottom';
+            row.className = 'brand-trav-row d-flex align-items-center justify-content-between p-2 border-bottom';
             row.setAttribute('data-category-id', cat.id);
             row.setAttribute('data-category-slug', cat.slug);
 

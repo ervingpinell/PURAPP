@@ -475,8 +475,8 @@ return [
     // =========================================================
     'reports' => [
         'excel_title'          => 'Exportation des réservations',
-        'pdf_title'            => 'Rapport de réservations - Green Vacations CR',
-        'general_report_title' => 'Rapport général de réservations - Green Vacations Costa Rica',
+        'pdf_title'            => 'Rapport de réservations - ' . config('company.short_name') . '',
+        'general_report_title' => 'Rapport général de réservations - ' . config('company.name') . '',
         'download_pdf'         => 'Télécharger le PDF',
         'export_excel'         => 'Exporter en Excel',
         'coupon'               => 'Coupon',
@@ -499,7 +499,7 @@ return [
     // =========================================================
     'receipt' => [
         'title'         => 'Reçu de réservation',
-        'company'       => 'Green Vacations CR',
+        'company'       => '' . config('company.short_name') . '',
         'code'          => 'Code',
         'client'        => 'Client',
         'tour'          => 'Excursion',

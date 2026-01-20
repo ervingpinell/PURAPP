@@ -109,7 +109,7 @@ class ReviewReplyController extends Controller
 
             // Definir nombre de quien responde (User pidió usar Company Name)
             // Se usa config o string fijo
-            $adminName = config('app.name', 'Green Vacations CR');
+            $adminName = config('app.name', 'Company Name');
 
             // Resolver nombre del tour TRADUCIDO
             // 1. Intentar traducción con el locale detectado

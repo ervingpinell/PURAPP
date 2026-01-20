@@ -53,7 +53,7 @@ $rulesPayload = [
 @endphp
 
 <form action="{{ route('carrito.agregar', $tour->tour_id) }}" method="POST"
-  class="reservation-box gv-ui p-3 shadow-sm rounded bg-white mb-4 border"
+  class="reservation-box brand-ui p-3 shadow-sm rounded bg-white mb-4 border"
   data-adult-price="{{ $tour->adult_price }}"
   data-kid-price="{{ $tour->kid_price }}">
   @csrf
@@ -70,7 +70,7 @@ $rulesPayload = [
           {{ __('adminlte::adminlte.auth_required_body') ?? 'Inicia sesión o regístrate para completar tu compra. Los campos se desbloquean al iniciar sesión.' }}
         </div>
       </div>
-      <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="btn btn-success gv-cta w-100 mt-3">
+      <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="btn btn-success brand-cta w-100 mt-3">
         <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.login_now') }}
       </a>
     </div>
@@ -119,7 +119,7 @@ $rulesPayload = [
         </button>
 
         {{-- Total + desglose debajo del selector de personas --}}
-        <div class="gv-total-inline small mt-2">
+        <div class="brand-total-inline small mt-2">
           <div class="d-flex justify-content-between">
             <span>{{ __('adminlte::adminlte.total') }}:</span>
             <strong id="reservation-total-price-inline">$0.00</strong>
@@ -200,11 +200,11 @@ $rulesPayload = [
 
   {{-- CTA --}}
   @auth
-  <button id="addToCartBtn" type="button" class="btn btn-success gv-cta w-100 mt-3">
+  <button id="addToCartBtn" type="button" class="btn btn-success brand-cta w-100 mt-3">
     <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.add_to_cart') }}
   </button>
   @else
-  <a href="{{ route('login') }}" class="btn btn-success gv-cta w-100 mt-3"
+  <a href="{{ route('login') }}" class="btn btn-success brand-cta w-100 mt-3"
     onclick="return askLoginWithSwal(event, this.href);">
     <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.add_to_cart') }}
   </a>
@@ -240,14 +240,14 @@ $rulesPayload = [
     opacity: .5;
   }
 
-  .gv-total-inline {
+  .brand-total-inline {
     background: #f8fafb;
     border: 1px dashed #e2e8f0;
     border-radius: .5rem;
     padding: .5rem .75rem;
   }
 
-  .gv-total-inline strong {
+  .brand-total-inline strong {
     font-weight: 700;
   }
 </style>
