@@ -45,6 +45,7 @@ return [
         'view_details'       => 'Ver detalhes',
         'edit'               => 'Alterar data ou participantes',
         'close'              => 'Fechar',
+                'accept_terms'       => 'Aceitar termos e condições',
     ],
 
     'summary' => [

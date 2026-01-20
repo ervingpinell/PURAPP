@@ -220,7 +220,7 @@
                             {{ __('m_checkout.panels.required_read_accept') }}
                         </div>
                         <button type="button" class="btn btn-primary" id="btn-accept-terms" disabled data-bs-dismiss="modal">
-                            {{ __('m_checkout.buttons.close') }} & {{ __('payment.pay') }}
+                            {{ __('m_checkout.buttons.accept_terms') }} & {{ __('payment.pay') }}
                         </button>
                     </div>
                 </div>

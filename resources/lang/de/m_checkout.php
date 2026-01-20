@@ -42,9 +42,10 @@ return [
     'buttons' => [
         'back'               => 'Zurück',
         'go_to_payment'      => 'Zur Zahlung',
-        'view_details'       => 'Details anzeigen',
+        'view_details'       => 'Details anzeigen', 
         'edit'               => 'Datum oder Teilnehmende ändern',
         'close'              => 'Schließen',
+        'accept_terms'       => 'Akzeptiere die Bedingungen',
     ],
 
     'summary' => [

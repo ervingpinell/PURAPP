@@ -45,6 +45,7 @@ return [
         'view_details'       => 'View details',
         'edit'               => 'Change date or participants',
         'close'              => 'Close',
+        'accept_terms'       => 'Accept terms and conditions',
     ],
 
     'summary' => [
