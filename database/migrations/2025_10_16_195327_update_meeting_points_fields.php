@@ -20,12 +20,8 @@ return new class extends Migration
                 ->after('pickup_time');
         });
 
-        // 2️⃣ Copiar datos existentes de address → description usando Eloquent
-        \App\Models\MeetingPoint::chunk(100, function ($points) {
-            foreach ($points as $point) {
-                $point->update(['description' => $point->address]);
-            }
-        });
+        // 2️⃣ Copiar datos existentes de address → description usando SQL directo
+        DB::statement('UPDATE meeting_points SET description = address');
 
         // 3️⃣ Eliminar la columna antigua
         Schema::table('meeting_points', function (Blueprint $table) {
@@ -48,12 +44,8 @@ return new class extends Migration
                 ->after('pickup_time');
         });
 
-        // 2️⃣ Copiar datos de description → address usando Eloquent
-        \App\Models\MeetingPoint::chunk(100, function ($points) {
-            foreach ($points as $point) {
-                $point->update(['address' => $point->description]);
-            }
-        });
+        // 2️⃣ Copiar datos de description → address usando SQL directo
+        DB::statement('UPDATE meeting_points SET address = description');
 
         // 3️⃣ Eliminar la columna description
         Schema::table('meeting_points', function (Blueprint $table) {

@@ -22,7 +22,7 @@ return new class extends Migration
         });
 
         // Migrate existing data
-        $users = \App\Models\User::all();
+        $users = \DB::table('users')->get();
         foreach ($users as $user) {
             $parts = explode(' ', $user->full_name, 2);
             $first_name = $parts[0] ?? '';
@@ -35,6 +35,7 @@ return new class extends Migration
                 'last_name' => $last_name
             ]);
         }
+
 
         // Remove nullable constraint if desired, but for now we keep them nullable or make them non-nullable
         // Let's make them non-nullable now that we populated them
@@ -55,7 +56,7 @@ return new class extends Migration
         });
 
         // Restore full_name
-        $users = \App\Models\User::all();
+        $users = \DB::table('users')->get();
         foreach ($users as $user) {
             $full_name = trim($user->first_name . ' ' . $user->last_name);
             \DB::table('users')->where('user_id', $user->user_id)->update([

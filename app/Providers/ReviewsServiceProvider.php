@@ -13,6 +13,11 @@ class ReviewsServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(ReviewAggregator::class, function ($app) {
+            // Evitar error en migración inicial si la tabla no existe
+            if (!\Illuminate\Support\Facades\Schema::hasTable('review_providers')) {
+                return new ReviewAggregator();
+            }
+
             $sources = [];
 
             // Local (BD)
