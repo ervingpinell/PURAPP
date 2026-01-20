@@ -34,7 +34,7 @@ $startsOpen = false; // Widget inicia cerrado
           <i class="fab fa-whatsapp" style="font-size:22px;color:#25D366;"></i>
         </div>
         <div>
-          <strong>{{ __('adminlte::adminlte.whatsapp_title') }} WhatsApp</strong><br>
+          <strong>{{ config('company.short_name') }} WhatsApp</strong><br>
           <small>{{ __('adminlte::adminlte.whatsapp_subtitle') }}</small>
         </div>
       </div>
