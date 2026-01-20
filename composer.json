@@ -1,10 +1,10 @@
 {
   "$schema": "https://getcomposer.org/schema.json",
-  "name": "laravel/livewire-starter-kit",
+  "name": "purapp/purapp",
   "type": "project",
-  "description": "The official Laravel starter kit for Livewire.",
-  "keywords": ["laravel", "framework"],
-  "license": "MIT",
+  "description": "PURAPP - ERP Multi-Tenant System for Tour Operators",
+  "keywords": ["purapp", "tour-operator", "erp", "multi-tenant", "saas"],
+  "license": "proprietary",
   "require": {
     "php": "^8.3",
     "ext-pdo_pgsql": "*",
