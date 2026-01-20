@@ -65,7 +65,9 @@ return [
         'saving' => 'Guardando...',
         'network_error' => 'Error de red',
         'custom' => 'Personalizado',
-
+        'back_to_list' => 'Volver a la lista',
+        'deleted_at' => 'Fecha de eliminación',
+        'deleted_by' => 'Eliminado por',
     ],
 
     // =========================================================
@@ -442,6 +444,9 @@ return [
         'ui' => [
             'page_title'    => 'Itinerarios y Ítems',
             'page_heading'  => 'Itinerarios y Gestión de Ítems',
+            'table' => [
+                'name' => 'Nombre',
+            ],
             'new_itinerary' => 'Nuevo Itinerario',
             'translations_updated' => 'Traducción actualizada',
             'select_or_create_hint' => 'Selecciona un itinerario existente o crea uno nuevo para este tour.',

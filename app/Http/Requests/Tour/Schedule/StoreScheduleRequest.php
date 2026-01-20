@@ -28,7 +28,13 @@ class StoreScheduleRequest extends FormRequest
     {
         return [
             'tour_id'       => ['nullable', 'exists:tours,tour_id'],
-            'start_time'    => ['required', 'date_format:H:i'],
+            'start_time'    => [
+                'required',
+                'date_format:H:i',
+                \Illuminate\Validation\Rule::unique('schedules')->where(function ($query) {
+                    return $query->where('end_time', $this->normalizeTime($this->input('end_time')));
+                })
+            ],
             'end_time'      => ['required', 'date_format:H:i', 'after:start_time'],
             'label'         => ['nullable', 'string', 'max:255'],
             'base_capacity' => ['nullable', 'integer', 'min:1', 'max:999'], // CAMBIADO: ahora es opcional

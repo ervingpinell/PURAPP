@@ -65,6 +65,9 @@ return [
         'saving' => 'Saving...',
         'network_error' => 'Network error',
         'custom' => 'Custom',
+        'back_to_list' => 'Back to list',
+        'deleted_at' => 'Deleted At',
+        'deleted_by' => 'Deleted By',
     ],
 
     // =========================================================
@@ -428,6 +431,9 @@ return [
         'ui' => [
             'page_title'    => 'Itineraries and Items',
             'page_heading'  => 'Itineraries and Item Management',
+            'table' => [
+                'name' => 'Name',
+            ],
             'new_itinerary' => 'New Itinerary',
             'select_or_create_hint' => 'Select an existing itinerary or create a new one for this tour.',
             'save_changes'          => 'Save the itinerary to apply the changes to the tour.',

@@ -64,6 +64,9 @@ return [
         'saving' => 'Enregistrement...',
         'network_error' => 'Erreur réseau',
         'custom' => 'Personnalisé',
+        'back_to_list' => 'Retour à la liste',
+        'deleted_at' => 'Date de suppression',
+        'deleted_by' => 'Supprimé par',
     ],
 
     // =========================================================
@@ -426,6 +429,9 @@ return [
         'ui' => [
             'page_title'    => 'Itinéraires et éléments',
             'page_heading'  => 'Itinéraires et gestion des éléments',
+            'table' => [
+                'name' => 'Nom',
+            ],
             'new_itinerary' => 'Nouvel itinéraire',
             'select_or_create_hint' => 'Sélectionnez un itinéraire existant ou créez-en un nouveau pour ce tour.',
             'save_changes'          => 'Enregistrez l’itinéraire pour appliquer les modifications au tour.',

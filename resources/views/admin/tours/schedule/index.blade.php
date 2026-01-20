@@ -481,6 +481,9 @@
                 <select name="schedule_id" class="form-select" required>
                   <option value="" disabled selected>— {{ __('m_tours.schedule.ui.choose') }} —</option>
                   @foreach($generalSchedules as $opt)
+                  @if($tour->schedules->contains('schedule_id', $opt->schedule_id))
+                    @continue
+                  @endif
                   <option value="{{ $opt->schedule_id }}">
                     {{ \Carbon\Carbon::createFromTimeString($opt->start_time)->format('g:i A') }}
                     –

@@ -65,6 +65,9 @@ return [
         'saving' => 'Speichere...',
         'network_error' => 'Netzwerkfehler',
         'custom' => 'Benutzerdefiniert',
+        'back_to_list' => 'Zurück zur Liste',
+        'deleted_at' => 'Gelöscht am',
+        'deleted_by' => 'Gelöscht von',
     ],
 
     // =========================================================
@@ -422,6 +425,9 @@ return [
         'ui' => [
             'page_title'    => 'Reisepläne und Elemente',
             'page_heading'  => 'Reisepläne und Elementverwaltung',
+            'table' => [
+                'name' => 'Name',
+            ],
             'new_itinerary' => 'Neuer Reiseplan',
             'select_or_create_hint' => 'Wählen Sie einen vorhandenen Reiseplan oder erstellen Sie einen neuen für diese Tour.',
             'save_changes'          => 'Speichern Sie den Reiseplan, um die Änderungen auf die Tour anzuwenden.',

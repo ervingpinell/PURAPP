@@ -363,13 +363,13 @@ return [
                     'can'   => 'view-tour-availability',
                     'trans' => true,
                 ],
-                [
-                    'text'  => 'menu.capacity',
-                    'route' => 'admin.tours.capacity.index',
-                    'icon'  => 'fas fa-calendar-alt',
-                    'can'   => 'view-tour-availability',
-                    'trans' => true,
-                ],
+                // [
+                //     'text'  => 'menu.capacity',
+                //     'route' => 'admin.tours.capacity.index',
+                //     'icon'  => 'fas fa-calendar-alt',
+                //     'can'   => 'view-tour-availability',
+                //     'trans' => true,
+                // ],
                 [
                     'text'  => 'menu.cutoff',
                     'route' => 'admin.tours.cutoff.edit',
@@ -561,13 +561,13 @@ return [
                     'can'   => 'view-policies', // Added permission
                     'trans' => true,
                 ],
-                [
-                    'text'  => 'menu.translations',
-                    'route' => 'admin.translations.index',
-                    'icon'  => 'fas fa-language',
-                    'can'   => 'view-translations', // Added permission
-                    'trans' => true,
-                ],
+                // [
+                //     'text'  => 'menu.translations',
+                //     'route' => 'admin.translations.index',
+                //     'icon'  => 'fas fa-language',
+                //     'can'   => 'view-translations', // Added permission
+                //     'trans' => true,
+                // ],
                 [
                     'text'  => 'menu.app',
                     'route' => 'admin.settings.index',
