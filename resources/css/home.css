@@ -60,8 +60,8 @@
 
 /* ---------- BOTÓN PRIMARIO ---------- */
 .btn-primary {
-    background-color: var(--primary-color);
-    color: var(--white);
+    background-color: var(--color-button-primary);
+    color: var(--text-light);
     padding: 12px 30px;
     border-radius: 30px;
     font-weight: 600;
@@ -77,7 +77,7 @@
 
 /* ---------- SECCIÓN TOURS / CARDS ---------- */
 .tours-section {
-    background: var(--white);
+    background: var(--text-light);
     text-align: center;
     padding: 3rem 1rem 0;
 }
@@ -132,7 +132,7 @@
     color: #fff;
     width: 100%;
     box-sizing: border-box;
-    background-color: var(--primary-red);
+    background-color: var(--color-card-accent);
     padding: 0.5em 0.9em;
     border-radius: var(--border-radius);
     text-align: center;
@@ -187,7 +187,7 @@
 
 /* botón */
 .btn-ver-tour {
-    color: var(--white);
+    color: var(--text-light);
     border: none;
     padding: 0.7rem 1.2rem;
     border-radius: 25px;
@@ -197,10 +197,10 @@
     width: 100%;
     margin-top: auto;
     font-size: var(--fs-sm);
-    background-color: #2c6e49;
+    background-color: var(--color-page-title);
 }
 .btn-ver-tour:hover {
-    background-color: #256d1b;
+    background-color: var(--color-button-primary);
     transform: scale(1.05);
 }
 
@@ -239,7 +239,7 @@
   font-weight:700;
   margin-bottom:.25rem;
   color:#fff;
-  background:var(--primary-red);
+  background:var(--color-card-accent);
   padding:.35rem .45rem;
   border-radius:.4rem;
   white-space:normal;
@@ -325,7 +325,7 @@
 /* ---------- TIPOGRAFÍA / TITULARES ---------- */
 .big-title {
     font-size: var(--fs-h2);
-    color: #256d1b;
+    color: var(--color-button-primary);
     margin-bottom: 2rem;
     font-weight: 700;
     text-align: center;
@@ -566,7 +566,7 @@
 @media (min-width: 768px) and (max-width: 991.98px) {
     .big-title {
         font-size: var(--fs-h3);
-        color: #256d1b;
+        color: var(--color-button-primary);
         margin-top: 2rem;
         margin-bottom: 2rem;
         font-weight: 700;
@@ -623,7 +623,7 @@
         height: 150px;
     }
     .tour-modal-card .card-title {
-        background: var(--primary-red);
+        background: var(--color-card-accent);
         color: #fff;
         font-size: var(--fs-sm);
         padding: 0.3rem 0.5rem;
@@ -661,7 +661,7 @@
 }
 
 .badge-duration {
-    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    background: var(--color-card-accent);
     color: white;
     padding: 0.35rem 0.75rem;
     border-radius: 20px;
@@ -703,7 +703,7 @@
     font-size: 1.1rem;
     font-weight: 700;
     color: white;
-    background: var(--primary-red);
+    background: var(--color-card-accent);
     padding: 0.4rem 0.6rem;
     border-radius: 6px;
     margin-bottom: 0.25rem;
@@ -731,7 +731,7 @@
 .tour-price-main {
     font-size: 1.5rem;
     font-weight: 800;
-    color: #006633;
+    color: var(--color-page-title);
     flex-shrink: 0;
     display: none; /* Ocultar precio principal */
 }
@@ -789,28 +789,15 @@
 .category-price {
     font-size: 1rem;
     font-weight: 700;
-    color: #006633;
+    color: var(--color-page-title);
     flex-shrink: 0;
     margin-left: 1rem;
 }
 
 /* === Botón CTA === */
-.btn-tour-cta {
-    background: linear-gradient(135deg, #2c6e49 0%, #1f4d32 100%);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-top: auto;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    display: block;
-}
 
 .btn-tour-cta:hover {
-    background: linear-gradient(135deg, #1f4d32 0%, #163a24 100%);
+    background: var(--color-button-primary-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(44, 110, 73, 0.3);
     color: white;

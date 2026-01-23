@@ -27,13 +27,13 @@
 }
 #tourCarousel .carousel-control-prev-icon,
 #tourCarousel .carousel-control-next-icon{
-  background-color:#256D1B; border-radius:50%;
+  background-color: var(--color-page-title); border-radius:50%;
   width:2.6rem; height:2.6rem; background-size:1.35rem 1.35rem;
   box-shadow:0 4px 10px rgba(0,0,0,.25);
 }
 #tourCarousel .carousel-control-prev:hover .carousel-control-prev-icon,
 #tourCarousel .carousel-control-next:hover .carousel-control-next-icon{
-  background-color:#60A862;
+  background-color:var(--color-button-primary);
 }
 
 /* Indicadores (solo móvil en blade) */

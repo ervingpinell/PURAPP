@@ -1,11 +1,11 @@
 /* POLICIES — página de políticas */
 :root {
     /* se apoya en variables globales ya definidas en tu tema */
-    --p-heading: var(--gv-green, #256d1b);
-    --p-muted: var(--gv-muted, #6b7280);
-    --p-border: var(--gv-border, #d9d9d9);
-    --p-shadow: var(--gv-shadow, 0 6px 24px rgba(0, 0, 0, 0.06));
-    --p-bg: #fff;
+    --p-heading: var(--color-button-primary);
+    --p-muted: var(--text-muted);
+    --p-border: var(--border-color);
+    --p-shadow: var(--shadow-lg);
+    --p-bg: var(--bg-white);
 }
 
 .policies-page {
@@ -81,7 +81,7 @@
     height: 28px;
     border-radius: 999px;
     border: 1px solid var(--p-border);
-    color: var(--gv-green, #1a5229);
+    color: var(--color-page-title, #1a5229);
     background: #fff;
     flex: 0 0 28px;
 }
@@ -200,7 +200,7 @@
     flex: 0 0 28px;
     border-radius: 999px;
     border: 1px solid var(--p-border, #d9d9d9);
-    color: var(--gv-green, #1a5229);
+    color: var(--color-page-title, #1a5229);
     background: #fff;
 }
 .policy-sections .accordion-button[aria-expanded="true"] .fa-plus {

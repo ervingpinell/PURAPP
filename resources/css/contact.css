@@ -1,25 +1,36 @@
 /* =========================
-   CONTACT.CSS — Sección contacto
+   CONTACT.CSS — Sección contacto (simplificado)
    ========================= */
 
-:root{
-  /* Si tienes variables globales en app.css, se usan; si no, fallback */
-  --contact-body:   var(--fs-body, 15px);
-  --contact-sm:     var(--fs-sm,   13.5px);
-  --contact-xs:     var(--fs-xs,   12px);
-  --contact-h5:     var(--fs-h5,   17px);
-  --contact-h6:     var(--fs-h6,   15px);
 
-  --contact-green:     #1A5229;
-  --contact-green-600:  #2c6e49;
-  --contact-green-700:  #1a5a18;
-  --contact-green-soft: #eaf4ea;
+/* === Botón CTA Global === */
+.btn-contact {
+  background: var(--color-tab-primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+}
 
-  --contact-border: #dcdcdc;
-  --contact-muted:  #6b7280;
+.btn-contact:hover,
+.btn-contact:focus {
+  background: var(--color-button-secondary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 110, 73, 0.3);
+  color: white;
+  text-decoration: none;
+}
 
-  --contact-radius: 12px;
-  --contact-shadow: 0 8px 20px rgba(0,0,0,.06);
+.btn-contact:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(44, 110, 73, 0.3);
 }
 
 /* Sección más compacta */
@@ -27,7 +38,7 @@
   padding-top: clamp(16px, 1.5vw, 28px);
   padding-bottom: clamp(16px, 1.5vw, 28px);
 }
-
+ 
 /* Contenedor más estrecho en desktop */
 .contact-section .container{
   max-width: 1000px;
@@ -35,58 +46,58 @@
 
 /* Cards */
 .contact-section .card{
-  border-radius: var(--contact-radius);
-  box-shadow: var(--contact-shadow);
-  border: 1px solid var(--contact-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-light);
   overflow: hidden;
 }
 
 .contact-section .card-header{
-  background: var(--contact-green);
+  background: var(--color-tab-primary);
   color: #fff;
   padding: .6rem .9rem;
 }
 .contact-section .card-header h4{
   margin: 0;
-  font-size: var(--contact-h6);
+  font-size: var(--fs-h6);
   line-height: 1.2;
   font-weight: 700;
 }
 
 /* Tipografía general compacta */
 .contact-section .card-body{
-  font-size: var(--contact-body);
+  font-size: var(--fs-body);
 }
 .contact-section .card-body h4,
 .contact-section .card-body h5{
-  font-size: var(--contact-h6);
+  font-size: var(--fs-h6);
   line-height: 1.25;
   margin-bottom: .6rem;
 }
 .contact-section .card-body p,
 .contact-section .card-body li{
-  font-size: var(--contact-body);
+  font-size: var(--fs-body);
   line-height: 1.45;
   margin-bottom: .4rem;
 }
-.contact-section .card-body .text-success{ color: var(--contact-green-600) !important; }
+.contact-section .card-body .text-success{ color: var(--color-button-primary) !important; }
 
 /* Labels compactos */
 .contact-section .form-label{
-  font-size: var(--contact-sm);
+  font-size: var(--fs-sm);
   font-weight: 600;
   margin-bottom: .35rem;
 }
 
 /* Inputs compactos (sin -lg) */
 .contact-section .form-control{
-  font-size: var(--contact-body);
+  font-size: var(--fs-body);
   padding: .5rem .75rem;
   border-radius: .5rem;
-  border: 1px solid var(--contact-border);
+  border: 1px solid var(--border-light);
 }
 .contact-section .form-control.form-control-lg{
-  font-size: var(--contact-body);
+  font-size: var(--fs-body);
   padding: .5rem .75rem;
   height: auto;
 }
@@ -97,7 +108,7 @@
 
 /* Estados */
 .contact-section .form-control:focus{
-  border-color: var(--contact-green-600);
+  border-color: var(--color-page-title);
   box-shadow: 0 0 0 .2rem rgba(26, 77, 46, .18);
 }
 .contact-section .is-invalid{
@@ -105,35 +116,35 @@
   box-shadow: none;
 }
 .contact-section .invalid-feedback{
-  font-size: var(--contact-xs);
+  font-size: var(--fs-xs);
   margin-top: .25rem;
 }
 
 /* Botón principal */
 .contact-section .btn-success.bg-green-dark{
-  background: var(--contact-green);
-  border-color: var(--contact-green);
+  background: var(--color-page-title);
+  border-color: var(--color-page-title);
 }
 .contact-section .btn-success{
-  font-size: var(--contact-sm);
+  font-size: var(--fs-sm);
   font-weight: 700;
   padding: .55rem .9rem;
   border-radius: .5rem;
 }
 .contact-section .btn-success:hover{
-  background: var(--contact-green-700);
-  border-color: var(--contact-green-700);
+  background: var(--color-page-title);
+  border-color: var(--color-page-title);
   transform: translateY(-1px);
 }
 
 /* Tarjeta de info lateral */
 .contact-section .card.bg-light{
   background: #f7faf7 !important;
-  border-color: var(--contact-border) !important;
+  border-color: var(--border-light) !important;
 }
 .contact-section .card.bg-light .badge.bg-success{
-  background: var(--contact-green) !important;
-  font-size: var(--contact-sm) !important;
+  background: var(--color-page-title) !important;
+  font-size: var(--fs-sm) !important;
   padding: .35rem .6rem;
   border-radius: .45rem;
 }
@@ -141,10 +152,10 @@
 /* Íconos + enlaces más sutiles */
 .contact-section .card.bg-light i{ opacity: .9; }
 .contact-section .card.bg-light a{
-  color: var(--contact-green-600);
+  color: var(--color-page-title);
   text-decoration: underline;
   text-underline-offset: 2px;
-  font-size: var(--contact-body);
+  font-size: var(--fs-body);
 }
 
 /* Mapa */
@@ -156,11 +167,11 @@
 
 /* Widget de WhatsApp inline (si existe) */
 .contact-section .btn.btn-outline-success{
-  --bs-btn-color: var(--contact-green-600);
-  --bs-btn-border-color: var(--contact-green-600);
-  --bs-btn-hover-bg: var(--contact-green);
-  --bs-btn-hover-border-color: var(--contact-green-600);
-  font-size: var(--contact-sm);
+  --bs-btn-color: var(--color-page-title);
+  --bs-btn-border-color: var(--color-page-title);
+  --bs-btn-hover-bg: var(--color-page-title);
+  --bs-btn-hover-border-color: var(--color-page-title);
+  font-size: var(--fs-sm);
   padding: .45rem .75rem;
   border-radius: .5rem;
 }
@@ -173,15 +184,15 @@
 @media (max-width: 575.98px){
   .contact-section{ padding-top: 1rem; padding-bottom: 1rem; }
   .contact-section .card-header{ padding: .5rem .75rem; }
-  .contact-section .card-header h4{ font-size: var(--contact-body); }
+  .contact-section .card-header h4{ font-size: var(--fs-body); }
   .contact-section .card-body{ padding: .75rem; }
-  .contact-section .form-label{ font-size: var(--contact-sm); margin-bottom: .25rem; }
-  .contact-section .form-control{ font-size: var(--contact-sm); padding: .45rem .65rem; }
+  .contact-section .form-label{ font-size: var(--fs-sm); margin-bottom: .25rem; }
+  .contact-section .form-control{ font-size: var(--fs-sm); padding: .45rem .65rem; }
   .contact-section textarea.form-control{ min-height: 90px; }
-  .contact-section .btn-success{ font-size: var(--contact-sm); padding: .5rem .8rem; }
-  .contact-section .card.bg-light .badge.bg-success{ font-size: var(--contact-xs) !important; padding: .3rem .55rem; }
+  .contact-section .btn-success{ font-size: var(--fs-sm); padding: .5rem .8rem; }
+  .contact-section .card.bg-light .badge.bg-success{ font-size: var(--fs-xs) !important; padding: .3rem .55rem; }
   .contact-section .mb-3{ margin-bottom: .75rem !important; }
 }
 
 /* (Opcional) Utilidad por si no existiera en tu CSS global */
-.bg-green-dark{ background: var(--contact-green) !important; }
+.bg-green-dark{ background: var(--color-page-title) !important; }

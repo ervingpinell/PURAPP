@@ -6,15 +6,62 @@
 :root{
   --nav-h: 64px;
 
-  /* Colores base */
-  --primary-color:#60a862;
-  --primary-dark:#256d1b;
-  --primary-header:#0f2419;
-  --primary-red:#e74c3c;
-  --text-dark:#333;
-  --white:#fff;
+  /* ===== PALETA DE COLORES SIMPLIFICADA ===== */
+  
+  /* Títulos de Página */
+  --color-page-title: #2c6e49;          /* Para big-title y títulos principales */
+  
+  /* Botones y Acciones */
+  --color-button-primary: #256d1b;      /* Botones de aceptación/verdes */
+  --color-button-primary-hover: #1d5315; /* Hover de botones (más oscuro) */
+  --color-button-secondary: #2c6e49;    /* Botones secundarios/verdes */
+  --color-button-secondary-hover: #3a8f5f; /* Hover de botones secundarios (más claro y vibrante) */
+  --color-tab-primary: #1a5229;
+  /* Backgrounds y Bordes */
+  --color-surface-dark: #0f2419;        /* Backgrounds de modales, header, footer, bordes */
+  
+  /* Cards y Badges */
+  --color-card-accent: #e74c3c;         /* Background de títulos en cards */
+  --price-color: #e74c3c;
+  --alert-background: #ffe69c;
+  /* Enlaces y Texto */
+  --color-link: #fff;                   /* Nav links y footer links */
+  --color-link-hover: #8bc34a;          /* Hover para todos los enlaces */
+  --color-text-on-accent: #fff;         /* Texto sobre backgrounds de acento */
+  
+  /* Backgrounds de Cards */
+  --theme-card-background: #fff;        /* Background de cards (independiente del color del título) */
 
-  /* Tipografía global responsiva (escala compacta) */
+  /* ===== COLORES DE TEXTO ===== */
+  --text-dark: #333;
+  --text-muted: #6b7280;
+  --text-light: #fff;
+  --text-primary: var(--color-button-primary);
+  --text-secondary: var(--color-button-secondary);
+
+  /* ===== COLORES DE FONDO ===== */
+  --bg-white: #fff;
+  --bg-light: #f9fafb;
+  --bg-soft: #f7faf7;
+
+  /* ===== BORDES Y SEPARADORES ===== */
+  --border-color: #d9d9d9;
+  --border-light: #dcdcdc;
+  --border-gray: #e5e7eb;
+
+  /* ===== SOMBRAS ===== */
+  --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-md: 0 6px 18px rgba(0,0,0,.08);
+  --shadow-lg: 0 6px 24px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 8px 20px rgba(0,0,0,.06);
+
+  /* ===== RADIOS DE BORDE ===== */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 15px;
+
+  /* ===== TIPOGRAFÍA GLOBAL RESPONSIVA ===== */
   --fs-body: clamp(15px, 0.35vw + 13px, 16px);
   --fs-sm:   clamp(13px, 0.28vw + 11px, 14px);
   --fs-xs:   clamp(12px, 0.22vw + 10px, 13px);
@@ -30,6 +77,7 @@
   --lh-normal: 1.45;
   --lh-relaxed: 1.6;
 
+  /* ===== LAYOUT Y ESPACIADO ===== */
   /* separación inicial debajo del header fijo */
   --content-top-gap: clamp(12px, 2.5vh, 28px);
 
@@ -39,7 +87,7 @@
   --modal-desktop-bottom-gap: 24px;
 
   /* Utilidades globales */
-  --border-radius: 15px;
+  --border-radius: var(--radius-xl);
 
   /* NUEVO: alto visual del header en desktop y separación de dropdown */
   --nav-visual-h: 100px;   /* Ajusta si cambias tamaño de logo/header */
@@ -80,12 +128,12 @@ h6{ font-size: var(--fs-xs); line-height: var(--lh-tight); font-weight:700; marg
 
 /* Botones */
 .btn-primary {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+  background-color: var(--color-button-primary);
+  border-color: var(--color-button-primary);
 }
 .btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary:active:focus {
-  background-color: var(--primary-dark) !important;
-  border-color: var(--primary-dark) !important;
+  background-color: var(--color-button-primary) !important;
+  border-color: var(--color-button-primary) !important;
 }
 
 /* Custom cart view button - complementary teal color */
@@ -113,6 +161,36 @@ h6{ font-size: var(--fs-xs); line-height: var(--lh-tight); font-weight:700; marg
   .btn{ font-size: var(--fs-body); }
 }
 
+/* === Botón CTA Global === */
+.btn-tour-cta {
+  background: var(--color-button-primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 25px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: none;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.btn-tour-cta:hover,
+.btn-tour-cta:focus {
+  background: var(--color-button-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(44, 110, 73, 0.3);
+  color: white;
+  text-decoration: none;
+}
+
+.btn-tour-cta:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(44, 110, 73, 0.3);
+}
+
 /* Offset bajo header */
 [id]{ scroll-margin-top: calc(var(--nav-h) + 12px); }
 body.has-fixed-navbar{ padding-top: var(--nav-h); }
@@ -132,7 +210,7 @@ body.has-fixed-navbar .container > .big-title:first-child{
    ========================= */
 .navbar-custom{
   position:fixed; top:0; left:0; right:0;
-  z-index:2000; background-color:#0f2419; color:#fff;
+  z-index:2000; background-color: var(--color-surface-dark); color:#fff;
   will-change: transform; transform: translateZ(0); backface-visibility: hidden;
 }
 .navbar-container{
@@ -144,7 +222,7 @@ body.has-fixed-navbar .container > .big-title:first-child{
 .navbar-logo img{ display:block; height:100px; width:auto; }
 .navbar-links{ display:flex; justify-content:center; gap:1.25rem; min-width:0; }
 .navbar-links a{ color:#fff; text-decoration:none; font-weight:600; font-size: var(--fs-body); }
-.navbar-links a:hover{ color:#8bc34a; }
+.navbar-links a:hover{ color:var(--color-link-hover); }
 
 /* Bloque de acciones */
 .navbar-actions{
@@ -155,6 +233,11 @@ body.has-fixed-navbar .container > .big-title:first-child{
 .navbar-actions i:hover{ transform:scale(1.1); filter:drop-shadow(0 0 5px rgba(96,168,98,.8)); }
 .navbar-actions .nav-link{ padding:.25rem; font-size:1.05rem; line-height:1; }
 
+/* Fix dropdown toggle arrow - hide it completely */
+.navbar-actions .dropdown-toggle::after {
+  display: none !important;
+}
+
 .user-name{ max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 /* Menú mobile (sin bloque 576) */
@@ -164,7 +247,7 @@ body.has-fixed-navbar .container > .big-title:first-child{
   flex-direction:column;
   align-items:flex-start;
   text-align:left;
-  background:#0f2419;
+  background: var(--color-surface-dark);
   padding:1rem 1.25rem;
   border-top:1px solid rgba(255,255,255,.12);
 }
@@ -381,20 +464,20 @@ body.menu-open{
   border-radius:.35rem; padding:.35rem .65rem; font-size:var(--fs-sm); font-weight:550;
   cursor:pointer; transition:all .25s ease;
 }
-.language-switcher-toggle:hover{ background:rgba(255,255,255,.1); border-color:#256D1B; color:#fff !important; }
+.language-switcher-toggle:hover{ background:rgba(255,255,255,.1); border-color:var(--color-button-primary); color:#fff !important; }
 .language-switcher-toggle img{ display:inline-block; border-radius:2px; }
 .language-switcher .dropdown-menu{
-  background:#0f2419; border:1px solid rgba(255,255,255,.15);
+  background: var(--color-surface-dark); border:1px solid rgba(255,255,255,.15);
   border-radius:.45rem; min-width:150px; padding:.25rem 0; margin-top:.4rem;
 }
 .language-switcher .dropdown-item{
   display:flex; align-items:center; gap:.4rem; color:#fff !important;
   font-size:var(--fs-sm); padding:.45rem .85rem; transition:background .2s ease;
-  background-color: var(--primary-header);
+  background-color: var(--color-surface-dark);
 }
 .language-switcher .dropdown-item img{ border-radius:2px; }
 .language-switcher .dropdown-item:hover,
-.language-switcher .dropdown-item:focus{ background:#256D1B; color:#fff !important; }
+.language-switcher .dropdown-item:focus{ background:var(--color-button-primary); color:#fff !important; }
 
 @media (max-width: 991.98px){
   .navbar-left{ gap:.45rem; }
@@ -458,7 +541,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
    FOOTER GLOBAL
    ========================= */
 .footer-nature{
-  background:#0f2419; 
+  background: var(--color-surface-dark); 
   color:#fff; 
   padding:2.5rem 2rem 1.5rem;
   font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -526,7 +609,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 
 .footer-nature .footer-links a:hover,
 .footer-nature .footer-policies a:hover{ 
-  color:#a7f3d0; 
+  color:var(--color-link-hover); 
 }
 
 .footer-nature .footer-policies i{ 
@@ -536,8 +619,19 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 .footer-nature .contact-info p{ 
   font-size:var(--fs-body); 
   margin-bottom:.5rem; 
-  color:#f0f0f0; 
+  color:#eaf4ea; 
 }
+
+.footer-nature .contact-info a {
+  color: #eaf4ea;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-nature .contact-info a:hover {
+  color: var(--color-link-hover);
+}
+
 
 /* ===== SOCIAL MEDIA SECTION ===== */
 .footer-nature .footer-social {
@@ -723,12 +817,12 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   
   .footer-nature .footer-links a,
   .footer-nature .footer-policies a{ 
-    color:#d7e6dc; 
+    color:#eaf4ea; 
   }
   
   .footer-nature .footer-links a:hover,
   .footer-nature .footer-policies a:hover{ 
-    color:#b6f0cf; 
+    color:var(--color-link-hover); 
   }
   
   .footer-nature .footer-bottom{ 
@@ -802,7 +896,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   background:#dc3545; color:#fff !important; font-weight:700;
   font-size:10px; line-height:1; padding:2px 6px;
   min-width:1.1rem; height:1.1rem; display:inline-flex; align-items:center; justify-content:center;
-  border:2px solid #0f2419; box-shadow:0 0 0 1px rgba(255,255,255,.15), 0 2px 6px rgba(0,0,0,.25);
+  border:2px solid var(--color-surface-dark); box-shadow:0 0 0 1px rgba(255,255,255,.15), 0 2px 6px rgba(0,0,0,.25);
   transform: translate(-52%, -41%) !important; z-index:5;
 }
 
@@ -910,7 +1004,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 
 /* ===== Utilidades numéricas ===== */
 .currency-symbol{ font-weight:600; margin-right:2px; font-variant-numeric:tabular-nums; }
-.brand-total{ color: var(--primary-red); font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+.brand-total{ color: var(--color-card-accent); font-weight:700; text-decoration:underline; text-underline-offset:3px; }
 /* =========================
    MINI-CART – MOBILE XS (≤575px)
    ========================= */
@@ -1108,7 +1202,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 }
 
 .brand-total {
-  color: var(--primary-red);
+  color: var(--color-card-accent);
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -1175,7 +1269,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
         max-width: 100%;
         padding: 0.75rem 1rem;
         border-radius: 999px;
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        background: linear-gradient(135deg, var(--color-button-primary) 0%, var(--color-button-primary) 100%);
         color: #fff;
         box-shadow: 0 8px 20px rgba(15, 23, 42, 0.45);
         cursor: pointer;
@@ -1188,7 +1282,7 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
       }
 
       .cart-timer-widget.critical {
-        background: linear-gradient(135deg, #ff6b6b 0%, var(--primary-red) 100%);
+        background: linear-gradient(135deg, #ff6b6b 0%, var(--color-card-accent) 100%);
         animation: shake 0.5s infinite;
       }
 

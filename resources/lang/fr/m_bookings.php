@@ -763,5 +763,8 @@ return [
             'error_title'   => 'Erreur',
         ],
     ],
+    // Large group message
+    'large_group_message' => 'If your group is larger than :max people, please',
+    'contact_us_link' => 'contact us for a better quote',
 
 ];

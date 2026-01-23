@@ -21,7 +21,7 @@
      data-swal-ok="{{ __('reviews.open_tour_confirm') }}"
      data-swal-cancel="{{ __('reviews.open_tour_cancel') }}"
 >
-  <h2 class="big-title text-center mb-5" style="color: var(--primary-dark);">
+  <h2 class="big-title text-center mb-5">
     {{ __('reviews.reviews_title') }}
   </h2>
 

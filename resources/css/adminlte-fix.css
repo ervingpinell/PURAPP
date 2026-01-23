@@ -1,3 +1,9 @@
+/* =========================
+   ADMINLTE-FIX.CSS
+   Correcciones y estilos personalizados para AdminLTE
+   ========================= */
+
+/* Override AdminLTE dark-mode autofill background */
 .dark-mode input:-webkit-autofill,
 .dark-mode input:-webkit-autofill:hover,
 .dark-mode input:-webkit-autofill:focus,
@@ -11,6 +17,11 @@
   -webkit-box-shadow: 0 0 0 1000px #343a40 inset;
   transition: background-color 5000s ease-in-out 0s;
 }
+
+/* =========================
+   BOTONES PERSONALIZADOS
+   ========================= */
+
 /* View (Info = cyan) */
 .btn-view {
   color: #fff;
@@ -59,58 +70,72 @@
   border-color: #ac2925;
 }
 
+/* Toast personalizado */
 .my-toast {
   background-color: #198754 !important; /* Bootstrap success */
   color: #fff !important;
 }
 
+/* =========================
+   LOGIN / REGISTER / PROFILE
+   ========================= */
 
- .login-box,
+.login-box,
 .register-box,
-.profile-box  {
-    max-width: 360px; /* más ancho que el default (360px aprox.) */
-    width: 100%;
-    padding: 20px;
-    margin: auto;
+.profile-box {
+  max-width: 360px;
+  width: 100%;
+  padding: 20px;
+  margin: auto;
 }
 
-.register-logo{
+.register-logo {
   display: block;
-  margin: 20px auto 10px; /* 20px arriba, auto centrado, 10px abajo */
-  max-width: auto;       /* ajusta el ancho si quieres */
+  margin: 20px auto 10px;
+  max-width: auto;
 }
 
-/* Estilo base del switcher */
+.logo-profile {
+  max-height: 50px;
+  max-width: 150px;
+  object-fit: contain;
+  width: auto;
+  height: auto;
+}
+
+/* =========================
+   LANGUAGE SWITCHER
+   ========================= */
+
 .language-switcher {
-    position: relative;
+  position: relative;
 }
 
 .language-switcher-toggle {
   background: transparent;
   border: 1px solid #fff;
   color: #fff;
-  padding: 0.3rem 0.5rem; /* Reducido pero equilibrado */
+  padding: 0.3rem 0.5rem;
   border-radius: 4px;
-  display: inline-flex; /* Para no forzar ancho extra */
+  display: inline-flex;
   align-items: center;
-  gap: 0.3rem; /* Gap más pequeño */
+  gap: 0.3rem;
   cursor: pointer;
-  font-size: 0.85rem; /* Tamaño legible */
-  line-height: 1; /* Evita espacio vertical extra */
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .language-switcher-toggle img {
-  width: 18px; /* Bandera un poco más pequeña pero clara */
+  width: 18px;
   height: auto;
   border-radius: 2px;
   display: inline-block;
-
 }
 
 .language-switcher .dropdown-menu {
   background: #fff;
   border: 1px solid #ccc;
-  min-width: 140px; /* Un poco más estrecho */
+  min-width: 140px;
 }
 
 .language-switcher-item {
@@ -118,9 +143,9 @@
   align-items: center;
   gap: 0.5rem;
   color: #333;
-  padding: 0.4rem 0.8rem; /* Más compacto */
+  padding: 0.4rem 0.8rem;
   text-decoration: none;
-  font-size: 0.9rem; /* Consistencia */
+  font-size: 0.9rem;
 }
 
 .language-switcher-item:hover {
@@ -134,39 +159,9 @@
   border-radius: 2px;
 }
 
-@media (max-width: 576px) {
-    .login-box,
-    .register-box,
-    .profile-box {
-        max-width: 90%;
-        padding: 10px;
-    }
-}
-
-
-.logo-profile {
-    max-height: 50px;
-    max-width: 150px;
-    object-fit: contain;
-    width: auto;
-    height: auto;
-}
-
-
-
-@media (max-width: 768px) {
-    .table-responsive {
-        overflow-x: auto;
-    }
-
-    .table td, .table th {
-        white-space: nowrap;
-    }
-
-    .modal-lg {
-        max-width: 95%;
-    }
-}
+/* =========================
+   PROMO SECTION
+   ========================= */
 
 #promo-section {
   border: 1px solid #dee2e6;
@@ -174,9 +169,14 @@
   padding: 1rem;
   background-color: #f8f9fa;
 }
+
 #promo-message.text-danger {
   color: #dc3545 !important;
 }
+
+/* =========================
+   TOUR CAROUSEL
+   ========================= */
 
 :root {
   --tour-carousel-h: 350px;
@@ -193,9 +193,11 @@
   cursor: pointer;
   transition: border-color .2s, transform .2s;
 }
+
 .thumb-img.active {
   border-color: var(--bs-primary);
 }
+
 .thumb-img:hover {
   transform: scale(1.03);
 }
@@ -210,6 +212,35 @@
   white-space: nowrap;
   padding-left: .25rem;
 }
+
 .thumbs-mobile .thumb-img {
   margin-right: .5rem;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 768px) {
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  .table td,
+  .table th {
+    white-space: nowrap;
+  }
+
+  .modal-lg {
+    max-width: 95%;
+  }
+}
+
+@media (max-width: 576px) {
+  .login-box,
+  .register-box,
+  .profile-box {
+    max-width: 90%;
+    padding: 10px;
+  }
 }

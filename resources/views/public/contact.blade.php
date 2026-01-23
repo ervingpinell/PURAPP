@@ -119,7 +119,7 @@
               </div>
               @endif
 
-              <button type="submit" class="btn btn-success bg-green-dark w-100">
+              <button type="submit" class="btn btn-contact w-100">
                 <i class="fas fa-paper-plane me-1"></i> {{ __('adminlte::adminlte.send_message') }}
               </button>
             </form>

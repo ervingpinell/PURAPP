@@ -36,7 +36,7 @@
 }
 .reviews-block .carousel-control-prev-icon,
 .reviews-block .carousel-control-next-icon {
-  background-color: #256D1B;
+  background-color: var(--color-button-primary);
   border-radius: 50%;
   width: 2.5rem;
   height: 2.5rem;
@@ -47,7 +47,7 @@
 }
 .reviews-block .carousel-control-prev:hover .carousel-control-prev-icon,
 .reviews-block .carousel-control-next:hover .carousel-control-next-icon {
-  background-color: #60A862;
+  background-color: var(--color-button-primary);
 }
 
 /* === Card indexable (alineada al embed) === */
@@ -55,7 +55,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--bg-white);
   border-radius: 12px;
   padding: 1rem;
   max-width: 600px;
@@ -84,7 +84,7 @@
   text-align: right;
   line-height: 1.2;
   margin: 0;
-  color: #1A5229;
+  color: var(--color-page-title);
   font-size: .94rem;
   display: -webkit-box;
   -webkit-line-clamp: var(--title-lines, 2);
@@ -93,7 +93,7 @@
   word-break: break-word;
 }
 .reviews-block .tour-title-abs a{
-  color: #1A5229;
+  color: var(--color-page-title);
   text-decoration: underline;
 }
 
@@ -110,13 +110,13 @@
   height: 56px;
   border-radius: 50%;
   overflow: hidden;
-  background: #e9ecef;
+  background: var(--bg-light);
   flex: 0 0 56px;
 }
 .reviews-block .avatar img{ width: 100%; height: 100%; object-fit: cover; }
 .reviews-block .who-when{ min-width:0; }
 .reviews-block .who-when .who{ font-weight: 700; overflow-wrap:anywhere; }
-.reviews-block .who-when .when{ color:#6c757d; }
+.reviews-block .who-when .when{ color:var(--text-muted); }
 
 /* Estrellas + rating */
 .reviews-block .stars-row.under-date{ margin:.2rem 0 .5rem 72px; }
@@ -126,7 +126,7 @@
 /* Título del comentario (pill) */
 .reviews-block .review-label{
   display: inline-block;
-  background:#d33; color:#fff;
+  background:var(--color-card-accent); color:var(--text-light);
   padding:.4rem .9rem; border-radius:20px;
   font-weight:700; margin:.6rem 0 .9rem;
   text-align:center;
@@ -135,7 +135,7 @@
 /* Texto + botón */
 .reviews-block .review-textwrap{ position: relative; }
 .reviews-block .review-content{
-  text-align:center; line-height:1.45; color:#222;
+  text-align:center; line-height:1.45; color:var(--text-dark);
   padding:0 .25rem; word-break:break-word; font-size: var(--fs-body, .9rem);
 }
 .reviews-block .review-content.clamp-8{
@@ -152,13 +152,13 @@
 /* Toggle (se muestra via JS si hay overflow) */
 .reviews-block .review-toggle{
   position:absolute; right:.25rem; bottom:.1rem; display:none;
-  background:#fff; border:none; padding-left:.65rem;
-  color:#256D1B; font-weight:700; cursor:pointer; line-height:1.2;
+  background:var(--bg-white); border:none; padding-left:.65rem;
+  color:var(--color-button-primary); font-weight:700; cursor:pointer; line-height:1.2;
   font-size: var(--fs-sm, .85rem);
 }
 .reviews-block .review-toggle::before{
   content:''; position:absolute; left:-22px; top:0; bottom:0; width:22px;
-  background:linear-gradient(90deg, rgba(255,255,255,0), #fff 60%); pointer-events:none;
+  background:linear-gradient(90deg, rgba(255,255,255,0), var(--bg-white) 60%); pointer-events:none;
 }
 .reviews-block .review-toggle:hover{ text-decoration:underline; }
 
@@ -172,7 +172,7 @@
   position:relative; max-width:600px; width:100%; margin:0 auto;
   min-height: var(--provider-base, 360px);
   height: var(--provider-base, 360px);
-  border-radius:12px; overflow:visible; background:#fff;
+  border-radius:12px; overflow:visible; background:var(--bg-white);
   transition:height .25s ease, min-height .25s ease;
 }
 .reviews-block .iframe-skeleton{
@@ -184,7 +184,7 @@
 .reviews-block .iframe-skeleton.is-hidden{ opacity:0; visibility:hidden; }
 @keyframes shimmer{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .reviews-block iframe.review-embed{
-  max-width:600px; width:100%; border:0; border-radius:12px; overflow:hidden; display:block; background:#fff;
+  max-width:600px; width:100%; border:0; border-radius:12px; overflow:hidden; display:block; background:var(--bg-white);
   height: var(--provider-base, 360px); transition:height .25s ease;
 }
 
@@ -250,12 +250,12 @@
 }
 .reviews-block .carousel-segment:hover{ transform:translateY(-1px); }
 .reviews-block .carousel-segment.is-active{
-  background: var(--gv-green, #1A5229);   /* usa tu verde si está definido */
+  background: var(--color-page-title, #1A5229);   /* usa tu verde si está definido */
 }
 
 /* Accesibilidad (tecla TAB) */
 .reviews-block .carousel-segment:focus-visible{
-  outline:2px solid color-mix(in srgb, var(--gv-green, #1A5229) 60%, #ffffff);
+  outline:2px solid color-mix(in srgb, var(--color-page-title, #1A5229) 60%, #ffffff);
   outline-offset:2px;
   box-shadow:0 0 0 2px #fff;
 }

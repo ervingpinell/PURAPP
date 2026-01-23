@@ -18,7 +18,7 @@
 @endpush
 
 @section('content')
-<h2 class="big-title text-center page-first mt-5 mb-0" style="color: var(--primary-dark);">
+<h2 class="big-title text-center page-first mt-5 mb-0">
   {{ __('adminlte::adminlte.our_tours') }}
 </h2>
 
@@ -27,7 +27,7 @@
 </section>
 
 <section class="home-testimonials">
-  <h2 class="big-title text-center" style="color: var(--primary-dark);">
+  <h2 class="big-title text-center">
     {{ __('reviews.what_visitors_say') }}
   </h2>
 

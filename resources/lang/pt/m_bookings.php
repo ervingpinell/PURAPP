@@ -771,5 +771,8 @@ return [
         'checkout_link_expired' => 'Este link de pagamento expirou ou não é mais válido.',
         'checkout_link_accessed' => 'Cliente acessou o checkout',
     ],
+    // Large group message
+    'large_group_message' => 'If your group is larger than :max people, please',
+    'contact_us_link' => 'contact us for a better quote',
 
 ];

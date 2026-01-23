@@ -19,7 +19,6 @@ export default defineConfig({
             input: [
                 "resources/css/app.css",
                 "resources/css/home.css",
-                "resources/css/branding.css",
                 "resources/css/tour.css",
                 "resources/css/tours-index.css",
                 "resources/css/faqs.css",
@@ -37,6 +36,7 @@ export default defineConfig({
                 "resources/js/reviews-carousel.js",
                 "resources/js/reviews-index.js",
                 "resources/css/admin-sidebar.css",
+                "resources/css/adminlte-fix.css",
                 "resources/css/checkout.css",
             ],
             refresh: true,

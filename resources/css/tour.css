@@ -5,12 +5,12 @@
 
 /* === VARIABLES locales (apoyadas en app.css) === */
 :root{
-  --tour-primary:#2c6e49;   /* mantener colores */
-  --tour-accent:var(--primary-red);
-  --tour-muted:#6b7280;
+  --tour-primary: var(--color-page-title);
+  --tour-accent: var(--color-card-accent);
+  --tour-muted: var(--text-muted);
 
-  --border-radius:12px;
-  --shadow:0 6px 18px rgba(0,0,0,.08);
+  --border-radius: var(--radius-lg); 
+  --shadow: var(--shadow-md);
 
   /* Carrusel */
   --carousel-h: 470px;   /* desktop */
@@ -77,8 +77,8 @@
 .reservation-box .form-control,
 .reservation-box .form-select{ font-size:var(--fs-body); border-radius:.6rem; }
 .reservation-box .price-breakdown{ font-size:calc(var(--fs-body) - 1px); color:var(--text-dark); }
-.price-adult,.price-kid{ color:var(--primary-red) !important; }
-.totalprice{ font-size:calc(var(--fs-body) - 0.90px); color:var(--primary-red); }
+.price-adult,.price-kid{ color:var(--color-card-accent) !important; }
+.totalprice{ font-size:calc(var(--fs-body) - 0.90px); color:var(--color-card-accent); }
 
 /* === Unificación de alturas/tipografías (inputs, flatpickr, choices) === */
 .reservation-box{
@@ -130,7 +130,7 @@
 .brand-total-inline{
   background:#f8fafb; border:1px dashed #e2e8f0; border-radius:.5rem; padding:.5rem .75rem;
 }
-.brand-total-inline strong{ font-weight:700; color:var(--primary-red) }
+.brand-total-inline strong{ font-weight:700; color:var(--color-card-accent) }
 
 /* =========================
    MEETING POINT card
@@ -276,7 +276,7 @@
    ========================= */
 .tour-section .reservation-box{
   --brand: var(--tour-primary);
-  --brand-600: var(--primary-dark);
+  --brand-600: var(--color-button-primary-hover);
   --brand-50: #eaf5ef;
 }
 .tour-section .reservation-box .brand-cta{
@@ -372,7 +372,7 @@
    BOTONES
    ========================= */
 .btn-success{ background:var(--tour-primary); border:none; font-weight:700; }
-.btn-success:hover{ background:#256d1b; }
+.btn-success:hover{ background:var(--color-button-primary); }
 .btn-danger{ font-weight:700; }
 
 /* =========================

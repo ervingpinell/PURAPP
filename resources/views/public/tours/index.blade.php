@@ -376,7 +376,7 @@
               {{-- Botón ver tour --}}
               <a
                 href="{{ $tourUrl }}"
-                class="btn btn-success w-100 mt-2">
+                class="btn btn-tour-cta w-100 mt-2">
                 {{ __('adminlte::adminlte.see_tour') }}
               </a>
             </div>

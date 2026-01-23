@@ -91,7 +91,7 @@ if ($len <= 0) return 1;
         <p class="card-text small mb-3 flex-grow-1">{!! nl2br(e($translatedDescription)) !!}</p>
         @endif
 
-        <a href="#tour-modal-{{ $slugKey }}" class="btn btn-success w-100 btn-ver-tour mt-auto"
+        <a href="#tour-modal-{{ $slugKey }}" class="btn btn-tour-cta w-100 btn-ver-tour mt-auto"
           data-bs-toggle="modal" data-bs-target="#modal-{{ $slugKey }}">
           {{ __('adminlte::adminlte.see_tours') }}
         </a>

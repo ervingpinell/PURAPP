@@ -47,7 +47,7 @@
 }
 
 .tours-index-header h1 {
-  color: var(--primary-dark);
+  color: var(--color-page-title);
 }
 
 .tours-index-counter {
@@ -74,9 +74,9 @@
   font-size: .85rem;
 }
 .layout-toggle .btn.active {
-  background: #256d1b;
+  background: var(--color-button-primary);
   color: #fff;
-  border-color: #256d1b;
+  border-color: var(--color-button-primary);
 }
 
 /* =========================
@@ -94,7 +94,7 @@
   border: none;
   overflow: hidden;
   position: relative;
-  background: linear-gradient(135deg, #1b412d 0%, #1e4620 40%, #256d1b 100%);
+  background: linear-gradient(135deg, var(--color-surface-dark) 0%, #1e4620 40%, var(--color-button-primary) 100%);
   color: #f9fafb;
 }
 
@@ -424,7 +424,7 @@
 }
 
 .tours-index-price-amount {
-  color: #006633;
+  color: var(--color-page-title);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }

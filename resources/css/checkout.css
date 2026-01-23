@@ -14,11 +14,11 @@ body.payment-page .whatsapp-panel {
    PAYMENT PAGE - RESPONSIVE
    ========================= */
 :root {
-    --payment-primary: var(--primary-color, #60a862);
-    --payment-primary-dark: var(--primary-dark, #256d1b);
-    --payment-header: var(--primary-header, #0f2419);
-    --payment-danger: var(--primary-red, #e74c3c);
-    --payment-success: var(--primary-color, #60a862);
+    --payment-primary: var(--color-button-primary);
+    --payment-primary-dark: var(--color-button-primary);
+    --payment-header: var(--color-surface-dark);
+    --payment-danger: var(--color-card-accent);
+    --payment-success: var(--color-button-primary);
     --payment-warning: #f0ad4e;
 }
 
@@ -67,15 +67,15 @@ body.payment-page .whatsapp-panel {
 .step.active {
     background: linear-gradient(
         135deg,
-        var(--payment-primary),
-        var(--payment-primary-dark)
+        var(--color-button-primary),
+        var(--color-button-primary-hover)
     );
     color: #fff;
     box-shadow: 0 4px 6px -1px rgba(96, 168, 98, 0.3);
 }
 
 .step.completed {
-    background: var(--payment-success);
+    background: var(--color-button-primary);
     color: #fff;
 }
 
@@ -134,12 +134,12 @@ body.payment-page .whatsapp-panel {
 }
 
 .payment-message {
-    color: var(--payment-danger);
+    color: var(--color-card-accent);
     font-size: 0.9rem;
     margin-top: 1rem;
     padding: 1rem;
     background: #fee;
-    border-left: 4px solid var(--payment-danger);
+    border-left: 4px solid var(--color-card-accent);
     border-radius: 0.5rem;
     display: none;
 }
@@ -151,7 +151,7 @@ body.payment-page .whatsapp-panel {
 /* Secure Badge */
 .secure-badge {
     background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-    border: 1px solid var(--payment-success);
+    border: 1px solid var(--color-button-primary);
     padding: 1rem;
     border-radius: 0.75rem;
     margin: 1.5rem 0;
@@ -161,7 +161,7 @@ body.payment-page .whatsapp-panel {
 }
 
 .secure-badge i {
-    color: var(--payment-success);
+    color: var(--color-button-primary);
     font-size: 1.5rem;
 }
 
@@ -179,7 +179,7 @@ body.payment-page .whatsapp-panel {
 }
 
 .summary-header {
-    background: linear-gradient(135deg, var(--payment-header), #111);
+    background: linear-gradient(135deg, var(--color-surface-dark), #111);
     color: #fff;
     padding: 1rem 1.25rem;
     margin: -2rem -2rem 1.5rem;
@@ -256,8 +256,8 @@ body.payment-page .whatsapp-panel {
     gap: 0.5rem;
     background: linear-gradient(
         135deg,
-        var(--payment-primary),
-        var(--payment-primary-dark)
+        var(--color-button-primary),
+        var(--color-button-primary-hover)
     );
     color: #fff;
     box-shadow: 0 4px 6px -1px rgba(96, 168, 98, 0.3);
@@ -310,7 +310,7 @@ body.payment-page .whatsapp-panel {
 
 @keyframes pulse-countdown {
     0%,
-    100 {
+    100% {
         transform: scale(1);
     }
     50% {
@@ -1753,7 +1753,7 @@ html[lang^="de"] .checkout-page .summary-header {
 }
 
 .gateway-option input[type="radio"]:checked + label {
-    border-color: var(--payment-primary);
+    border-color: var(--color-button-primary);
     background: #f0fdf4;
     box-shadow: 0 4px 6px -1px rgba(96, 168, 98, 0.2);
 }
@@ -1766,7 +1766,7 @@ html[lang^="de"] .checkout-page .summary-header {
 }
 
 .gateway-option input[type="radio"]:checked + label i {
-    color: var(--payment-primary);
+    color: var(--color-button-primary);
 }
 
 .gateway-option label strong {
@@ -1777,7 +1777,7 @@ html[lang^="de"] .checkout-page .summary-header {
 }
 
 .gateway-option input[type="radio"]:checked + label strong {
-    color: var(--payment-primary-dark);
+    color: var(--color-button-primary-hover);
 }
 
 /* Specific fix for images inside label if any (like the new logo) */

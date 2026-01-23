@@ -13,7 +13,7 @@ $guestBlocked = !auth()->check() && !config('site.allow_guest_checkout', true);
   <i class="fas fa-sign-in-alt me-2"></i> {{ __('adminlte::adminlte.login_to_book') }}
 </a>
 @else
-<button id="addToCartBtn" type="submit" class="btn btn-success brand-cta w-100 mt-3">
+<button id="addToCartBtn" type="submit" class="btn btn-tour-cta w-100 mt-3">
   <i class="fas fa-cart-plus me-2"></i> {{ __('adminlte::adminlte.add_to_cart') }}
 </button>
 @endif

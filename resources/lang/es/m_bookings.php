@@ -776,5 +776,7 @@ return [
             'error_title'   => 'Error',
         ],
     ],
-
+    // Large group message
+    'large_group_message' => 'Si tu grupo es mayor a :max personas, por favor',
+    'contact_us_link' => 'contáctanos para brindarte una mejor cotización',
 ];

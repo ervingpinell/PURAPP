@@ -28,6 +28,15 @@ return ($t === $key) ? $fallback : $t;
             <span id="reservation-total-pax">0</span>
         </div>
     </div>
+
+    {{-- Mensaje para grupos grandes --}}
+    <div class="alert alert-warning mt-3 mb-0 small">
+        <i class="fas fa-info-circle me-2"></i>
+        {{ __('m_bookings.large_group_message', ['max' => $maxPersonsGlobal]) }}
+        <a href="{{ localized_route('contact') }}" class="alert-link fw-bold small">
+            {{ __('m_bookings.contact_us_link') }}
+        </a>
+    </div>
 </div>
 
 @once
@@ -103,20 +112,23 @@ return ($t === $key) ? $fallback : $t;
                     <span class="fw-bold" style="color: #30363c;">${cat.name || 'Category'}</span>
                 </div>
                 <div class="mt-1">
-                   <span class="fw-bold" style="color: var(--primary-red);">$${cat.price.toFixed(2)}</span>
+                   <span class="fw-bold" style="color: var(--price-color);">$${cat.price.toFixed(2)}</span>
                    ${cat.age_text ? `<span class="text-muted ms-1" style="font-size:0.85em;">(${cat.age_text})</span>` : ''}
+                </div>
+                <div class="mt-1">
+                   <span class="text-muted" style="font-size:0.8em;">Mín: ${cat.min} | Máx: ${cat.max}</span>
                 </div>
             </div>
             
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center gap-1">
                 <button type="button" class="btn btn-sm btn-light border px-2 py-1 category-minus-btn" data-category-id="${cat.id}" aria-label="Disminuir">-</button>
-                <input class="form-control form-control-sm text-center mx-1 category-input shadow-none" 
+                <input class="form-control form-control-sm text-center category-input shadow-none" 
                     type="number" inputmode="numeric" pattern="[0-9]*"
                     data-category-id="${cat.id}"
                     data-category-slug="${cat.slug}"
                     min="${cat.min}" max="${cat.max}" step="1"
                     value="${cat.initial}"
-                    style="width: 40px; padding: 0.25rem;"
+                    style="width: 50px; padding: 0.375rem 0.25rem; line-height: 1.5;"
                     aria-label="Cantidad">
                 <button type="button" class="btn btn-sm btn-light border px-2 py-1 category-plus-btn" data-category-id="${cat.id}" aria-label="Aumentar">+</button>
             </div>
