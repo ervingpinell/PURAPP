@@ -242,6 +242,56 @@ $schemaOrg = [
     'resources/css/checkout.css'
     ])
 
+    {{-- Dynamic Branding CSS --}}
+    @php
+        try {
+            $brandingCss = \App\Models\BrandingSetting::getCssVariables();
+            $backgroundEnabled = branding('background_enabled', '0') == '1';
+            $backgroundImage = branding('background_image', '');
+            $headerOpacity = branding('header_opacity', '0.95');
+            $headerBlur = branding('header_blur', '10');
+            $textShadowEnabled = branding('text_shadow_enabled', '1') == '1';
+        } catch (\Exception $e) {
+            $brandingCss = '';
+            $backgroundEnabled = false;
+            $backgroundImage = '';
+            $headerOpacity = '0.95';
+            $headerBlur = '10';
+            $textShadowEnabled = true;
+        }
+    @endphp
+
+    @if($brandingCss)
+    <style id="branding-css">
+        {!! $brandingCss !!}
+
+        @if($backgroundEnabled && $backgroundImage && file_exists(public_path($backgroundImage)))
+        body {
+            background-image: url('{{ asset($backgroundImage) }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+        @endif
+
+        /* Header Glass Effect */
+        .navbar,
+        header.navbar {
+            background-color: rgba(15, 36, 25, {{ $headerOpacity }}) !important;
+            backdrop-filter: blur({{ $headerBlur }}px);
+            -webkit-backdrop-filter: blur({{ $headerBlur }}px);
+        }
+
+        @if($textShadowEnabled)
+        /* Text Shadows for Better Readability */
+        h1, h2, h3, .big-title {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        @endif
+    </style>
+    @endif
+
     @stack('styles')
 
     {{-- Google Analytics --}}

@@ -14,7 +14,7 @@
 }
 .carousel-segment:hover{ transform:translateY(-1px); }
 .carousel-segment.is-active{
-  background: var(--primary-green);
+  background: var(--color-button-primary);
 }
 
 /* ================================
@@ -23,7 +23,7 @@
 
 :root{
   --green:#1A5229;
-  --warn: var(--danger-red);
+  --warn: var(--color-card-accent);
 }
 
 /* Wrapper */

@@ -329,7 +329,7 @@
 
     {{-- Logo --}}
     <div class="logo">
-        <img src="{{ public_path('cdn/logos/brand-logo-white.png') }}" alt="{{ config('app.name') }}">
+        <img src="{{ public_path('images/branding/logo-placeholder.png') }}" alt="{{ config('app.name') }}">
     </div>
 
     {{-- Title --}}

@@ -20,13 +20,21 @@ class EmailHelper
             return $publicUrl;
         }
 
-        // 2. Fallback: Local Base64 (Optimized logo)
-        $logoPath = public_path('cdn/logos/brand-logo-white-email-optimized.png');
-
-        // Fallback to original if optimized doesn't exist
-        if (!file_exists($logoPath)) {
-            $logoPath = public_path('cdn/logos/brand-logo-white-email.png');
+        // 2. Try branding system logo
+        if (function_exists('branding')) {
+            $brandingLogo = branding('logo_main', '');
+            if (!empty($brandingLogo)) {
+                $logoPath = public_path($brandingLogo);
+                if (file_exists($logoPath)) {
+                    $imageData = base64_encode(file_get_contents($logoPath));
+                    $mimeType = mime_content_type($logoPath);
+                    return "data:{$mimeType};base64,{$imageData}";
+                }
+            }
         }
+
+        // 3. Fallback to placeholder
+        $logoPath = public_path('images/branding/logo-placeholder.png');
 
         // If still not found, return empty string
         if (!file_exists($logoPath)) {

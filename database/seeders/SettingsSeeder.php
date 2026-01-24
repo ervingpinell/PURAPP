@@ -109,11 +109,11 @@ class SettingsSeeder extends Seeder
             // ==================== EMAIL ====================
             [
                 'key' => 'email.booking_notifications',
-                'value' => 'info@greenvacationscr.com',
+                'value' => 'notifications@example.com',
                 'type' => 'email',
                 'category' => 'email',
                 'label' => 'Email de notificaciones',
-                'description' => 'Email donde se reciben notificaciones de nuevas reservas',
+                'description' => 'Email donde se reciben notificaciones de nuevas reservas - Configure during deployment',
                 'validation_rules' => json_encode(['required', 'email']),
                 'sort_order' => 1,
             ],

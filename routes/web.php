@@ -760,6 +760,14 @@ Route::middleware([SetLocale::class])->group(function () {
                 });
 
                 // ============================
+                // BRANDING (Super Admin Only)
+                // ============================
+                Route::middleware(['permission:manage branding'])->group(function () {
+                    Route::get('branding', [\App\Http\Controllers\BrandingController::class, 'index'])->name('branding.index');
+                    Route::post('branding', [\App\Http\Controllers\BrandingController::class, 'update'])->name('branding.update');
+                });
+
+                // ============================
                 // API AJAX (tours data) — UNIFICADO
                 // ============================
                 Route::prefix('api')->name('api.')->group(function () {

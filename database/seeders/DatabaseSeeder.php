@@ -12,22 +12,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Essential system seeders only
+        // Client-specific data should be added during deployment/branding setup
         $this->call([
             PermissionsSeeder::class,
             RolesAndUsersSeeder::class,
-            TaxSeeder::class,
             SettingsSeeder::class,
-            PayLaterSettingsSeeder::class,
-            InitialSetupSeeder::class,
-            ToursSeeder::class,
-            ItinerariesSeeder::class,
-            FaqSeeder::class,
-            ReviewProviderSeeder::class,
-            // AssignViatorCodesSeeder::class, // Commented out - viator_code field was removed
-            PoliciesSeeder::class,
-            TranslationSeeder::class,
-            MeetingPointsSeeder::class,
+            TaxSeeder::class,
             EmailTemplateSeeder::class,
+            BrandingPermissionSeeder::class,
         ]);
     }
 }

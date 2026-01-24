@@ -33,6 +33,7 @@
  */
 
 return [
+    'branding_updated_successfully' => 'Configuración de marca actualizada exitosamente',
     'contact_throttled' => 'Has enviado demasiados mensajes en poco tiempo. Por favor, espera un momento antes de volver a intentarlo.',
 
     'pending_email_title'  => 'Cambio de correo pendiente',

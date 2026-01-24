@@ -64,7 +64,7 @@ return [
     */
 
     'logo' => 'Company Name',
-    'logo_img' => 'cdn/logos/brand-logo-white.png',
+    'logo_img' => 'images/branding/logo-admin-placeholder.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xl',
@@ -86,7 +86,7 @@ return [
     'auth_logo' => [
         'enabled' => true,
         'img' => [
-            'path' => 'cdn/logos/brand-logo-white.png',
+            'path' => 'images/branding/logo-admin-placeholder.png',
             'alt' => 'Auth Logo',
             'style' => 'padding: 10px;',
             'class' => 'mx-auto d-block',      // <-- centrado
@@ -114,7 +114,7 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => 'cdn/logos/brand-logo-white.png',
+            'path' => 'images/branding/logo-admin-placeholder.png',
             'alt' => 'Admin Loading',
             'effect' => 'animation__shake',
             'width' => 60,

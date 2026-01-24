@@ -8,43 +8,35 @@ use Illuminate\Database\Seeder;
 class TaxSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Seed default tax structure.
+     * 
+     * Tax rates and names should be customized during deployment
+     * based on the client's country and business requirements.
      */
     public function run(): void
     {
         $taxes = [
             [
-                'name' => 'IVA 13%',
-                'code' => 'IVA',
-                'rate' => 13.00,
+                'name' => 'Sales Tax',
+                'code' => 'TAX',
+                'rate' => 0.00,
                 'type' => 'percentage',
                 'apply_to' => 'subtotal',
                 'is_inclusive' => false,
-                'is_active' => true,
-                'description' => 'Impuesto al Valor Agregado de Costa Rica',
+                'is_active' => false, // Disabled by default - configure during deployment
+                'description' => 'General sales tax - configure rate based on jurisdiction',
                 'sort_order' => 1,
             ],
             [
-                'name' => 'Servicio 10%',
+                'name' => 'Service Charge',
                 'code' => 'SRV',
-                'rate' => 10.00,
+                'rate' => 0.00,
                 'type' => 'percentage',
                 'apply_to' => 'subtotal',
                 'is_inclusive' => false,
-                'is_active' => true,
-                'description' => 'Cargo por servicio',
+                'is_active' => false, // Disabled by default - configure during deployment
+                'description' => 'Service charge - configure rate as needed',
                 'sort_order' => 2,
-            ],
-            [
-                'name' => 'Impuesto Turístico',
-                'code' => 'TUR',
-                'rate' => 5.00,
-                'type' => 'percentage',
-                'apply_to' => 'subtotal',
-                'is_inclusive' => false,
-                'is_active' => false, // Desactivado por defecto
-                'description' => 'Impuesto turístico opcional',
-                'sort_order' => 3,
             ],
         ];
 
@@ -54,5 +46,8 @@ class TaxSeeder extends Seeder
                 $taxData
             );
         }
+
+        $this->command->info('✓ Default tax structure created (disabled)');
+        $this->command->warn('⚠ Configure tax rates during deployment based on jurisdiction');
     }
 }
