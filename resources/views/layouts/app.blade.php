@@ -237,7 +237,7 @@ $schemaOrg = [
 
     @vite([
     'resources/js/app.js',
-    'resources/css/gv.css',
+    'resources/css/adminlte-fix.css',
     'resources/css/app.css',
     'resources/css/checkout.css'
     ])
