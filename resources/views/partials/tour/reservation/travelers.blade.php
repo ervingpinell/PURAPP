@@ -28,15 +28,6 @@ return ($t === $key) ? $fallback : $t;
             <span id="reservation-total-pax">0</span>
         </div>
     </div>
-
-    {{-- Mensaje para grupos grandes --}}
-    <div class="alert alert-warning mt-3 mb-0 small">
-        <i class="fas fa-info-circle me-2"></i>
-        {{ __('m_bookings.large_group_message', ['max' => $maxPersonsGlobal]) }}
-        <a href="{{ localized_route('contact') }}" class="alert-link fw-bold small">
-            {{ __('m_bookings.contact_us_link') }}
-        </a>
-    </div>
 </div>
 
 @once

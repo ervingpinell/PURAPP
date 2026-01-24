@@ -451,3 +451,139 @@
 
 /* Paddings generales del box */
 .reservation-box.is-compact-2{ padding: .75rem !important; }
+
+/* =========================
+   STICKY BOOKING FORM
+   ========================= */
+.sticky-booking-wrapper {
+  position: sticky;
+  top: 100px; /* Adjust based on navbar height */
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+/* Smooth scrolling for overflow */
+.sticky-booking-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sticky-booking-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.sticky-booking-wrapper::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.sticky-booking-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* =========================
+   TOUR META BADGES
+   ========================= */
+.tour-meta-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.badge-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--text-light);
+  border: 1.5px solid var(--color-page-title);
+  color: var(--color-page-title);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.badge-meta i {
+  font-size: 0.85em;
+  opacity: 0.9;
+}
+
+.badge-meta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(44, 110, 73, 0.15);
+}
+
+/* Highlight badge (e.g., "Best Value") */
+.badge-meta.badge-highlight {
+  background: var(--color-page-title);
+  color: white;
+  border-color: var(--color-page-title);
+}
+
+.badge-meta.badge-highlight:hover {
+  background: var(--color-button-primary-hover);
+  border-color: var(--color-button-primary-hover);
+}
+
+/* Tour header section spacing */
+.tour-header-section {
+  margin-bottom: 2rem;
+}
+
+.tour-header-section .tour-title {
+  font-size: var(--fs-h2);
+  color: var(--color-page-title);
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.tour-overview-text {
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  color: #555;
+}
+
+/* =========================
+   RESPONSIVE ADJUSTMENTS
+   ========================= */
+
+/* Disable sticky on tablet and mobile */
+@media (max-width: 991.98px) {
+  .sticky-booking-wrapper {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+  
+  .tour-meta-badges {
+    gap: 0.4rem;
+  }
+  
+  .badge-meta {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+  
+  .tour-header-section .tour-title {
+    font-size: var(--fs-h3);
+  }
+}
+
+/* Very small screens */
+@media (max-width: 576px) {
+  .badge-meta {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.55rem;
+  }
+  
+  .badge-meta i {
+    font-size: 0.8em;
+  }
+  
+  .tour-header-section .tour-title {
+    font-size: var(--fs-h4);
+  }
+}

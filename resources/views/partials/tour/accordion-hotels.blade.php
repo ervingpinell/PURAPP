@@ -296,3 +296,6 @@
     }
 </style>
 @endpush
+        </div>{{-- /.accordion-body --}}
+    </div>{{-- /#collapseHotels --}}
+</div>{{-- /.accordion-item --}}

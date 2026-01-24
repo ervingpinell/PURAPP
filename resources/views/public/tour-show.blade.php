@@ -52,53 +52,43 @@ $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
         </li>
       </ol>
     </nav>
-    <div class="row g-4 align-items-start">
-      {{-- Columna izquierda --}}
-      <div class="col-md-7">
+    <div class="row g-4">
+      {{-- Left Column: Tour Content (60%) --}}
+      <div class="col-lg-8">
         @include('partials.tour.feedback')
 
-        {{-- Carrusel --}}
+        {{-- Gallery --}}
         @include('partials.tour.carousel', ['tour' => $tour])
 
-        {{-- Encabezado del tour + resumen --}}
-        @include('partials.tour.overview', ['tour' => $tour])
-      </div>
+        {{-- Title + Meta Badges + Overview --}}
+        @include('partials.tour.overview-with-meta', ['tour' => $tour])
 
-      {{-- Columna derecha --}}
-      <div class="col-md-5 d-flex flex-column justify-content-between tour-right-col">
-        <div class="flex-grow-1 mb-3">
-          @include('partials.tour.reservation-box', [
-          'tour' => $tour,
-          'hotels' => $hotels,
-          'blockedGeneral' => $blockedGeneral ?? [],
-          'blockedBySchedule' => $blockedBySchedule ?? [],
-          'fullyBlockedDates' => $fullyBlockedDates ?? [],
+        {{-- 🔽 ACCORDIONS --}}
+        <div class="mt-5">
+          @include('partials.tour.accordions', ['tour' => $tour, 'hotels' => $hotels])
+        </div>
+
+        {{-- 🌟 Reviews --}}
+        <div class="mt-5">
+          <h2 class="fw-bold text-center mb-3">{{ __('reviews.reviews_title') }}</h2>
+          @include('partials.reviews.carousel', [
+            'items' => $tourReviews ?? collect(),
+            'providerHeight' => 320
           ])
         </div>
+      </div>
 
-        <div>
-          @include('partials.tour.info-box', ['tour' => $tour])
+      {{-- Right Column: Sticky Booking Form (40%) --}}
+      <div class="col-lg-4">
+        <div class="sticky-booking-wrapper">
+          @include('partials.tour.reservation-box', [
+            'tour' => $tour,
+            'hotels' => $hotels,
+            'blockedGeneral' => $blockedGeneral ?? [],
+            'blockedBySchedule' => $blockedBySchedule ?? [],
+            'fullyBlockedDates' => $fullyBlockedDates ?? [],
+          ])
         </div>
-      </div>
-    </div>
-
-    {{-- 🔽 ACCORDIONS --}}
-    <div class="row mt-5">
-      <div class="col-12">
-        @include('partials.tour.accordions', ['tour' => $tour, 'hotels' => $hotels])
-      </div>
-    </div>
-
-    {{-- 🌟 Reviews --}}
-    <div class="row mt-5">
-      <div class="col-12 text-center mb-3">
-        <h2 class="fw-bold">{{ __('reviews.reviews_title') }}</h2>
-      </div>
-      <div class="col-12">
-        @include('partials.reviews.carousel', [
-        'items' => $tourReviews ?? collect(),
-        'providerHeight' => 320
-        ])
       </div>
     </div>
 

@@ -127,6 +127,7 @@ return [
     'hero_subtext' => 'Erkunde unsere einzigartigen Touren und erlebe das Abenteuer.',
     'book_now' => 'Jetzt buchen',
     'our_tours' => 'Unsere Touren',
+    'our_services' => 'Unsere Dienstleistungen',
     'half_day' => 'Halbtägig',
     'full_day' => 'Ganztägig',
     'full_day_description' => 'Perfekt für alle, die an einem Tag ein komplettes Erlebnis möchten',

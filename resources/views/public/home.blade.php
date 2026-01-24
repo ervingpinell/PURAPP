@@ -19,7 +19,7 @@
 
 @section('content')
 <h2 class="big-title text-center page-first mt-5 mb-0">
-  {{ __('adminlte::adminlte.our_tours') }}
+  {{ __('adminlte::adminlte.our_services') }}
 </h2>
 
 <section class="tours-section" id="tours">
