@@ -17,7 +17,7 @@
         </p>
         {{-- Logo de la empresa --}}
         <img
-          src="{{ config('company.logo_url') }}"
+          src="{{ branding('logo_main', config('company.logo_url')) }}"
           alt="{{ config('app.name', 'Green Vacations CR') }}"
           class="mb-4"
           style="max-height: 70px;">

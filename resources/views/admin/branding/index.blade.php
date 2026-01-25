@@ -102,7 +102,7 @@
                                 <div class="mb-4">
                                     <label for="{{ $setting->key }}">{{ ucwords(str_replace('_', ' ', $setting->key)) }}</label>
                                     
-                                    @if($setting->value && file_exists(public_path($setting->value)))
+                                    @if($setting->value)
                                         <div class="mb-2">
                                             <img src="{{ asset($setting->value) }}" alt="{{ $setting->key }}" style="max-height: 80px;" class="img-thumbnail">
                                         </div>

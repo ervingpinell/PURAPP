@@ -21,7 +21,7 @@
     {{-- Logo --}}
     <div class="navbar-logo">
       <a href="{{ localized_route('home') }}">
-        <img src="{{ config('company.logo_url') }}" alt="{{ config('app.name') }}" width="200" height="50" decoding="async" fetchpriority="high">
+        <img src="{{ branding('logo_main', config('company.logo_url')) }}" alt="{{ config('app.name') }}" width="200" height="50" decoding="async" fetchpriority="high">
       </a>
     </div>
 

@@ -166,6 +166,7 @@ return [
         App\Providers\VoltServiceProvider::class,
         App\Providers\GraphMailServiceProvider::class,
         App\Providers\RateLimitServiceProvider::class,
+        App\Providers\AdminLteBrandingServiceProvider::class,
     ],
 
 

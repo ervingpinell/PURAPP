@@ -30,7 +30,7 @@
   <div class="footer-main-content">
     <!-- Brand -->
     <div class="footer-brand">
-      <img src="{{ config('company.logo_url') }}"
+      <img src="{{ branding('logo_main', config('company.logo_url')) }}"
         alt="{{ config('company.short_name') }}"
         decoding="async"
         fetchpriority="low" />
