@@ -104,7 +104,7 @@ if ($len <= 0) return 1;
       style="--title-rows-xs:{{$rowsXS}};--title-rows-sm:{{$rowsSM}};--title-rows-md:{{$rowsMD}};--title-rows-lg:{{$rowsLG}};">
       <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-sm-down" style="margin-top: 2rem;">
         <div class="modal-content">
-          <div class="modal-header text-white" style="background:#0f2419">
+          <div class="modal-header text-white">
             <h5 class="modal-title text-center w-100 text-white"
               id="modalLabel-{{ $slugKey }}">
               {{ $translatedTitle }}
