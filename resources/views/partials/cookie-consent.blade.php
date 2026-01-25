@@ -191,7 +191,7 @@ return $v !== $key ? $v : $fallback;
   }
 
   .cookie-modal-header {
-    background: var(--color-surface-dark, #0f5132);
+    background: var(--color-button-primary, #0f5132);
     color: white;
     padding: 20px;
     border-radius: 12px 12px 0 0;
@@ -218,7 +218,7 @@ return $v !== $key ? $v : $fallback;
   }
 
   .cookie-category:hover {
-    border-color: #0f5132;
+    border-color: var(--color-button-primary);
   }
 
   .cookie-category-header {
@@ -231,14 +231,14 @@ return $v !== $key ? $v : $fallback;
   .cookie-category h4 {
     margin: 0 0 5px 0;
     font-size: 1rem;
-    color: #0f5132;
+    color: var(--color-button-primary);
     font-weight: 600;
   }
 
   .cookie-category p {
     margin: 0;
     font-size: 0.9rem;
-    color: #666;
+    color: var(--color-text-dark, #666);
     line-height: 1.4;
   }
 
@@ -329,12 +329,12 @@ return $v !== $key ? $v : $fallback;
   }
 
   .cookie-modal-body a {
-    color: #0f5132;
+    color: var(--color-button-primary);
     text-decoration: underline;
   }
 
   .cookie-modal-body a:hover {
-    color: #0a3d24;
+    color: var(--color-button-primary-hover);
   }
 
   /* ===== RESPONSIVE - DISEÑO COMPACTO MÓVIL ===== */

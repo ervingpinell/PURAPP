@@ -94,7 +94,7 @@
   border: none;
   overflow: hidden;
   position: relative;
-  background: linear-gradient(135deg, var(--color-surface-dark) 0%, #1e4620 40%, var(--color-button-primary) 100%);
+  background: var(--color-button-primary);
   color: #f9fafb;
 }
 
