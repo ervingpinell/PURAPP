@@ -11,7 +11,7 @@
     "ext-pgsql": "*",
     "barryvdh/laravel-dompdf": "^3.1",
     "deeplcom/deepl-php": "^1.12",
-    "doctrine/dbal": "^4.3",
+    "doctrine/dbal": "^4.4",
     "google/recaptcha": "^1.3",
     "intervention/image": "^3.11",
     "intervention/image-laravel": "^1.5",
@@ -20,6 +20,7 @@
     "laravel/framework": "^12.0",
     "laravel/horizon": "^5.37",
     "laravel/sanctum": "^4.0",
+    "laravel/telescope": "^5.16",
     "laravel/tinker": "^2.10.1",
     "livewire/flux": "^2.1.1",
     "livewire/livewire": "^3.6.4",
@@ -30,8 +31,7 @@
     "spatie/laravel-permission": "^6.23",
     "spatie/laravel-sitemap": "^7.3",
     "stichoza/google-translate-php": "^5.3",
-    "stripe/stripe-php": "^19.0",
-    "laravel/telescope": "^5.16"
+    "stripe/stripe-php": "^19.0"
   },
   "require-dev": {
     "fakerphp/faker": "^1.23",
