@@ -48,7 +48,7 @@ class TransportServicesSeeder extends Seeder
                 'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ]);
+            ], 'tour_type_id');
 
             // Create Spanish translation
             DB::table('tour_type_translations')->insert([

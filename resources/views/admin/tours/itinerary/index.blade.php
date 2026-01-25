@@ -270,6 +270,61 @@ $itineraryToEdit = request('itinerary_id');
                 });
             });
         });
+
+        // ===== Asignar Ítems: generar inputs hidden con orden =====
+        document.querySelectorAll('.form-assign-items').forEach(form => {
+            const itineraryId = form.dataset.itineraryId;
+            const sortableList = document.getElementById(`sortable-${itineraryId}`);
+            const outputContainer = document.getElementById(`ordered-inputs-${itineraryId}`);
+
+            function updateOrderedInputs() {
+                // Limpiar inputs previos
+                outputContainer.innerHTML = '';
+
+                // Obtener todos los items en orden
+                const listItems = Array.from(sortableList.querySelectorAll('li'));
+                let order = 1;
+
+                listItems.forEach(li => {
+                    const checkbox = li.querySelector('.checkbox-assign');
+                    if (checkbox && checkbox.checked) {
+                        const itemId = checkbox.value;
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = `items[${itemId}]`;
+                        input.value = order;
+                        outputContainer.appendChild(input);
+                        order++;
+                    }
+                });
+            }
+
+            // Actualizar cuando cambian los checkboxes
+            sortableList.addEventListener('change', e => {
+                if (e.target.classList.contains('checkbox-assign')) {
+                    updateOrderedInputs();
+                }
+            });
+
+            // Actualizar cuando se reordena (después del drag)
+            if (window.Sortable) {
+                sortableList.addEventListener('sortupdate', updateOrderedInputs);
+            }
+
+            // Inicializar al cargar el modal
+            const modal = form.closest('.modal');
+            if (modal) {
+                modal.addEventListener('shown.bs.modal', updateOrderedInputs);
+            }
+
+            // Actualizar antes de submit
+            form.addEventListener('submit', e => {
+                updateOrderedInputs();
+                // Remover el dummy input
+                const dummyInput = form.querySelector('input[name="item_ids[dummy]"]');
+                if (dummyInput) dummyInput.remove();
+            });
+        });
         
         // Inicializar DataTables si es necesario
         // $('#datatable').DataTable();
