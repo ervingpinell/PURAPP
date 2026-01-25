@@ -40,18 +40,17 @@ class RolesAndUsersSeeder extends Seeder
 
         // Create default super admin (to be customized during deployment)
         $admin = User::updateOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => 'erving@purappcr.com'],
             array_merge([
-                'first_name' => 'System',
-                'last_name'  => 'Administrator',
-                'password'   => Hash::make('change-me-on-deployment'),
+                'first_name' => 'Erving',
+                'last_name'  => 'Pinell',
+                'password'   => Hash::make('erving1234'),
                 'phone'      => '+50600000000',
                 'is_super_admin' => true,
             ], $commonAddress)
         );
         $admin->assignRole($superAdminRole);
 
-        $this->command->info('✓ Default super admin created: admin@example.com');
-        $this->command->warn('⚠ IMPORTANT: Change default credentials during deployment!');
+        $this->command->info('✓ Super admin created: erving@purappcr.com');
     }
 }
