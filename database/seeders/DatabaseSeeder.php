@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             TaxSeeder::class,
             EmailTemplateSeeder::class,
             BrandingPermissionSeeder::class,
+            PoliciesSeederTranslateWipe::class,
+            TransportServicesSeeder::class,
         ]);
     }
 }
