@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('meta_title', __('adminlte::adminlte.meta.home_title'))
-@section('meta_description', __('adminlte::adminlte.meta.home_description'))
+@section('meta_title'){{ branding('seo_home_title_' . app()->getLocale(), __('adminlte::adminlte.meta.home_title')) }}@endsection
+@section('meta_description'){{ branding('seo_home_description_' . app()->getLocale(), __('adminlte::adminlte.meta.home_description')) }}@endsection
 
 @push('meta')
 <meta name="robots" content="index, follow">

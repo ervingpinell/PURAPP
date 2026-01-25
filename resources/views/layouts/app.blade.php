@@ -18,6 +18,18 @@ $fullTitle = config('company.brand_name') . ' | ' . ($pageTitle !== '' ? $pageTi
 $metaDescSlot = $__env->yieldContent('meta_description');
 $metaDesc = $metaDescSlot ?: config('company.seo.meta_description');
 
+// Get keywords from branding based on current route
+$currentRoute = Route::currentRouteName();
+$keywordsKey = 'seo_home_keywords_' . app()->getLocale();
+
+if (str_contains($currentRoute, 'tours')) {
+    $keywordsKey = 'seo_tours_keywords_' . app()->getLocale();
+} elseif (str_contains($currentRoute, 'contact')) {
+    $keywordsKey = 'seo_contact_keywords_' . app()->getLocale();
+}
+
+$metaKeywords = branding($keywordsKey, config('company.seo.meta_keywords', ''));
+
 $isProd = app()->environment('production');
 
 $consentCookie = request()->cookie('gv_cookie_consent');
@@ -155,7 +167,7 @@ $schemaOrg = [
 
     <title>{{ $fullTitle }}</title>
     <meta name="description" content="{{ $metaDesc }}">
-    <meta name="keywords" content="{{ config('company.seo.meta_keywords') }}">
+    <meta name="keywords" content="{{ $metaKeywords }}">
     <link rel="canonical" href="{{ url()->current() }}">
 
     {{-- ⚡ Performance: Preconnect to external domains --}}
@@ -185,7 +197,7 @@ $schemaOrg = [
     <meta property="og:image" content="{{ $ASSET_ROOT }}/images/og-image.jpg">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="{{ config('company.name') }}">
+    <meta property="og:site_name" content="{{ branding('company_name', config('company.name')) }}">
     <meta property="og:locale" content="{{ $appLocale }}">
 
     <meta name="twitter:card" content="summary_large_image">
@@ -324,12 +336,12 @@ $schemaOrg = [
         @endphp
         
         @if(branding('text_shadow_headings', '1') == '1')
-        h1:not(.tour-title-abs), 
-        h2:not(.tour-title-abs), 
-        h3:not(.tour-title-abs), 
-        h4:not(.tour-title-abs), 
-        h5:not(.tour-title-abs), 
-        h6:not(.tour-title-abs) {
+        h1:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
+        h2:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
+        h3:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
+        h4:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
+        h5:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
+        h6:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title) {
             text-shadow: {!! $textShadow !!};
         }
         @endif

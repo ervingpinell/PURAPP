@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('meta_title', __('adminlte::adminlte.meta.contact_title'))
-@section('meta_description', __('adminlte::adminlte.meta.contact_description'))
+@section('meta_title'){{ branding('seo_contact_title_' . app()->getLocale(), __('adminlte::adminlte.meta.contact_title')) }}@endsection
+@section('meta_description'){{ branding('seo_contact_description_' . app()->getLocale(), __('adminlte::adminlte.meta.contact_description')) }}@endsection
 
 @push('styles')
 @vite(['resources/css/contact.css'])

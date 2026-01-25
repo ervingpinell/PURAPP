@@ -13,7 +13,7 @@
 /* ====== CONTENEDOR GENERAL ====== */
 .faq-section {
   padding: 3rem 0;
-  background: #fff;
+  background: transparent;
 }
 
 .faq-section .big-title {

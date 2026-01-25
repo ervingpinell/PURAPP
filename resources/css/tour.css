@@ -21,7 +21,7 @@
 /* =========================
    SECCIÓN PRINCIPAL
    ========================= */
-.tour-section{ padding:3rem 0; background:#fff; }
+.tour-section{ padding:3rem 0; background:transparent; }
 
 /* Titulares (escala global app.css) */
 .tour-section h1{ font-size:var(--fs-h2); line-height:var(--lh-tight); color:var(--tour-primary); font-weight:800; margin:.25rem 0 .5rem; }
@@ -357,9 +357,9 @@
    ACCORDIONS
    ========================= */
 .accordion-item{ background:transparent; }
-.accordion-button{ background:#fff !important; font-weight:700; font-size:var(--fs-h6); }
+.accordion-button{ background:transparent !important; font-weight:700; font-size:var(--fs-h6); }
 .accordion-button:focus{ box-shadow:none; }
-.accordion-body{ background:#fff; }
+.accordion-body{ background:transparent; }
 .accordion-header .accordion-button{ font-size:var(--fs-h6); }
 
 /* =========================

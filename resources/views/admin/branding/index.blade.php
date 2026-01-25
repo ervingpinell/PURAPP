@@ -235,6 +235,20 @@
                                     <span id="seo_home_description_count">{{ strlen(branding('seo_home_description_es', '')) }}</span>/160 characters (recommended: 150-160)
                                 </small>
                             </div>
+                            <div class="mb-3">
+                                <label for="seo_home_keywords_es">Keywords (Spanish)</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="seo_home_keywords_es"
+                                       name="settings[seo_home_keywords_es]" 
+                                       value="{{ branding('seo_home_keywords_es', '') }}"
+                                       maxlength="200"
+                                       placeholder="e.g., transporte privado, La Fortuna, Costa Rica, traslados"
+                                       oninput="updateCharCount(this, 'seo_home_keywords_count', 200)">
+                                <small class="text-muted">
+                                    <span id="seo_home_keywords_count">{{ strlen(branding('seo_home_keywords_es', '')) }}</span>/200 characters (recommended: 150-200)
+                                </small>
+                            </div>
 
                             <!-- Tours Page SEO -->
                             <h5 class="mt-4"><i class="fas fa-map-marked-alt"></i> Tours Page</h5>
@@ -263,6 +277,20 @@
                                     <span id="seo_tours_description_count">{{ strlen(branding('seo_tours_description_es', '')) }}</span>/160 characters
                                 </small>
                             </div>
+                            <div class="mb-3">
+                                <label for="seo_tours_keywords_es">Keywords (Spanish)</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="seo_tours_keywords_es"
+                                       name="settings[seo_tours_keywords_es]" 
+                                       value="{{ branding('seo_tours_keywords_es', '') }}"
+                                       maxlength="200"
+                                       placeholder="e.g., tours La Fortuna, actividades, volcán Arenal, aventura"
+                                       oninput="updateCharCount(this, 'seo_tours_keywords_count', 200)">
+                                <small class="text-muted">
+                                    <span id="seo_tours_keywords_count">{{ strlen(branding('seo_tours_keywords_es', '')) }}</span>/200 characters
+                                </small>
+                            </div>
 
                             <!-- Contact Page SEO -->
                             <h5 class="mt-4"><i class="fas fa-envelope"></i> Contact Page</h5>
@@ -289,6 +317,20 @@
                                           oninput="updateCharCount(this, 'seo_contact_description_count', 160)">{{ branding('seo_contact_description_es', '') }}</textarea>
                                 <small class="text-muted">
                                     <span id="seo_contact_description_count">{{ strlen(branding('seo_contact_description_es', '')) }}</span>/160 characters
+                                </small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="seo_contact_keywords_es">Keywords (Spanish)</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="seo_contact_keywords_es"
+                                       name="settings[seo_contact_keywords_es]" 
+                                       value="{{ branding('seo_contact_keywords_es', '') }}"
+                                       maxlength="200"
+                                       placeholder="e.g., contacto, reservas, cotización, transporte privado"
+                                       oninput="updateCharCount(this, 'seo_contact_keywords_count', 200)">
+                                <small class="text-muted">
+                                    <span id="seo_contact_keywords_count">{{ strlen(branding('seo_contact_keywords_es', '')) }}</span>/200 characters
                                 </small>
                             </div>
                         </div>

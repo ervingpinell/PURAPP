@@ -1,8 +1,8 @@
 {{-- resources/views/public/tours/index.blade.php --}}
 @extends('layouts.app')
 
-@section('meta_title', __('adminlte::adminlte.meta.tours_title'))
-@section('meta_description', __('adminlte::adminlte.meta.tours_description'))
+@section('meta_title'){{ branding('seo_tours_title_' . app()->getLocale(), __('adminlte::adminlte.meta.tours_title')) }}@endsection
+@section('meta_description'){{ branding('seo_tours_description_' . app()->getLocale(), __('adminlte::adminlte.meta.tours_description')) }}@endsection
 @section('title', __('adminlte::adminlte.tours_index_title'))
 
 @push('styles')
