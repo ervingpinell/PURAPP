@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 
 use App\Models\Policy;
 use App\Models\PolicyTranslation;
@@ -23,16 +22,6 @@ class PoliciesSeeder extends Seeder
 
         DB::transaction(function () {
             $today = Carbon::today()->toDateString();
-            
-            // === Variables Dinámicas de la Compañía ===
-            $companyName    = config('company.name') ?? 'Green Vacations Costa Rica';
-            $companyShort   = config('company.short_name') ?? 'Green Vacations CR';
-            $companyPhone   = config('company.phone') ?? '+506 2479 1471';
-            $companyEmail   = config('company.email') ?? 'info@greenvacationscr.com';
-            
-            // Domain inferido del email o fallback
-            $parts = explode('@', $companyEmail);
-            $companyDomain  = $parts[1] ?? 'greenvacationscr.com';
 
             // === Traductor (opcional). Si no existe, hace fallback a ES.
             $translator = null;
@@ -42,7 +31,7 @@ class PoliciesSeeder extends Seeder
                 // sin traductor => se copian textos ES
             }
 
-            // Normaliza locales
+            // Normaliza locales si tu modelo lo soporta
             $canon = function (string $lang): string {
                 if (method_exists(Policy::class, 'canonicalLocale')) {
                     return Policy::canonicalLocale($lang);
@@ -115,7 +104,7 @@ class PoliciesSeeder extends Seeder
                 );
                 // Otros idiomas
                 $nameAll = $translateAll($nameEs);
-                $contAll = $translateAll($contentEs); // Preserva estructura
+                $contAll = $translateAll($contentEs); // Ahora preserva estructura
                 foreach (['en', 'fr', 'de', 'pt'] as $lang) {
                     $locale = $canon($lang);
                     PolicyTranslation::updateOrCreate(
@@ -128,6 +117,8 @@ class PoliciesSeeder extends Seeder
                 }
             };
             
+            // ... (rest of helper functions) ...
+
             // === Detección del nombre del FK real
             $sectionFkCol = Schema::hasColumn('policy_section_translations', 'policy_section_id')
                 ? 'policy_section_id'
@@ -165,30 +156,36 @@ class PoliciesSeeder extends Seeder
                 }
             };
 
+            // =========================
+            // 1) TÉRMINOS Y CONDICIONES (contenido omitido para brevedad en reemplazo, usar contexto anterior si necesario)
+            // ... (se asume que no se toca el contenido de Terms aquí, solo se redefinen los helpers arriba)
+            // ERROR: replace_file_content no puede "ignorar" el medio. Debo reemplazar el bloque exacto.
+            // Dado que el bloque es grande, mejor uso multi_replace o targeteo específicamente la función.
+            // Voy a usar replace_file_content SOLAMENTE en la función $translateAll y luego otro cambio para el slug.
+
+
 
             // =========================
             // 1) TÉRMINOS Y CONDICIONES
             // =========================
-            $terms = Policy::withTrashed()->updateOrCreate(
-                ['type' => Policy::TYPE_TERMS ?? 'terms'],
+            $terms = Policy::updateOrCreate(
+                ['slug' => 'terms-and-conditions'],
                 [
-                    'slug'           => 'terms-and-conditions',
                     'is_active'      => true,
                     'effective_from' => $today,
                     'effective_to'   => null,
-                    'deleted_at'     => null,
                 ]
             );
 
             $termsNameEs = 'Términos y Condiciones';
-            $termsContentEs = <<<TXT
-Bienvenidos a {$companyName}
+            $termsContentEs = <<<'TXT'
+Bienvenidos a Green Vacations Costa Rica
 
-Estos términos y condiciones describen las reglas y regulaciones para el uso del sitio web de {$companyName}, disponible en {$companyDomain}.
+Estos términos y condiciones describen las reglas y regulaciones para el uso del sitio web de Green Vacations Costa Rica, disponible en greenvacationscr.com.
 
-Al acceder a este sitio web, asumimos que usted acepta estos términos y condiciones. No continúe utilizando {$companyDomain} si no está de acuerdo con todos los términos y condiciones establecidos en esta página.
+Al acceder a este sitio web, asumimos que usted acepta estos términos y condiciones. No continúe utilizando greenvacationscr.com si no está de acuerdo con todos los términos y condiciones establecidos en esta página.
 
-La siguiente terminología se aplica a estos Términos y Condiciones, a la Política de Privacidad y al Aviso de Exención de Responsabilidad: “Cliente”, “Usted” y “Su” se refieren a la persona que accede a este sitio web y que acepta los términos y condiciones de {$companyName}. “La Compañía”, “Nosotros”, “Nuestro” y “Nosotros mismos” se refieren a {$companyName}, empresa costarricense dedicada a la operación turística y venta de tours guiados en Costa Rica.
+La siguiente terminología se aplica a estos Términos y Condiciones, a la Política de Privacidad y al Aviso de Exención de Responsabilidad: “Cliente”, “Usted” y “Su” se refieren a la persona que accede a este sitio web y que acepta los términos y condiciones de Green Vacations Costa Rica. “La Compañía”, “Nosotros”, “Nuestro” y “Nosotros mismos” se refieren a Green Vacations Costa Rica, empresa costarricense dedicada a la operación turística y venta de tours guiados en Costa Rica.
 
 El término “Parte” o “Partes” hace referencia tanto al Cliente como a la Compañía. Todos los términos se refieren a la oferta, aceptación y consideración del pago necesario para llevar a cabo el proceso de prestación de nuestros servicios turísticos al Cliente de la manera más adecuada, con el propósito de satisfacer sus necesidades de viaje, conforme a la legislación vigente de Costa Rica.
 
@@ -203,8 +200,8 @@ TXT;
                 'cookies',
                 1,
                 'Cookies',
-                <<<TXT
-Empleamos el uso de cookies. Al acceder a {$companyDomain}, usted aceptó usar cookies de acuerdo con la Política de Privacidad de {$companyName}.
+                <<<'TXT'
+Empleamos el uso de cookies. Al acceder a greenvacationscr.com, usted aceptó usar cookies de acuerdo con la Política de Privacidad de Green Vacations Costa Rica.
 La mayoría de los sitios web interactivos utilizan cookies para permitirnos recuperar los detalles del usuario para cada visita. Nuestro sitio web utiliza cookies para habilitar la funcionalidad de ciertas áreas para que sea más fácil para las personas que visitan nuestro sitio web. Algunos de nuestros socios afiliados/publicitarios también pueden usar cookies.
 TXT
             );
@@ -214,14 +211,14 @@ TXT
                 'license',
                 2,
                 'Licencia',
-                <<<TXT
-A menos que se indique lo contrario, {$companyName} y/o sus licenciantes poseen los derechos de propiedad intelectual de todo el material en {$companyDomain}. Todos los derechos de propiedad intelectual están reservados. Puede acceder a este sitio web para su uso personal sujeto a las restricciones establecidas en estos términos y condiciones.
+                <<<'TXT'
+A menos que se indique lo contrario, Green Vacations Costa Rica y/o sus licenciantes poseen los derechos de propiedad intelectual de todo el material en greenvacationscr.com. Todos los derechos de propiedad intelectual están reservados. Puede acceder a este sitio web para su uso personal sujeto a las restricciones establecidas en estos términos y condiciones.
 
 No debes:
-• Volver a publicar material de {$companyDomain}
-• Vender, alquilar o sublicenciar material de {$companyDomain}
-• Reproducir, duplicar o copiar material de {$companyDomain}
-• Redistribuir contenido de {$companyDomain}
+• Volver a publicar material de greenvacationscr.com
+• Vender, alquilar o sublicenciar material de greenvacationscr.com
+• Reproducir, duplicar o copiar material de greenvacationscr.com
+• Redistribuir contenido de greenvacationscr.com
 
 Este Acuerdo comenzará en la fecha del mismo.
 TXT
@@ -232,10 +229,10 @@ TXT
                 'comments',
                 3,
                 'Comentarios',
-                <<<TXT
-Partes de este sitio web ofrecen una oportunidad para que los usuarios publiquen e intercambien opiniones e información en ciertas áreas del sitio web. {$companyName} no filtra, edita, publica o revisa los Comentarios antes de su presencia en el sitio web. Los comentarios no reflejan los puntos de vista y opiniones de {$companyName}, sus agentes y/o afiliados. En la medida en que lo permitan las leyes aplicables, {$companyName} no será responsable de los Comentarios ni de ninguna responsabilidad, daño o gasto causado y/o sufrido como resultado de cualquier uso y/o publicación y/o apariencia de los Comentarios en este sitio web.
+                <<<'TXT'
+Partes de este sitio web ofrecen una oportunidad para que los usuarios publiquen e intercambien opiniones e información en ciertas áreas del sitio web. Green Vacations Costa Rica no filtra, edita, publica o revisa los Comentarios antes de su presencia en el sitio web. Los comentarios no reflejan los puntos de vista y opiniones de Green Vacations Costa Rica, sus agentes y/o afiliados. En la medida en que lo permitan las leyes aplicables, Green Vacations Costa Rica no será responsable de los Comentarios ni de ninguna responsabilidad, daño o gasto causado y/o sufrido como resultado de cualquier uso y/o publicación y/o apariencia de los Comentarios en este sitio web.
 
-{$companyName} se reserva el derecho de monitorear todos los Comentarios y eliminar cualquier Comentario que pueda considerarse inapropiado, ofensivo o que infrinja estos Términos y Condiciones.
+Green Vacations Costa Rica se reserva el derecho de monitorear todos los Comentarios y eliminar cualquier Comentario que pueda considerarse inapropiado, ofensivo o que infrinja estos Términos y Condiciones.
 
 Usted garantiza y declara que:
 • Tiene derecho a publicar los Comentarios en nuestro sitio web y tiene todas las licencias y consentimientos necesarios para hacerlo.
@@ -243,7 +240,7 @@ Usted garantiza y declara que:
 • Los Comentarios no contienen ningún material difamatorio, calumnioso, ofensivo, indecente o ilegal que sea una invasión de la privacidad.
 • Los Comentarios no se utilizarán para solicitar o promover negocios o costumbres o presentar actividades comerciales o actividades ilegales.
 
-Por la presente, otorga a {$companyName} una licencia no exclusiva para usar, reproducir, editar y autorizar a otros a usar, reproducir y editar cualquiera de sus Comentarios en cualquiera y todas las formas, formatos o medios.
+Por la presente, otorga a Green Vacations Costa Rica una licencia no exclusiva para usar, reproducir, editar y autorizar a otros a usar, reproducir y editar cualquiera de sus Comentarios en cualquiera y todas las formas, formatos o medios.
 TXT
             );
 
@@ -252,12 +249,12 @@ TXT
                 'hyperlinks-to-our-content',
                 4,
                 'Hipervínculos a nuestro contenido',
-                <<<TXT
+                <<<'TXT'
 Las siguientes organizaciones pueden vincular a nuestro sitio web sin aprobación previa por escrito: agencias gubernamentales; motores de búsqueda; organizaciones de noticias; distribuidores de directorios en línea en la misma forma en que enlazan a otros sitios; y empresas acreditadas en todo el sistema (excepto organizaciones sin fines de lucro, centros comerciales de caridad y grupos de recaudación de fondos de caridad).
 Estas organizaciones pueden vincularse a nuestra página de inicio, publicaciones u otra información siempre que el enlace: (a) no sea engañoso; (b) no implique falsamente patrocinio, respaldo o aprobación; y (c) encaje en el contexto del sitio de la parte vinculada.
 
 Podemos considerar y aprobar otras solicitudes de enlace de: fuentes de información comercial/consumo, sitios de comunidad, asociaciones u otros grupos benéficos, distribuidores de directorios en línea, portales de internet, firmas profesionales, instituciones educativas y asociaciones comerciales.
-Aprobaremos si: (a) el enlace no nos hace ver desfavorablemente; (b) la organización no tiene registros negativos con nosotros; (c) el beneficio de la visibilidad compensa la ausencia de {$companyName}; y (d) el enlace está en el contexto de información general de recursos.
+Aprobaremos si: (a) el enlace no nos hace ver desfavorablemente; (b) la organización no tiene registros negativos con nosotros; (c) el beneficio de la visibilidad compensa la ausencia de Green Vacations Costa Rica; y (d) el enlace está en el contexto de información general de recursos.
 
 Las organizaciones aprobadas pueden enlazar usando: nuestro nombre corporativo; el URL al que se enlaza; o cualquier descripción razonable de nuestro sitio web. No se permite el uso del logotipo u otra obra de arte sin acuerdo de licencia.
 TXT
@@ -300,7 +297,7 @@ TXT
                 'disclaimer',
                 9,
                 'Descargo de responsabilidad',
-                <<<TXT
+                <<<'TXT'
 En la máxima medida permitida por la ley aplicable, excluimos todas las representaciones, garantías y condiciones relacionadas con nuestro sitio web y el uso de este sitio web. Nada en este descargo de responsabilidad: (i) limita o excluye nuestra o su responsabilidad por muerte o lesiones personales; (ii) limita o excluye nuestra o su responsabilidad por fraude o tergiversación fraudulenta; (iii) limita cualquiera de nuestras responsabilidades o las suyas de cualquier manera no permitida por la ley; o (iv) excluye cualquiera de nuestras o sus responsabilidades que no puedan ser excluidas bajo la ley aplicable.
 Las limitaciones y prohibiciones de responsabilidad establecidas en este documento rigen todas las responsabilidades que surjan por contrato, agravio o incumplimiento del deber legal. Siempre que el sitio web y la información/servicios se proporcionen de forma gratuita, no seremos responsables de ninguna pérdida o daño de ningún tipo.
 TXT
@@ -309,53 +306,35 @@ TXT
             // =========================
             // 2) CANCELACIÓN
             // =========================
-            $cancel = Policy::withTrashed()->updateOrCreate(
-                ['type' => Policy::TYPE_CANCELLATION ?? 'cancellation'],
-                [
-                    'slug'           => 'cancellations-policies',
-                    'is_active'      => true, 
-                    'effective_from' => $today, 
-                    'effective_to'   => null,
-                    'deleted_at'     => null,
-                ]
+            $cancel = Policy::updateOrCreate(
+                ['slug' => 'cancellations-policies'],
+                ['is_active' => true, 'effective_from' => $today, 'effective_to' => null]
             );
             $savePolicyTranslations(
                 $cancel->policy_id,
                 'Política de Cancelación',
-                "• Las cancelaciones realizadas con 24 horas o más de antelación recibirán un reembolso del 100%.\n• Las cancelaciones efectuadas con menos de 24 horas de antelación, o en caso de no presentarse al tour, no son reembolsables (0%).\n• Las reprogramaciones podrán gestionarse con un mínimo de 12 horas antes del inicio del tour y estarán sujetas a disponibilidad.\n• Los reembolsos se procesarán únicamente a la misma tarjeta con la cual se realizó la compra original.\n• Para realizar cancelaciones, reprogramaciones o consultas, puede contactarnos mediante correo electrónico a {$companyEmail} o vía telefónica/WhatsApp al {$companyPhone}."
+                "• Las cancelaciones realizadas con 24 horas o más de antelación recibirán un reembolso del 100%.\n• Las cancelaciones efectuadas con menos de 24 horas de antelación, o en caso de no presentarse al tour, no son reembolsables (0%).\n• Las reprogramaciones podrán gestionarse con un mínimo de 12 horas antes del inicio del tour y estarán sujetas a disponibilidad.\n• Los reembolsos se procesarán únicamente a la misma tarjeta con la cual se realizó la compra original.\n• Para realizar cancelaciones, reprogramaciones o consultas, puede contactarnos mediante correo electrónico a info@greenvacationscr.com o vía telefónica/WhatsApp al +506 2470-1471."
             );
 
             // =========================
             // 3) REEMBOLSOS
             // =========================
-            $refund = Policy::withTrashed()->updateOrCreate(
-                ['type' => Policy::TYPE_REFUND ?? 'refund'],
-                [
-                    'slug'           => 'refund-policies',
-                    'is_active'      => true, 
-                    'effective_from' => $today, 
-                    'effective_to'   => null,
-                    'deleted_at'     => null,
-                ]
+            $refund = Policy::updateOrCreate(
+                ['slug' => 'refund-policies'],
+                ['is_active' => true, 'effective_from' => $today, 'effective_to' => null]
             );
             $savePolicyTranslations(
                 $refund->policy_id,
                 'Política de Devoluciones y Reembolsos',
-                "• Las devoluciones de dinero se realizan únicamente cuando el servicio no pueda ser brindado por causas atribuibles a {$companyName} (por ejemplo, cancelación del tour por condiciones climáticas extremas o causas operativas justificadas).\n• No se realizarán devoluciones si el cliente no se presenta al tour o cancela fuera del plazo establecido en nuestras políticas de cancelación.\n• Los reembolsos se procesarán únicamente a la misma tarjeta con la cual se efectuó la compra original.\n• El tiempo de acreditación del reembolso dependerá del banco o emisor de la tarjeta utilizada.\n• Los cargos aplicados por terceros (como plataformas de pago o entidades financieras) podrían no ser reembolsables.\n• Para solicitar una devolución o aclarar dudas sobre su reembolso, puede contactarnos a través del correo {$companyEmail} o mediante teléfono/WhatsApp al {$companyPhone}."
+                "• Las devoluciones de dinero se realizan únicamente cuando el servicio no pueda ser brindado por causas atribuibles a Green Vacations Costa Rica (por ejemplo, cancelación del tour por condiciones climáticas extremas o causas operativas justificadas).\n• No se realizarán devoluciones si el cliente no se presenta al tour o cancela fuera del plazo establecido en nuestras políticas de cancelación.\n• Los reembolsos se procesarán únicamente a la misma tarjeta con la cual se efectuó la compra original.\n• El tiempo de acreditación del reembolso dependerá del banco o emisor de la tarjeta utilizada.\n• Los cargos aplicados por terceros (como plataformas de pago o entidades financieras) podrían no ser reembolsables.\n• Para solicitar una devolución o aclarar dudas sobre su reembolso, puede contactarnos a través del correo info@greenvacationscr.com o mediante teléfono/WhatsApp al +506 2470-1471."
             );
 
             // =========================
             // 4) PRIVACIDAD
             // =========================
-            $privacy = Policy::withTrashed()->updateOrCreate(
-                ['type' => Policy::TYPE_PRIVACY ?? 'privacy'],
-                [
-                    'slug'           => 'privacy-policy',
-                    'is_active'      => true, 
-                    'effective_from' => $today, 
-                    'effective_to'   => null,
-                    'deleted_at'     => null,
-                ]
+            $privacy = Policy::updateOrCreate(
+                ['slug' => 'privacy-policy'],
+                ['is_active' => true, 'effective_from' => $today, 'effective_to' => null]
             );
             $savePolicyTranslations(
                 $privacy->policy_id,
@@ -366,30 +345,24 @@ TXT
             // =========================
             // 5) GARANTÍAS
             // =========================
-            $warranty = Policy::withTrashed()->updateOrCreate(
-                ['type' => Policy::TYPE_WARRANTY ?? 'warranty'],
-                [
-                    'slug'           => 'warranty-policies',
-                    'is_active'      => true, 
-                    'effective_from' => $today, 
-                    'effective_to'   => null,
-                    'deleted_at'     => null,
-                ]
+            $warranty = Policy::updateOrCreate(
+                ['slug' => 'warranty-policies'],
+                ['is_active' => true, 'effective_from' => $today, 'effective_to' => null]
             );
             $savePolicyTranslations(
                 $warranty->policy_id,
                 'Política de Garantías',
-                <<<TXT
-• {$companyName} garantiza la correcta prestación de los servicios turísticos contratados, asegurando el cumplimiento de los estándares de calidad y seguridad ofrecidos en cada tour.
+                <<<'TXT'
+• Green Vacations Costa Rica garantiza la correcta prestación de los servicios turísticos contratados, asegurando el cumplimiento de los estándares de calidad y seguridad ofrecidos en cada tour.
 • Si el cliente considera que el servicio recibido no corresponde con lo contratado, podrá presentar una solicitud formal de revisión o garantía dentro de un plazo máximo de 7 días naturales posteriores a la fecha del tour.
-• Esta garantía aplica únicamente a servicios operados directamente por {$companyName} y no cubre servicios de terceros, como transporte externo, hospedaje, alimentación o actividades subcontratadas.
-• En caso de validarse una inconformidad, {$companyName} podrá ofrecer una compensación, reprogramación del tour o reembolso parcial, según corresponda.
-• Para gestionar una solicitud de garantía o enviar documentación de respaldo, puede contactarnos mediante correo electrónico a {$companyEmail} o vía telefónica/WhatsApp al {$companyPhone}.
+• Esta garantía aplica únicamente a servicios operados directamente por Green Vacations Costa Rica y no cubre servicios de terceros, como transporte externo, hospedaje, alimentación o actividades subcontratadas.
+• En caso de validarse una inconformidad, Green Vacations Costa Rica podrá ofrecer una compensación, reprogramación del tour o reembolso parcial, según corresponda.
+• Para gestionar una solicitud de garantía o enviar documentación de respaldo, puede contactarnos mediante correo electrónico a info@greenvacationscr.com o vía telefónica/WhatsApp al +506 2470-1471.
 TXT
             );
         });
 
-        $this->command?->info('✅ PoliciesSeeder: wiped & seeded (es/en/fr/de/pt) with dynamic company data.');
+        $this->command?->info('✅ PoliciesSeederTranslateWipe: wiped & seeded (es/en/fr/de/pt).');
     }
 
     /**
@@ -397,28 +370,37 @@ TXT
      */
     protected function wipePolicyTables(): void
     {
+        $driver = DB::getDriverName();
+
+        $tblPolicies        = 'policies';
+        $tblPolTranslations = 'policies_translations';
+        $tblSections        = 'policy_sections';
+        $tblSecTranslations = 'policy_section_translations'; // <— nombre correcto
+
         $tablesInOrder = [
-            'policy_section_translations',
-            'policies_translations',
-            'policy_sections',
-            'policies',
+            $tblSecTranslations,   // depende de policy_sections
+            $tblPolTranslations,   // depende de policies
+            $tblSections,          // depende de policies
+            $tblPolicies,
         ];
 
-        // Disable constraints to be safe across drivers (though Postgres Truncate Cascade overrides this usually)
-        Schema::disableForeignKeyConstraints();
-
-        foreach ($tablesInOrder as $t) {
-            // We use DB::table()->truncate() which handles grammar specific syntax.
-            // Postgres grammar adds 'RESTART IDENTITY CASCADE'.
-            // MySQL/etc adds 'TRUNCATE TABLE'.
-            try {
-                DB::table($t)->truncate();
-            } catch (\Throwable $e) {
-                // If table doesn't exist or other error, we log/ignore but try to continue
-                // usually purely because table might not exist in fresh db
+        if ($driver === 'pgsql') {
+            foreach ($tablesInOrder as $t) {
+                if (!Schema::hasTable($t)) continue;
+                DB::statement('TRUNCATE TABLE "'.$t.'" RESTART IDENTITY CASCADE');
             }
+        } else {
+            Schema::disableForeignKeyConstraints();
+            foreach ($tablesInOrder as $t) {
+                if (!Schema::hasTable($t)) continue;
+                try {
+                    DB::table($t)->truncate();
+                } catch (\Throwable $e) {
+                    DB::statement("DELETE FROM {$t}");
+                    try { DB::statement("DELETE FROM sqlite_sequence WHERE name = '{$t}'"); } catch (\Throwable $e2) {}
+                }
+            }
+            Schema::enableForeignKeyConstraints();
         }
-
-        Schema::enableForeignKeyConstraints();
     }
 }

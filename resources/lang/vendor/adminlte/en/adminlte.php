@@ -449,6 +449,7 @@ return [
 
     'validation' => [
         'too_many_attempts' => 'Too many failed attempts. Try again in :seconds seconds.',
+        'required_last_name' => 'Last name is required.',
     ],
 
     'open_tour'          => 'Go to the tour?',

@@ -451,6 +451,7 @@ return [
 
     'validation' => [
         'too_many_attempts' => 'Demasiados intentos fallidos. Inténtalo de nuevo en :seconds segundos.',
+        'required_last_name' => 'El apellido es obligatorio.',
     ],
 
     'open_tour'          => '¿Ir al tour?',

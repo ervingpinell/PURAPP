@@ -445,6 +445,7 @@ return [
 
     'validation' => [
         'too_many_attempts' => 'Muitas tentativas falhadas. Tente novamente em :seconds segundos.',
+        'required_last_name' => 'O sobrenome é obrigatório.',
     ],
 
     'open_tour'          => 'Ir para o passeio?',

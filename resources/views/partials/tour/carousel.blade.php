@@ -119,6 +119,38 @@ while ($images->count() < 5) {
         max-width: 100vw;
       }
     }
+    /* Viator Style Thumbnails */
+    .thumb-item {
+      position: relative;
+      cursor: pointer;
+      filter: brightness(50%);
+      transition: filter 0.2s ease, transform 0.2s ease;
+    }
+    .thumb-item:hover,
+    .thumb-item.active {
+      filter: brightness(100%);
+    }
+    .thumb-item.active img {
+        border: 2px solid #fff;
+        box-shadow: 0 0 4px rgba(0,0,0,0.3);
+    }
+    .see-more-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.5); /* Oscurecer la última imagen */
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.85rem;
+      line-height: 1.2;
+      transition: background 0.2s;
+    }
+    .thumb-item:hover .see-more-overlay {
+        background: rgba(0,0,0,0.4);
+    }
   </style>
 
   <div id="tourCarousel"
@@ -131,18 +163,28 @@ while ($images->count() < 5) {
     <div class="row gx-2 h-100 flex-column-reverse flex-md-row">
       {{-- Thumbnails (Desktop) --}}
       @if($images->count() > 1)
-      <div class="col-auto d-none d-md-flex flex-column gap-2 pe-2 thumb-box">
-        @foreach($images as $i => $src)
-        <img src="{{ $src }}"
-          class="{{ $i === 0 ? 'active' : '' }}"
-          data-bs-target="#tourCarousel"
-          data-bs-slide-to="{{ $i }}"
-          data-open-lightbox
-          data-index="{{ $i }}"
-          role="button"
-          width="100"
-          height="75"
-          alt="Miniatura {{ $i + 1 }}">
+      <div class="col-auto d-none d-md-flex flex-column gap-2 pe-2 thumb-box h-100">
+        @foreach($images->take(5) as $i => $src)
+        <div class="thumb-item {{ $i === 0 ? 'active' : '' }}"
+             @if($i === 4)
+                data-open-lightbox
+                data-index="{{ $i }}"
+             @else
+                data-bs-target="#tourCarousel"
+                data-bs-slide-to="{{ $i }}"
+             @endif
+             role="button"
+             style="width: 100px; flex: 1;">
+             
+             <img src="{{ $src }}" class="w-100 h-100 object-fit-cover rounded" alt="Miniatura {{ $i + 1 }}">
+             
+             @if($i === 4)
+             <div class="see-more-overlay rounded">
+                 <i class="fas fa-th fa-sm mb-1"></i>
+                 <span>Ver más</span>
+             </div>
+             @endif
+        </div>
         @endforeach
       </div>
       @endif
@@ -162,15 +204,7 @@ while ($images->count() < 5) {
               height="600"
               loading="lazy">
             
-            {{-- Botón Expandir --}}
-            <button type="button" 
-                    class="btn btn-dark btn-sm position-absolute top-0 end-0 m-3 bg-opacity-50 border-0 rounded-circle d-flex align-items-center justify-content-center" 
-                    style="width: 36px; height: 36px; z-index: 5;"
-                    data-open-lightbox
-                    data-index="{{ $i }}"
-                    title="{{ __('adminlte::adminlte.expand_image') ?? 'Expandir' }}">
-                <i class="fas fa-expand fa-sm text-white"></i>
-            </button>
+            {{-- Botón Expandir eliminado por diseño Viator --}}
           </div>
           @endforeach
         </div>
@@ -254,7 +288,7 @@ while ($images->count() < 5) {
         wrap: true
       });
 
-      const thumbs = mainEl.querySelectorAll('.thumb-box img');
+      const thumbs = mainEl.querySelectorAll('.thumb-box .thumb-item');
       if (thumbs.length) {
         mainEl.addEventListener('slid.bs.carousel', (ev) => {
           thumbs.forEach(t => t.classList.remove('active'));

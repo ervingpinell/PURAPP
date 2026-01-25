@@ -42,13 +42,19 @@
                 </div>
                 <i class="fas fa-arrows-alt handle text-muted"
                    title="{{ __('m_tours.itinerary.ui.drag_handle') }}"></i>
+                {{-- Input hidden estático que siempre está en el DOM --}}
+                <input type="hidden" 
+                       class="item-order-input" 
+                       name="items[{{ $item->item_id }}]" 
+                       value="" 
+                       data-item-id="{{ $item->item_id }}"
+                       disabled>
               </li>
             @endforeach
           </ul>
 
-          {{-- dummy para evitar "no hay item_ids" si no seleccionan nada (lo quitamos en JS) --}}
+          {{-- dummy para evitar "no hay item_ids" si no seleccionan nada --}}
           <input type="hidden" name="item_ids[dummy]" value="-1">
-          <div id="ordered-inputs-{{ $itinerary->itinerary_id }}"></div>
         </div>
 
         <div class="modal-footer">

@@ -44,7 +44,7 @@ class RolesAndUsersSeeder extends Seeder
             array_merge([
                 'first_name' => 'Erving',
                 'last_name'  => 'Pinell',
-                'password'   => Hash::make('erving1234'),
+                'password'   => Hash::make('-erving1234'),
                 'phone'      => '+50600000000',
                 'is_super_admin' => true,
             ], $commonAddress)

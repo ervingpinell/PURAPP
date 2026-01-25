@@ -445,6 +445,7 @@ return [
 
     'validation' => [
         'too_many_attempts' => 'Trop de tentatives infructueuses. Réessayez dans :seconds secondes.',
+        'required_last_name' => 'Le nom de famille est obligatoire.',
     ],
 
     'open_tour'          => 'Aller au circuit ?',

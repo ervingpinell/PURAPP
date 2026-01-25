@@ -40,7 +40,7 @@ class AssignItineraryItemsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'items'   => ['bail','required','array','min:1'],
+            'items'   => ['bail','array'], // Permitir array vacío
             'items.*' => ['integer','min:0','max:9999'], // orden
         ];
     }

@@ -184,11 +184,21 @@ $itineraryToEdit = request('itinerary_id');
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         // ===== Sortable =====
+        const sortableInstances = {};
         document.querySelectorAll('.sortable-items').forEach(list => {
-            new Sortable(list, {
+            const instance = new Sortable(list, {
                 animation: 150,
-                handle: '.handle'
+                handle: '.handle',
+                onEnd: function(evt) {
+                    // Disparar evento personalizado cuando termina el drag
+                    const event = new CustomEvent('sortable-updated');
+                    evt.item.closest('.sortable-items').dispatchEvent(event);
+                }
             });
+            // Guardar instancia por ID de lista
+            if (list.id) {
+                sortableInstances[list.id] = instance;
+            }
         });
 
         // ===== Util: lock + spinner (no deshabilita inputs) =====
@@ -271,58 +281,95 @@ $itineraryToEdit = request('itinerary_id');
             });
         });
 
-        // ===== Asignar Ítems: generar inputs hidden con orden =====
+        // ===== Asignar Ítems: actualizar inputs estáticos =====
         document.querySelectorAll('.form-assign-items').forEach(form => {
             const itineraryId = form.dataset.itineraryId;
             const sortableList = document.getElementById(`sortable-${itineraryId}`);
-            const outputContainer = document.getElementById(`ordered-inputs-${itineraryId}`);
 
-            function updateOrderedInputs() {
-                // Limpiar inputs previos
-                outputContainer.innerHTML = '';
+            if (!sortableList) return;
 
-                // Obtener todos los items en orden
+            function updateOrderInputs() {
+                console.log('=== updateOrderInputs llamado ===');
                 const listItems = Array.from(sortableList.querySelectorAll('li'));
+                console.log('Total de items en la lista:', listItems.length);
                 let order = 1;
+                let checkedCount = 0;
+                let enabledCount = 0;
 
-                listItems.forEach(li => {
+                listItems.forEach((li, index) => {
                     const checkbox = li.querySelector('.checkbox-assign');
-                    if (checkbox && checkbox.checked) {
+                    const input = li.querySelector('.item-order-input');
+                    
+                    if (checkbox && input) {
                         const itemId = checkbox.value;
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = `items[${itemId}]`;
-                        input.value = order;
-                        outputContainer.appendChild(input);
-                        order++;
+                        const isChecked = checkbox.checked;
+                        
+                        console.log(`Item ${index + 1} (ID: ${itemId}):`, {
+                            checked: isChecked,
+                            inputName: input.name,
+                            inputDisabled: input.disabled
+                        });
+                        
+                        if (isChecked) {
+                            checkedCount++;
+                            // Habilitar y asignar orden
+                            input.disabled = false;
+                            input.value = order;
+                            enabledCount++;
+                            console.log(`  ✓ Asignado orden ${order} a item ${itemId}`);
+                            order++;
+                        } else {
+                            // Deshabilitar (no se enviará)
+                            input.disabled = true;
+                            input.value = '';
+                            console.log(`  ✗ Item ${itemId} desmarcado, input deshabilitado`);
+                        }
                     }
                 });
+                
+                console.log('Resumen:', {
+                    totalItems: listItems.length,
+                    checkedItems: checkedCount,
+                    enabledInputs: enabledCount
+                });
+                console.log('=== Fin updateOrderInputs ===\n');
             }
 
-            // Actualizar cuando cambian los checkboxes
+            // Actualizar cuando cambian checkboxes
             sortableList.addEventListener('change', e => {
                 if (e.target.classList.contains('checkbox-assign')) {
-                    updateOrderedInputs();
+                    updateOrderInputs();
                 }
             });
 
-            // Actualizar cuando se reordena (después del drag)
-            if (window.Sortable) {
-                sortableList.addEventListener('sortupdate', updateOrderedInputs);
-            }
+            // Actualizar cuando se reordena
+            sortableList.addEventListener('sortable-updated', updateOrderInputs);
 
-            // Inicializar al cargar el modal
+            // Inicializar cuando se abre el modal
             const modal = form.closest('.modal');
             if (modal) {
-                modal.addEventListener('shown.bs.modal', updateOrderedInputs);
+                modal.addEventListener('shown.bs.modal', updateOrderInputs);
             }
 
-            // Actualizar antes de submit
+            // Antes de enviar, remover dummy y actualizar
             form.addEventListener('submit', e => {
-                updateOrderedInputs();
-                // Remover el dummy input
+                console.log('📤 SUBMIT del formulario - Itinerario:', itineraryId);
+                updateOrderInputs();
+                
+                // Mostrar todos los inputs que se van a enviar
+                const allInputs = form.querySelectorAll('.item-order-input');
+                console.log('Inputs en el formulario:');
+                allInputs.forEach(input => {
+                    console.log(`  - ${input.name}: value="${input.value}", disabled=${input.disabled}`);
+                });
+                
                 const dummyInput = form.querySelector('input[name="item_ids[dummy]"]');
-                if (dummyInput) dummyInput.remove();
+                if (dummyInput) {
+                    console.log('Removiendo dummy input');
+                    dummyInput.remove();
+                }
+                
+                console.log('Formulario listo para enviar\n');
             });
         });
         
