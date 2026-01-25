@@ -19,6 +19,7 @@ export default defineConfig({
             input: [
                 "resources/css/app.css",
                 "resources/css/home.css",
+                "resources/css/hero.css",
                 "resources/css/tour.css",
                 "resources/css/tours-index.css",
                 "resources/css/faqs.css",

@@ -559,7 +559,7 @@ return [
     'filters_active'           => 'Filtres actifs',
     'clear_filters'            => 'Effacer les filtres',
     'clear_short'              => 'Effacer',
-    'all_tours_title'       => 'Toutes les visites',
+    'all_tours_title'       => 'Tous les services',
     'all_tours_subtitle'    => 'Découvrez toutes nos expériences disponibles et trouvez votre prochaine aventure.',
     'filters_btn' => 'Filtrer',
     'more_categories' => 'Plus de catégories',

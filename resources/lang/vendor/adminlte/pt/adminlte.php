@@ -111,13 +111,13 @@ return [
     'rights_reserved' => 'Todos os direitos reservados',
 
     // 5. TOURS AND REVIEWS
-    'tours' => 'Passeios',
-    'tour' => 'Passeio',
-    'tour_name' => 'Nome do passeio',
+    'tours' => 'Serviços',
+    'tour' => 'Serviço',
+    'tour_name' => 'Nome do serviço',
     'overview' => 'Resumo',
     'duration' => 'Duração',
     'price' => 'Preço',
-    'type' => 'Tipo de passeio',
+    'type' => 'Tipo de serviço',
     'languages_available' => 'Idiomas disponíveis',
     'amenities_included' => 'Serviços incluídos',
     'excluded_amenities' => 'Serviços não incluídos',
@@ -560,18 +560,18 @@ return [
     'filters_active'           => 'Filtros ativos',
     'clear_filters'            => 'Limpar filtros',
     'clear_short'              => 'Limpar',
-    'all_tours_title'       => 'Todos os passeios',
+    'all_tours_title'       => 'Todos os serviços',
     'all_tours_subtitle'    => 'Explore todas as nossas experiências disponíveis e encontre sua próxima aventura.',
     'filters_btn' => 'Filtrar',
     'more_categories' => 'Mais categorias',
     'more_tags' => '+ ver mais',
     'less_tags' => 'ver menos',
 
-    'tours_index_title'     => 'Passeios',
+    'tours_index_title'     => 'Serviços',
     'tours_index_subtitle'  => 'Descubra nossas experiências e atividades disponíveis.',
 
     // For trans_choice
-    'tours_count' => '1 passeio disponível|:count passeios disponíveis',
+    'tours_count' => '1 serviço disponível|:count serviços disponíveis',
 
     // Quantities
     'quantities' => 'Quantidades',
