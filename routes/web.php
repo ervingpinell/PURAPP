@@ -765,6 +765,15 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::middleware(['permission:manage branding'])->group(function () {
                     Route::get('branding', [\App\Http\Controllers\BrandingController::class, 'index'])->name('branding.index');
                     Route::post('branding', [\App\Http\Controllers\BrandingController::class, 'update'])->name('branding.update');
+                    
+                    // Branding Templates
+                    Route::post('branding/templates/save', [\App\Http\Controllers\BrandingController::class, 'saveTemplate'])->name('branding.templates.save');
+                    Route::get('branding/export-current', [\App\Http\Controllers\BrandingController::class, 'exportCurrentConfig'])->name('branding.export.current');
+                    Route::get('branding/templates/{id}/export', [\App\Http\Controllers\BrandingController::class, 'exportTemplate'])->name('branding.templates.export');
+                    Route::post('branding/templates/import', [\App\Http\Controllers\BrandingController::class, 'importTemplate'])->name('branding.templates.import');
+                    Route::post('branding/templates/{id}/apply', [\App\Http\Controllers\BrandingController::class, 'applyTemplate'])->name('branding.templates.apply');
+                    Route::get('branding/templates', [\App\Http\Controllers\BrandingController::class, 'templates'])->name('branding.templates');
+                    Route::delete('branding/templates/{id}', [\App\Http\Controllers\BrandingController::class, 'deleteTemplate'])->name('branding.templates.delete');
                 });
 
                 // ============================

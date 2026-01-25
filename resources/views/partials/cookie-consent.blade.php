@@ -23,7 +23,7 @@ return $v !== $key ? $v : $fallback;
     left: 0;
     right: 0;
     bottom: 0;
-    background: #0f5132;
+    background: var(--color-surface-dark, #0f5132);
     color: #fff;
     padding: 12px 16px;
     box-shadow: 0 -6px 24px rgba(0, 0, 0, .18);
@@ -89,13 +89,13 @@ return $v !== $key ? $v : $fallback;
   }
 
   .cookie-accept {
-    background: linear-gradient(135deg, #ffd60a 0%, #ffc300 100%);
+    background: var(--color-cookie-accept-button, #34c759);
     color: #1a1a1a;
     font-weight: 700;
   }
 
   .cookie-accept:hover {
-    background: linear-gradient(135deg, #ffc300 0%, #ffb700 100%);
+    background: var(--color-cookie-accept-button-hover, #2da84a);
     transform: translateY(-2px);
     box-shadow: 0 4px 16px rgba(255, 214, 10, 0.5);
   }
@@ -191,7 +191,7 @@ return $v !== $key ? $v : $fallback;
   }
 
   .cookie-modal-header {
-    background: #0f5132;
+    background: var(--color-surface-dark, #0f5132);
     color: white;
     padding: 20px;
     border-radius: 12px 12px 0 0;

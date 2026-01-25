@@ -242,21 +242,27 @@ $schemaOrg = [
     'resources/css/checkout.css'
     ])
 
-    {{-- Dynamic Branding CSS --}}
+    {{-- Dynamic Branding CSS - Comes AFTER app.css to override variables --}}
     @php
         try {
             $brandingCss = \App\Models\BrandingSetting::getCssVariables();
+            \Log::info('Branding CSS generated', ['length' => strlen($brandingCss), 'empty' => empty($brandingCss)]);
             $backgroundEnabled = branding('background_enabled', '0') == '1';
             $backgroundImage = branding('background_image', '');
+            $backgroundOpacity = branding('background_opacity', '0.95');
             $headerOpacity = branding('header_opacity', '0.95');
             $headerBlur = branding('header_blur', '10');
+            $footerOpacity = branding('footer_opacity', '0.95');
             $textShadowEnabled = branding('text_shadow_enabled', '1') == '1';
         } catch (\Exception $e) {
+            \Log::error('Branding CSS failed', ['error' => $e->getMessage()]);
             $brandingCss = '';
             $backgroundEnabled = false;
             $backgroundImage = '';
+            $backgroundOpacity = '0.95';
             $headerOpacity = '0.95';
             $headerBlur = '10';
+            $footerOpacity = '0.95';
             $textShadowEnabled = true;
         }
     @endphp
@@ -266,21 +272,119 @@ $schemaOrg = [
         {!! $brandingCss !!}
 
         @if($backgroundEnabled && $backgroundImage && file_exists(public_path($backgroundImage)))
-        body {
-            background-image: url('{{ asset($backgroundImage) }}');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
+        /* Make body transparent so background image is visible */
+        html, body {
+            background: transparent !important;
+        }
+        
+        /* Background image layer - behind everything */
+        body::before {
+            content: '' !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            background-image: url('{{ asset($backgroundImage) }}') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-attachment: fixed !important;
+            background-repeat: no-repeat !important;
+            z-index: -2 !important;
+        }
+        
+        /* White overlay layer */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, {{ $backgroundOpacity }});
+            pointer-events: none;
+            z-index: -1;
+        }
+        @endif
+
+        /* Text Shadow */
+        @php
+            $shadowX = branding('text_shadow_x', '2');
+            $shadowY = branding('text_shadow_y', '2');
+            $shadowBlur = branding('text_shadow_blur', '4');
+            $shadowOpacity = branding('text_shadow_opacity', '0.5');
+            $shadowColor = branding('text_shadow_color', '#000000');
+            
+            // Convert hex to RGB
+            $r = hexdec(substr($shadowColor, 1, 2));
+            $g = hexdec(substr($shadowColor, 3, 2));
+            $b = hexdec(substr($shadowColor, 5, 2));
+            
+            $textShadow = "{$shadowX}px {$shadowY}px {$shadowBlur}px rgba({$r}, {$g}, {$b}, {$shadowOpacity})";
+        @endphp
+        
+        @if(branding('text_shadow_headings', '1') == '1')
+        h1:not(.tour-title-abs), 
+        h2:not(.tour-title-abs), 
+        h3:not(.tour-title-abs), 
+        h4:not(.tour-title-abs), 
+        h5:not(.tour-title-abs), 
+        h6:not(.tour-title-abs) {
+            text-shadow: {!! $textShadow !!};
+        }
+        @endif
+        
+        @if(branding('text_shadow_big_title', '1') == '1')
+        .big-title {
+            text-shadow: {!! $textShadow !!};
+        }
+        @endif
+        
+        @if(branding('text_shadow_lead', '1') == '1')
+        .lead {
+            text-shadow: {!! $textShadow !!};
+        }
+        @endif
+        
+        @if(branding('text_shadow_text_muted', '0') == '1')
+        .text-muted {
+            text-shadow: {!! $textShadow !!};
+        }
+        @endif
+        
+        @if(branding('text_shadow_breadcrumbs', '0') == '1')
+        .breadcrumb-item,
+        .breadcrumb-item a {
+            text-shadow: {!! $textShadow !!};
         }
         @endif
 
         /* Header Glass Effect */
         .navbar,
-        header.navbar {
-            background-color: rgba(15, 36, 25, {{ $headerOpacity }}) !important;
-            backdrop-filter: blur({{ $headerBlur }}px);
-            -webkit-backdrop-filter: blur({{ $headerBlur }}px);
+        header.navbar,
+        nav.navbar,
+        .navbar-custom,
+        header {
+            background-color: var(--color-surface-dark, #0f2419) !important;
+            opacity: {{ $headerOpacity }};
+            backdrop-filter: blur({{ $headerBlur }}px) !important;
+            -webkit-backdrop-filter: blur({{ $headerBlur }}px) !important;
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+
+        /* Footer Glass Effect */
+        footer,
+        .footer,
+        footer.footer-nature {
+            background-color: var(--color-surface-dark, #0f2419) !important;
+            opacity: {{ $footerOpacity }};
+            backdrop-filter: blur({{ $headerBlur }}px) !important;
+            -webkit-backdrop-filter: blur({{ $headerBlur }}px) !important;
+            will-change: transform;
+            transform: translateZ(0);
+            backface-visibility: hidden;
         }
 
         @if($textShadowEnabled)

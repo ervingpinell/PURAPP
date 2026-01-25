@@ -50,7 +50,8 @@
     },
     "files": [
       "app/helpers.php",
-      "app/Helpers/BrandingHelper.php"
+      "app/Helpers/BrandingHelper.php",
+      "app/Helpers/SeoHelper.php"
     ]
   },
   "autoload-dev": {

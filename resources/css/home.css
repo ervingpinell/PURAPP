@@ -77,7 +77,6 @@
 
 /* ---------- SECCIÓN TOURS / CARDS ---------- */
 .tours-section {
-    background: var(--text-light);
     text-align: center;
     padding: 3rem 1rem 0;
 }

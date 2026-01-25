@@ -252,7 +252,7 @@ $detailTotalPax = fn($detail) => (int) collect($catLinesFromDetail($detail))->su
 @endphp
 
 <main class="container my-5">
-    <h1 class="mb-4 text-center">{{ __('adminlte::adminlte.my_reservations') }}</h1>
+    <h2 class="mb-4 text-center big-title">{{ __('adminlte::adminlte.my_reservations') }}</h2>
 
     @if($bookings->isEmpty())
     <div class="alert alert-info text-center" role="alert">

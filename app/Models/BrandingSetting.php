@@ -77,7 +77,12 @@ class BrandingSetting extends Model
      */
     public static function getCssVariables(): string
     {
-        return Cache::rememberForever('branding.css_variables', function () {
+        // Use a cache key that includes the last update time
+        $lastUpdate = self::where('category', 'colors')->max('updated_at');
+        $timestamp = $lastUpdate ? \Carbon\Carbon::parse($lastUpdate)->timestamp : time();
+        $cacheKey = 'branding.css_variables.' . $timestamp;
+        
+        return Cache::remember($cacheKey, 3600, function () {
             $colors = self::where('category', 'colors')->get();
             
             $css = ":root {\n";

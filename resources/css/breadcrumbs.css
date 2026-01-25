@@ -8,23 +8,23 @@
 
 .breadcrumb-item + .breadcrumb-item::before {
   content: "›";
-  color: var(--text-muted);
+  color: var(--color-button-primary);
   padding: 0 0.5rem;
 }
 
 .breadcrumb-item a {
-  color: #0f5132;
+  color: var(--color-button-primary);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .breadcrumb-item a:hover {
-  color: #0a3622;
+  color: var(--color-button-primary);
   text-decoration: underline;
 }
 
 .breadcrumb-item.active {
-  color: var(--text-muted);
+  color: var(--color-button-secondary);
   font-weight: 500;
 }
 

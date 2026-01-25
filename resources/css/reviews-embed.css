@@ -17,13 +17,16 @@
   /* Colores de fondo */
   --bg-white: #fff;              /* Fondo de la card */
   --bg-avatar: #e9ecef;          /* Fondo del avatar por defecto */
-  
-  /* Colores de estrellas */
-  --stars-color: #ffc107;        /* Color de las estrellas */
-  
+
   /* Colores de botones/enlaces */
   --toggle-color: #256D1B;       /* Color del botón "ver más/menos" */
 
+
+
+
+    /* Colores de estrellas */
+  --stars-color: #ffc107;        /* Color de las estrellas */
+  
   /* ===== TIPOGRAFÍA ===== */
   --fs-body:   0.9rem;
   --fs-sm:     0.85rem;
@@ -36,19 +39,25 @@
 }
 
 *{ box-sizing:border-box; }
-html,body{ margin:0; padding:0; overflow:hidden; }
+html,body{ 
+  margin:0; 
+  padding:0; 
+  height: auto;
+  min-height: 0;
+}
 body{
   font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  color:var(--text-dark); background:var(--bg-white);
+  color:var(--text-dark); background:transparent;
 }
-.wrap{ padding:.5rem; }
+.wrap{ padding:0; }
 
 /* Card principal */
 .hero-card{
   position:relative; display:flex; flex-direction:column;
   background:var(--bg-white); border-radius:12px; padding:1rem;
   max-width:600px; width:100%; margin:0 auto;
-  min-height:360px; overflow:visible;
+  min-height: 360px;
+  overflow:visible;
   box-shadow:0 10px 22px rgba(0,0,0,.06);
 
   --title-left:auto;

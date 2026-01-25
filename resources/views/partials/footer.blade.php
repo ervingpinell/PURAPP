@@ -85,17 +85,17 @@
       <h4>{{ __('adminlte::adminlte.contact_us') }}</h4>
       <p class="mb-2">
         <i class="fas fa-map-marker-alt me-2"></i>
-        <a href="{{ $mapUrl }}" target="_blank" rel="noopener" class="text-white text-decoration-none">
+        <a href="{{ $mapUrl }}" target="_blank" rel="noopener" class="text-decoration-none">
           {{ config('company.address.city') }}, {{ config('company.address.state') }}, {{ config('company.address.country') }}
         </a>
       </p>
       <p class="mb-2">
         <i class="fas fa-phone me-2"></i>
-        <a href="tel:{{ str_replace(' ', '', config('company.phone')) }}" class="text-white text-decoration-none">{{ config('company.phone') }}</a>
+        <a href="tel:{{ str_replace(' ', '', config('company.phone')) }}" class="text-decoration-none">{{ config('company.phone') }}</a>
       </p>
       <p class="mb-2">
         <i class="fas fa-envelope me-2"></i>
-        <a href="mailto:{{ config('company.email') }}" class="text-white text-decoration-none">
+        <a href="mailto:{{ config('company.email') }}" class="text-decoration-none">
           {{ config('company.email') }}
         </a>
       </p>
@@ -188,14 +188,14 @@
     <!-- Legal Links -->
     <div class="mb-2">
       @if($terms)
-        <a href="{{ $policy_url($terms) }}" class="text-white mx-2 small">{{ __('adminlte::adminlte.terms_and_conditions') }}</a>
+        <a href="{{ $policy_url($terms) }}" class="mx-2 small">{{ __('adminlte::adminlte.terms_and_conditions') }}</a>
       @endif
       @if($privacy)
-        <span class="text-white opacity-50">|</span>
-        <a href="{{ $policy_url($privacy) }}" class="text-white mx-2 small">{{ __('adminlte::adminlte.privacy_policy') }}</a>
+        <span class="opacity-50">|</span>
+        <a href="{{ $policy_url($privacy) }}" class="mx-2 small">{{ __('adminlte::adminlte.privacy_policy') }}</a>
       @endif
-      <span class="text-white opacity-50">|</span>
-      <a href="#" id="cookie-settings-link" class="text-white mx-2 small">
+      <span class="opacity-50">|</span>
+      <a href="#" id="cookie-settings-link" class="mx-2 small">
         {{ __('adminlte::adminlte.cookies.change_preferences') }}
       </a>
     </div>

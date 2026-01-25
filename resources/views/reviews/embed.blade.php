@@ -73,6 +73,19 @@ $tourUrl = request('turl') ?: ($tourId ? localized_route('tours.show', ['tour'=>
     <style>html,body{background:transparent;margin:0;padding:0}</style>
   @else
     @vite('resources/css/reviews-embed.css')
+    <style>
+    :root {
+      --green: {{ branding('reviews_embed_green', '#96B95B') }};
+      --warn: {{ branding('reviews_embed_warn', '#e74c3c') }};
+      --text-dark: {{ branding('reviews_embed_text_dark', '#222') }};
+      --text-muted: {{ branding('reviews_embed_text_muted', '#6c757d') }};
+      --text-rating: {{ branding('reviews_embed_text_rating', '#555') }};
+      --bg-white: {{ branding('reviews_embed_bg_white', '#fff') }};
+      --bg-avatar: {{ branding('reviews_embed_bg_avatar', '#e9ecef') }};
+      --toggle-color: {{ branding('reviews_embed_toggle_color', '#256D1B') }};
+      --stars-color: {{ branding('reviews_embed_stars_color', '#ffc107') }};
+    }
+    </style>
   @endif
 </head>
 

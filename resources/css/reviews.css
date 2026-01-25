@@ -16,6 +16,14 @@
   --clamp-lines:6;   /* nº de líneas antes de “ver más” */
   --lh:1.6;          /* line-height base */
 }
+.big-title {
+    font-size: var(--fs-h2);
+    color: var(--color-button-primary);
+    margin-bottom: 2rem;
+    font-weight: 700;
+    text-align: center;
+}
+
 
 .review-card,.review-item{
   font-family:var(--bs-body-font-family, ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Apple Color Emoji","Segoe UI Emoji");
@@ -100,7 +108,7 @@
 
 /* Estrellas (alineado a embed) */
 .review-stars{ color:#f1c40f; font-size:var(--fs-stars); line-height:1; letter-spacing:.02em; }
-.rating-number{ color:var(--color-button-primary); margin-left:.35rem; font-weight: 600; font-size:var(--fs-card-body); }
+.rating-number{ color:var(--color-button-primary); margin-left:.35rem; font-size:var(--fs-card-body); }
 
 /* Pill (alineado a embed) */
 .review-label{

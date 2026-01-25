@@ -7,47 +7,51 @@
   --nav-h: 64px;
 
   /* ===== PALETA DE COLORES SIMPLIFICADA ===== */
+  /* NOTA: Estos colores ahora se gestionan dinámicamente desde /admin/branding */
+  /* Los valores a continuación son solo de referencia y están comentados */
   
   /* Títulos de Página */
-  --color-page-title: #2c6e49;          /* Para big-title y títulos principales */
+  /* --color-page-title: #2c6e49; */          /* Para big-title y títulos principales */
   
   /* Botones y Acciones */
-  --color-button-primary: #256d1b;      /* Botones de aceptación/verdes */
-  --color-button-primary-hover: #1d5315; /* Hover de botones (más oscuro) */
-  --color-button-secondary: #2c6e49;    /* Botones secundarios/verdes */
-  --color-button-secondary-hover: #3a8f5f; /* Hover de botones secundarios (más claro y vibrante) */
-  --color-tab-primary: #1a5229;
+  /* --color-button-primary: #256d1b; */      /* Botones de aceptación/verdes */
+  /* --color-button-primary-hover: #1d5315; */ /* Hover de botones (más oscuro) */
+  /* --color-button-secondary: #2c6e49; */    /* Botones secundarios/verdes */
+  /* --color-button-secondary-hover: #3a8f5f; */ /* Hover de botones secundarios (más claro y vibrante) */
+  /* --color-tab-primary: #1a5229; */
+  
   /* Backgrounds y Bordes */
-  --color-surface-dark: #0f2419;        /* Backgrounds de modales, header, footer, bordes */
+  /* --color-surface-dark: #0f2419; */        /* Backgrounds de modales, header, footer, bordes */
   
   /* Cards y Badges */
-  --color-card-accent: #e74c3c;         /* Background de títulos en cards */
-  --price-color: #e74c3c;
-  --alert-background: #ffe69c;
+  /* --color-card-accent: #e74c3c; */         /* Background de títulos en cards */
+  /* --price-color: #e74c3c; */
+  /* --alert-background: #ffe69c; */
+  
   /* Enlaces y Texto */
-  --color-link: #fff;                   /* Nav links y footer links */
-  --color-link-hover: #8bc34a;          /* Hover para todos los enlaces */
-  --color-text-on-accent: #fff;         /* Texto sobre backgrounds de acento */
+  /* --color-link: #fff; */                   /* Nav links y footer links */
+  /* --color-link-hover: #8bc34a; */          /* Hover para todos los enlaces */
+  /* --color-text-on-accent: #fff; */         /* Texto sobre backgrounds de acento */
   
   /* Backgrounds de Cards */
-  --theme-card-background: #fff;        /* Background de cards (independiente del color del título) */
+  /* --theme-card-background: #fff; */        /* Background de cards (independiente del color del título) */
 
   /* ===== COLORES DE TEXTO ===== */
-  --text-dark: #333;
-  --text-muted: #6b7280;
-  --text-light: #fff;
-  --text-primary: var(--color-button-primary);
-  --text-secondary: var(--color-button-secondary);
+  /* --text-dark: #333; */
+  /* --text-muted: #6b7280; */
+  /* --text-light: #fff; */
+  /* --text-primary: var(--color-button-primary); */
+  /* --text-secondary: var(--color-button-secondary); */
 
   /* ===== COLORES DE FONDO ===== */
-  --bg-white: #fff;
-  --bg-light: #f9fafb;
-  --bg-soft: #f7faf7;
+  /* --bg-white: #fff; */
+  /* --bg-light: #f9fafb; */
+  /* --bg-soft: #f7faf7; */
 
   /* ===== BORDES Y SEPARADORES ===== */
-  --border-color: #d9d9d9;
-  --border-light: #dcdcdc;
-  --border-gray: #e5e7eb;
+  /* --border-color: #d9d9d9; */
+  /* --border-light: #dcdcdc; */
+  /* --border-gray: #e5e7eb; */
 
   /* ===== SOMBRAS ===== */
   --shadow-sm: 0 4px 12px rgba(0,0,0,0.08);
@@ -59,7 +63,35 @@
   --radius-sm: 8px;
   --radius-md: 10px;
   --radius-lg: 12px;
-  --radius-xl: 15px;
+  --radius-xl: 16px;
+
+  /* ===== ESPACIADO ===== */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* ===== TIPOGRAFÍA ===== */
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+
+  /* ===== TRANSICIONES ===== */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* ===== Z-INDEX ===== */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
 
   /* ===== TIPOGRAFÍA GLOBAL RESPONSIVA ===== */
   --fs-body: clamp(15px, 0.35vw + 13px, 16px);
@@ -196,6 +228,15 @@ h6{ font-size: var(--fs-xs); line-height: var(--lh-tight); font-weight:700; marg
 body.has-fixed-navbar{ padding-top: var(--nav-h); }
 @supports (padding-top: env(safe-area-inset-top)){
   body.has-fixed-navbar{ padding-top: calc(var(--nav-h) + env(safe-area-inset-top)); }
+}
+
+/* ---------- TIPOGRAFÍA / TITULARES ---------- */
+.big-title {
+    font-size: var(--fs-h2);
+    color: var(--color-button-primary);
+    margin-bottom: 2rem;
+    font-weight: 700;
+    text-align: center;
 }
 
 body.has-fixed-navbar .page-first,
@@ -514,7 +555,8 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
    ========================= */
 .cookie-banner{
   position:fixed; left:0; right:0; bottom:0; z-index:2147483000;
-  background:#0f5132; color:#fff; padding:14px 16px; box-shadow:0 -6px 24px rgba(0,0,0,.18);
+  background: var(--color-surface-dark, #0f5132); 
+  color:#fff; padding:14px 16px; box-shadow:0 -6px 24px rgba(0,0,0,.18);
   font-size:.95rem;
 }
 .cookie-banner a{ color:#fff; text-decoration:underline; }
@@ -527,7 +569,13 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
   cursor:pointer; padding:10px 14px; border-radius:8px; font-weight:600;
   border:2px solid transparent; background-clip:padding-box; transition:border-color .15s ease, box-shadow .15s ease;
 }
-.cookie-accept{ background:#34c759; color:#0b2e13; }
+.cookie-accept{ 
+  background: var(--color-cookie-accept-button, #34c759); 
+  color:#fff; 
+}
+.cookie-accept:hover {
+  background: var(--color-cookie-accept-button-hover, #2da84a);
+}
 .cookie-reject{ background:#6c757d; color:#fff; }
 .cookie-more{ background:transparent; color:#fff; text-decoration:underline; padding:0 4px; }
 .cookie-banner .btn:hover,
@@ -600,7 +648,8 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 }
 
 .footer-nature .footer-links a,
-.footer-nature .footer-policies a{
+.footer-nature .footer-policies a,
+.footer-nature .footer-bottom a{
   color:#e0e0e0; 
   text-decoration:none; 
   font-size: var(--fs-body); 
@@ -608,7 +657,8 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 }
 
 .footer-nature .footer-links a:hover,
-.footer-nature .footer-policies a:hover{ 
+.footer-nature .footer-policies a:hover,
+.footer-nature .footer-bottom a:hover{ 
   color:var(--color-link-hover); 
 }
 
