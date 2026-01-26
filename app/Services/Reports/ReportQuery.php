@@ -28,9 +28,9 @@ class ReportQuery
     public function topTours(Carbon $from, Carbon $to, ?string $status = null, int $limit = 10): Collection
     {
         $q = BookingFact::query()
-            ->selectRaw('tour_id, SUM(detail_total) AS revenue, COUNT(DISTINCT booking_id) AS bookings, SUM(adults_qty + kids_qty) AS pax')
+            ->selectRaw('product_id, SUM(detail_total) AS revenue, COUNT(DISTINCT booking_id) AS bookings, SUM(adults_qty + kids_qty) AS pax')
             ->whereBetween('booking_date', [$from, $to])
-            ->groupBy('tour_id')
+            ->groupBy('product_id')
             ->orderByDesc('revenue')
             ->limit($limit);
 

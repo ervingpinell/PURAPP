@@ -111,6 +111,8 @@ return [
 
     // 5. CIRCUITS ET AVIS
     'tours' => 'Circuits',
+    'services' => 'Services',
+    'all_services' => 'Tous les services',
     'tour' => 'Circuit',
     'tour_name' => 'Nom du circuit',
     'overview' => 'Aperçu',
@@ -137,6 +139,8 @@ return [
     'see_tour' => 'Voir le circuit',
     'see_tours' => 'Voir les circuits',
     'see_tour_details' => 'Voir les détails du circuit',
+    'view_details' => 'Voir les détails',
+    'view_all_count' => 'Voir tout (:count)',
     'what_visitors_say' => 'Ce que disent nos visiteurs',
     'quote_1' => 'Une expérience inoubliable !',
     'guest_1' => 'Carlos M.',
@@ -361,6 +365,8 @@ return [
     'contact_spam_success' => 'Votre message a été envoyé.',
     'contact_success'      => 'Votre message a été envoyé avec succès. Nous vous contacterons très prochainement.',
     'contact_error'        => "Une erreur s’est produite lors de l’envoi de votre message. Veuillez réessayer dans quelques minutes.",
+    'need_help_choosing' => 'Besoin d\'aide pour choisir ?',
+    'contact_cta_text' => 'Notre équipe est prête à vous aider à planifier l\'expérience parfaite.',
 
 
     // Placeholders
@@ -553,6 +559,7 @@ return [
     'filters_title'            => 'Filtrer les résultats',
     'filters_subtitle'         => 'Combinez recherche par texte et catégorie pour trouver la visite idéale.',
     'search_tours_placeholder' => 'Rechercher par nom ou description…',
+    'search_services_placeholder' => 'Rechercher des services…',
 
     'all_categories'           => 'Toutes les catégories',
     'category_label'           => 'Catégorie',
@@ -570,6 +577,8 @@ return [
     'quantities' => 'Quantités',
     'quantitiesHelp' => 'Ajustez les quantités selon vos besoins. Vous pouvez laisser à 0 les catégories que vous n\'utilisez pas.',
     'no_tours_found' => 'Aucun tour trouvé.',
+    'tours_count' => '1 service disponible|:count services disponibles',
+    'categories_count' => '1 catégorie|:count catégories',
 
     // COOKIES (Cookie Consent)
     'cookies' => [

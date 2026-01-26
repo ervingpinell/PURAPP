@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Tour;
+use App\Models\Product;
 use Illuminate\Console\Command;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
@@ -64,38 +64,73 @@ class GenerateSitemap extends Command
             );
         }
 
-        // 3. Agregar todos los tours en todos los idiomas
-        $tours = Tour::where('is_active', true)->get();
-        $this->info("Found {$tours->count()} active tours");
-
-        foreach ($tours as $tour) {
+        // 3. Agregar URLs de categorías en todos los idiomas
+        $categories = \App\Helpers\ProductCategoryHelper::getAllCategories();
+        
+        foreach ($categories as $categoryKey => $config) {
+            $urlPrefix = $config['url_prefix'];
+            
             foreach ($locales as $locale) {
-                try {
-                    // Usar el helper localized_route si existe
-                    if (function_exists('localized_route')) {
-                        $url = localized_route('tours.show', [$tour], $locale);
-                    } else {
-                        // Fallback manual
-                        $localeSlug = $locale === 'pt_BR' ? 'pt' : $locale;
-                        $tourSlug = $tour->slug ?? $tour->id;
-                        $url = $locale === 'es'
-                            ? url("/tours/{$tourSlug}")
-                            : url("/{$localeSlug}/tours/{$tourSlug}");
-                    }
-
+                $localeSlug = $locale === 'pt_BR' ? 'pt' : $locale;
+                
+                // Category listing URL
+                $url = $locale === 'es'
+                    ? url("/{$urlPrefix}")
+                    : url("/{$localeSlug}/{$urlPrefix}");
+                
+                $sitemap->add(
+                    Url::create($url)
+                        ->setLastModificationDate(now())
+                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
+                        ->setPriority(0.9)
+                );
+                
+                // Subcategory URLs
+                foreach ($config['subcategories'] ?? [] as $subKey => $subConfig) {
+                    $subUrl = $locale === 'es'
+                        ? url("/{$urlPrefix}/{$subKey}")
+                        : url("/{$localeSlug}/{$urlPrefix}/{$subKey}");
+                    
                     $sitemap->add(
-                        Url::create($url)
-                            ->setLastModificationDate($tour->updated_at ?? now())
+                        Url::create($subUrl)
+                            ->setLastModificationDate(now())
                             ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
-                            ->setPriority(0.9)
+                            ->setPriority(0.8)
                     );
-                } catch (\Exception $e) {
-                    $this->warn("Could not add tour {$tour->id} for locale {$locale}: {$e->getMessage()}");
                 }
             }
         }
 
-        // 4. Guardar sitemap
+        // 4. Agregar todos los productos activos en todos los idiomas
+        $products = Product::where('is_active', true)->get();
+        $this->info("Found {$products->count()} active products");
+
+        foreach ($products as $product) {
+            // Determinar URL prefix por categoría (por ahora todos usan 'tours')
+            $urlPrefix = 'tours'; // TODO: mapear product_type_id a category
+            
+            foreach ($locales as $locale) {
+                try {
+                    $localeSlug = $locale === 'pt_BR' ? 'pt' : $locale;
+                    $productSlug = $product->slug ?? $product->id;
+                    
+                    $url = $locale === 'es'
+                        ? url("/{$urlPrefix}/{$productSlug}")
+                        : url("/{$localeSlug}/{$urlPrefix}/{$productSlug}");
+
+                    $sitemap->add(
+                        Url::create($url)
+                            ->setLastModificationDate($product->updated_at ?? now())
+                            ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                            ->setPriority(0.9)
+                    );
+                } catch (\Exception $e) {
+                    $this->warn("Could not add product {$product->id} for locale {$locale}: {$e->getMessage()}");
+                }
+            }
+        }
+
+        // 5. Guardar sitemap
         $path = public_path('sitemap.xml');
         $sitemap->writeToFile($path);
 

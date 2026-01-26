@@ -39,7 +39,7 @@
   $toursPayload = [];
   foreach ($tours as $t) {
       $item = [
-          'id'   => (int)$t->tour_id,
+          'id'   => (int)$t->product_id,
           'name' => $t->name,
           'cutoff' => $t->cutoff_hour,
           'lead'   => $t->lead_days,
@@ -63,7 +63,7 @@
       $hasTourOverride = ($t->cutoff_hour || !is_null($t->lead_days));
       if ($hasTourOverride) {
           $tourOverrides[] = [
-            'tour_id' => (int)$t->tour_id,
+            'product_id' => (int)$t->product_id,
             'tour'    => $t->name,
             'cutoff'  => $t->cutoff_hour ?: '—',
             'lead'    => is_null($t->lead_days) ? '—' : $t->lead_days,
@@ -74,7 +74,7 @@
           $pLd  = optional($s->pivot)->lead_days;
           if ($pCut || !is_null($pLd)) {
               $scheduleOverrides[] = [
-                'tour_id'     => (int)$t->tour_id,
+                'product_id'     => (int)$t->product_id,
                 'schedule_id' => (int)$s->schedule_id,
                 'tour'        => $t->name,
                 'schedule'    => Carbon::parse($s->start_time)->format('g:i A').' - '.Carbon::parse($s->end_time)->format('g:i A'),

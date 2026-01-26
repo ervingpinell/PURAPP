@@ -571,8 +571,8 @@
 
           <div class="col-12 col-md-6 col-lg-4 col-xl-5">
             <label class="filter-label">{{ __('reports.filters.tours_multi') }}</label>
-            @php $tSel = collect((array)request('tour_id', []))->map(fn($v)=>(int)$v)->all(); @endphp
-            <select name="tour_id[]" class="form-control" multiple size="4">
+            @php $tSel = collect((array)request('product_id', []))->map(fn($v)=>(int)$v)->all(); @endphp
+            <select name="product_id[]" class="form-control" multiple size="4">
               @foreach($toursMap as $tid => $tname)
               <option value="{{ $tid }}" @selected(in_array((int)$tid, $tSel))>{{ $tname }}</option>
               @endforeach
@@ -677,7 +677,7 @@
 
       {{-- Tours Performance --}}
       <div class="col-12 col-md-6 col-xl-4">
-        <a href="{{ route('admin.reports.tours', request()->all()) }}" class="text-decoration-none">
+        <a href="{{ route('admin.reports.products', request()->all()) }}" class="text-decoration-none">
           <div class="report-type-card clickable">
             <div class="report-icon" style="background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);">
               <i class="fas fa-route"></i>
@@ -805,7 +805,7 @@
                 @forelse($topTours as $i => $row)
                 <tr>
                   <td>{{ $i+1 }}</td>
-                  <td>{{ $toursMap[$row->tour_id] ?? ('#'.$row->tour_id) }}</td>
+                  <td>{{ $toursMap[$row->product_id] ?? ('#'.$row->product_id) }}</td>
                   <td>{{ $row->bookings }}</td>
                   <td>{{ $row->pax }}</td>
                   <td class="text-end">$ {{ number_format($row->revenue, 2) }}</td>
@@ -967,13 +967,13 @@
       period: '{{ request('
       period ', $period ?? "month") }}',
     });
-    @php $tSel = collect((array) request('tour_id', [])) -> map(fn($v) => (int) $v) -> all();
+    @php $tSel = collect((array) request('product_id', [])) -> map(fn($v) => (int) $v) -> all();
     @endphp
     @php $lSel = collect((array) request('tour_language_id', [])) -> map(fn($v) => (int) $v) -> all();
     @endphp
       ({
         !!json_encode($tSel) !!
-      }).forEach(v => p.append('tour_id[]', v));
+      }).forEach(v => p.append('product_id[]', v));
     ({
       !!json_encode($lSel) !!
     }).forEach(v => p.append('tour_language_id[]', v));

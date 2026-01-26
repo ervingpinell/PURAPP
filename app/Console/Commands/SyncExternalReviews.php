@@ -140,7 +140,7 @@ class SyncExternalReviews extends Command
                 // Fetch reviews from external API for this specific product
                 $externalReviews = $this->aggregator->aggregate([
                     'provider' => $provider->slug,
-                    'tour_id' => (int) $tourId,
+                    'product_id' => (int) $tourId,
                     'limit' => 100,
                 ]);
 
@@ -187,7 +187,7 @@ class SyncExternalReviews extends Command
         $data = [
             'provider' => $provider->slug,
             'provider_review_id' => $providerReviewId,
-            'tour_id' => $reviewData['tour_id'] ?? null,
+            'product_id' => $reviewData['product_id'] ?? null,
             'rating' => $reviewData['rating'] ?? 5,
             'title' => $reviewData['title'] ?? null,
             'body' => $reviewData['body'] ?? '',

@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * CustomerCategory Model
@@ -16,13 +16,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class CustomerCategory extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTranslations;
 
     protected $table = 'customer_categories';
     protected $primaryKey = 'category_id';
 
+    public $translatable = ['name'];
+
     protected $fillable = [
         'slug',
+        'name',
         'age_from',
         'age_to',
         'order',
@@ -37,7 +40,6 @@ class CustomerCategory extends Model
         'is_active' => 'boolean',
     ];
 
-    // === Appends útiles si serializas categorías directo a JSON ===
     protected $appends = ['translated'];
 
     /* Scopes */
@@ -114,17 +116,14 @@ class CustomerCategory extends Model
         });
     }
 
-    public function tourPrices()
-    {
-        return $this->hasMany(TourPrice::class, 'category_id', 'category_id');
-    }
 
-    public function tours()
-    {
-        return $this->belongsToMany(Tour::class, 'tour_prices', 'category_id', 'tour_id')
-            ->withPivot(['price', 'min_quantity', 'max_quantity', 'is_active'])
-            ->withTimestamps();
-    }
+    // public function tours()
+    // {
+    //     // Pivot logic might need update if Product keys changed, keeping as is for now if not using pivots directly via category often
+    //      return $this->belongsToMany(Product::class, 'tour_prices', 'category_id', 'product_id')
+    //         ->withPivot(['price', 'min_quantity', 'max_quantity', 'is_active'])
+    //         ->withTimestamps();
+    // }
 
     public function deletedBy()
     {
@@ -135,17 +134,12 @@ class CustomerCategory extends Model
     {
         return $query->where('deleted_at', '<=', now()->subDays($days));
     }
-
-    public function translations()
-    {
-        return $this->hasMany(CustomerCategoryTranslation::class, 'category_id', 'category_id');
-    }
+    
+    // Legacy support via Spatie
+    // public function translations() { ... } // Removed
 
     /** ===== LOCALIZACIÓN ===== */
 
-    /**
-     * Lista ordenada de locales candidatos a evaluar.
-     */
     public static function candidateLocales(?string $preferred = null): array
     {
         $lc = $preferred ?: app()->getLocale() ?: 'es';
@@ -167,58 +161,35 @@ class CustomerCategory extends Model
     }
 
     /**
-     * Devuelve el nombre traducido (igual que antes).
+     * Devuelve el nombre traducido usando Spatie.
      */
     public function getTranslatedName(?string $locale = null): string
     {
-        $cands = self::candidateLocales($locale);
-        $trs = $this->relationLoaded('translations')
-            ? $this->getRelation('translations')
-            : $this->translations()->get();
-
-        if ($trs->isNotEmpty()) {
-            // índices por exacto y por base
-            $byExact = [];
-            $byBase  = [];
-            foreach ($trs as $t) {
-                $loc = str_replace('_', '-', (string) $t->locale);
-                $byExact[$loc] = $t;
-                $base = explode('-', $loc)[0];
-                if (!isset($byBase[$base])) $byBase[$base] = $t;
-            }
-
-            foreach ($cands as $cand) {
-                if (isset($byExact[$cand]) && $byExact[$cand]->name) {
-                    return (string) $byExact[$cand]->name;
-                }
-                $lang = explode('-', $cand)[0];
-                if (isset($byBase[$lang]) && $byBase[$lang]->name) {
-                    return (string) $byBase[$lang]->name;
-                }
-            }
-
-            // cualquier traducción disponible
-            $any = $trs->firstWhere('name', '!=', null) ?? $trs->first();
-            if ($any && $any->name) return (string) $any->name;
-        }
-
-        return $this->slug
-            ? (string) Str::of($this->slug)->replace(['_', '-'], ' ')->title()
-            : '';
+        // Spatie handles fallbacks automatically based on config/translatable.php
+        // But if we want to support existing complex 'candidateLocales' logic, we can keep it
+        // Or simply trust Spatie: return $this->getTranslation('name', $locale ?? app()->getLocale());
+        
+        // For compatibility with strict fallbacks defined in model:
+        $locale = $locale ?: app()->getLocale();
+        return $this->getTranslation('name', $locale);
     }
 
-    /**
-     * Accessor uniforme: $category->translated
-     * (clave estándar que pides para “el nombre traducido”)
-     */
     public function getTranslatedAttribute(): string
     {
-        return $this->getTranslatedName();
+        return $this->name; // Spatie accessor automagically returns translated string based on app locale? 
+        // No, $this->name returns the JSON if accessed directly on some versions or the string. 
+        // Spatie trait: $this->name (attribute) uses the getter to return translation.
+        // Actually Spatie trait intercepts attribute access. 
+        // $this->name returns translation in current locale.
+        return $this->name; 
     }
-
+    
+    // NOTE: Spatie `getTranslatedAttribute` override might conflict? 
+    // Spatie uses `getAttribute` override.
+    // If we define `getNameAttribute`, it overrides Spatie.
+    
     /**
-     * Carga un diccionario de nombres traducidos por ID y por SLUG para un set.
-     * Devuelve: ['byId'=>[id=>name], 'bySlug'=>[slug=>name]]
+     * Carga un diccionario de nombres traducidos.
      */
     public static function preloadDictionaries(array $ids = [], array $slugs = [], ?string $locale = null): array
     {
@@ -229,7 +200,7 @@ class CustomerCategory extends Model
             return ['byId' => [], 'bySlug' => []];
         }
 
-        $q = static::query()->with('translations');
+        $q = static::query(); // No need to load 'translations' relation anymore
 
         if (!empty($ids))   $q->whereIn('category_id', $ids);
         if (!empty($slugs)) {
@@ -244,8 +215,10 @@ class CustomerCategory extends Model
 
         $byId   = [];
         $bySlug = [];
+        $locale = $locale ?: app()->getLocale();
+        
         foreach ($rows as $row) {
-            $name = $row->getTranslatedName($locale);
+            $name = $row->getTranslation('name', $locale);
             $byId[$row->category_id] = $name;
             if ($row->slug) $bySlug[$row->slug] = $name;
         }

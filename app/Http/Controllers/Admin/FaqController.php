@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Faq;
-use App\Models\FaqTranslation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Faq;
 use App\Services\Contracts\TranslatorInterface;
 use Exception;
 use App\Services\LoggerHelper;
@@ -33,7 +32,8 @@ class FaqController extends Controller
     {
         // Default always use custom order sort_order
         // The admin can "apply" specialized sorts which rewrite the sort_order column
-        $faqs = Faq::with('translations')
+        // The admin can "apply" specialized sorts which rewrite the sort_order column
+        $faqs = Faq::query()
             ->orderBy('sort_order', 'asc')
             ->orderBy('faq_id', 'desc')
             ->get();
@@ -142,14 +142,14 @@ class FaqController extends Controller
                     $aTr = [];
                 }
 
-                foreach (['es', 'en', 'fr', 'pt', 'de'] as $lang) {
-                    FaqTranslation::create([
-                        'faq_id'   => $faq->faq_id,
-                        'locale'   => $lang,
-                        'question' => $qTr[$lang] ?? $question,
-                        'answer'   => $aTr[$lang] ?? $answer,
-                    ]);
+                $faq->setTranslation('question', 'es', $question);
+                $faq->setTranslation('answer', 'es', $answer);
+
+                foreach (['en', 'fr', 'pt', 'de'] as $lang) {
+                     $faq->setTranslation('question', $lang, $qTr[$lang] ?? $question);
+                     $faq->setTranslation('answer', $lang, $aTr[$lang] ?? $answer);
                 }
+                $faq->save();
             });
 
 
@@ -180,25 +180,10 @@ class FaqController extends Controller
 
                 // Update or create translations for each locale
                 foreach ($translations as $locale => $data) {
-                    FaqTranslation::updateOrCreate(
-                        [
-                            'faq_id' => $faq->faq_id,
-                            'locale' => $locale,
-                        ],
-                        [
-                            'question' => $data['question'],
-                            'answer' => $data['answer'],
-                        ]
-                    );
+                    $faq->setTranslation('question', $locale, $data['question']);
+                    $faq->setTranslation('answer', $locale, $data['answer']);
                 }
-
-                // Update base FAQ with Spanish translation
-                if (isset($translations['es'])) {
-                    $faq->update([
-                        'question' => $translations['es']['question'],
-                        'answer' => $translations['es']['answer'],
-                    ]);
-                }
+                $faq->save();
             });
 
             LoggerHelper::mutated('FaqController', 'update', 'Faq', $faq->faq_id);

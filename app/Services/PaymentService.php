@@ -104,7 +104,7 @@ class PaymentService
                 'status'     => 'pending',
                 'metadata'   => [
                     'booking_reference' => $booking->booking_reference,
-                    'tour_id'           => $booking->tour_id,
+                    'product_id'           => $booking->product_id,
                     'created_from'      => 'checkout',
                 ],
             ]);
@@ -544,7 +544,7 @@ class PaymentService
 
             $payload = [
                 'user_id'          => $cartSnapshot['user_id'],
-                'tour_id'          => $item['tour_id'],
+                'product_id'          => $item['product_id'],
                 'schedule_id'      => $item['schedule_id'],
                 // Handle both 'tour_language_id' (cart) and 'language_id' (booking payment)
                 'tour_language_id' => $item['tour_language_id'] ?? $item['language_id'] ?? null,

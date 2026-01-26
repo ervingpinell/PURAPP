@@ -3,7 +3,7 @@ $mailLocale = $mailLocale ?? 'en';
 $reference = $reference ?? ($booking->booking_reference ?? $booking->booking_id);
 
 $d = collect($booking->details ?? [])->first();
-$tourName = $d?->relationLoaded('tour') ? ($d->tour->title ?? 'Tour') : ($booking->tour->title ?? 'Tour');
+$tourName = $d?->relationLoaded('tour') ? ($d->tour->title ?? 'Tour') : ($booking->product->title ?? 'Tour');
 $tourDate = $d?->tour_date ? \Illuminate\Support\Carbon::parse($d->tour_date)->format('d-M-Y') : null;
 @endphp
 

@@ -212,7 +212,7 @@
     $debugInfo[] = "App locale: " . app()->getLocale();
     $debugInfo[] = "Carbon locale: " . Carbon::getLocale();
 
-    $tour = $booking->tour;
+    $tour = $booking->product;
     $detail = $booking->detail;
 
     // Tour name

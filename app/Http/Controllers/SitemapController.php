@@ -29,8 +29,8 @@ class SitemapController extends Controller
         }
 
         // Tours
-        if (class_exists(\App\Models\Tour::class)) {
-            $tours = \App\Models\Tour::query()
+        if (class_exists(\App\Models\Product::class)) {
+            $tours = \App\Models\Product::query()
                 ->whereNull('deleted_at')
                 ->get(['slug','updated_at']);
 

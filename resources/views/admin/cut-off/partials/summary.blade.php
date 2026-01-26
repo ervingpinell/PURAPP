@@ -22,18 +22,18 @@
           @php
           $cutVal = $row['cutoff'] === '—' ? '' : $row['cutoff'];
           $leadVal = $row['lead'] === '—' ? '' : $row['lead'];
-          $rid = 'tour_'.$row['tour_id'];
+          $rid = 'tour_'.$row['product_id'];
           @endphp
           <tr>
             <td class="fw-medium">{{ $row['tour'] }}</td>
 
             <td>
               <form id="form-{{ $rid }}-update" class="d-flex gap-2 align-items-center flex-wrap" method="POST"
-                action="{{ route('admin.tours.cutoff.tour.update') }}">
+                action="{{ route('admin.products.cutoff.tour.update') }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="from_summary" value="1">
-                <input type="hidden" name="tour_id" value="{{ $row['tour_id'] }}">
+                <input type="hidden" name="product_id" value="{{ $row['product_id'] }}">
                 <input type="time" name="cutoff_hour" value="{{ $cutVal }}" class="form-control form-control-sm" placeholder="--:--"
                   pattern="^(?:[01]\d|2[0-3]):[0-5]\d$" style="max-width:130px">
             </td>
@@ -52,11 +52,11 @@
 
               {{-- DELETE: manda PUT al mismo endpoint con valores vacíos (se guardan como NULL) --}}
               <form id="form-{{ $rid }}-delete" class="d-inline" method="POST"
-                action="{{ route('admin.tours.cutoff.tour.update') }}">
+                action="{{ route('admin.products.cutoff.tour.update') }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="from_summary" value="1">
-                <input type="hidden" name="tour_id" value="{{ $row['tour_id'] }}">
+                <input type="hidden" name="product_id" value="{{ $row['product_id'] }}">
                 <input type="hidden" name="cutoff_hour" value="">
                 <input type="hidden" name="lead_days" value="">
                 <button type="button" class="btn btn-danger btn-sm js-confirm-delete"
@@ -103,7 +103,7 @@
           @php
           $cutVal = $row['cutoff'] === '—' ? '' : $row['cutoff'];
           $leadVal = $row['lead'] === '—' ? '' : $row['lead'];
-          $rid = 'sch_'.$row['tour_id'].'_'.$row['schedule_id'];
+          $rid = 'sch_'.$row['product_id'].'_'.$row['schedule_id'];
           @endphp
           <tr>
             <td class="fw-medium">{{ $row['tour'] }}</td>
@@ -111,11 +111,11 @@
 
             <td>
               <form id="form-{{ $rid }}-update" class="d-flex gap-2 align-items-center flex-wrap" method="POST"
-                action="{{ route('admin.tours.cutoff.schedule.update') }}">
+                action="{{ route('admin.products.cutoff.schedule.update') }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="from_summary" value="1">
-                <input type="hidden" name="tour_id" value="{{ $row['tour_id'] }}">
+                <input type="hidden" name="product_id" value="{{ $row['product_id'] }}">
                 <input type="hidden" name="schedule_id" value="{{ $row['schedule_id'] }}">
                 <input type="time" name="pivot_cutoff_hour" value="{{ $cutVal }}" class="form-control form-control-sm" placeholder="--:--"
                   pattern="^(?:[01]\d|2[0-3]):[0-5]\d$" style="max-width:130px">
@@ -135,11 +135,11 @@
 
               {{-- DELETE: manda PUT al mismo endpoint con valores vacíos (se guardan como NULL) --}}
               <form id="form-{{ $rid }}-delete" class="d-inline" method="POST"
-                action="{{ route('admin.tours.cutoff.schedule.update') }}">
+                action="{{ route('admin.products.cutoff.schedule.update') }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="from_summary" value="1">
-                <input type="hidden" name="tour_id" value="{{ $row['tour_id'] }}">
+                <input type="hidden" name="product_id" value="{{ $row['product_id'] }}">
                 <input type="hidden" name="schedule_id" value="{{ $row['schedule_id'] }}">
                 <input type="hidden" name="pivot_cutoff_hour" value="">
                 <input type="hidden" name="pivot_lead_days" value="">

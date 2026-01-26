@@ -28,7 +28,7 @@ class BookingPricingService
      * $quantities = ['category_id' => quantity, ...]
      * $date = Fecha del tour para seleccionar precio correcto (opcional)
      */
-    public function buildCategoriesSnapshot(Tour $tour, array $quantities, $date = null): array
+    public function buildCategoriesSnapshot(Product $tour, array $quantities, $date = null): array
     {
         $snapshot = [];
 

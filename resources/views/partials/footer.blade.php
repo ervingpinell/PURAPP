@@ -41,7 +41,46 @@
       <h4>{{ __('adminlte::adminlte.quick_links') }}</h4>
       <ul>
         <li><a href="{{ localized_route('home') }}">{{ __('adminlte::adminlte.home') }}</a></li>
-        <li><a href="{{ localized_route('tours.index') }}">{{ __('adminlte::adminlte.tours') }}</a></li>
+        
+        
+        {{-- COLLAPSIBLE SERVICES SECTION --}}
+        @if(\App\Helpers\NavigationHelper::shouldShowServicesDropdown())
+          {{-- Large Operator: Collapsible "All Services" --}}
+          <li>
+            <a href="#" 
+               data-bs-toggle="collapse" 
+               data-bs-target="#footerServicesCollapse" 
+               aria-expanded="false" 
+               aria-controls="footerServicesCollapse">
+              {{ __('adminlte::adminlte.all_services') }}
+              <i class="fas fa-chevron-down ms-1"></i>
+            </a>
+          </li>
+          <li>
+            <div class="collapse" id="footerServicesCollapse">
+              <ul class="list-unstyled ps-3 mt-2">
+                @foreach(\App\Helpers\NavigationHelper::getActiveCategories() as $key => $config)
+                  <li class="mb-2">
+                    <a href="{{ \App\Helpers\ProductCategoryHelper::categoryUrl($key) }}">
+                      {{ $config['plural'] }}
+                    </a>
+                  </li>
+                @endforeach
+              </ul>
+            </div>
+          </li>
+        @else
+          {{-- Small Operator: Show all categories directly --}}
+          @foreach(\App\Helpers\NavigationHelper::getActiveCategories() as $key => $config)
+            <li>
+              <a href="{{ \App\Helpers\ProductCategoryHelper::categoryUrl($key) }}">
+                {{ $config['plural'] }}
+              </a>
+            </li>
+          @endforeach
+        @endif
+        
+        
         <li><a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a></li>
         <li><a href="{{ localized_route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a></li>
         <li><a href="{{ localized_route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a></li>

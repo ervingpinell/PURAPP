@@ -9,7 +9,7 @@ trait BookingMailHelpers
     use RestrictsEmailLocale;
 
     /**
-     * Intenta extraer un código de idioma ('es' | 'en') desde el modelo de TourLanguage,
+     * Intenta extraer un código de idioma ('es' | 'en') desde el modelo de ProductLanguage,
      * tolerando distintos nombres de campo.
      */
     protected function resolveLangCode(?object $lang): ?string

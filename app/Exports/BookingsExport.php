@@ -50,9 +50,9 @@ class BookingsExport implements FromView
             $q->where('status', $f['status']);
         }
 
-        // Por tour_id
-        if (!empty($f['tour_id'])) {
-            $q->where('tour_id', (int)$f['tour_id']);
+        // Por product_id
+        if (!empty($f['product_id'])) {
+            $q->where('product_id', (int)$f['product_id']);
         }
 
         // Por fecha de reserva (booking_date)
@@ -89,8 +89,8 @@ class BookingsExport implements FromView
     {
         $name = 'Report';
 
-        if (!empty($filters['tour_id'])) {
-            $tour = \App\Models\Tour::find($filters['tour_id']);
+        if (!empty($filters['product_id'])) {
+            $tour = \App\Models\Product::find($filters['product_id']);
             if ($tour) {
                 $name .= ' ' . preg_replace('/\s*\([^)]*\)/', '', $tour->name);
             }

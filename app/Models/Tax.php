@@ -47,10 +47,6 @@ class Tax extends Model
     /**
      * Get all tours that have this tax
      */
-    public function tours()
-    {
-        return $this->morphedByMany(Tour::class, 'taxable', 'taxables', 'tax_id');
-    }
 
     /**
      * Calculate tax amount based on base amount and quantity

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Policy;
-use App\Models\PolicyTranslation;
+// use App\Models\PolicyTranslation; // Removed
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\LoggerHelper;
 
@@ -36,7 +36,7 @@ class PolicyController extends Controller
         $status = $request->get('status', 'all'); // Default to 'all' (active + inactive)
 
         $base = Policy::query()
-            ->with(['translations', 'sections'])
+            ->with(['sections'])
             ->withCount('sections');
 
         if ($status === 'archived') {
@@ -105,12 +105,11 @@ class PolicyController extends Controller
              $transContent = $contents[$locale] ?? '';
              
              if (!empty($transName)) {
-                 PolicyTranslation::updateOrCreate(
-                     ['policy_id' => $policy->policy_id, 'locale' => $locale],
-                     ['name' => $transName, 'content' => $transContent]
-                 );
+                 $policy->setTranslation('name', $locale, $transName);
+                 $policy->setTranslation('content', $locale, $transContent);
              }
         }
+        $policy->save();
 
 
 
@@ -225,15 +224,12 @@ class PolicyController extends Controller
 
                 // Si al menos uno tiene valor, guardamos/actualizamos
                 if ($tName || $tContent) {
-                    PolicyTranslation::updateOrCreate(
-                        ['policy_id' => $policy->policy_id, 'locale' => $norm],
-                        [
-                            'name'    => $tName ?? '',
-                            'content' => $tContent ?? '',
-                        ]
-                    );
+                    $policy->setTranslation('name', $norm, $tName ?? '');
+                    $policy->setTranslation('content', $norm, $tContent ?? '');
                 }
             }
+            $policy->save();
+
         }
 
         LoggerHelper::mutated('PolicyController', 'update', 'Policy', $policy->policy_id);
@@ -306,10 +302,10 @@ class PolicyController extends Controller
         } catch (\Throwable $e) {
         }
 
-        try {
-            PolicyTranslation::where('policy_id', $policyId)->delete();
-        } catch (\Throwable $e) {
-        }
+        // try {
+        //     PolicyTranslation::where('policy_id', $policyId)->delete();
+        // } catch (\Throwable $e) {
+        // }
 
         $policy->forceDelete();
 

@@ -5,7 +5,7 @@ Thank you! Your payment has been received.
 Booking Details
 ---------------
 Reference: {{ $booking->booking_reference }}
-Tour: {{ $booking->tour->title }}
+Tour: {{ $booking->product->title }}
 Date: {{ $booking->details->first()->tour_date ?? 'N/A' }}
 Amount Paid: ${{ number_format($booking->paid_amount ?? $booking->total, 2) }}
 Payment Date: {{ optional($booking->paid_at)->format('F j, Y') ?? now()->format('F j, Y') }}

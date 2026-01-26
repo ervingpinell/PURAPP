@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany as EloquentHasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * MeetingPoint Model
@@ -14,12 +15,17 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class MeetingPoint extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasTranslations;
 
     protected $table = 'meeting_points';
     protected $primaryKey = 'id';
 
+    public $translatable = ['name', 'description', 'instructions'];
+
     protected $fillable = [
+        'name',
+        'description',
+        'instructions',
         'pickup_time',
         'map_url',
         'sort_order',
@@ -58,11 +64,7 @@ class MeetingPoint extends Model
     /* ----------------------------------------
      | Relaciones
      |-----------------------------------------*/
-    public function translations(): EloquentHasMany
-    {
-        // FK por convención: meeting_point_id
-        return $this->hasMany(MeetingPointTranslation::class, 'meeting_point_id');
-    }
+    // Removed translations relation
 
     /**
      * Usuario que eliminó este meeting point
@@ -75,87 +77,28 @@ class MeetingPoint extends Model
     /* ----------------------------------------
      | Helpers de localización
      |-----------------------------------------*/
+    // Spatie handles getTranslated via $model->attribute
 
-    /**
-     * Devuelve el valor traducido de un campo ('name' o 'description')
-     * para el locale dado (o el actual), con fallback al base.
-     */
     public function getTranslated(string $field, ?string $locale = null): ?string
     {
         $locale = $locale ?: app()->getLocale();
-        $short  = $this->shortLocale($locale);
-
-        // Si ya viene eager-loaded, usamos la colección para evitar N+1.
-        $t = $this->relationLoaded('translations')
-            ? $this->translations->firstWhere('locale', $short)
-            : $this->translations()->where('locale', $short)->first();
-
-        if ($t) {
-            return $t->{$field};
-        }
-
-        // Si no existe traducción, intentamos fallback al locale por defecto (es)
-        $fallback = config('app.fallback_locale', 'es');
-        if ($short !== $fallback) {
-            $tFallback = $this->relationLoaded('translations')
-                ? $this->translations->firstWhere('locale', $fallback)
-                : $this->translations()->where('locale', $fallback)->first();
-
-            if ($tFallback) {
-                return $tFallback->{$field};
-            }
-        }
-
-        return $this->{$field} ?? null;
+        // Spatie uses full locale or fallback mapping configured in config/translatable
+        // Ideally we just call getTranslation
+        return $this->getTranslation($field, $locale);
     }
 
-    /**
-     * Accessor: $meetingPoint->name_localized
-     */
     public function getNameLocalizedAttribute(): string
     {
-        return (string) $this->getTranslated('name');
+        return (string) $this->name;
     }
 
-    /**
-     * Accessor: $meetingPoint->description_localized
-     */
     public function getDescriptionLocalizedAttribute(): ?string
     {
-        return $this->getTranslated('description');
+        return $this->description;
     }
 
-    /**
-     * Accessor: $meetingPoint->instructions_localized
-     */
     public function getInstructionsLocalizedAttribute(): ?string
     {
-        return $this->getTranslated('instructions');
-    }
-
-    /* ----------------------------------------
-     | Utilidades privadas
-     |-----------------------------------------*/
-
-    /**
-     * Normaliza códigos de locale a la forma corta usada en translations.
-     * Intenta usar tu DeepLTranslator si existe; si no, hace un fallback simple.
-     */
-    private function shortLocale(string $locale): string
-    {
-        // Si tu servicio existe, úsalo
-        if (
-            class_exists(\App\Services\DeepLTranslator::class)
-            && method_exists(\App\Services\DeepLTranslator::class, 'normalizeLocaleCode')
-        ) {
-            return \App\Services\DeepLTranslator::normalizeLocaleCode($locale);
-        }
-
-        // Fallback básico: es-CR -> es, pt-BR -> pt, en-US -> en, etc.
-        $locale = str_replace('_', '-', strtolower($locale));
-        $short  = explode('-', $locale)[0] ?? $locale;
-
-        // Aseguramos que sea uno de los que usas
-        return in_array($short, ['es', 'en', 'fr', 'pt', 'de'], true) ? $short : config('app.fallback_locale', 'es');
+        return $this->instructions;
     }
 }

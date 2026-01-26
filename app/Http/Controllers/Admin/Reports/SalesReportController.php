@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin\Reports;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDetail;
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\TourLanguage;
 use App\Models\Payment;
 use Carbon\Carbon;
@@ -32,11 +32,11 @@ class SalesReportController extends Controller
             : Carbon::now()->endOfDay();
 
         $status = $request->input('status');
-        $tourIds = collect((array) $request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $tourIds = collect((array) $request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array) $request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         // ====== Catalogs ======
-        $toursMap = Tour::pluck('name', 'tour_id');
+        $toursMap = Product::pluck('name', 'product_id');
         $langsMap = TourLanguage::pluck('name', 'tour_language_id');
 
         // ====== Base Query ======
@@ -58,7 +58,7 @@ class SalesReportController extends Controller
             ->whereIn('payments.status', ['paid', 'completed'])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->when(!empty($tourIds), function ($q) use ($tourIds) {
-                $q->whereHas('booking.details', fn($q2) => $q2->whereIn('tour_id', $tourIds));
+                $q->whereHas('booking.details', fn($q2) => $q2->whereIn('product_id', $tourIds));
             })
             ->selectRaw('
                 payments.gateway as payment_method,
@@ -85,7 +85,7 @@ class SalesReportController extends Controller
         $revenueByStatus = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
             ->whereBetween('bookings.created_at', [$from, $to])
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('booking_details.tour_id', $tourIds))
+            ->when(!empty($tourIds), fn($q) => $q->whereIn('booking_details.product_id', $tourIds))
             ->when(!empty($langIds), fn($q) => $q->whereIn('booking_details.tour_language_id', $langIds))
             ->selectRaw('
                 bookings.status,
@@ -124,7 +124,7 @@ class SalesReportController extends Controller
         $from = Carbon::parse($request->input('from', now()->copy()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
         $status = $request->input('status');
-        $tourIds = collect((array)$request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $tourIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         $baseQuery = $this->buildBaseQuery($from, $to, $status, $tourIds, $langIds);
@@ -211,7 +211,7 @@ class SalesReportController extends Controller
         $from = Carbon::parse($request->input('from', now()->copy()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
         $status = $request->input('status');
-        $tourIds = collect((array)$request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $tourIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         $baseQuery = $this->buildBaseQuery($from, $to, $status, $tourIds, []);
 
@@ -306,7 +306,7 @@ class SalesReportController extends Controller
     {
         $query = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.tour_id', '=', 'booking_details.tour_id')
+            ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
             ->whereBetween('bookings.created_at', [$from, $to]);
 
         if ($status) {
@@ -314,7 +314,7 @@ class SalesReportController extends Controller
         }
 
         if (!empty($tourIds)) {
-            $query->whereIn('booking_details.tour_id', $tourIds);
+            $query->whereIn('booking_details.product_id', $tourIds);
         }
 
         if (!empty($langIds)) {

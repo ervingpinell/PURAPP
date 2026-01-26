@@ -6,7 +6,7 @@
   $carouselId     = 'tourReviewsCarousel_'.uniqid();
 
   $routeName = request()->route()->getName();
-  $isSpecificTourPage = $routeName && str_ends_with($routeName, '.tours.show');
+  $isSpecificTourPage = $routeName && str_ends_with($routeName, '.products.guided_tour.show');
 
   $TXT_MORE = __('reviews.read_more');  if (str_starts_with($TXT_MORE,'reviews.')) $TXT_MORE = 'Leer más';
   $TXT_LESS = __('reviews.read_less');  if (str_starts_with($TXT_LESS,'reviews.')) $TXT_LESS = 'Mostrar menos';
@@ -55,9 +55,9 @@
           $title    = trim((string)($r['title'] ?? ''));
           $body     = trim((string)($r['body'] ?? ''));
 
-          $tourId   = $r['tour_id'] ?? null;
+          $tourId   = $r['product_id'] ?? null;
           $tourSlug = trim((string)($r['tour_slug'] ?? ''));
-          $tourUrl  = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' => $tourSlug]) : '#';
+          $tourUrl  = ($tourId && $tourSlug) ? localized_route('products.guided_tour.show', ['slug' => $tourSlug]) : '#';
           $tourName = trim((string)($r['tour_name'] ?? ''));
 
           $avatarUrl= $r['avatar_url'] ?? null;

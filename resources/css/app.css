@@ -430,10 +430,50 @@ body.menu-open{
 /* =========================
    NAVBAR: ajustes dropdown
    ========================= */
-.navbar-custom .dropdown-menu { padding: .35rem 0; }
-.navbar-custom .dropdown-item{ font-size: var(--fs-sm); padding: .45rem .85rem; line-height: 1.15; }
+.navbar-custom .dropdown-menu { 
+  padding: .35rem 0; 
+  background-color: var(--color-surface-dark);
+}
+.navbar-custom .dropdown-item{ 
+  font-size: var(--fs-sm); 
+  padding: .45rem .85rem; 
+  line-height: 1.15;
+  color: #fff !important;
+  background-color: var(--color-surface-dark);
+  transition: background .2s ease;
+}
+.navbar-custom .dropdown-item:hover,
+.navbar-custom .dropdown-item:focus { 
+  background: var(--color-button-primary); 
+  color: #fff !important; 
+}
 .navbar-custom .dropdown-item .fa,
 .navbar-custom .dropdown-item i { font-size: .95em; }
+
+/* Services dropdown specific styling */
+.navbar-custom .services-dropdown {
+  min-width: 200px;
+  padding: 0.5rem 0;
+}
+
+.navbar-custom .services-dropdown .dropdown-item-main {
+  font-size: var(--fs-body);
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0.25rem;
+}
+
+.navbar-custom .services-dropdown .dropdown-item-sub {
+  font-size: var(--fs-sm);
+  padding: 0.5rem 1rem 0.5rem 1.75rem; /* Indented */
+  font-weight: 400;
+}
+
+.navbar-custom .services-dropdown .dropdown-item-sub:hover {
+  padding-left: 2rem; /* Slightly more indent on hover */
+  transition: padding-left 0.2s ease;
+}
+
 
 /* Anular transform de Popper para poder fijarlos */
 .navbar-custom .navbar-actions .dropdown-menu{
@@ -668,6 +708,30 @@ body.swal2-shown .navbar-custom      { z-index: 2000 !important; }
 .footer-nature .footer-policies i{ 
   min-width:20px; 
 }
+
+/* Collapsible Services in Footer */
+.footer-nature .footer-links a[data-bs-toggle="collapse"] {
+  cursor: pointer;
+  display: inline;
+}
+
+.footer-nature .footer-links a[data-bs-toggle="collapse"] i {
+  transition: transform 0.3s ease;
+  font-size: 0.75rem;
+}
+
+.footer-nature .footer-links a[data-bs-toggle="collapse"]:not(.collapsed) i {
+  transform: rotate(180deg);
+}
+
+.footer-nature .footer-links .collapse ul {
+  padding-left: 0;
+}
+
+.footer-nature .footer-links .collapse ul li {
+  margin-bottom: 8px;
+}
+
 
 .footer-nature .contact-info p{ 
   font-size:var(--fs-body); 

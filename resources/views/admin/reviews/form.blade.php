@@ -25,9 +25,9 @@
         <div class="row">
           <div class="col-md-3">
             <div class="form-group">
-              <label>{{ __('reviews.admin.filters.tour_id') }} (Required)</label>
-              <input type="number" name="tour_id" class="form-control"
-                     value="{{ old('tour_id',$review->tour_id) }}"
+              <label>{{ __('reviews.admin.filters.product_id') }} (Required)</label>
+              <input type="number" name="product_id" class="form-control"
+                     value="{{ old('product_id',$review->product_id) }}"
                      {{ $review->exists ? 'disabled' : 'required' }}>
             </div>
           </div>

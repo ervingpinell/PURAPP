@@ -358,7 +358,7 @@ return [
 
                 [
                     'text'  => 'menu.blocked_dates',
-                    'route' => 'admin.tours.excluded_dates.index',
+                    'route' => 'admin.products.excluded_dates.index',
                     'icon'  => 'fas fa-ban',
                     'can'   => 'view-tour-availability',
                     'trans' => true,
@@ -372,7 +372,7 @@ return [
                 // ],
                 [
                     'text'  => 'menu.cutoff',
-                    'route' => 'admin.tours.cutoff.edit',
+                    'route' => 'admin.products.cutoff.edit',
                     'icon'  => 'fas fa-clock',
                     'can'   => 'view-tour-availability',
                     'trans' => true,
@@ -393,14 +393,14 @@ return [
                 ],
                 [
                     'text'  => 'menu.all_tours',
-                    'route' => 'admin.tours.index',
+                    'route' => 'admin.products.index',
                     'icon'  => 'fas fa-map-marked-alt',
                     'can'   => 'view-tours', // Visibility via view
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.order_tours',
-                    'route' => 'admin.tours.order.index', // Already validated
+                    'route' => 'admin.products.order.index', // Already validated
                     'icon'  => 'fas fa-sort-amount-down',
                     'can'   => 'view-tours', // Visibility via view, access protected by route
                     'trans' => true,
@@ -413,7 +413,7 @@ return [
 
                 [
                     'text'  => 'menu.tour_images',
-                    'route' => 'admin.tours.images.pick', // FIXED ROUTE
+                    'route' => 'admin.products.images.pick', // FIXED ROUTE
                     'icon'  => 'fas fa-images',
                     'can'   => 'view-tour-images', // Updated permission
                     'trans' => true,
@@ -440,21 +440,21 @@ return [
 
                 [
                     'text'  => 'menu.tour_types',
-                    'route' => 'admin.tourtypes.index', // Fixed lowercase
+                    'route' => 'admin.product-types.index', // Fixed lowercase
                     'icon'  => 'fas fa-tags',
                     'can'   => 'view-tour-types', // Added permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.amenities',
-                    'route' => 'admin.tours.amenities.index',
+                    'route' => 'admin.products.amenities.index',
                     'icon'  => 'fas fa-concierge-bell',
                     'can'   => 'view-amenities', // Added permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.schedules',
-                    'route' => 'admin.tours.schedule.index',
+                    'route' => 'admin.products.schedule.index',
                     'icon'  => 'fas fa-calendar-alt',
                     'can'   => 'view-tour-availability',
                     'trans' => true,
@@ -468,14 +468,14 @@ return [
                 ],
                 [
                     'text'  => 'menu.itineraries',
-                    'route' => 'admin.tours.itinerary.index',
+                    'route' => 'admin.products.itinerary.index',
                     'icon'  => 'fas fa-route',
                     'can'   => 'view-tours',
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.itinerary_items',
-                    'route' => 'admin.tours.itinerary_items.index',
+                    'route' => 'admin.products.itinerary_items.index',
                     'icon'  => 'fas fa-list-ul',
                     'can'   => 'view-tours',
                     'trans' => true,

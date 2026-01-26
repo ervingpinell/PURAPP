@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin\Reports;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDetail;
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\TourLanguage;
 use App\Models\CustomerCategory;
 use Carbon\Carbon;
@@ -41,11 +41,11 @@ class ReportsController extends Controller
         $status = $request->input('status'); // paid|confirmed|completed|cancelled|pending|null
 
         // Multiple filters
-        $tourIds = collect((array) $request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $tourIds = collect((array) $request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array) $request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         // ====== Catalogs for selects ======
-        $toursMap = Tour::pluck('name', 'tour_id');
+        $toursMap = Product::pluck('name', 'product_id');
         $langsMap = TourLanguage::pluck('name', 'tour_language_id');
 
         // ====== Base Query ======
@@ -76,19 +76,19 @@ class ReportsController extends Controller
         // ====== Top Tours (by revenue) ======
         $topToursRaw = (clone $baseQuery)
             ->selectRaw('
-                tours.tour_id,
-                tours.name as tour_name,
+                product2.product_id,
+                product2.name as tour_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
-            ->groupBy('tours.tour_id', 'tours.name')
+            ->groupBy('product2.product_id')
             ->orderByDesc('revenue')
             ->limit(10)
             ->get();
 
         // Calculate PAX for each tour
         $topTours = $topToursRaw->map(function ($tour) use ($from, $to, $groupBy, $status, $tourIds, $langIds) {
-            $tourQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, [$tour->tour_id], $langIds);
+            $tourQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, [$tour->product_id], $langIds);
             $details = $tourQuery->select('booking_details.categories')->get();
             $tour->pax = $details->sum(function ($detail) {
                 $cats = is_string($detail->categories) ? json_decode($detail->categories, true) : $detail->categories;
@@ -118,7 +118,7 @@ class ReportsController extends Controller
                 bookings.created_at as booking_date,
                 bookings.total,
                 users.email as customer_email,
-                tours.name as tour_name
+                MIN(CAST(product2.name AS TEXT)) as tour_name
             ')
             ->leftJoin('users', 'users.user_id', '=', 'bookings.user_id')
             ->groupBy(
@@ -126,8 +126,7 @@ class ReportsController extends Controller
                 'bookings.booking_reference',
                 'bookings.created_at',
                 'bookings.total',
-                'users.email',
-                'tours.name'
+                'users.email'
             )
             ->orderBy('bookings.created_at', 'asc')
             ->limit(8)
@@ -167,7 +166,7 @@ class ReportsController extends Controller
         $to      = Carbon::parse($request->input('to', now()))->endOfDay();
         $status  = $request->input('status');
 
-        $tourIds = collect((array)$request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $tourIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         // === base ===
@@ -234,7 +233,7 @@ class ReportsController extends Controller
         $to      = Carbon::parse($request->input('to', now()))->endOfDay();
         $status  = $request->input('status');
 
-        $tourIds = collect((array)$request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $tourIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         $baseQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, $tourIds, $langIds);
@@ -270,7 +269,7 @@ class ReportsController extends Controller
 
         $query = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.tour_id', '=', 'booking_details.tour_id')
+            ->join('product2', 'product2.product_id', '=', 'booking_details.product_id')
             ->whereBetween($dateColumn, [$from, $to]);
 
         if ($status) {
@@ -278,7 +277,7 @@ class ReportsController extends Controller
         }
 
         if (!empty($tourIds)) {
-            $query->whereIn('booking_details.tour_id', $tourIds);
+            $query->whereIn('booking_details.product_id', $tourIds);
         }
 
         if (!empty($langIds)) {
@@ -321,7 +320,7 @@ class ReportsController extends Controller
             : Carbon::now()->endOfDay();
 
         $status = $request->input('status');
-        $tourIds = array_filter((array) $request->input('tour_id', []));
+        $tourIds = array_filter((array) $request->input('product_id', []));
         $langIds = array_filter((array) $request->input('tour_language_id', []));
         $categoryIds = array_filter((array) $request->input('category_id', []));
 
@@ -334,10 +333,10 @@ class ReportsController extends Controller
         // Fetch booking details with categories JSON
         $bookingDetails = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.tour_id', '=', 'booking_details.tour_id')
+            ->join('product2', 'product2.product_id', '=', 'booking_details.product_id')
             ->whereBetween($dateColumn, [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('booking_details.tour_id', $tourIds))
+            ->when(!empty($tourIds), fn($q) => $q->whereIn('booking_details.product_id', $tourIds))
             ->when(!empty($langIds), fn($q) => $q->whereIn('booking_details.tour_language_id', $langIds))
             ->select(
                 'booking_details.booking_detail_id',
@@ -447,7 +446,7 @@ class ReportsController extends Controller
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
         $status = $request->input('status');
 
-        $tourIds = collect((array)$request->input('tour_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $tourIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         $dateColumn = $groupBy === 'tour_date' ? 'bookings.tour_date' : 'bookings.created_at';
@@ -463,7 +462,7 @@ class ReportsController extends Controller
         }
 
         if (!empty($tourIds)) {
-            $query->whereIn('booking_details.tour_id', $tourIds);
+            $query->whereIn('booking_details.product_id', $tourIds);
         }
 
         if (!empty($langIds)) {
@@ -471,7 +470,7 @@ class ReportsController extends Controller
         }
 
         // Get category names with translations
-        $categoriesMap = CustomerCategory::with('translations')
+        $categoriesMap = CustomerCategory::with([])
             ->get()
             ->mapWithKeys(fn($cat) => [$cat->category_id => $cat->translated]);
 

@@ -49,14 +49,14 @@
                 <div class="step-body">
                     <div class="row">
                         <div class="col-md-6 col-12 mb-3">
-                            <label for="tour_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
-                            <select name="tour_id" id="tour_id" class="form-control select2" required>
+                            <label for="product_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
+                            <select name="product_id" id="product_id" class="form-control select2" required>
                                 <option value="">-- {{ __('m_bookings.bookings.ui.select_tour') }} --</option>
                                 @foreach($tours as $tour)
-                                <option value="{{ $tour->tour_id }}"
+                                <option value="{{ $tour->product_id }}"
                                     data-tour='@json($tour)'
                                     data-cover="{{ $tour->cover_image ?? '' }}"
-                                    {{ old('tour_id') == $tour->tour_id ? 'selected' : '' }}>
+                                    {{ old('product_id') == $tour->product_id ? 'selected' : '' }}>
                                     {{ $tour->name }}
                                 </option>
                                 @endforeach
@@ -594,7 +594,7 @@
             width: '100%'
         });
 
-        const $tourSelect = $('#tour_id');
+        const $tourSelect = $('#product_id');
         const $dateInput = $('#tour_date');
         const $scheduleSelect = $('#schedule_id');
         const $languageSelect = $('#tour_language_id');
@@ -872,7 +872,7 @@
             });
 
             // 2. Get Tax Configuration
-            const tourData = $('#tour_id option:selected').data('tour');
+            const tourData = $('#product_id option:selected').data('tour');
             const taxes = tourData && tourData.taxes ? tourData.taxes : [];
 
             // 3. Calculate Base Amount (Remove Inclusive Taxes)
@@ -981,7 +981,7 @@
             // 1. Validate all required fields
             const requiredFields = {
                 'user_id': '{{ __("m_bookings.bookings.fields.customer") }}',
-                'tour_id': '{{ __("m_bookings.bookings.fields.tour") }}',
+                'product_id': '{{ __("m_bookings.bookings.fields.tour") }}',
                 'tour_date': '{{ __("m_bookings.bookings.fields.tour_date") }}',
                 'schedule_id': '{{ __("m_bookings.bookings.fields.schedule") }}',
                 'tour_language_id': '{{ __("m_bookings.bookings.fields.language") }}'
@@ -1097,7 +1097,7 @@
 
         function showReviewModal(warningMessage) {
             // Build summary HTML (same as before)
-            const tourName = $('#tour_id option:selected').text();
+            const tourName = $('#product_id option:selected').text();
             const tourDate = $('#tour_date').val();
             const schedule = $('#schedule_id option:selected').text();
             const language = $('#tour_language_id option:selected').text();

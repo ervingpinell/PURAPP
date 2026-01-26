@@ -11,7 +11,7 @@ class StoreReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tour_id'   => ['required','exists:tours,id'],
+            'product_id'   => ['required','exists:tours,id'],
             'rating'    => ['required','integer','min:1','max:5'],
             'title'     => ['nullable','string','max:120'],
             'body'      => ['required','string','min:10','max:3000'],

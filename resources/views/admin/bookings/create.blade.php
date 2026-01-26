@@ -64,11 +64,11 @@
 
                     {{-- Tour (sin fondo blanco) --}}
                     <div class="form-group">
-                        <label for="tour_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
-                        <select name="tour_id" id="tour_id" class="form-control select2 no-bg" required>
+                        <label for="product_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
+                        <select name="product_id" id="product_id" class="form-control select2 no-bg" required>
                             <option value="">-- {{ __('m_bookings.bookings.ui.select_tour') }} --</option>
                             @foreach($tours as $tour)
-                            <option value="{{ $tour->tour_id }}" {{ old('tour_id') == $tour->tour_id ? 'selected' : '' }}>
+                            <option value="{{ $tour->product_id }}" {{ old('product_id') == $tour->product_id ? 'selected' : '' }}>
                                 {{ $tour->name }}
                             </option>
                             @endforeach
@@ -857,7 +857,7 @@
         });
 
         // ---------- Tour change event ----------
-        $('#tour_id').on('change', function() {
+        $('#product_id').on('change', function() {
             const tourId = $(this).val();
             console.log('=== TOUR CHANGED ===');
             console.log('Selected tour ID:', tourId);
@@ -898,7 +898,7 @@
 
         // Reload categories when date changes
         $('#tour_date').on('change', function() {
-            const tourId = $('#tour_id').val();
+            const tourId = $('#product_id').val();
             const tourDate = $(this).val();
             if (tourId) {
                 loadCategories(tourId, tourDate);
@@ -929,9 +929,9 @@
         })();
 
         const oldTourId = '{{ old('
-        tour_id ') }}';
+        product_id ') }}';
         if (oldTourId) {
-            $('#tour_id').val(oldTourId).trigger('change.select2');
+            $('#product_id').val(oldTourId).trigger('change.select2');
             loadSchedules(oldTourId, '{{ old('
                 schedule_id ') }}');
             loadLanguages(oldTourId, '{{ old('

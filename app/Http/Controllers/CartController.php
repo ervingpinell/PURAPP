@@ -7,7 +7,7 @@ use App\Models\CartItem;
 use App\Models\HotelList;
 use App\Models\MeetingPoint;
 use App\Models\PromoCode;
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\Schedule;
 use App\Services\Bookings\BookingCapacityService;
 use App\Services\Bookings\BookingValidationService;
@@ -74,9 +74,9 @@ class CartController extends Controller
                 'items' => collect($sessionCartItems)->map(function ($item, $index) {
                     return (object) array_merge($item, [
                         'item_id' => $index, // Use array index as unique ID for guests
-                        'tour' => \App\Models\Tour::find($item['tour_id']),
+                        'tour' => \App\Models\Product::find($item['product_id']),
                         'schedule' => \App\Models\Schedule::find($item['schedule_id']),
-                        'language' => \App\Models\TourLanguage::find($item['tour_language_id']),
+                        'language' => \App\Models\ProductLanguage::find($item['tour_language_id']),
                         'hotel' => isset($item['hotel_id']) ? \App\Models\HotelList::find($item['hotel_id']) : null,
                         'meetingPoint' => isset($item['meeting_point_id']) ? \App\Models\MeetingPoint::find($item['meeting_point_id']) : null,
                     ]);
@@ -95,7 +95,6 @@ class CartController extends Controller
                 'client' => null, // Guest has no user
                 'hotels' => HotelList::where('is_active', true)->orderBy('name')->get(),
                 'meetingPoints' => MeetingPoint::where('is_active', true)
-                    ->with('translations')
                     ->orderByRaw('sort_order IS NULL, sort_order ASC')
                     ->get(),
                 'expiresAtIso' => $expiresAtIso,
@@ -112,7 +111,6 @@ class CartController extends Controller
             ->with([
                 'items.tour.schedules',
                 'items.tour.languages',
-                'items.tour.translations',
                 'items.tour.prices.category',
                 'items.schedule',
                 'items.language',
@@ -131,7 +129,6 @@ class CartController extends Controller
             'client' => $user,
             'hotels' => HotelList::where('is_active', true)->orderBy('name')->get(),
             'meetingPoints' => MeetingPoint::where('is_active', true)
-                ->with('translations')
                 ->orderByRaw('sort_order IS NULL, sort_order ASC')
                 ->get(),
             'expiresAtIso' => optional($cart?->expires_at)->toIso8601String(),
@@ -170,7 +167,7 @@ class CartController extends Controller
 
         // Validar estructura básica
         $request->validate([
-            'tour_id' => 'required|exists:tours,tour_id',
+            'product_id' => 'required|exists:tours,product_id',
             'tour_date' => 'required|date|after_or_equal:today',
             'schedule_id' => 'required|exists:schedules,schedule_id',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
@@ -187,7 +184,7 @@ class CartController extends Controller
 
         // For guests, store in session with price snapshot just like registered users
         if (!Auth::check()) {
-            $tour = Tour::with(['schedules', 'prices.category'])->findOrFail((int) $request->tour_id);
+            $tour = Product::with(['schedules', 'prices.category'])->findOrFail((int) $request->product_id);
             $tourDate = $request->tour_date;
 
             // Build categories snapshot with prices (same as authenticated users)
@@ -237,7 +234,7 @@ class CartController extends Controller
             $reservationToken = \Illuminate\Support\Str::random(32);
 
             $sessionCart[] = [
-                'tour_id' => (int) $request->tour_id,
+                'product_id' => (int) $request->product_id,
                 'tour_date' => $request->tour_date,
                 'schedule_id' => (int) $request->schedule_id,
                 'tour_language_id' => (int) $request->tour_language_id,
@@ -278,9 +275,9 @@ class CartController extends Controller
         // WRAP IN TRANSACTION WITH PESSIMISTIC LOCKS
         return DB::transaction(function () use ($request, $user) {
             // LOCK tour and schedule to prevent race conditions
-            $tour = Tour::with(['schedules', 'prices.category'])
+            $tour = Product::with(['schedules', 'prices.category'])
                 ->lockForUpdate()
-                ->findOrFail((int) $request->tour_id);
+                ->findOrFail((int) $request->product_id);
 
             // Validación por categorías
             $validationResult = $this->validation->validateQuantities($tour, $request->categories);
@@ -363,7 +360,7 @@ class CartController extends Controller
 
             $cartItem = CartItem::create([
                 'cart_id' => $cart->cart_id,
-                'tour_id' => (int) $tour->tour_id,
+                'product_id' => (int) $tour->product_id,
                 'tour_date' => $tourDate,
                 'schedule_id' => (int) $request->schedule_id,
                 'tour_language_id' => (int) $request->tour_language_id,
@@ -590,7 +587,7 @@ class CartController extends Controller
         $item = $sessionCart[$index];
 
         // 3) Load tour and schedule
-        $tour = Tour::with('prices.category')->findOrFail($item['tour_id']);
+        $tour = Product::with('prices.category')->findOrFail($item['product_id']);
         $schedule = $this->findValidScheduleOrFail($tour, (int) $request->schedule_id);
         $tourDate = $request->tour_date;
 
@@ -656,7 +653,7 @@ class CartController extends Controller
 
         // 9) Update item in session
         $sessionCart[$index] = [
-            'tour_id' => $item['tour_id'],
+            'product_id' => $item['product_id'],
             'tour_date' => $tourDate,
             'schedule_id' => (int) $schedule->schedule_id,
             'tour_language_id' => (int) $request->tour_language_id,
@@ -914,7 +911,7 @@ class CartController extends Controller
     }
 
     /* ====================== API: Get Categories por Tour (AJAX) ====================== */
-    public function getCategories(Tour $tour)
+    public function getCategories(Product $tour)
     {
         $locale = app()->getLocale();
 

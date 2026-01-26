@@ -29,7 +29,7 @@ class ReviewDistributor
             if ($result->count() >= $maxTotal) break;
 
             $tourReviews = $this->distributedForTour(
-                $tour->tour_id,
+                $tour->product_id,
                 $perTour,
                 $globalSeen
             );
@@ -50,7 +50,7 @@ class ReviewDistributor
 
         foreach ($tours as $tour) {
             $tourReviews = $this->distributedForTour(
-                $tour->tour_id,
+                $tour->product_id,
                 $perTour,
                 $globalSeen
             );
@@ -73,7 +73,7 @@ class ReviewDistributor
 
         // 1) Reviews del tour
         $own = $this->aggregator->aggregate([
-            'tour_id' => $tourId,
+            'product_id' => $tourId,
             'limit' => $min * 2
         ])->filter(fn($r) => !$this->isDuplicate($r, $seen));
 
@@ -84,7 +84,7 @@ class ReviewDistributor
             $others = $this->aggregator->aggregate([
                 'limit' => $needed * 3
             ])->filter(fn($r) =>
-                ($r['tour_id'] ?? null) != $tourId &&
+                ($r['product_id'] ?? null) != $tourId &&
                 !$this->isDuplicate($r, $seen)
             )->take($needed);
 
@@ -107,7 +107,7 @@ class ReviewDistributor
 
             $reviews = $this->aggregator->aggregate([
                 'provider' => $provider,
-                'tour_id' => $tourId,
+                'product_id' => $tourId,
                 'limit' => 2 // Traer pocas por proveedor
             ]);
 

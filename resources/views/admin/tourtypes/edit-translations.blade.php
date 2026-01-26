@@ -29,7 +29,7 @@
         <div class="card-header">
             <h3 class="card-title">Gestionar Traducciones</h3>
             <div class="card-tools">
-                <a href="{{ route('admin.tourtypes.index') }}" class="btn btn-sm btn-secondary">
+                <a href="{{ route('admin.product-types.index') }}" class="btn btn-sm btn-secondary">
                     <i class="fas fa-arrow-left"></i> Volver
                 </a>
             </div>
@@ -75,7 +75,7 @@
                     id="content-{{ $locale }}"
                     role="tabpanel">
 
-                    <form action="{{ route('admin.tourtypes.translations.update', [$tourType, $locale]) }}"
+                    <form action="{{ route('admin.product-types.translations.update', [$tourType, $locale]) }}"
                         method="POST"
                         autocomplete="off">
                         @csrf
@@ -148,7 +148,7 @@
                                 <i class="fas fa-save"></i>
                                 {{ $translation ? 'Actualizar' : 'Crear' }} Traducción
                             </button>
-                            <a href="{{ route('admin.tourtypes.index') }}" class="btn btn-secondary">
+                            <a href="{{ route('admin.product-types.index') }}" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Cancelar
                             </a>
                         </div>

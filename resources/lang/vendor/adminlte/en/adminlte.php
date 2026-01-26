@@ -112,6 +112,8 @@ return [
 
     // 5. TOURS AND REVIEWS
     'tours' => 'Services',
+    'services' => 'Services',
+    'all_services' => 'All Services',
     'tour' => 'Service',
     'tour_name' => 'Service name',
     'overview' => 'Overview',
@@ -137,7 +139,9 @@ return [
     'half_day_tours' => 'Half-day tours',
     'see_tour' => 'View tour',
     'see_tours' => 'View tours',
-    'see_tour_details' => 'View tour details',
+    'see_tour_details' => 'View service details',
+    'view_details' => 'View details',
+    'view_all_count' => 'View all (:count)',
     'what_visitors_say' => 'What our visitors say',
     'quote_1' => 'An unforgettable experience!',
     'guest_1' => 'Carlos M.',
@@ -364,6 +368,8 @@ return [
     'contact_spam_success' => 'Your message has been sent.',
     'contact_success'      => 'Your message has been sent successfully. We will contact you soon.',
     'contact_error'        => 'An error occurred while sending your message. Please try again in a few minutes.',
+    'need_help_choosing' => 'Need help choosing?',
+    'contact_cta_text' => 'Our team is ready to help you plan the perfect experience.',
 
 
     // Placeholders
@@ -559,6 +565,7 @@ return [
     'filters_title'            => 'Filter results',
     'filters_subtitle'         => 'Combine text search and category filtering to find the perfect tour.',
     'search_tours_placeholder' => 'Search by name or description…',
+    'search_services_placeholder' => 'Search services…',
 
     'all_categories'           => 'All categories',
     'category_label'           => 'Category',
@@ -574,6 +581,7 @@ return [
     'tours_index_subtitle'  => 'Discover our available experiences and activities.',
 
     'tours_count' => '1 service available|:count services available',
+    'categories_count' => '1 category|:count categories',
     // Quantities
     'quantities' => 'Quantities',
     'quantitiesHelp' => 'Adjust quantities as needed. You can leave categories you don\'t use at 0.',

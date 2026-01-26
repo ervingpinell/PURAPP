@@ -19,9 +19,9 @@ class CartItem extends Model
 
     protected $fillable = [
         'cart_id',
-        'tour_id',
+        'product_id', // Renamed from product_id
         'schedule_id',
-        'tour_date',
+        'tour_date', // Kept legacy column name
         'tour_language_id',
         'hotel_id',
         'is_other_hotel',
@@ -33,17 +33,17 @@ class CartItem extends Model
         'meeting_point_pickup_time',
         'meeting_point_description',
         'meeting_point_map_url',
-        'is_reserved',          // 🆕 Reservation flag
-        'reserved_at',          // 🆕 Reservation timestamp
-        'reservation_token',    // 🆕 Unique reservation token
+        'is_reserved',
+        'reserved_at',
+        'reservation_token',
     ];
 
     protected $casts = [
         'categories'     => 'array',
         'is_active'      => 'boolean',
         'is_other_hotel' => 'boolean',
-        'is_reserved'    => 'boolean',    // 🆕
-        'reserved_at'    => 'datetime',   // 🆕
+        'is_reserved'    => 'boolean',
+        'reserved_at'    => 'datetime',
     ];
 
     /* =======================
@@ -54,10 +54,11 @@ class CartItem extends Model
         return $this->belongsTo(Cart::class, 'cart_id');
     }
 
-    public function tour()
+    public function product()
     {
-        return $this->belongsTo(Tour::class, 'tour_id');
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }
+
 
     public function schedule()
     {
@@ -71,7 +72,7 @@ class CartItem extends Model
 
     public function language()
     {
-        return $this->belongsTo(TourLanguage::class, 'tour_language_id');
+        return $this->belongsTo(ProductLanguage::class, 'tour_language_id');
     }
 
     public function meetingPoint()

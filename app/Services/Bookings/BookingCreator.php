@@ -21,7 +21,7 @@ class BookingCreator
      * Crea una reserva con categorías modulares
      *
      * $payload:
-     *  - user_id, tour_id, schedule_id, tour_language_id, tour_date
+     *  - user_id, product_id, schedule_id, tour_language_id, tour_date
      *  - categories: ['category_id' => quantity, ...]
      *  - status, promo_code, meeting_point_id, hotel_id, is_other_hotel, other_hotel_name, notes
      *  - exclude_cart_id (opcional)
@@ -31,9 +31,9 @@ class BookingCreator
         return DB::transaction(function () use ($payload, $validateCapacity, $countHolds) {
             // 🔒 PESSIMISTIC LOCK: Prevent concurrent bookings for same tour/schedule/date
             // Lock tour and schedule records to prevent race conditions on capacity
-            $tour     = Tour::with('prices.category')
+            $tour     = Product::with('prices.category')
                 ->lockForUpdate()
-                ->findOrFail($payload['tour_id']);
+                ->findOrFail($payload['product_id']);
             $schedule = Schedule::lockForUpdate()
                 ->findOrFail($payload['schedule_id']);
 
@@ -92,7 +92,7 @@ class BookingCreator
                         'confirmed'  => (int) $snap['confirmed'],
                         'held'       => (int) $snap['held'],
                         'requested'  => (int) $totalPax,
-                        'tour_id'    => (int) $tour->tour_id,
+                        'product_id'    => (int) $tour->product_id,
                         'schedule_id' => (int) $schedule->schedule_id,
                         'date'       => $date,
                     ]));
@@ -154,7 +154,7 @@ class BookingCreator
                 'user_phone'        => $user?->phone,
                 'user_was_guest'    => (bool) ($user?->is_guest ?? false),
 
-                'tour_id'           => (int) $payload['tour_id'],
+                'product_id'           => (int) $payload['product_id'],
                 'tour_language_id'  => (int) $payload['tour_language_id'],
                 'booking_date'      => $payload['booking_date'] ?? now(),
                 'status'            => $payload['status'] ?? 'pending',
@@ -179,7 +179,7 @@ class BookingCreator
             // BOOKING DETAIL (solo JSON categories + pickups)
             BookingDetail::create([
                 'booking_id'        => $booking->booking_id,
-                'tour_id'           => (int) $payload['tour_id'],
+                'product_id'           => (int) $payload['product_id'],
                 'schedule_id'       => (int) $payload['schedule_id'],
                 'tour_date'         => $payload['tour_date'],
                 'tour_language_id'  => (int) $payload['tour_language_id'],

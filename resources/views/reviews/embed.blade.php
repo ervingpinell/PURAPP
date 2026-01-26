@@ -33,7 +33,7 @@
   $r       = $reviews->first();
 
   // PRIORIDAD: 1) Review, 2) Query params, 3) DB
-  $tourId   = (int)($r['tour_id'] ?? request('tour_id', 0));
+  $tourId   = (int)($r['product_id'] ?? request('product_id', 0));
   $tourName = trim((string)($r['tour_name'] ?? request('tname', '')));
 
   // Si aún no hay nombre pero hay ID, consultar DB
@@ -48,7 +48,7 @@
       }
   }
 
-$tourUrl = request('turl') ?: ($tourId ? localized_route('tours.show', ['tour'=>$tourId]) : '');
+$tourUrl = request('turl') ?: ($tourId ? localized_route('products.guided_tour.show', ['tour'=>$tourId]) : '');
 
   $rating = max(0, min(5, (int) data_get($r, 'rating', 5)));
   $title  = trim((string) data_get($r, 'title', ''));

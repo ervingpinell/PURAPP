@@ -2,7 +2,7 @@
   class="reservation-box brand-ui is-compact is-compact-2 p-3 shadow-sm rounded bg-white mb-4 border"
   data-max-total="{{ $maxPersonsGlobal ?? 12 }}">
   @csrf
-  <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
+  <input type="hidden" name="product_id" value="{{ $tour->product_id }}">
 
 
 

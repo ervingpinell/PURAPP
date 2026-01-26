@@ -15,7 +15,7 @@
         
         <p style="margin-bottom: 0; font-size: 15px; line-height: 1.8;">
             <strong>{{ __('adminlte::adminlte.email_templates.reference') }}:</strong> {{ $booking->booking_reference }}<br>
-            <strong>{{ __('adminlte::adminlte.email_templates.tour') }}:</strong> {{ $booking->tour->title }}<br>
+            <strong>{{ __('adminlte::adminlte.email_templates.tour') }}:</strong> {{ $booking->product->title }}<br>
             <strong>{{ __('adminlte::adminlte.email_templates.date') }}:</strong> {{ $booking->details->first()->tour_date ?? 'N/A' }}<br>
             <strong>{{ __('adminlte::adminlte.email_templates.amount_due') }}:</strong> ${{ number_format($booking->total, 2) }}
         </p>

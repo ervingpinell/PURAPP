@@ -8,7 +8,7 @@
     <h1 class="m-0">
         <i class="fas fa-trash me-2"></i>{{ __('m_config.tourtypes.trash_header') ?? 'Papelera de Tipos de Tour' }}
     </h1>
-    <a href="{{ route('admin.tourtypes.index') }}" class="btn btn-secondary">
+    <a href="{{ route('admin.product-types.index') }}" class="btn btn-secondary">
         <i class="fas fa-arrow-left me-1"></i> {{ __('m_config.buttons.back') ?? 'Volver' }}
     </a>
 </div>
@@ -64,7 +64,7 @@
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
                                 @can('restore-tour-types')
-                                <form action="{{ route('admin.tourtypes.restore', $tourType->tour_type_id) }}" method="POST" class="d-inline restore-form">
+                                <form action="{{ route('admin.product-types.restore', $tourType->tour_type_id) }}" method="POST" class="d-inline restore-form">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="btn btn-success" title="Restaurar">
@@ -74,7 +74,7 @@
                                 @endcan
 
                                 @can('hard-delete-tour-types')
-                                <form action="{{ route('admin.tourtypes.forceDelete', $tourType->tour_type_id) }}" method="POST" class="d-inline force-delete-form">
+                                <form action="{{ route('admin.product-types.forceDelete', $tourType->tour_type_id) }}" method="POST" class="d-inline force-delete-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger" title="Eliminar permanentemente">

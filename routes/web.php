@@ -22,7 +22,7 @@ use App\Http\Controllers\Admin\Bookings\BookingController as AdminBookingControl
 use App\Http\Controllers\Admin\Bookings\HotelListController;
 use App\Http\Controllers\Admin\Cart\CartController as AdminCartController;
 use App\Http\Controllers\Admin\FaqController as AdminFaqController;
-use App\Http\Controllers\Admin\Languages\TourLanguageController;
+use App\Http\Controllers\Admin\Languages\ProductLanguageController;
 use App\Http\Controllers\Admin\PolicyController;
 use App\Http\Controllers\Admin\PolicySectionController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
@@ -31,30 +31,30 @@ use App\Http\Controllers\Admin\Reviews\ReviewAdminController;
 use App\Http\Controllers\Admin\Reviews\ReviewProviderController;
 use App\Http\Controllers\Admin\Reviews\ReviewReplyController;
 use App\Http\Controllers\Admin\Reviews\ReviewRequestAdminController;
-use App\Http\Controllers\Admin\TourImageController;
-use App\Http\Controllers\Admin\Tours\AmenityController;
-use App\Http\Controllers\Admin\Tours\CutOffController;
-use App\Http\Controllers\Admin\Tours\ItineraryController;
-use App\Http\Controllers\Admin\Tours\ItineraryItemController;
-use App\Http\Controllers\Admin\Tours\TourAvailabilityController;
-use App\Http\Controllers\Admin\Tours\TourController;
-use App\Http\Controllers\Admin\Tours\TourExcludedDateController;
-use App\Http\Controllers\Admin\Tours\TourScheduleController;
-use App\Http\Controllers\Admin\Tours\TourTypeController;
-use App\Http\Controllers\Admin\Tours\TourTypeCoverPickerController;
-use App\Http\Controllers\Admin\Tours\TourOrderController;
-use App\Http\Controllers\Admin\Tours\TourPriceController;
+use App\Http\Controllers\Admin\ProductImageController;
+use App\Http\Controllers\Admin\Product\AmenityController;
+use App\Http\Controllers\Admin\Product\CutOffController;
+use App\Http\Controllers\Admin\Product\ItineraryController;
+use App\Http\Controllers\Admin\Product\ItineraryItemController;
+use App\Http\Controllers\Admin\Product\ProductAvailabilityController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\Product\ProductExcludedDateController;
+use App\Http\Controllers\Admin\Product\ProductScheduleController;
+use App\Http\Controllers\Admin\Product\ProductTypeController;
+use App\Http\Controllers\Admin\Product\ProductTypeCoverPickerController;
+use App\Http\Controllers\Admin\Product\ProductOrderController;
+use App\Http\Controllers\Admin\Product\ProductPriceController;
 use App\Http\Controllers\Admin\Users\RoleController;
 use App\Http\Controllers\Admin\Users\UserRegisterController;
 use App\Http\Controllers\Admin\MeetingPointSimpleController;
 use App\Http\Controllers\Admin\TranslationController;
 use App\Http\Controllers\Admin\CapacityController;
 use App\Http\Controllers\Admin\CustomerCategoryController;
-use App\Http\Controllers\Admin\Tours\TourAjaxController;
-use App\Http\Controllers\Admin\API\TourDataController;
+// use App\Http\Controllers\Admin\Product\TourAjaxController; // File does not exist yet
+use App\Http\Controllers\Admin\API\ProductDataController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Auth\EmailChangeController;
-use App\Http\Controllers\Admin\Tours\TourWizardController;
+use App\Http\Controllers\Admin\Product\ProductWizardController;
 use App\Http\Controllers\Admin\TaxController;
 
 
@@ -150,11 +150,11 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 
-// /tours -> /{locale}/tours
-Route::get('/tours', function () {
+// /products -> /{locale}/products
+Route::get('/products', function () {
     $locale = session('locale', config('routes.default_locale', 'es'));
-    return redirect("/{$locale}/tours");
-})->name('tours.shortcut');
+    return redirect("/{$locale}/products");
+})->name('products.shortcut');
 
 // /faq -> /{locale}/faq
 Route::get('/faq', function () {
@@ -258,8 +258,56 @@ Route::middleware([SetLocale::class])->group(function () {
         // Optional alias /{locale}/home, WITHOUT duplicate name
         Route::get('/home', [HomeController::class, 'index']);
 
-        Route::get('/tours', action: [HomeController::class, 'allTours'])->name('tours.index');
-        Route::get('/tours/{tour:slug}', [HomeController::class, 'showTour'])->name('tours.show');
+        // All services page
+        Route::get('/services', [\App\Http\Controllers\ServicesController::class, 'index'])
+             ->name('services.index');
+
+
+        // ============================
+        // Dynamic Category Routes
+        // ============================
+        $categories = \App\Helpers\ProductCategoryHelper::getAllCategories();
+        
+        foreach ($categories as $categoryKey => $config) {
+            $urlPrefix = $config['url_prefix'];
+            $subcategorySlugs = array_keys($config['subcategories'] ?? []);
+            
+            Route::prefix($urlPrefix)->group(function () use ($categoryKey, $subcategorySlugs) {
+                // Category listing: /tours
+                Route::get('/', [HomeController::class, 'productsByCategory'])
+                     ->defaults('category', $categoryKey)
+                     ->name("products.{$categoryKey}.index");
+                
+                // Subcategory landing: /tours/full-day (only if subcategories exist)
+                if (!empty($subcategorySlugs)) {
+                    $pattern = implode('|', $subcategorySlugs);
+                    Route::get('/{subcategory}', [HomeController::class, 'productsBySubcategory'])
+                         ->where('subcategory', $pattern)
+                         ->defaults('category', $categoryKey)
+                         ->name("products.{$categoryKey}.subcategory");
+                }
+                
+                // Product detail: /tours/arenal-volcano-hiking
+                Route::get('/{slug}', [HomeController::class, 'showProduct'])
+                     ->defaults('category', $categoryKey)
+                     ->name("products.{$categoryKey}.show");
+            });
+        }
+        
+        // ============================
+        // Backward Compatibility (301 Redirects)
+        // ============================
+        Route::get('/products', function() {
+            return redirect('/tours', 301);
+        });
+        
+        Route::get('/products/{slug}', function($slug) {
+            $product = \App\Models\Product::where('slug', $slug)->first();
+            if ($product) {
+                return redirect(\App\Helpers\ProductCategoryHelper::productUrl($product), 301);
+            }
+            abort(404);
+        });
 
         // ============================
         // Contact
@@ -289,7 +337,7 @@ Route::middleware([SetLocale::class])->group(function () {
         // Public reviews
         // ============================
         Route::get('/reviews', [ReviewsController::class, 'index'])->name('reviews.index');
-        Route::get('/reviews/tours/{tour:slug}', [ReviewsController::class, 'tour'])->name('reviews.tour');
+        Route::get('/reviews/products/{product:slug}', [ReviewsController::class, 'product'])->name('reviews.product');
     });
 
     // ============================
@@ -777,17 +825,17 @@ Route::middleware([SetLocale::class])->group(function () {
                 });
 
                 // ============================
-                // API AJAX (tours data) — UNIFICADO
+                // API AJAX (products data) — UNIFICADO
                 // ============================
                 Route::prefix('api')->name('api.')->group(function () {
-                    Route::get('tours/{tour}/schedules', [TourDataController::class, 'schedules'])->name('tours.schedules');
-                    Route::get('tours/{tour}/languages', [TourDataController::class, 'languages'])->name('tours.languages');
-                    Route::get('tours/{tour}/categories', [TourDataController::class, 'categories'])->name('tours.categories');
+                    Route::get('products/{product}/schedules', [ProductDataController::class, 'schedules'])->name('products.schedules');
+                    Route::get('products/{product}/languages', [ProductDataController::class, 'languages'])->name('products.languages');
+                    Route::get('products/{product}/categories', [ProductDataController::class, 'categories'])->name('products.categories');
                 });
                 // ============================
                 // TOURS
                 // ============================
-                Route::middleware(['can:view-tours'])->prefix('tours')->name('tours.')->group(function () {
+                Route::middleware(['can:view-tours'])->prefix('products')->name('products.')->group(function () {
 
                     // -------------------- CUTOFF --------------------
                     // Moved here to avoid collision with /{tour} wildcard
@@ -799,101 +847,101 @@ Route::middleware([SetLocale::class])->group(function () {
                     });
 
                     // -------------------- TOUR MAIN CRUD --------------------
-                    Route::get('/', [TourController::class, 'index'])->name('index');
-                    Route::get('/create', [TourWizardController::class, 'create'])->name('create');
-                    Route::post('/', [TourController::class, 'store'])
+                    Route::get('/', [ProductController::class, 'index'])->name('index');
+                    Route::get('/create', [ProductWizardController::class, 'create'])->name('create');
+                    Route::post('/', [ProductController::class, 'store'])
                         ->middleware('throttle:sensitive')
                         ->name('store');
-                    Route::get('/{tour}/edit', [TourWizardController::class, 'edit'])->name('edit');
-                    Route::put('/{tour}', [TourController::class, 'update'])
+                    Route::get('/{product}/edit', [ProductWizardController::class, 'edit'])->name('edit');
+                    Route::put('/{product}', [ProductController::class, 'update'])
                         ->middleware('throttle:sensitive')
                         ->name('update');
-                    Route::patch('/{tour}/toggle', [TourController::class, 'toggle'])->name('toggle');
-                    Route::delete('/{tour}', [TourController::class, 'destroy'])->name('destroy');
+                    Route::patch('/{product}/toggle', [ProductController::class, 'toggle'])->name('toggle');
+                    Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
 
                     // Soft Delete Routes
-                    Route::get('/trash/list', [TourController::class, 'trash'])->name('trash');
-                    Route::patch('/{tour}/restore', [TourController::class, 'restore'])->name('restore');
-                    Route::delete('/{tour}/force', [TourController::class, 'forceDelete'])->name('forceDelete');
+                    Route::get('/trash/list', [ProductController::class, 'trash'])->name('trash');
+                    Route::patch('/{product}/restore', [ProductController::class, 'restore'])->name('restore');
+                    Route::delete('/{product}/force', [ProductController::class, 'forceDelete'])->name('forceDelete');
 
                     // Extras moved from bottom group
-                    Route::post('/{tour}/duplicate', [TourController::class, 'duplicate'])
+                    Route::post('/{product}/duplicate', [ProductController::class, 'duplicate'])
                         ->middleware(['can:create-tours', 'throttle:sensitive'])
                         ->name('duplicate');
-                    Route::get('/export/excel', [TourController::class, 'exportExcel'])->name('export.excel');
+                    Route::get('/export/excel', [ProductController::class, 'exportExcel'])->name('export.excel');
 
                     /**
                      * ============================================================
-                     * TOUR WIZARD - Creación paso a paso con gestión de drafts
+                     * PRODUCT WIZARD - Creación paso a paso con gestión de drafts
                      * ============================================================
                      */
-                    Route::prefix('wizard')->name('wizard.')->group(function () {
+                    Route::prefix('product-wizard')->name('product-wizard.')->group(function () {
                         // Paso inicial - Detecta drafts existentes
-                        Route::get('/create', [TourWizardController::class, 'create'])->name('create');
+                        Route::get('/create', [ProductWizardController::class, 'create'])->name('create');
 
                         // 🆕 Gestión de drafts
-                        Route::get('/continue/{tour}', [TourWizardController::class, 'continueDraft'])
+                        Route::get('/continue/{product}', [ProductWizardController::class, 'continueDraft'])
                             ->name('continue');
-                        Route::delete('/delete-draft/{tour}', [TourWizardController::class, 'deleteDraft'])
+                        Route::delete('/delete-draft/{product}', [ProductWizardController::class, 'deleteDraft'])
                             ->name('delete-draft');
-                        Route::delete('/delete-all-drafts', [TourWizardController::class, 'deleteAllDrafts'])
+                        Route::delete('/delete-all-drafts', [ProductWizardController::class, 'deleteAllDrafts'])
                             ->name('delete-all-drafts');
 
                         // Paso 1: Detalles básicos
-                        Route::post('/store-details', [TourWizardController::class, 'storeDetails'])
+                        Route::post('/store-details', [ProductWizardController::class, 'storeDetails'])
                             ->middleware('throttle:sensitive')
                             ->name('store.details');
 
-                        Route::post('/{tour}/update-details', [TourWizardController::class, 'updateDetails'])
+                        Route::post('/{product}/update-details', [ProductWizardController::class, 'updateDetails'])
                             ->middleware('throttle:sensitive')
                             ->name('update.details');
 
                         // Navegación entre pasos
-                        Route::get('/{tour}/step/{step}', [TourWizardController::class, 'showStep'])
+                        Route::get('/{product}/step/{step}', [ProductWizardController::class, 'showStep'])
                             ->name('step');
 
                         // Paso 2: Itinerario
-                        Route::post('/{tour}/store-itinerary', [TourWizardController::class, 'storeItinerary'])
+                        Route::post('/{product}/store-itinerary', [ProductWizardController::class, 'storeItinerary'])
                             ->middleware('throttle:sensitive')
                             ->name('store.itinerary');
 
                         // Paso 3: Horarios
-                        Route::post('/{tour}/store-schedules', [TourWizardController::class, 'storeSchedules'])
+                        Route::post('/{product}/store-schedules', [ProductWizardController::class, 'storeSchedules'])
                             ->middleware('throttle:sensitive')
                             ->name('store.schedules');
-                        Route::post('/{tour}/quick-schedule', [TourWizardController::class, 'quickStoreSchedule'])
+                        Route::post('/{product}/quick-schedule', [ProductWizardController::class, 'quickStoreSchedule'])
                             ->middleware('throttle:sensitive')
                             ->name('quick.schedule');
 
                         // Paso 4: Amenidades
-                        Route::post('/{tour}/store-amenities', [TourWizardController::class, 'storeAmenities'])
+                        Route::post('/{product}/store-amenities', [ProductWizardController::class, 'storeAmenities'])
                             ->middleware('throttle:sensitive')
                             ->name('store.amenities');
-                        Route::post('/quick-amenity', [TourWizardController::class, 'quickStoreAmenity'])
+                        Route::post('/quick-amenity', [ProductWizardController::class, 'quickStoreAmenity'])
                             ->middleware('throttle:sensitive')
                             ->name('quick.amenity');
 
                         // Paso 5: Precios
-                        Route::post('/{tour}/store-prices', [TourWizardController::class, 'storePrices'])
+                        Route::post('/{product}/store-prices', [ProductWizardController::class, 'storePrices'])
                             ->middleware('throttle:sensitive')
                             ->name('store.prices');
-                        Route::post('/quick-category', [TourWizardController::class, 'quickStoreCategory'])
+                        Route::post('/quick-category', [ProductWizardController::class, 'quickStoreCategory'])
                             ->middleware('throttle:sensitive')
                             ->name('quick.category');
 
                         // Paso 6: Publicar
-                        Route::post('/{tour}/publish', [TourWizardController::class, 'publish'])
+                        Route::post('/{product}/publish', [ProductWizardController::class, 'publish'])
                             ->middleware('throttle:sensitive')
                             ->name('publish');
 
                         // Quick creates (AJAX)
-                        Route::post('/quick-tour-type', [TourWizardController::class, 'quickStoreTourType'])
+                        Route::post('/quick-tour-type', [ProductWizardController::class, 'quickStoreTourType'])
                             ->middleware('throttle:sensitive')
                             ->name('quick.tour-type');
-                        Route::post('/quick-language', [TourWizardController::class, 'quickStoreLanguage'])
+                        Route::post('/quick-language', [ProductWizardController::class, 'quickStoreLanguage'])
                             ->middleware('throttle:sensitive')
                             ->name('quick.language');
-                        Route::post('/quick-itinerary-item', [TourWizardController::class, 'quickCreateItineraryItem'])
+                        Route::post('/quick-itinerary-item', [ProductWizardController::class, 'quickCreateItineraryItem'])
                             ->middleware('throttle:sensitive')
                             ->name('quick.itinerary-item');
                     });
@@ -917,7 +965,7 @@ Route::middleware([SetLocale::class])->group(function () {
                             ->name('show');
 
                         // Historial completo de un tour
-                        Route::get('/tour/{tour}/history', [AuditController::class, 'tourHistory'])
+                        Route::get('/tour/{product}/history', [AuditController::class, 'tourHistory'])
                             ->name('tour-history');
 
                         // Actividad de un usuario
@@ -940,33 +988,33 @@ Route::middleware([SetLocale::class])->group(function () {
                      * ============================================================
                      */
                     Route::prefix('stats')->name('stats.')->group(function () {
-                        Route::get('/drafts', [TourController::class, 'draftsStats'])
+                        Route::get('/drafts', [ProductController::class, 'draftsStats'])
                             ->name('drafts');
-                        Route::get('/users', [TourController::class, 'usersStats'])
+                        Route::get('/users', [ProductController::class, 'usersStats'])
                             ->name('users');
-                        Route::get('/activity', [TourController::class, 'activityStats'])
+                        Route::get('/activity', [ProductController::class, 'activityStats'])
                             ->name('activity');
                     });
 
                     // -------------------- TOUR ORDER --------------------
-                    Route::get('/order', [TourOrderController::class, 'index'])->name('order.index')->middleware('can:reorder-tours');
-                    Route::post('/order/{tourType}/save', [TourOrderController::class, 'save'])->name('order.save')->middleware('can:reorder-tours');
+                    Route::get('/order', [ProductOrderController::class, 'index'])->name('order.index')->middleware('can:reorder-tours');
+                    Route::post('/order/{tourType}/save', [ProductOrderController::class, 'save'])->name('order.save')->middleware('can:reorder-tours');
 
                     // -------------------- PRICES (por categoría) --------------------
-                    Route::prefix('{tour}/prices')->name('prices.')->group(function () {
-                        Route::get('/', [TourPriceController::class, 'index'])->name('index');
-                        Route::post('/', [TourPriceController::class, 'store'])
+                    Route::prefix('{product}/prices')->name('prices.')->group(function () {
+                        Route::get('/', [ProductPriceController::class, 'index'])->name('index');
+                        Route::post('/', [ProductPriceController::class, 'store'])
                             ->middleware('throttle:sensitive')
                             ->name('store');
-                        Route::post('/bulk-update', [TourPriceController::class, 'bulkUpdate'])
+                        Route::post('/bulk-update', [ProductPriceController::class, 'bulkUpdate'])
                             ->middleware('throttle:sensitive')
                             ->name('bulk-update');
-                        Route::put('/{price}', [TourPriceController::class, 'update'])
+                        Route::put('/{price}', [ProductPriceController::class, 'update'])
                             ->middleware('throttle:sensitive')
                             ->name('update');
-                        Route::post('/{price}/toggle', [TourPriceController::class, 'toggle'])->name('toggle');
-                        Route::delete('/{price}', [TourPriceController::class, 'destroy'])->name('destroy');
-                        Route::post('/update-taxes', [TourPriceController::class, 'updateTaxes'])
+                        Route::post('/{price}/toggle', [ProductPriceController::class, 'toggle'])->name('toggle');
+                        Route::delete('/{price}', [ProductPriceController::class, 'destroy'])->name('destroy');
+                        Route::post('/update-taxes', [ProductPriceController::class, 'updateTaxes'])
                             ->middleware('throttle:sensitive')
                             ->name('update-taxes');
                     });
@@ -974,29 +1022,29 @@ Route::middleware([SetLocale::class])->group(function () {
                     // -------------------- SCHEDULES (Horarios) --------------------
                     Route::prefix('schedule')->name('schedule.')->group(function () {
                         // Soft Delete Routes (Schedules) - Moved to top to avoid parameter collision
-                        Route::get('/trash/list', [TourScheduleController::class, 'trash'])->name('trash');
-                        Route::patch('/{id}/restore', [TourScheduleController::class, 'restore'])->name('restore');
-                        Route::delete('/{id}/force', [TourScheduleController::class, 'forceDelete'])->name('forceDelete');
+                        Route::get('/trash/list', [ProductScheduleController::class, 'trash'])->name('trash');
+                        Route::patch('/{id}/restore', [ProductScheduleController::class, 'restore'])->name('restore');
+                        Route::delete('/{id}/force', [ProductScheduleController::class, 'forceDelete'])->name('forceDelete');
 
-                        Route::get('/', [TourScheduleController::class, 'index'])->name('index');
-                        Route::post('/', [TourScheduleController::class, 'store'])
+                        Route::get('/', [ProductScheduleController::class, 'index'])->name('index');
+                        Route::post('/', [ProductScheduleController::class, 'store'])
                             ->middleware('throttle:sensitive')
                             ->name('store');
-                        Route::put('/{schedule}', [TourScheduleController::class, 'update'])
+                        Route::put('/{schedule}', [ProductScheduleController::class, 'update'])
                             ->middleware('throttle:sensitive')
                             ->name('update');
-                        Route::delete('/{schedule}', [TourScheduleController::class, 'destroy'])->name('destroy');
-                        Route::put('/{schedule}/toggle', [TourScheduleController::class, 'toggle'])->name('toggle');
+                        Route::delete('/{schedule}', [ProductScheduleController::class, 'destroy'])->name('destroy');
+                        Route::put('/{schedule}/toggle', [ProductScheduleController::class, 'toggle'])->name('toggle');
 
                         // Asignación a tours
-                        Route::post('/{tour}/attach', [TourScheduleController::class, 'attach'])
+                        Route::post('/{product}/attach', [ProductScheduleController::class, 'attach'])
                             ->middleware('throttle:sensitive')
                             ->name('attach');
-                        Route::delete('/{tour}/{schedule}/detach', [TourScheduleController::class, 'detach'])->name('detach');
-                        Route::patch('/{tour}/{schedule}/assignment-toggle', [TourScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
+                        Route::delete('/{product}/{schedule}/detach', [ProductScheduleController::class, 'detach'])->name('detach');
+                        Route::patch('/{product}/{schedule}/assignment-toggle', [ProductScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
 
                         // 🆕 ACTUALIZAR CAPACIDAD DEL PIVOTE (tour+schedule)
-                        Route::patch('/{tour}/{schedule}/pivot', [TourScheduleController::class, 'updatePivotCapacity'])
+                        Route::patch('/{product}/{schedule}/pivot', [ProductScheduleController::class, 'updatePivotCapacity'])
                             ->middleware('throttle:sensitive')
                             ->name('update-pivot-capacity');
                     });
@@ -1005,25 +1053,25 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::group(['middleware' => ['can:view-tour-availability']], function () {
                         Route::prefix('capacity')->name('capacity.')->group(function () {
                             // Vista principal con tabs
-                            Route::get('/', [TourAvailabilityController::class, 'index'])->name('index');
+                            Route::get('/', [ProductAvailabilityController::class, 'index'])->name('index');
 
-                            // Capacidad GLOBAL del tour
-                            Route::patch('/tour/{tour}', [TourAvailabilityController::class, 'updateTourCapacity'])
+                            // Capacidad GLOBAL del producto
+                            Route::patch('/product/{product}', [ProductAvailabilityController::class, 'updateTourCapacity'])
                                 ->middleware('throttle:sensitive')
                                 ->name('update-tour');
 
                             // Capacidad BASE por horario (pivot)
-                            Route::patch('/tour/{tour}/schedule/base-capacity', [TourAvailabilityController::class, 'updateScheduleBaseCapacity'])
+                            Route::patch('/product/{product}/schedule/base-capacity', [ProductAvailabilityController::class, 'updateScheduleBaseCapacity'])
                                 ->middleware('throttle:sensitive')
                                 ->name('update-schedule-base');
 
                             // Override puntual por día+horario
-                            Route::post('/tour/{tour}/overrides/day-schedule', [TourAvailabilityController::class, 'upsertDayScheduleOverride'])
+                            Route::post('/product/{product}/overrides/day-schedule', [ProductAvailabilityController::class, 'upsertDayScheduleOverride'])
                                 ->middleware('throttle:sensitive')
                                 ->name('override-day-schedule');
 
                             // Bloqueo puntual por día+horario
-                            Route::post('/tour/{tour}/overrides/day-schedule/toggle-block', [TourAvailabilityController::class, 'toggleBlockDaySchedule'])
+                            Route::post('/product/{product}/overrides/day-schedule/toggle-block', [ProductAvailabilityController::class, 'toggleBlockDaySchedule'])
                                 ->middleware('throttle:sensitive')
                                 ->name('toggle-block-day-schedule');
 
@@ -1039,13 +1087,13 @@ Route::middleware([SetLocale::class])->group(function () {
                             });
 
                             // Legacy CRUD directo
-                            Route::post('/', [TourAvailabilityController::class, 'store'])
+                            Route::post('/', [ProductAvailabilityController::class, 'store'])
                                 ->middleware('throttle:sensitive')
                                 ->name('store');
-                            Route::patch('/{availability}', [TourAvailabilityController::class, 'update'])
+                            Route::patch('/{availability}', [ProductAvailabilityController::class, 'update'])
                                 ->middleware('throttle:sensitive')
                                 ->name('update');
-                            Route::delete('/{availability}', [TourAvailabilityController::class, 'destroy'])->name('destroy');
+                            Route::delete('/{availability}', [ProductAvailabilityController::class, 'destroy'])->name('destroy');
                         });
                     });
 
@@ -1076,23 +1124,23 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // TOURS (ADMIN) - IMAGES
                 // ============================
-                Route::group(['middleware' => ['can:manage-tour-images']], function () {
-                    Route::prefix('tours')->name('tours.')->group(function () {
-                        Route::get('images', [TourImageController::class, 'pick'])->name('images.pick');
-                        Route::get('{tour}/images', [TourImageController::class, 'index'])->name('images.index');
-                        Route::post('{tour}/images', [TourImageController::class, 'store'])
+                Route::group(['middleware' => ['can:view-tour-images']], function () {
+                    Route::prefix('products')->name('products.')->group(function () {
+                        Route::get('images', [ProductImageController::class, 'pick'])->name('images.pick');
+                        Route::get('{product}/images', [ProductImageController::class, 'index'])->name('images.index');
+                        Route::post('{product}/images', [ProductImageController::class, 'store'])
                             ->middleware('throttle:sensitive')
                             ->name('images.store');
-                        Route::put('{tour}/images/reorder', [TourImageController::class, 'reorder'])
+                        Route::put('{product}/images/reorder', [ProductImageController::class, 'reorder'])
                             ->middleware('throttle:sensitive')
                             ->name('images.reorder');
-                        Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])
+                        Route::put('{product}/images/{image}', [ProductImageController::class, 'update'])
                             ->middleware('throttle:sensitive')
                             ->name('images.update');
-                        Route::delete('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
-                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroyAll');
-                        Route::delete('{tour}/images/{image}', [TourImageController::class, 'destroy'])->name('images.destroy');
-                        Route::post('{tour}/images/{image}/cover', [TourImageController::class, 'setCover'])->name('images.cover');
+                        Route::delete('{product}/images/bulk-destroy', [ProductImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
+                        Route::delete('{product}/images/destroy-all', [ProductImageController::class, 'destroyAll'])->name('images.destroyAll');
+                        Route::delete('{product}/images/{image}', [ProductImageController::class, 'destroy'])->name('images.destroy');
+                        Route::post('{product}/images/{image}/cover', [ProductImageController::class, 'setCover'])->name('images.cover');
                     });
                 });
 
@@ -1100,7 +1148,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 // AMENITIES
                 // ============================
                 Route::group(['middleware' => ['can:view-amenities']], function () {
-                    Route::prefix('tours')->name('tours.')->group(function () {
+                    Route::prefix('products')->name('products.')->group(function () {
                         // Soft Delete Routes (Amenities)
                         Route::get('amenities/trash/list', [AmenityController::class, 'trash'])->name('amenities.trash');
                         Route::patch('amenities/{amenity}/restore', [AmenityController::class, 'restore'])->name('amenities.restore');
@@ -1115,30 +1163,51 @@ Route::middleware([SetLocale::class])->group(function () {
                 // TOUR AVAILABILITY (Excluded Dates)
                 // ============================
                 Route::group(['middleware' => ['can:view-tour-availability']], function () {
-                    Route::prefix('tours')->name('tours.')->group(function () {
+                    Route::prefix('products')->name('products.')->group(function () {
                         Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
-                            Route::get('/', [TourExcludedDateController::class, 'index'])->name('index');
-                            Route::get('/blocked', [TourExcludedDateController::class, 'blocked'])->name('blocked');
-                            Route::post('/', [TourExcludedDateController::class, 'store'])
+                            Route::get('/', [ProductExcludedDateController::class, 'index'])->name('index');
+                            Route::get('/blocked', [ProductExcludedDateController::class, 'blocked'])->name('blocked');
+                            Route::post('/', [ProductExcludedDateController::class, 'store'])
                                 ->middleware('throttle:sensitive')
                                 ->name('store');
-                            Route::put('/{excludedDate}', [TourExcludedDateController::class, 'update'])
+                            Route::put('/{excludedDate}', [ProductExcludedDateController::class, 'update'])
                                 ->middleware('throttle:sensitive')
                                 ->name('update');
-                            Route::delete('/{excludedDate}', [TourExcludedDateController::class, 'destroy'])->name('destroy');
-                            Route::post('/toggle', [TourExcludedDateController::class, 'toggle'])->name('toggle');
-                            Route::post('/bulk-toggle', [TourExcludedDateController::class, 'bulkToggle'])
+                            Route::delete('/{excludedDate}', [ProductExcludedDateController::class, 'destroy'])->name('destroy');
+                            Route::post('/toggle', [ProductExcludedDateController::class, 'toggle'])->name('toggle');
+                            Route::post('/bulk-toggle', [ProductExcludedDateController::class, 'bulkToggle'])
                                 ->middleware('throttle:sensitive')
                                 ->name('bulkToggle');
-                            Route::post('/block-all', [TourExcludedDateController::class, 'blockAll'])
+                            Route::post('/block-all', [ProductExcludedDateController::class, 'blockAll'])
                                 ->middleware('throttle:sensitive')
                                 ->name('blockAll');
-                            Route::post('/store-multiple', [TourExcludedDateController::class, 'storeMultiple'])
+                            Route::post('/store-multiple', [ProductExcludedDateController::class, 'storeMultiple'])
                                 ->middleware('throttle:sensitive')
                                 ->name('storeMultiple');
-                            Route::delete('/all', [TourExcludedDateController::class, 'destroyAll'])->name('destroyAll');
-                            Route::post('/destroy-selected', [TourExcludedDateController::class, 'destroySelected'])->name('destroySelected');
+                            Route::delete('/all', [ProductExcludedDateController::class, 'destroyAll'])->name('destroyAll');
+                            Route::post('/destroy-selected', [ProductExcludedDateController::class, 'destroySelected'])->name('destroySelected');
                         });
+                    });
+                });
+
+                // ============================
+                // PRODUCT WIZARD
+                // ============================
+                Route::group(['middleware' => ['can:create-tours']], function () {
+                    Route::prefix('products/wizard')->name('products.wizard.')->group(function () {
+                        // Start/Create
+                        Route::get('/start', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'start'])->name('start');
+                        Route::get('/create', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'start'])->name('create'); // Alias for blade compatibility
+                        
+                        // Wizard Steps
+                        Route::post('/step-1', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'storeStep1'])->name('storeStep1');
+                        Route::get('/{product}/step-2', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'step2'])->name('step2');
+                        Route::post('/{product}/step-2', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'storeStep2'])->name('storeStep2');
+                        Route::get('/{product}/step-3', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'step3'])->name('step3');
+                        Route::post('/{product}/step-3', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'storeStep3'])->name('storeStep3');
+                        Route::get('/{product}/step-4', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'step4'])->name('step4');
+                        Route::post('/{product}/step-4', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'storeStep4'])->name('storeStep4');
+                        Route::get('/{product}/finish', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'finish'])->name('finish');
                     });
                 });
 
@@ -1146,8 +1215,8 @@ Route::middleware([SetLocale::class])->group(function () {
                 // TOUR PRICING
                 // ============================
                 Route::group(['middleware' => ['can:view-tour-prices']], function () {
-                    Route::prefix('tours')->name('tours.')->group(function () {
-                        Route::post('prices/check-overlap', [TourPriceController::class, 'checkOverlap'])
+                    Route::prefix('products')->name('products.')->group(function () {
+                        Route::post('prices/check-overlap', [ProductPriceController::class, 'checkOverlap'])
                             ->name('prices.check-overlap');
                     });
                 });
@@ -1157,29 +1226,29 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 Route::group(['middleware' => ['can:view-tour-images']], function () {
                     // Tour Images
-                    Route::prefix('tours')->name('tours.')->group(function () {
-                        Route::get('images', [TourImageController::class, 'pick'])->name('images.pick');
-                        Route::get('{tour}/images', [TourImageController::class, 'index'])->name('images.index');
-                        Route::post('{tour}/images', [TourImageController::class, 'store'])
+                    Route::prefix('products')->name('products.')->group(function () {
+                        Route::get('images', [ProductImageController::class, 'pick'])->name('images.pick');
+                        Route::get('{product}/images', [ProductImageController::class, 'index'])->name('images.index');
+                        Route::post('{product}/images', [ProductImageController::class, 'store'])
                             ->middleware('throttle:sensitive')
                             ->name('images.store');
-                        Route::put('{tour}/images/reorder', [TourImageController::class, 'reorder'])
+                        Route::put('{product}/images/reorder', [ProductImageController::class, 'reorder'])
                             ->middleware('throttle:sensitive')
                             ->name('images.reorder');
-                        Route::put('{tour}/images/{image}', [TourImageController::class, 'update'])
+                        Route::put('{product}/images/{image}', [ProductImageController::class, 'update'])
                             ->middleware('throttle:sensitive')
                             ->name('images.update');
-                        Route::delete('{tour}/images/bulk-destroy', [TourImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
-                        Route::delete('{tour}/images/destroy-all', [TourImageController::class, 'destroyAll'])->name('images.destroyAll');
-                        Route::delete('{tour}/images/{image}', [TourImageController::class, 'destroy'])->name('images.destroy');
-                        Route::post('{tour}/images/{image}/cover', [TourImageController::class, 'setCover'])->name('images.setCover');
+                        Route::delete('{product}/images/bulk-destroy', [ProductImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
+                        Route::delete('{product}/images/destroy-all', [ProductImageController::class, 'destroyAll'])->name('images.destroyAll');
+                        Route::delete('{product}/images/{image}', [ProductImageController::class, 'destroy'])->name('images.destroy');
+                        Route::post('{product}/images/{image}/cover', [ProductImageController::class, 'setCover'])->name('images.setCover');
                     });
 
                     // Tour Type Images
                     Route::prefix('types')->name('types.')->group(function () {
-                        Route::get('images', [TourTypeCoverPickerController::class, 'pick'])->name('images.pick');
-                        Route::get('images/{tourType}/edit', [TourTypeCoverPickerController::class, 'edit'])->name('images.edit');
-                        Route::put('images/{tourType}', [TourTypeCoverPickerController::class, 'updateCover'])
+                        Route::get('images', [ProductTypeCoverPickerController::class, 'pick'])->name('images.pick');
+                        Route::get('images/{productType}/edit', [ProductTypeCoverPickerController::class, 'edit'])->name('images.edit');
+                        Route::put('images/{productType}', [ProductTypeCoverPickerController::class, 'updateCover'])
                             ->middleware('throttle:sensitive')
                             ->name('images.update');
                     });
@@ -1191,20 +1260,20 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::group(['middleware' => ['can:view-tour-types']], function () {
                     // Translation management routes (before resource)
 
-                    Route::get('tourtypes/{tourType}/translations', [TourTypeController::class, 'editTranslations'])
-                        ->name('tourtypes.translations.edit');
-                    Route::put('tourtypes/{tourType}/translations/{locale}', [TourTypeController::class, 'updateTranslation'])
+                    Route::get('product-types/{productType}/translations', [ProductTypeController::class, 'editTranslations'])
+                        ->name('product-types.translations.edit');
+                    Route::put('product-types/{productType}/translations/{locale}', [ProductTypeController::class, 'updateTranslation'])
                         ->middleware('throttle:sensitive')
-                        ->name('tourtypes.translations.update');
+                        ->name('product-types.translations.update');
 
-                    Route::resource('tourtypes', TourTypeController::class, ['parameters' => ['tourtypes' => 'tourType']])->except(['show']);
+                    Route::resource('product-types', ProductTypeController::class, ['parameters' => ['product-types' => 'productType']])->except(['show']);
 
                     // Soft Delete Routes (Tour Types)
-                    Route::get('tourtypes/trash/list', [TourTypeController::class, 'trash'])->name('tourtypes.trash');
-                    Route::patch('tourtypes/{tourType}/restore', [TourTypeController::class, 'restore'])->name('tourtypes.restore');
-                    Route::delete('tourtypes/{tourType}/force', [TourTypeController::class, 'forceDelete'])->name('tourtypes.forceDelete');
+                    Route::get('product-types/trash/list', [ProductTypeController::class, 'trash'])->name('product-types.trash');
+                    Route::patch('product-types/{productType}/restore', [ProductTypeController::class, 'restore'])->name('product-types.restore');
+                    Route::delete('product-types/{productType}/force', [ProductTypeController::class, 'forceDelete'])->name('product-types.forceDelete');
 
-                    Route::put('tourtypes/{tourType}/toggle', [TourTypeController::class, 'toggle'])->name('tourtypes.toggle');
+                    Route::put('product-types/{productType}/toggle', [ProductTypeController::class, 'toggle'])->name('product-types.toggle');
                 });
 
                 // ============================
@@ -1213,12 +1282,12 @@ Route::middleware([SetLocale::class])->group(function () {
                 Route::group(['middleware' => ['can:view-settings']], function () {
 
                     // Soft Delete Routes (Languages)
-                    Route::get('languages/trash/list', [TourLanguageController::class, 'trash'])->name('languages.trash');
-                    Route::patch('languages/{language}/restore', [TourLanguageController::class, 'restore'])->name('languages.restore');
-                    Route::delete('languages/{language}/force', [TourLanguageController::class, 'forceDelete'])->name('languages.forceDelete');
+                    Route::get('languages/trash/list', [ProductLanguageController::class, 'trash'])->name('languages.trash');
+                    Route::patch('languages/{language}/restore', [ProductLanguageController::class, 'restore'])->name('languages.restore');
+                    Route::delete('languages/{language}/force', [ProductLanguageController::class, 'forceDelete'])->name('languages.forceDelete');
 
-                    Route::resource('languages', TourLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
-                    Route::patch('languages/{language}/toggle', [TourLanguageController::class, 'toggle'])->name('languages.toggle');
+                    Route::resource('languages', ProductLanguageController::class, ['parameters' => ['languages' => 'language']])->except(['show']);
+                    Route::patch('languages/{language}/toggle', [ProductLanguageController::class, 'toggle'])->name('languages.toggle');
                 });
 
                 // ============================
@@ -1581,12 +1650,12 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::get('/sales/chart/comparison', [\App\Http\Controllers\Admin\Reports\SalesReportController::class, 'chartDailyComparison'])->name('sales.chart.comparison');
 
                         // Tours Dashboard
-                        Route::get('/tours', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'index'])->name('tours');
-                        Route::get('/tours/chart/top-revenue', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartTopToursByRevenue'])->name('tours.chart.top-revenue');
-                        Route::get('/tours/chart/top-bookings', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartTopToursByBookings'])->name('tours.chart.top-bookings');
-                        Route::get('/tours/chart/performance-matrix', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartTourPerformanceMatrix'])->name('tours.chart.performance-matrix');
-                        Route::get('/tours/chart/tour-type', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartBookingsByTourType'])->name('tours.chart.tour-type');
-                        Route::get('/tours/chart/capacity', [\App\Http\Controllers\Admin\Reports\ToursReportController::class, 'chartCapacityUtilization'])->name('tours.chart.capacity');
+                        Route::get('/products', [\App\Http\Controllers\Admin\Reports\ProductsReportController::class, 'index'])->name('products');
+                        Route::get('/products/chart/top-revenue', [\App\Http\Controllers\Admin\Reports\ProductsReportController::class, 'chartTopToursByRevenue'])->name('products.chart.top-revenue');
+                        Route::get('/products/chart/top-bookings', [\App\Http\Controllers\Admin\Reports\ProductsReportController::class, 'chartTopToursByBookings'])->name('products.chart.top-bookings');
+                        Route::get('/products/chart/performance-matrix', [\App\Http\Controllers\Admin\Reports\ProductsReportController::class, 'chartTourPerformanceMatrix'])->name('products.chart.performance-matrix');
+                        Route::get('/products/chart/product-type', [\App\Http\Controllers\Admin\Reports\ProductsReportController::class, 'chartBookingsByTourType'])->name('products.chart.product-type');
+                        Route::get('/products/chart/capacity', [\App\Http\Controllers\Admin\Reports\ProductsReportController::class, 'chartCapacityUtilization'])->name('products.chart.capacity');
 
                         // Customer Analytics Dashboard
                         Route::get('/customers', [\App\Http\Controllers\Admin\Reports\CustomerReportController::class, 'index'])->name('customers');

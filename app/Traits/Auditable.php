@@ -277,7 +277,7 @@ trait Auditable
      */
     public function auditLogs()
     {
-        return $this->hasMany(TourAuditLog::class, 'tour_id', 'tour_id')
+        return $this->hasMany(TourAuditLog::class, 'product_id', 'product_id')
                     ->orderBy('created_at', 'desc');
     }
 
@@ -286,7 +286,7 @@ trait Auditable
      */
     public function lastAuditLog()
     {
-        return $this->hasOne(TourAuditLog::class, 'tour_id', 'tour_id')
+        return $this->hasOne(TourAuditLog::class, 'product_id', 'product_id')
                     ->latest('created_at');
     }
 

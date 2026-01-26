@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\TourLanguage;
+use App\Models\ProductLanguage;
 use Carbon\Carbon;
 
 class CleanupOldLanguages extends Command
@@ -34,10 +34,10 @@ class CleanupOldLanguages extends Command
         $this->info("Cleaning up languages deleted more than {$days} days ago...");
 
         // Usar el scopeOlderThan definido en el modelo
-        $count = TourLanguage::olderThan($days)->count();
+        $count = ProductLanguage::olderThan($days)->count();
 
         if ($count > 0) {
-            TourLanguage::olderThan($days)->forceDelete();
+            ProductLanguage::olderThan($days)->forceDelete();
             $this->info("Permanently deleted {$count} language(s).");
         } else {
             $this->info("No old trashed languages found.");

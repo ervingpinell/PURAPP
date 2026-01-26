@@ -49,18 +49,18 @@
                 </thead>
                 <tbody>
                     @foreach($mappings as $mapping)
-                    <tr id="mapping-{{ $mapping['tour_id'] }}">
+                    <tr id="mapping-{{ $mapping['product_id'] }}">
                         <td>
                             <strong>{{ $mapping['tour_name'] }}</strong>
                             <br>
-                            <small class="text-muted">ID: {{ $mapping['tour_id'] }}</small>
+                            <small class="text-muted">ID: {{ $mapping['product_id'] }}</small>
                         </td>
                         <td>
                             <span class="product-code-display">
                                 <code>{{ $mapping['product_code'] }}</code>
                             </span>
                             <form class="product-code-edit d-none"
-                                action="{{ route('admin.review-providers.product-map.update', [$provider, $mapping['tour_id']]) }}"
+                                action="{{ route('admin.review-providers.product-map.update', [$provider, $mapping['product_id']]) }}"
                                 method="POST">
                                 @csrf
                                 @method('PUT')
@@ -83,10 +83,10 @@
                         </td>
                         <td class="text-right">
                             <button type="button" class="btn btn-sm btn-info btn-edit-mapping"
-                                data-tour-id="{{ $mapping['tour_id'] }}">
+                                data-tour-id="{{ $mapping['product_id'] }}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <form action="{{ route('admin.review-providers.product-map.destroy', [$provider, $mapping['tour_id']]) }}"
+                            <form action="{{ route('admin.review-providers.product-map.destroy', [$provider, $mapping['product_id']]) }}"
                                 method="POST"
                                 class="d-inline"
                                 onsubmit="return confirm('{{ __('reviews.providers.confirm_delete_mapping') }}');">
@@ -125,9 +125,9 @@
             <div class="row">
                 <div class="col-md-5">
                     <div class="form-group">
-                        <label for="tour_id">{{ __('reviews.providers.select_tour') }}</label>
-                        <select name="tour_id"
-                            id="tour_id"
+                        <label for="product_id">{{ __('reviews.providers.select_tour') }}</label>
+                        <select name="product_id"
+                            id="product_id"
                             class="form-control select2"
                             required
                             style="width: 100%">
@@ -136,7 +136,7 @@
                             <option value="{{ $tour['id'] }}">{{ $tour['name'] }}</option>
                             @endforeach
                         </select>
-                        @error('tour_id')
+                        @error('product_id')
                         <span class="text-danger">{{ $message }}</span>
                         @enderror
                     </div>

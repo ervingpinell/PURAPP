@@ -119,7 +119,7 @@ class ReviewReplyController extends Controller
                 $tourTranslation = $review->tour->translate($locale);
                 $tourName = optional($tourTranslation)->name ?? $review->tour->name;
             } elseif ($review->booking && $review->booking->tour) {
-                // Caso raro donde review no tiene tour_id directo pero booking sí (aunque normalmente van juntos)
+                // Caso raro donde review no tiene product_id directo pero booking sí (aunque normalmente van juntos)
                 $tourTranslation = $review->booking->tour->translate($locale);
                 $tourName = optional($tourTranslation)->name ?? $review->booking->tour->name;
             }
@@ -221,7 +221,7 @@ class ReviewReplyController extends Controller
         if (!$email) {
             $rr = ReviewRequest::query()
                 ->when($review->user_id, fn($q) => $q->where('user_id', $review->user_id))
-                ->when($review->tour_id, fn($q) => $q->where('tour_id', $review->tour_id))
+                ->when($review->product_id, fn($q) => $q->where('product_id', $review->product_id))
                 ->orderByDesc('created_at')
                 ->first();
             if ($rr && $rr->email) {
@@ -252,7 +252,7 @@ class ReviewReplyController extends Controller
         if (!$name) {
             $rr = ReviewRequest::query()
                 ->when($review->user_id, fn($q) => $q->where('user_id', $review->user_id))
-                ->when($review->tour_id, fn($q) => $q->where('tour_id', $review->tour_id))
+                ->when($review->product_id, fn($q) => $q->where('product_id', $review->product_id))
                 ->orderByDesc('created_at')
                 ->first();
             if ($rr) {

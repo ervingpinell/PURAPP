@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * PolicySection Model
@@ -13,8 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class PolicySection extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes, HasTranslations;
 
     protected $table = 'policy_sections';
     protected $primaryKey = 'section_id';
@@ -22,13 +22,15 @@ class PolicySection extends Model
     protected $keyType = 'int';
     public $timestamps = true;
 
+    public $translatable = ['name', 'content'];
+
     protected $fillable = [
         'policy_id',
-        // OJO: sin 'name' ni 'content' en la base
+        'name',
+        'content',
         'sort_order',
         'is_active',
         'deleted_by',
-        // si tienes otros (p.ej. 'type'), agrégalos aquí
     ];
 
     protected $casts = [
@@ -49,11 +51,6 @@ class PolicySection extends Model
         return $this->belongsTo(User::class, 'deleted_by');
     }
 
-    public function translations()
-    {
-        return $this->hasMany(PolicySectionTranslation::class, 'section_id', 'section_id');
-    }
-
     /* -------------------- SCOPES -------------------- */
 
     public function scopeActive($q)
@@ -61,51 +58,15 @@ class PolicySection extends Model
         return $q->where('is_active', true);
     }
 
-    /* -------------------- TRADUCCIÓN -------------------- */
-
-    public function translation(?string $locale = null): ?PolicySectionTranslation
-    {
-        $requested = Policy::canonicalLocale($locale ?: app()->getLocale());
-        $fallback  = Policy::canonicalLocale((string) config('app.fallback_locale', 'es'));
-
-        $bag = $this->relationLoaded('translations')
-            ? $this->getRelation('translations')
-            : $this->translations()->get();
-
-        $norm = fn($v) => str_replace('-', '_', strtolower((string) $v));
-
-        // Coincidencia exacta
-        if ($exact = $bag->first(fn($t) => $norm($t->locale) === $norm($requested))) {
-            return $exact;
-        }
-
-        // Variantes habituales (compat)
-        foreach ([$requested, str_replace('_', '-', $requested), substr($requested, 0, 2), 'pt_BR', 'pt-br'] as $v) {
-            if ($found = $bag->first(fn($t) => $norm($t->locale) === $norm($v))) {
-                return $found;
-            }
-        }
-
-        // Fallback → 'es' o primer registro
-        return $bag->first(fn($t) => $norm($t->locale) === $norm($fallback))
-            ?: $bag->first(fn($t) => $norm($t->locale) === $norm(substr($fallback, 0, 2)))
-            ?: $bag->first();
-    }
-
-    public function translate(?string $locale = null): ?PolicySectionTranslation
-    {
-        return $this->translation($locale);
-    }
-
     /* -------------------- ACCESSORS DE COMODIDAD -------------------- */
 
     public function getDisplayNameAttribute(): string
     {
-        return (string) (optional($this->translation())?->name ?? '');
+        return (string) $this->name;
     }
 
     public function getDisplayContentAttribute(): string
     {
-        return (string) (optional($this->translation())?->content ?? '');
+        return (string) $this->content;
     }
 }

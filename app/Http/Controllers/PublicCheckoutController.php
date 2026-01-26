@@ -317,9 +317,9 @@ class PublicCheckoutController extends Controller
             $cart = (object) [
                 'items' => collect($sessionCartItems)->map(function ($item) {
                     return (object) array_merge($item, [
-                        'tour' => \App\Models\Tour::find($item['tour_id']),
+                        'tour' => \App\Models\Product::find($item['product_id']),
                         'schedule' => \App\Models\Schedule::find($item['schedule_id']),
-                        'language' => \App\Models\TourLanguage::find($item['tour_language_id']),
+                        'language' => \App\Models\ProductLanguage::find($item['tour_language_id']),
                         'hotel' => isset($item['hotel_id']) ? \App\Models\HotelList::find($item['hotel_id']) : null,
                         'meetingPoint' => isset($item['meeting_point_id']) ? \App\Models\MeetingPoint::find($item['meeting_point_id']) : null,
                     ]);
@@ -619,7 +619,7 @@ class PublicCheckoutController extends Controller
             'items' => $cart->items->map(function ($item) {
                 return [
                     'cart_item_id' => $item->cart_item_id,
-                    'tour_id' => $item->tour_id,
+                    'product_id' => $item->product_id,
                     'schedule_id' => $item->schedule_id,
                     'tour_language_id' => $item->tour_language_id,
                     'tour_date' => $item->tour_date,
@@ -735,7 +735,7 @@ class PublicCheckoutController extends Controller
             'items' => collect([
                 (object) [
                     'cart_item_id' => null,
-                    'tour_id' => $booking->tour_id,
+                    'product_id' => $booking->product_id,
                     'tour' => $booking->tour,
                     'tour_date' => $booking->tour_date,
                     'schedule' => $booking->detail?->schedule,
@@ -925,7 +925,7 @@ class PublicCheckoutController extends Controller
             $rawCats = $itemData['categories'] ?? [];
 
             // Load Tour to get prices
-            $tourId = $itemData['tour_id'] ?? null;
+            $tourId = $itemData['product_id'] ?? null;
             $tourDate = $itemData['tour_date'] ?? null;
 
             if ($tourId && is_array($rawCats)) {
@@ -950,7 +950,7 @@ class PublicCheckoutController extends Controller
                 } else {
                     // Legacy format: ['category_id' => quantity, ...]
                     // This shouldn't happen with current CartController, but handle it for safety
-                    $tour = \App\Models\Tour::with('prices.category')->find($tourId);
+                    $tour = \App\Models\Product::with('prices.category')->find($tourId);
 
                     if ($tour) {
                         foreach ($rawCats as $catId => $qty) {
@@ -988,7 +988,7 @@ class PublicCheckoutController extends Controller
 
             // Create CartItem
             $cart->items()->create([
-                'tour_id' => $itemData['tour_id'] ?? null,
+                'product_id' => $itemData['product_id'] ?? null,
                 'schedule_id' => $itemData['schedule_id'] ?? null,
                 'tour_language_id' => $itemData['tour_language_id'] ?? null,
                 'tour_date' => $itemData['tour_date'] ?? null,

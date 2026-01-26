@@ -112,6 +112,8 @@ return [
 
     // 5. TOURS AND REVIEWS
     'tours' => 'Serviços',
+    'services' => 'Serviços',
+    'all_services' => 'Todos os serviços',
     'tour' => 'Serviço',
     'tour_name' => 'Nome do serviço',
     'overview' => 'Resumo',
@@ -137,7 +139,9 @@ return [
     'half_day_tours' => 'Passeios de meio dia',
     'see_tour' => 'Ver passeio',
     'see_tours' => 'Ver passeios',
-    'see_tour_details' => 'Ver detalhes do passeio',
+    'see_tour_details' => 'Ver detalhes do serviço',
+    'view_details' => 'Ver detalhes',
+    'view_all_count' => 'Ver todos (:count)',
     'what_visitors_say' => 'O que nossos visitantes dizem',
     'quote_1' => 'Uma experiência inesquecível!',
     'guest_1' => 'Carlos M.',
@@ -362,6 +366,8 @@ return [
     'contact_spam_success' => 'Sua mensagem foi enviada.',
     'contact_success'      => 'Sua mensagem foi enviada com sucesso. Entraremos em contato com você em breve.',
     'contact_error'        => 'Ocorreu um erro ao enviar sua mensagem. Por favor, tente novamente em alguns minutos.',
+    'need_help_choosing' => 'Precisa de ajuda para escolher?',
+    'contact_cta_text' => 'Nossa equipe está pronta para ajudá-lo a planejar a experiência perfeita.',
 
     // Placeholders
     'contact_name_placeholder'    => 'Seu nome completo',
@@ -554,6 +560,7 @@ return [
     'filters_title'            => 'Filtrar resultados',
     'filters_subtitle'         => 'Combine pesquisa por texto e categoria para encontrar o passeio ideal.',
     'search_tours_placeholder' => 'Pesquisar por nome ou descrição…',
+    'search_services_placeholder' => 'Pesquisar serviços…',
 
     'all_categories'           => 'Todas as categorias',
     'category_label'           => 'Categoria',
@@ -578,6 +585,8 @@ return [
     'quantities' => 'Quantidades',
     'quantitiesHelp' => 'Ajuste as quantidades conforme necessário. Você pode deixar em 0 as categorias que não usar.',
     'no_tours_found' => 'Nenhum passeio encontrado.',
+    'tours_count' => '1 serviço disponível|:count serviços disponíveis',
+    'categories_count' => '1 categoria|:count categorias',
 
     // COOKIES (Cookie Consent)
     'cookies' => [

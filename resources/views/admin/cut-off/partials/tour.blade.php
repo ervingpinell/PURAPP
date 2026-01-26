@@ -22,7 +22,7 @@
         <select class="form-select" id="tourSelect">
           <option value="">{{ __('m_config.cut-off.selects.tour') }}</option>
           @foreach($tours as $t)
-          <option value="{{ $t->tour_id }}" data-cutoff="{{ $t->cutoff_hour }}" data-lead="{{ $t->lead_days }}">{{ $t->name }}</option>
+          <option value="{{ $t->product_id }}" data-cutoff="{{ $t->cutoff_hour }}" data-lead="{{ $t->lead_days }}">{{ $t->name }}</option>
           @endforeach
         </select>
         <div class="form-hint mt-1">{{ __('m_config.cut-off.hints.pick_tour') }}</div>
@@ -33,10 +33,10 @@
     <hr>
 
     {{-- Form override por tour --}}
-    <form method="POST" action="{{ route('admin.tours.cutoff.tour.update') }}" id="form-tour">
+    <form method="POST" action="{{ route('admin.products.cutoff.tour.update') }}" id="form-tour">
       @csrf
       @method('PUT')
-      <input type="hidden" name="tour_id" id="tourIdHiddenForTour" value="">
+      <input type="hidden" name="product_id" id="tourIdHiddenForTour" value="">
       <div class="row g-3">
         <div class="col-md-3">
           <label class="form-label">{{ __('m_config.cut-off.fields.cutoff_hour_short') }}</label>

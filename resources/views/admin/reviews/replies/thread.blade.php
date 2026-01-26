@@ -20,7 +20,7 @@
         <div>
           <div class="mb-1">
             <span class="badge badge-info text-uppercase">{{ $review->provider }}</span>
-            <span class="ml-2">{{ __('reviews.common.tour') }} #{{ $review->tour_id }}</span>
+            <span class="ml-2">{{ __('reviews.common.tour') }} #{{ $review->product_id }}</span>
             <span class="ml-2">⭐ {{ $review->rating }}</span>
           </div>
           @if($review->title)<div class="mb-2"><strong>{{ $review->title }}</strong></div>@endif

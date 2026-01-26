@@ -13,7 +13,7 @@ if (!$tourName && $d?->relationLoaded('tour') && $d?->tour) {
         $tourName = $tour->getTranslated('name', $mailLocale) ?? $tour->name; 
     }
 }
-$tourName = $tourName ?: ($booking->tour->title ?? 'Tour');
+$tourName = $tourName ?: ($booking->product->title ?? 'Tour');
 
 $tourDate = $d?->tour_date ? \Illuminate\Support\Carbon::parse($d->tour_date)->format('d-M-Y') : null;
 $scheduleTxt = $d?->schedule 

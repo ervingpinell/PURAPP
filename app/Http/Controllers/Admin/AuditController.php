@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\TourAuditLog;
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,8 +27,8 @@ class AuditController extends Controller
         // FILTROS
 
         // Por tour específico
-        if ($request->filled('tour_id')) {
-            $query->where('tour_id', $request->tour_id);
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
         }
 
         // Por usuario
@@ -80,7 +80,7 @@ class AuditController extends Controller
         $logs = $query->paginate($perPage)->withQueryString();
 
         // Datos para filtros
-        $tours = Tour::select('tour_id', 'name')
+        $tours = Product::select('product_id', 'name')
             ->orderBy('name')
             ->get();
 
@@ -120,7 +120,7 @@ class AuditController extends Controller
         $log->load(['tour', 'user']);
 
         // Obtener logs relacionados del mismo tour (contexto)
-        $relatedLogs = TourAuditLog::where('tour_id', $log->tour_id)
+        $relatedLogs = TourAuditLog::where('product_id', $log->product_id)
             ->where('audit_id', '!=', $log->audit_id)
             ->orderBy('created_at', 'desc')
             ->limit(10)
@@ -132,9 +132,9 @@ class AuditController extends Controller
     /**
      * Ver historial completo de un tour
      */
-    public function tourHistory(Tour $tour)
+    public function tourHistory(Product $tour)
     {
-        $logs = TourAuditLog::where('tour_id', $tour->tour_id)
+        $logs = TourAuditLog::where('product_id', $tour->product_id)
             ->with('user')
             ->orderBy('created_at', 'desc')
             ->paginate(30);
@@ -238,8 +238,8 @@ class AuditController extends Controller
             ->orderBy('created_at', 'desc');
 
         // Aplicar los mismos filtros que en index
-        if ($request->filled('tour_id')) {
-            $query->where('tour_id', $request->tour_id);
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
         }
 
         if ($request->filled('user_id')) {
@@ -337,8 +337,8 @@ class AuditController extends Controller
         $baseQuery = TourAuditLog::query();
 
         // Aplicar filtros actuales a las estadísticas
-        if ($request->filled('tour_id')) {
-            $baseQuery->where('tour_id', $request->tour_id);
+        if ($request->filled('product_id')) {
+            $baseQuery->where('product_id', $request->product_id);
         }
 
         if ($request->filled('date_from')) {
@@ -353,7 +353,7 @@ class AuditController extends Controller
             'total' => (clone $baseQuery)->count(),
             'today' => (clone $baseQuery)->whereDate('created_at', today())->count(),
             'this_week' => (clone $baseQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-            'unique_tours' => (clone $baseQuery)->distinct('tour_id')->count('tour_id'),
+            'unique_tours' => (clone $baseQuery)->distinct('product_id')->count('product_id'),
             'unique_users' => (clone $baseQuery)->distinct('user_id')->count('user_id'),
         ];
     }
@@ -364,15 +364,15 @@ class AuditController extends Controller
     private function getMostModifiedTours(int $days): array
     {
         return TourAuditLog::where('created_at', '>=', now()->subDays($days))
-            ->whereNotNull('tour_id')
-            ->select('tour_id', DB::raw('count(*) as modifications_count'))
-            ->groupBy('tour_id')
+            ->whereNotNull('product_id')
+            ->select('product_id', DB::raw('count(*) as modifications_count'))
+            ->groupBy('product_id')
             ->orderBy('modifications_count', 'desc')
             ->limit(10)
             ->get()
             ->map(function ($item) {
                 return [
-                    'tour' => Tour::find($item->tour_id),
+                    'tour' => Product::find($item->product_id),
                     'modifications_count' => $item->modifications_count,
                 ];
             })

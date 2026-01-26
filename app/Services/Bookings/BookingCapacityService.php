@@ -4,10 +4,10 @@ namespace App\Services\Bookings;
 
 use App\Models\{
     Schedule,
-    Tour,
+    Product,
     BookingDetail,
-    TourExcludedDate,
-    TourAvailability
+    ProductExcludedDate,
+    ProductAvailability
 };
 use Illuminate\Support\Facades\DB;
 
@@ -35,12 +35,12 @@ class BookingCapacityService
     /**
      * Devuelve la capacidad MÁXIMA efectiva para la fecha dada.
      */
-    public function resolveMaxCapacity(Tour $tour, ?Schedule $schedule, string $tourDate): int
+    public function resolveMaxCapacity(Product $tour, ?Schedule $schedule, string $tourDate): int
     {
         // 1) Override específico (día + horario)
         if ($schedule) {
-            $specific = TourAvailability::active()
-                ->where('tour_id', $tour->tour_id)
+            $specific = ProductAvailability::active()
+                ->where('product_id', $tour->product_id)
                 ->where('schedule_id', $schedule->schedule_id)
                 ->whereDate('date', $tourDate)
                 ->first();
@@ -57,8 +57,8 @@ class BookingCapacityService
         }
 
         // 2) Override general del día (sin horario)
-        $general = TourAvailability::active()
-            ->where('tour_id', $tour->tour_id)
+        $general = ProductAvailability::active()
+            ->where('product_id', $tour->product_id)
             ->whereNull('schedule_id')
             ->whereDate('date', $tourDate)
             ->first();
@@ -74,8 +74,8 @@ class BookingCapacityService
 
         // 3) Capacidad del pivote schedule_tour
         if ($schedule) {
-            $pivot = DB::table('schedule_tour')
-                ->where('tour_id', $tour->tour_id)
+            $pivot = DB::table('schedule_product')
+                ->where('product_id', $tour->product_id)
                 ->where('schedule_id', $schedule->schedule_id)
                 ->first();
 
@@ -96,10 +96,10 @@ class BookingCapacityService
     /**
      * Indica si la fecha está bloqueada para ese tour/horario.
      */
-    public function isDateBlocked(Tour $tour, ?Schedule $schedule, string $tourDate): bool
+    public function isDateBlocked(Product $tour, ?Schedule $schedule, string $tourDate): bool
     {
         // Bloqueo por rango (bitácora/administrativo)
-        $byRange = TourExcludedDate::where('tour_id', $tour->tour_id)
+        $byRange = ProductExcludedDate::where('product_id', $tour->product_id)
             ->where(function ($q) use ($schedule) {
                 $q->whereNull('schedule_id');
                 if ($schedule) {
@@ -119,8 +119,8 @@ class BookingCapacityService
 
         // Bloqueo específico por día+horario
         if ($schedule) {
-            $specific = TourAvailability::active()
-                ->where('tour_id', $tour->tour_id)
+            $specific = ProductAvailability::active()
+                ->where('product_id', $tour->product_id)
                 ->where('schedule_id', $schedule->schedule_id)
                 ->whereDate('date', $tourDate)
                 ->where('is_blocked', true)
@@ -132,8 +132,8 @@ class BookingCapacityService
         }
 
         // Bloqueo general por día (sin horario)
-        $general = TourAvailability::active()
-            ->where('tour_id', $tour->tour_id)
+        $general = ProductAvailability::active()
+            ->where('product_id', $tour->product_id)
             ->whereNull('schedule_id')
             ->whereDate('date', $tourDate)
             ->where('is_blocked', true)
@@ -167,7 +167,7 @@ class BookingCapacityService
             }
         })
             ->whereNotNull('booking_id')
-            ->where('tour_id', $tourId)
+            ->where('product_id', $tourId)
             ->whereDate('tour_date', $tourDate)
             ->where('schedule_id', $scheduleId)
             ->get(['categories']);
@@ -209,7 +209,7 @@ class BookingCapacityService
             }
         })
             ->whereNotNull('booking_id')
-            ->where('tour_id', $tourId)
+            ->where('product_id', $tourId)
             ->whereDate('tour_date', $tourDate)
             ->where('schedule_id', $scheduleId)
             ->get(['categories']);
@@ -248,7 +248,7 @@ class BookingCapacityService
             ->whereNotNull('carts.expires_at')
             ->where('carts.expires_at', '>', now())
             ->where('cart_items.is_active', true)
-            ->where('cart_items.tour_id', $tourId)
+            ->where('cart_items.product_id', $tourId)
             ->whereDate('cart_items.tour_date', $tourDate)
             ->where('cart_items.schedule_id', $scheduleId)
             ->when($excludeCartId, fn($q) => $q->where('carts.cart_id', '!=', $excludeCartId))
@@ -279,7 +279,7 @@ class BookingCapacityService
      * Incluye breakdown de paid/unpaid para mejor control.
      */
     public function capacitySnapshot(
-        Tour $tour,
+        Product $tour,
         Schedule $schedule,
         string $tourDate,
         ?int $excludeBookingId = null,
@@ -291,14 +291,14 @@ class BookingCapacityService
         $max       = $this->resolveMaxCapacity($tour, $schedule, $tourDate);
 
         // Paid bookings (confirmed + pending paid) - PRIORITY
-        $confirmedAndPaid = $this->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeBookingId);
+        $confirmedAndPaid = $this->confirmedPaxFor($tourDate, (int)$schedule->schedule_id, (int)$tour->product_id, $excludeBookingId);
 
         // Unpaid pending bookings - LOWER PRIORITY
-        $unpaidPending = $this->unpaidPendingPaxFor($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeBookingId);
+        $unpaidPending = $this->unpaidPendingPaxFor($tourDate, (int)$schedule->schedule_id, (int)$tour->product_id, $excludeBookingId);
 
         // Cart holds - LOWEST PRIORITY
         $held = $countHolds
-            ? $this->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->tour_id, $excludeCartId)
+            ? $this->heldPaxInActiveCarts($tourDate, (int)$schedule->schedule_id, (int)$tour->product_id, $excludeCartId)
             : 0;
 
         // 🆕 ACTIVE CART RESERVATIONS (items marked as reserved)
@@ -307,7 +307,7 @@ class BookingCapacityService
             $expirationMinutes = (int) setting('cart.expiration_minutes', 30);
             $cutoffTime = now()->subMinutes($expirationMinutes);
 
-            $reserved = \App\Models\CartItem::where('tour_id', $tour->tour_id)
+            $reserved = \App\Models\CartItem::where('product_id', $tour->product_id)
                 ->where('schedule_id', $schedule->schedule_id)
                 ->where('tour_date', $tourDate)
                 ->where('is_reserved', true)
@@ -342,11 +342,11 @@ class BookingCapacityService
     /**
      * Etiqueta de nivel que explica de dónde salió la capacidad aplicada.
      */
-    public function capacityLevel(Tour $tour, ?Schedule $schedule, string $tourDate): string
+    public function capacityLevel(Product $tour, ?Schedule $schedule, string $tourDate): string
     {
         if ($schedule) {
-            $spec = TourAvailability::active()
-                ->where('tour_id', $tour->tour_id)
+            $spec = ProductAvailability::active()
+                ->where('product_id', $tour->product_id)
                 ->where('schedule_id', $schedule->schedule_id)
                 ->whereDate('date', $tourDate)
                 ->first();
@@ -357,8 +357,8 @@ class BookingCapacityService
             }
         }
 
-        $gen = TourAvailability::active()
-            ->where('tour_id', $tour->tour_id)
+        $gen = ProductAvailability::active()
+            ->where('product_id', $tour->product_id)
             ->whereNull('schedule_id')
             ->whereDate('date', $tourDate)
             ->first();
@@ -369,8 +369,8 @@ class BookingCapacityService
         }
 
         if ($schedule) {
-            $pivot = DB::table('schedule_tour')
-                ->where('tour_id', $tour->tour_id)
+            $pivot = DB::table('schedule_product')
+                ->where('product_id', $tour->product_id)
                 ->where('schedule_id', $schedule->schedule_id)
                 ->first();
             if ($pivot && !is_null($pivot->base_capacity)) {
@@ -389,7 +389,7 @@ class BookingCapacityService
      * Helper simple para capacidad restante.
      */
     public function remainingCapacity(
-        Tour $tour,
+        Product $tour,
         Schedule $schedule,
         string $tourDate,
         ?int $excludeBookingId = null,

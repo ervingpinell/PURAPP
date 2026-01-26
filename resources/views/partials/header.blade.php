@@ -60,7 +60,41 @@
     {{-- Links de navegación (ESCRITORIO) --}}
     <div class="navbar-links d-none d-lg-flex">
       <a href="{{ localized_route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
-      <a href="{{ localized_route('tours.index') }}">{{ __('adminlte::adminlte.tours') }}</a>
+      
+      {{-- ADAPTIVE SERVICES MENU --}}
+      @if(\App\Helpers\NavigationHelper::shouldShowServicesDropdown())
+        {{-- CASE A: Large Operator (3+ categories) → Dropdown --}}
+        <div class="nav-item dropdown">
+          <a href="{{ localized_route('services.index') }}" 
+             class="nav-link dropdown-toggle" 
+             data-bs-toggle="dropdown"
+             aria-expanded="false">
+            {{ __('adminlte::adminlte.services') }}
+          </a>
+          <div class="dropdown-menu services-dropdown">
+            {{-- All Services Link --}}
+            <a class="dropdown-item dropdown-item-main" href="{{ localized_route('services.index') }}">
+              <strong>{{ __('adminlte::adminlte.all_services') }}</strong>
+            </a>
+            
+            {{-- Individual Category Links --}}
+            @foreach(\App\Helpers\NavigationHelper::getActiveCategories() as $key => $config)
+              <a class="dropdown-item dropdown-item-sub" href="{{ \App\Helpers\ProductCategoryHelper::categoryUrl($key) }}">
+                {{ $config['plural'] }}
+              </a>
+            @endforeach
+          </div>
+        </div>
+      @else
+        {{-- CASE B: Small Operator (1-2 categories) → Direct Links --}}
+        @foreach(\App\Helpers\NavigationHelper::getActiveCategories() as $key => $config)
+          <a href="{{ \App\Helpers\ProductCategoryHelper::categoryUrl($key) }}">
+            <i class="{{ $config['icon'] }} me-1"></i>
+            {{ $config['plural'] }}
+          </a>
+        @endforeach
+      @endif
+      
       <a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a>
       <a href="{{ localized_route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
       <a href="{{ localized_route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>
@@ -121,7 +155,21 @@
   {{-- Dropdown del menú (MÓVIL/TABLET) --}}
   <div class="navbar-links d-lg-none" id="navbar-links">
     <a href="{{ localized_route('home') }}">{{ __('adminlte::adminlte.home') }}</a>
-    <a href="{{ localized_route('tours.index') }}">{{ __('adminlte::adminlte.tours') }}</a>
+    
+    {{-- Mobile: Always show categories expanded (no dropdown) --}}
+    @if(\App\Helpers\NavigationHelper::shouldShowServicesDropdown())
+      <a href="{{ localized_route('services.index') }}" class="font-weight-bold">
+        {{ __('adminlte::adminlte.all_services') }}
+      </a>
+    @endif
+    
+    @foreach(\App\Helpers\NavigationHelper::getActiveCategories() as $key => $config)
+      <a href="{{ \App\Helpers\ProductCategoryHelper::categoryUrl($key) }}" 
+         class="{{ \App\Helpers\NavigationHelper::shouldShowServicesDropdown() ? 'ps-3' : '' }}">
+        {{ $config['plural'] }}
+      </a>
+    @endforeach
+    
     <a href="{{ localized_route('reviews.index') }}">{{ __('adminlte::adminlte.reviews') }}</a>
     <a href="{{ localized_route('faq.index') }}">{{ __('adminlte::adminlte.faq') }}</a>
     <a href="{{ localized_route('contact') }}">{{ __('adminlte::adminlte.contact_us') }}</a>

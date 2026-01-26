@@ -63,10 +63,10 @@
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label text-light" style="font-weight: 500; font-size: 0.9rem;">{{ __('m_bookings.bookings.fields.tour') }}</label>
-              <select name="tour_id" class="form-select bg-dark text-light border-secondary" style="border-radius: 6px;">
+              <select name="product_id" class="form-select bg-dark text-light border-secondary" style="border-radius: 6px;">
                 <option value="">{{ __('m_bookings.filters.all') }}</option>
                 @foreach($tours as $t)
-                <option value="{{ $t->tour_id }}" {{ request('tour_id') == $t->tour_id ? 'selected' : '' }}>
+                <option value="{{ $t->product_id }}" {{ request('product_id') == $t->product_id ? 'selected' : '' }}>
                   {{ $t->name }}
                 </option>
                 @endforeach

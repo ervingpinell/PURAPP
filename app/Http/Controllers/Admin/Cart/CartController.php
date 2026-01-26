@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\{Cart, CartItem, Tour, TourLanguage, HotelList, MeetingPoint, PromoCode};
+use App\Models\{Cart, CartItem, Tour, ProductLanguage, HotelList, MeetingPoint, PromoCode};
 use App\Services\Bookings\{
     BookingCapacityService,
     BookingPricingService,
@@ -32,7 +32,7 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $user       = Auth::user();
-        $languages  = TourLanguage::all();
+        $languages  = ProductLanguage::all();
         $hotels     = HotelList::where('is_active', true)->orderBy('name')->get();
         $adminPromo = session('admin_cart_promo') ?: [];
 
@@ -94,7 +94,7 @@ class CartController extends Controller
         $request->replace($in);
 
         $request->validate([
-            'tour_id'          => 'required|exists:tours,tour_id',
+            'product_id'          => 'required|exists:tours,product_id',
             'tour_date'        => 'required|date|after_or_equal:today',
             'schedule_id'      => 'required|exists:schedules,schedule_id',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
@@ -131,7 +131,7 @@ class CartController extends Controller
             $cart->ensureExpiry((int) \App\Models\Setting::getValue('cart.expiration_minutes', 30));
         }
 
-        $tour = Tour::with(['schedules', 'prices.category'])->findOrFail($request->tour_id);
+        $tour = Product::with(['schedules', 'prices.category'])->findOrFail($request->product_id);
 
         $validationResult = $this->validation->validateQuantities($tour, $request->categories);
         if (!$validationResult['valid']) {
@@ -173,7 +173,7 @@ class CartController extends Controller
 
         CartItem::create([
             'cart_id'          => $cart->cart_id,
-            'tour_id'          => (int)$request->tour_id,
+            'product_id'          => (int)$request->product_id,
             'tour_date'        => $request->tour_date,
             'schedule_id'      => (int)$request->schedule_id,
             'tour_language_id' => (int)$request->tour_language_id,

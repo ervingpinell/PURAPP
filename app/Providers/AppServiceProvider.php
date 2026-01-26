@@ -20,8 +20,9 @@ use App\Services\DraftLimitService;
 use App\Observers\ReviewObserver;
 use App\Models\Review;
 use App\Models\ReviewProvider;
-use App\Models\Tour;
-use App\Models\TourType;
+use App\Models\Product;
+use App\Models\ProductType;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -145,39 +146,41 @@ class AppServiceProvider extends ServiceProvider
 
                 // Cache de tipos
                 $typeMeta = Cache::remember("footer:typeMeta:{$loc}", $ttl, function () use ($loc, $fb) {
-                    return TourType::active()
-                        ->with('translations')
-                        ->get(['tour_type_id'])
+                    return ProductType::active()
+                        ->get(['product_type_id', 'name'])
                         ->map(function ($type) use ($loc, $fb) {
-                            $tr = optional($type->translations)->firstWhere('locale', $loc)
-                                ?? optional($type->translations)->firstWhere('locale', $fb);
+                            // Manual fallback if not configured in Spatie
+                            $name = $type->getTranslation('name', $loc, false) 
+                                 ?: $type->getTranslation('name', $fb)
+                                 ?: $type->name; // fallback to raw string if all else fails
 
                             return [
-                                'id'    => $type->tour_type_id,
-                                'title' => $tr->name ?? '',
+                                'id'    => $type->product_type_id,
+                                'title' => $name,
                             ];
                         })
                         ->sortBy('title')
                         ->keyBy('id');
                 });
 
-                // Cache de tours agrupados
+                // Cache de tipos agrupados
                 $toursByType = Cache::remember("footer:toursByType:{$loc}", $ttl, function () use ($loc, $fb) {
-                    $tours = Tour::with(['tourType.translations', 'translations'])
-                        ->where('is_active', true)
-                        ->orderBy('name')
+                    $tours = Product::with(['productType'])
+                        ->active()
+                        ->orderByRaw("name->>'$loc' ASC")
                         ->get([
-                            'tour_id',
+                            'product_id',
                             'name',
                             'slug',
-                            'tour_type_id',
+                            'product_type_id',
                         ])
                         ->map(function ($tour) use ($loc, $fb) {
-                            $trTour = optional($tour->translations)->firstWhere('locale', $loc)
-                                ?? optional($tour->translations)->firstWhere('locale', $fb);
+                             $name = $tour->getTranslation('name', $loc, false) 
+                                 ?: $tour->getTranslation('name', $fb)
+                                 ?: $tour->name;
 
-                            $tour->translated_name    = $trTour->name ?? $tour->name;
-                            $tour->tour_type_id_group = optional($tour->tourType)->tour_type_id ?? 'uncategorized';
+                            $tour->translated_name    = $name;
+                            $tour->tour_type_id_group = optional($tour->productType)->product_type_id ?? 'uncategorized';
 
                             return $tour;
                         });

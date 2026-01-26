@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerCategory;
-use App\Models\CustomerCategoryTranslation;
+// use App\Models\CustomerCategoryTranslation;
 use App\Http\Requests\Tour\CustomerCategory\StoreCustomerCategoryRequest;
 use App\Services\DeepLTranslator; // tu servicio
 use Illuminate\Http\Request;
@@ -32,7 +32,7 @@ class CustomerCategoryController extends Controller
 
     public function index()
     {
-        $categories = CustomerCategory::with('translations')->ordered()->paginate(20);
+        $categories = CustomerCategory::ordered()->paginate(20);
         $trashedCount = CustomerCategory::onlyTrashed()->count();
         return view('admin.customer_categories.index', compact('categories', 'trashedCount'));
     }
@@ -79,45 +79,36 @@ class CustomerCategoryController extends Controller
             $name = $request->input('initial_name');
             $locale = app()->getLocale();
             
-            if($name) {
+            if ($name) {
                 // Smart Detect Language
                 $detected = $translator->detect($name); // Returns 'en', 'es', etc.
                 if ($detected && in_array($detected, supported_locales())) {
                     $locale = $detected;
                 }
 
-                $category->translations()->create([
-                    'locale' => $locale,
-                    'name' => $name
-                ]);
+                $category->setTranslation('name', $locale, $name);
                 
                 // Smart translate for others
-                if($request->boolean('auto_translate')) {
-                    foreach(supported_locales() as $loc) {
-                        if($loc !== $locale) {
+                if ($request->boolean('auto_translate')) {
+                    foreach (supported_locales() as $loc) {
+                        if ($loc !== $locale) {
                             try {
                                 $trans = $translator->translate($name, $loc); 
-                                $category->translations()->create([
-                                    'locale' => $loc,
-                                    'name' => $trans
-                                ]);
-                            } catch(\Throwable $e) {}
+                                $category->setTranslation('name', $loc, $trans);
+                            } catch (\Throwable $e) {}
                         }
                     }
                 }
             } else {
                 // Fallback to legacy behaviour if form is standard
-                // ... (Original logic for 'names' array if passed)
                  $names = $request->input('names', []);
                  foreach ($names as $l => $n) {
                     if (!empty($n)) {
-                        $category->translations()->create([
-                            'locale' => $l, 
-                            'name' => $n
-                        ]);
+                        $category->setTranslation('name', $l, $n);
                     }
                  }
             }
+            $category->save();
 
             DB::commit();
 
@@ -150,7 +141,7 @@ class CustomerCategoryController extends Controller
 
     public function edit(CustomerCategory $category)
     {
-        $category->load('translations');
+        // Spatie autoloads translations, no need to eager load
         return view('admin.customer_categories.edit', compact('category'));
     }
 
@@ -164,12 +155,10 @@ class CustomerCategoryController extends Controller
             // Update translations
             foreach ($request->input('names', []) as $locale => $name) {
                 if (!empty($name)) {
-                    $category->translations()->updateOrCreate(
-                        ['locale' => $locale],
-                        ['name' => $name]
-                    );
+                    $category->setTranslation('name', $locale, $name);
                 }
             }
+            $category->save();
 
             DB::commit();
 
@@ -210,7 +199,7 @@ class CustomerCategoryController extends Controller
     public function trash()
     {
         $categories = CustomerCategory::onlyTrashed()
-            ->with(['translations', 'deletedBy'])
+            ->with(['deletedBy']) // Removed 'translations'
             ->orderBy('deleted_at', 'desc')
             ->get();
 
@@ -285,10 +274,7 @@ class CustomerCategoryController extends Controller
 
         if ($request->has('name')) {
             $locale = app()->getLocale();
-            $category->translations()->updateOrCreate(
-                ['locale' => $locale],
-                ['name' => $request->input('name')]
-            );
+            $category->setTranslation('name', $locale, $request->input('name'));
             $newName = $request->input('name');
             
             // Smart Translate Logic
@@ -296,15 +282,12 @@ class CustomerCategoryController extends Controller
                  foreach(supported_locales() as $loc) {
                      if($loc !== $locale) {
                          try {
-                             // Assuming we translate FROM current locale TO others
-                             $trans = $translator->translate($request->input('name'), $loc);
-                             $category->translations()->updateOrCreate(
-                                ['locale' => $loc],
-                                ['name' => $trans]
-                             );
-                         } catch(\Throwable $e) {}
-                     }
-                 }
+                              // Assuming we translate FROM current locale TO others
+                              $trans = $translator->translate($request->input('name'), $loc);
+                              $category->setTranslation('name', $loc, $trans);
+                          } catch(\Throwable $e) {}
+                      }
+                  }
             }
         }
 
@@ -322,9 +305,9 @@ class CustomerCategoryController extends Controller
     public function getTranslations(CustomerCategory $category)
     {
         $translations = [];
-        foreach(supported_locales() as $loc) {
-            $t = $category->translations->firstWhere('locale', $loc);
-            $translations[$loc] = $t ? $t->name : '';
+        $locales = supported_locales(); // ['es', 'en', ...]
+        foreach ($locales as $loc) {
+            $translations[$loc] = $category->getTranslation('name', $loc, false) ?: '';
         }
         return response()->json($translations);
     }
@@ -335,12 +318,10 @@ class CustomerCategoryController extends Controller
         
         foreach($data as $loc => $val) {
              if(in_array($loc, supported_locales())) {
-                 $category->translations()->updateOrCreate(
-                    ['locale' => $loc],
-                    ['name' => $val]
-                 );
+                 $category->setTranslation('name', $loc, $val);
              }
         }
+        $category->save();
         
         \Illuminate\Support\Facades\Cache::forget('customer_categories_active');
         

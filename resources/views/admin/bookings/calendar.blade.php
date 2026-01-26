@@ -28,7 +28,7 @@
     <select id="filter-tour" class="form-select">
       <option value="">All</option>
       @foreach ($tours as $tour)
-      <option value="{{ $tour->tour_id }}">{{ Str::limit($tour->name, 30) }}</option>
+      <option value="{{ $tour->product_id }}">{{ Str::limit($tour->name, 30) }}</option>
       @endforeach
     </select>
   </div>
@@ -108,7 +108,7 @@
         extraParams: () => ({
           from: filterFrom.value || '',
           to: filterTo.value || '',
-          tour_id: filterTour.value || ''
+          product_id: filterTour.value || ''
         })
       },
 

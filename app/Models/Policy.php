@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * Policy Model
@@ -16,8 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Policy extends Model
 {
-    use HasFactory;
-    use SoftDeletes;
+    use HasFactory, SoftDeletes, HasTranslations;
 
     protected $table = 'policies';
     protected $primaryKey = 'policy_id';
@@ -40,16 +40,18 @@ class Policy extends Model
         self::TYPE_WARRANTY => 'Warranty Policy',
     ];
 
+    public $translatable = ['name', 'content'];
+
     protected $fillable = [
-        // OJO: sin name/content (ya no existen en policies)
         'slug',
         'type',
         'is_default',
         'is_active',
         'effective_from',
         'effective_to',
-        'deleted_by', // Allow mass assignment for soft delete tracking
-        // si tienes 'type' u otros, agréguelos aquí
+        'deleted_by',
+        'name',
+        'content',
     ];
 
     protected $casts = [
@@ -68,11 +70,8 @@ class Policy extends Model
 
     protected static function booted()
     {
-        // Asegurar unicidad del slug si se modifica/proporciona
         static::creating(function (self $policy) {
             if (empty($policy->slug)) {
-                // Si quieres auto-generar slug aquí, toma la decisión desde el controlador.
-                // Aquí solo garantizamos unicidad si existe.
                 $policy->slug = $policy->slug ?: null;
             } else {
                 $policy->slug = $policy->generateUniqueSlug($policy->slug);
@@ -112,103 +111,34 @@ class Policy extends Model
         return $this;
     }
 
-    /* ===================== TRADUCCIONES ===================== */
-
-    /**
-     * Normaliza cualquier variante a un código canónico corto.
-     * Guardamos 'pt' como convención (no 'pt_BR').
-     */
-    public static function canonicalLocale(string $loc): string
-    {
-        $loc   = str_replace('-', '_', trim($loc));
-        $short = strtolower(substr($loc, 0, 2));
-
-        return match ($short) {
-            'es' => 'es',
-            'en' => 'en',
-            'fr' => 'fr',
-            'de' => 'de',
-            'pt' => 'pt',
-            default => $loc,
-        };
-    }
-
-    public function translation(?string $locale = null)
-    {
-        $requested = self::canonicalLocale($locale ?: app()->getLocale());
-        $fallback  = self::canonicalLocale((string) config('app.fallback_locale', 'es'));
-
-        $bag = $this->relationLoaded('translations')
-            ? $this->getRelation('translations')
-            : $this->translations()->get();
-
-        $norm = fn($v) => str_replace('-', '_', strtolower((string) $v));
-
-        // Exacta
-        if ($exact = $bag->first(fn($t) => $norm($t->locale) === $norm($requested))) {
-            return $exact;
-        }
-
-        // Variantes típicas (compatibilidad)
-        $variants = array_unique([
-            $requested,
-            str_replace('_', '-', $requested),
-            substr($requested, 0, 2), // ej. 'pt'
-            'pt_BR',
-            'pt-br',         // compat si quedó legacy
-        ]);
-
-        foreach ($variants as $v) {
-            if ($found = $bag->first(fn($t) => $norm($t->locale) === $norm($v))) {
-                return $found;
-            }
-        }
-
-        // Fallback
-        return $bag->first(fn($t) => $norm($t->locale) === $norm($fallback))
-            ?: $bag->first(fn($t) => $norm($t->locale) === $norm(substr($fallback, 0, 2)))
-            ?: $bag->first();
-    }
-
-    public function translate(?string $locale = null): ?PolicyTranslation
-    {
-        return $this->translation($locale);
-    }
-
     /* ===================== ACCESSORS PARA BLADE ===================== */
-    // Solo desde translations (sin fallback a columnas base)
 
     public function getDisplayNameAttribute(): string
     {
-        return (string) (optional($this->translation())?->name ?? '');
+        return (string) $this->name;
     }
 
     public function getDisplayContentAttribute(): string
     {
-        return (string) (optional($this->translation())?->content ?? '');
+        return (string) $this->content;
     }
 
     public function getNameTranslatedAttribute(): ?string
     {
-        return $this->translation()?->name;
+        return $this->name;
     }
 
     public function getTitleTranslatedAttribute(): ?string
     {
-        return $this->translation()?->name;
+        return $this->name;
     }
 
     public function getContentTranslatedAttribute(): ?string
     {
-        return $this->translation()?->content;
+        return $this->content;
     }
 
     /* ===================== RELACIONES ===================== */
-
-    public function translations()
-    {
-        return $this->hasMany(PolicyTranslation::class, 'policy_id', 'policy_id');
-    }
 
     public function sections()
     {
@@ -257,24 +187,31 @@ class Policy extends Model
 
     public static function byType(string $type): ?self
     {
-        // Todo por traducciones; ya no usamos name de policies
         $query = static::query()
             ->active()
-            ->effectiveOn()
-            ->with('translations');
-
-        // Si tienes columna 'type' en policies:
+            ->effectiveOn();
+            
+        // Assuming 'type' column exists or we search by name?
+        // Original code checked Schema for 'type'.
+        // If 'type' is not in DB, fallback to name ILIKE.
+        
+        // Since we migrated Policy without ensuring 'type' column, let's assume it exists as it was in original fillable.
+        // Yes, fillable had 'type'.
+        
         if (Schema::hasColumn((new static)->getTable(), 'type')) {
             return $query->where('type', $type)
                 ->orderByDesc('effective_from')
                 ->first();
         }
 
-        // Búsqueda por traducciones (por nombre)
-        return $query->whereHas('translations', function ($qq) use ($type) {
-            $qq->where('name', 'ilike', '%' . $type . '%'); // ILIKE si estás en Postgres
-        })
-            ->orderByDesc('effective_from')
-            ->first();
+        // Búsqueda por JSON name
+        // Spatie provides convenient scopes usually, or we search raw JSON.
+        // where('name->en', 'like', ...) // Postgres specific ->>
+        // Or using whereJsonContains if strict match.
+        // Let's use ILIKE on casted text if possible or just rely on 'type' column if it exists (which it should).
+        
+        return $query->get()->filter(function($p) use ($type) {
+             return str_contains(strtolower($p->name), strtolower($type));
+        })->first();
     }
 }

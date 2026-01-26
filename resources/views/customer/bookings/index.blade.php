@@ -297,15 +297,15 @@ $detailTotalPax = fn($detail) => (int) collect($catLinesFromDetail($detail))->su
             @endphp
             <div class="col mx-auto">
                 <div class="card h-100">
-                    @if(optional($booking->tour)->image_path)
-                    <img src="{{ asset('storage/' . $booking->tour->image_path) }}" class="card-img-top card-img-top-custom" alt="{{ optional($booking->tour)->name }}">
+                    @if(optional($booking->product)->image_path)
+                    <img src="{{ asset('storage/' . $booking->product->image_path) }}" class="card-img-top card-img-top-custom" alt="{{ optional($booking->product)->name }}">
                     @else
                     <img src="{{ asset('images/volcano.png') }}" class="card-img-top card-img-top-custom" alt="{{ __('adminlte::adminlte.generic_tour') }}">
                     @endif
 
                     <div class="card-body">
                         <h5 class="card-title">
-                            {{ method_exists($booking->tour, 'getTranslatedName') ? $booking->tour->getTranslatedName() : (optional($booking->tour)->name ?? __('adminlte::adminlte.unknown_tour')) }}
+                            {{ method_exists($booking->product, 'getTranslatedName') ? $booking->product->getTranslatedName() : (optional($booking->product)->name ?? __('adminlte::adminlte.unknown_tour')) }}
                         </h5>
 
                         <p class="card-text text-muted small mb-1">
@@ -331,7 +331,7 @@ $detailTotalPax = fn($detail) => (int) collect($catLinesFromDetail($detail))->su
                         @php
                         // Prioridad: idioma del detalle → idioma del booking
                         $langName = optional($detail?->tourLanguage)->name
-                        ?? optional($booking->tourLanguage)->name;
+                        ?? optional($booking->productLanguage)->name;
                         @endphp
 
                         @if(!empty($langName))

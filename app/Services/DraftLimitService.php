@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\User;
 
 /**
@@ -41,7 +41,7 @@ class DraftLimitService
      */
     public function getUserDraftsCount(int $userId): int
     {
-        return Tour::where('is_draft', true)
+        return Product::where('is_draft', true)
             ->where('created_by', $userId)
             ->count();
     }
@@ -51,7 +51,7 @@ class DraftLimitService
      */
     public function getUserDrafts(int $userId)
     {
-        return Tour::where('is_draft', true)
+        return Product::where('is_draft', true)
             ->where('created_by', $userId)
             ->with(['tourType', 'languages'])
             ->orderBy('updated_at', 'desc')
@@ -82,7 +82,7 @@ class DraftLimitService
      */
     public function getSuggestedDraftsToDelete(int $userId, int $count = 3)
     {
-        return Tour::where('is_draft', true)
+        return Product::where('is_draft', true)
             ->where('created_by', $userId)
             ->orderBy('updated_at', 'asc')  // Más antiguos primero
             ->limit($count)
@@ -162,7 +162,7 @@ class DraftLimitService
      */
     public function getUsersAtLimit(): array
     {
-        $usersWithDrafts = Tour::where('is_draft', true)
+        $usersWithDrafts = Product::where('is_draft', true)
             ->whereNotNull('created_by')
             ->select('created_by')
             ->selectRaw('count(*) as drafts_count')
@@ -194,7 +194,7 @@ class DraftLimitService
     {
         $cutoffDate = now()->subDays($daysOld);
 
-        $oldDrafts = Tour::where('is_draft', true)
+        $oldDrafts = Product::where('is_draft', true)
             ->where('created_by', $userId)
             ->where('updated_at', '<', $cutoffDate)
             ->get();
@@ -224,14 +224,14 @@ class DraftLimitService
      */
     public function getSystemHealth(): array
     {
-        $totalDrafts = Tour::where('is_draft', true)->count();
+        $totalDrafts = Product::where('is_draft', true)->count();
         $totalUsers = User::count();
-        $usersWithDrafts = Tour::where('is_draft', true)
+        $usersWithDrafts = Product::where('is_draft', true)
             ->whereNotNull('created_by')
             ->distinct('created_by')
             ->count('created_by');
 
-        $oldDrafts = Tour::where('is_draft', true)
+        $oldDrafts = Product::where('is_draft', true)
             ->where('updated_at', '<', now()->subDays(30))
             ->count();
 

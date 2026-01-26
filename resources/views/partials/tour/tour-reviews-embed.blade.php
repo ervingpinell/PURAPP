@@ -4,12 +4,12 @@
     class="carousel-nav carousel-prev"
     type="button"
     aria-label="{{ __('reviews.previous_review') }}"
-    data-tour="{{ $tour->tour_id }}"
+    data-tour="{{ $tour->product_id }}"
   >❮</button>
 
   <div
     class="tour-review-carousel"
-    id="review-carousel-tour-{{ $tour->tour_id }}">
+    id="review-carousel-tour-{{ $tour->product_id }}">
     <p class="text-center text-muted">{{ __('reviews.loading') }}</p>
   </div>
 
@@ -17,7 +17,7 @@
     class="carousel-nav carousel-next"
     type="button"
     aria-label="{{ __('reviews.next_review') }}"
-    data-tour="{{ $tour->tour_id }}"
+    data-tour="{{ $tour->product_id }}"
   >❯</button>
 </div>
 
@@ -26,6 +26,6 @@
   window.VIATOR_PRODUCT_DATA = {
     code: @json($tour->viator_code),
     name: @json($tour->getTranslatedName()),
-    id:   @json($tour->tour_id),
+    id:   @json($tour->product_id),
   };
 </script>

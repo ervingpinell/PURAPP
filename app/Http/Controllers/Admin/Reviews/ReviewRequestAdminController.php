@@ -66,7 +66,7 @@ class ReviewRequestAdminController extends Controller
 
         $query = Booking::query()
             ->with([
-                'tour:tour_id,name',
+                'tour:product_id,name',
                 'tour.translations',
                 'user:user_id,first_name,last_name,email',
                 'detail.tourLanguage:tour_language_id,name',
@@ -86,7 +86,7 @@ class ReviewRequestAdminController extends Controller
                 $subQuery->select(DB::raw('1'))
                     ->from($reviewTable)
                     ->where("$reviewTable.provider", 'local')
-                    ->whereColumn("$reviewTable.tour_id", "$bookingTable.tour_id")
+                    ->whereColumn("$reviewTable.product_id", "$bookingTable.product_id")
                     ->whereColumn("$reviewTable.user_id", "$bookingTable.user_id");
             })
 
@@ -128,7 +128,7 @@ class ReviewRequestAdminController extends Controller
                 $sub->where('tour_date', '<=', now());
             })
 
-            ->when($request->filled('tour_id'), fn($sub) => $sub->where('tour_id', (int) $request->tour_id))
+            ->when($request->filled('product_id'), fn($sub) => $sub->where('product_id', (int) $request->product_id))
             ->orderByDesc($dateCol);
 
         $bookings = $query->paginate(25)->withQueryString();
@@ -158,8 +158,8 @@ class ReviewRequestAdminController extends Controller
         $query = ReviewRequest::query()
             ->with([
                 // incluye booking_reference si existe
-                'booking:booking_id,tour_id' . ($hasBookingRef ? ',booking_reference' : ''),
-                'tour:tour_id,name',
+                'booking:booking_id,product_id' . ($hasBookingRef ? ',booking_reference' : ''),
+                'tour:product_id,name',
                 'user:user_id,first_name,last_name,email',
             ]);
 
@@ -217,7 +217,7 @@ class ReviewRequestAdminController extends Controller
         });
 
         // Filtrar por tour
-        $query->when($request->filled('tour_id'), fn($sub) => $sub->where('tour_id', (int) request('tour_id')));
+        $query->when($request->filled('product_id'), fn($sub) => $sub->where('product_id', (int) request('product_id')));
 
         $requests = $query->orderByDesc($dateCol)->paginate(25)->withQueryString();
 
@@ -243,7 +243,7 @@ class ReviewRequestAdminController extends Controller
         $reviewRequest = ReviewRequest::create([
             'booking_id' => $booking->getKey(),
             'user_id'    => $booking->user_id,
-            'tour_id'    => $booking->tour_id,
+            'product_id'    => $booking->product_id,
             'email'      => $email,
             'token'      => $token,
             'sent_at'    => Schema::hasColumn((new ReviewRequest())->getTable(), 'sent_at') ? now() : null,
@@ -399,7 +399,7 @@ class ReviewRequestAdminController extends Controller
         ReviewRequest::create([
             'booking_id' => $booking->getKey(),
             'user_id'    => $booking->user_id,
-            'tour_id'    => $booking->tour_id,
+            'product_id'    => $booking->product_id,
             'email'      => $email,
             'token'      => Str::random(40),
             'sent_at'    => now(),
@@ -452,8 +452,8 @@ class ReviewRequestAdminController extends Controller
 
         $query = ReviewRequest::onlyTrashed()
             ->with([
-                'booking:booking_id,tour_id' . ($hasBookingRef ? ',booking_reference' : ''),
-                'tour:tour_id,name',
+                'booking:booking_id,product_id' . ($hasBookingRef ? ',booking_reference' : ''),
+                'tour:product_id,name',
                 'user:user_id,first_name,last_name,email',
             ]);
 

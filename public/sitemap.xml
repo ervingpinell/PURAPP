@@ -2,271 +2,1201 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
     <url>
     <loc>http://localhost:8000</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
             </url>
     <url>
     <loc>http://localhost:8000/en</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
             </url>
     <url>
     <loc>http://localhost:8000/fr</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
             </url>
     <url>
     <loc>http://localhost:8000/de</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
             </url>
     <url>
     <loc>http://localhost:8000/pt</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
             </url>
     <url>
     <loc>http://localhost:8000/contacto</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
             </url>
     <url>
     <loc>http://localhost:8000/en/contact</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
             </url>
     <url>
     <loc>http://localhost:8000/fr/contact</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
             </url>
     <url>
     <loc>http://localhost:8000/de/contact</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
             </url>
     <url>
     <loc>http://localhost:8000/pt/contact</loc>
-    <lastmod>2026-01-10T10:10:31-06:00</lastmod>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/es/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2025-12-05T21:53:30-06:00</lastmod>
-    <changefreq>weekly</changefreq>
+    <loc>http://localhost:8000/tours</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/en/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2025-12-05T21:53:30-06:00</lastmod>
+    <loc>http://localhost:8000/tours/full-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/half-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/multi-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/night</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/fr/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2025-12-05T21:53:30-06:00</lastmod>
+    <loc>http://localhost:8000/en/tours/full-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/half-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/multi-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/night</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/de/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2025-12-05T21:53:30-06:00</lastmod>
+    <loc>http://localhost:8000/fr/tours/full-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/half-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/multi-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/night</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/pt/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2025-12-05T21:53:30-06:00</lastmod>
+    <loc>http://localhost:8000/de/tours/full-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/half-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/multi-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/night</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/es/tours/caminata-al-volcan-arenal</loc>
-    <lastmod>2025-12-07T13:07:33-06:00</lastmod>
+    <loc>http://localhost:8000/pt/tours/full-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/half-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/multi-day</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/night</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/transfers</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/en/tours/caminata-al-volcan-arenal</loc>
-    <lastmod>2025-12-07T13:07:33-06:00</lastmod>
+    <loc>http://localhost:8000/transfers/private</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/transfers/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/transfers/luxury</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/transfers</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/fr/tours/caminata-al-volcan-arenal</loc>
-    <lastmod>2025-12-07T13:07:33-06:00</lastmod>
+    <loc>http://localhost:8000/en/transfers/private</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/transfers/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/transfers/luxury</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/transfers</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/de/tours/caminata-al-volcan-arenal</loc>
-    <lastmod>2025-12-07T13:07:33-06:00</lastmod>
+    <loc>http://localhost:8000/fr/transfers/private</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/transfers/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/transfers/luxury</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/transfers</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/pt/tours/caminata-al-volcan-arenal</loc>
-    <lastmod>2025-12-07T13:07:33-06:00</lastmod>
+    <loc>http://localhost:8000/de/transfers/private</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/transfers/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/transfers/luxury</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/transfers</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/es/tours/safari-flotante</loc>
-    <lastmod>2026-01-09T09:17:55-06:00</lastmod>
+    <loc>http://localhost:8000/pt/transfers/private</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/transfers/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/transfers/luxury</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/shuttles</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/en/tours/safari-flotante</loc>
-    <lastmod>2026-01-09T09:17:55-06:00</lastmod>
+    <loc>http://localhost:8000/shuttles/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/shuttles</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/fr/tours/safari-flotante</loc>
-    <lastmod>2026-01-09T09:17:55-06:00</lastmod>
+    <loc>http://localhost:8000/en/shuttles/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/shuttles</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/de/tours/safari-flotante</loc>
-    <lastmod>2026-01-09T09:17:55-06:00</lastmod>
+    <loc>http://localhost:8000/fr/shuttles/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/shuttles</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/pt/tours/safari-flotante</loc>
-    <lastmod>2026-01-09T09:17:55-06:00</lastmod>
+    <loc>http://localhost:8000/de/shuttles/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/shuttles</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/es/tours/puentes-colgantes</loc>
-    <lastmod>2026-01-09T09:18:46-06:00</lastmod>
+    <loc>http://localhost:8000/pt/shuttles/shared</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/activities</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/en/tours/puentes-colgantes</loc>
-    <lastmod>2026-01-09T09:18:46-06:00</lastmod>
+    <loc>http://localhost:8000/activities/extreme</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/activities/moderate</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/activities/family</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/activities</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/fr/tours/puentes-colgantes</loc>
-    <lastmod>2026-01-09T09:18:46-06:00</lastmod>
+    <loc>http://localhost:8000/en/activities/extreme</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/activities/moderate</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/activities/family</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/activities</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/de/tours/puentes-colgantes</loc>
-    <lastmod>2026-01-09T09:18:46-06:00</lastmod>
+    <loc>http://localhost:8000/fr/activities/extreme</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/activities/moderate</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/activities/family</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/activities</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/pt/tours/puentes-colgantes</loc>
-    <lastmod>2026-01-09T09:18:46-06:00</lastmod>
+    <loc>http://localhost:8000/de/activities/extreme</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/activities/moderate</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/activities/family</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/activities</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/es/tours/nature-lover-combo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo-caminata-al-volcan-arenal</loc>
-    <lastmod>2026-01-09T09:19:10-06:00</lastmod>
+    <loc>http://localhost:8000/pt/activities/extreme</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/activities/moderate</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/activities/family</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/packages</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/packages/adventure</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/packages/relaxation</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/packages</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/packages/adventure</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/packages/relaxation</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/packages</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/packages/adventure</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/packages/relaxation</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/packages</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/packages/adventure</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/packages/relaxation</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/packages</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/packages/adventure</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/packages/relaxation</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/passes</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/passes/single</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/passes/multi</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/passes</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/passes/single</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/passes/multi</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/passes</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/passes/single</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/passes/multi</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/passes</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/passes/single</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/passes/multi</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/passes</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/passes/single</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/passes/multi</loc>
+    <lastmod>2026-01-26T15:15:04-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/nature-lover-combo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo-caminata-al-volcan-arenal</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/en/tours/nature-lover-combo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo-caminata-al-volcan-arenal</loc>
-    <lastmod>2026-01-09T09:19:10-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/fr/tours/nature-lover-combo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo-caminata-al-volcan-arenal</loc>
-    <lastmod>2026-01-09T09:19:10-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/de/tours/nature-lover-combo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo-caminata-al-volcan-arenal</loc>
-    <lastmod>2026-01-09T09:19:10-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/pt/tours/nature-lover-combo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo-caminata-al-volcan-arenal</loc>
-    <lastmod>2026-01-09T09:19:10-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/es/tours/minicombo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:28:33-06:00</lastmod>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-tamarindo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-tamarindo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-tamarindo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-tamarindo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-tamarindo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-jaco</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-jaco</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-jaco</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-jaco</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-jaco</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-monteverde</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-monteverde</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-monteverde</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-monteverde</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-monteverde</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-puerto-viejo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-puerto-viejo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-puerto-viejo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-puerto-viejo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-puerto-viejo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-samara</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-samara</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-samara</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-samara</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-samara</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-la-pavona</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-la-pavona</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-la-pavona</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-la-pavona</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-la-pavona</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-guapiles</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-guapiles</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-guapiles</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-guapiles</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-guapiles</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/caminata-al-volcan-arenal</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/caminata-al-volcan-arenal</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/caminata-al-volcan-arenal</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/caminata-al-volcan-arenal</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/caminata-al-volcan-arenal</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/puentes-colgantes</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/puentes-colgantes</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/puentes-colgantes</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/puentes-colgantes</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/puentes-colgantes</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/safari-flotante</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/safari-flotante</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/safari-flotante</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/safari-flotante</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/safari-flotante</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-manuel-antonio</loc>
+    <lastmod>2026-01-25T20:14:21-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-manuel-antonio</loc>
+    <lastmod>2026-01-25T20:14:21-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-manuel-antonio</loc>
+    <lastmod>2026-01-25T20:14:21-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-manuel-antonio</loc>
+    <lastmod>2026-01-25T20:14:21-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-manuel-antonio</loc>
+    <lastmod>2026-01-25T20:14:21-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/minicombo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/en/tours/minicombo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:28:33-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/fr/tours/minicombo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:28:33-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/de/tours/minicombo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:28:33-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/pt/tours/minicombo-1-puentes-colgantes-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:28:33-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
-    <loc>http://localhost:8000/es/tours/minicombo-2-caminata-al-volcan-arenal-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:29:15-06:00</lastmod>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-aeropuerto-sjo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-aeropuerto-sjo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-aeropuerto-sjo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-aeropuerto-sjo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-aeropuerto-sjo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/transporte-privado-la-fortuna-aeropuerto-lir</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/transporte-privado-la-fortuna-aeropuerto-lir</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/transporte-privado-la-fortuna-aeropuerto-lir</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/transporte-privado-la-fortuna-aeropuerto-lir</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/transporte-privado-la-fortuna-aeropuerto-lir</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/minicombo-2-caminata-al-volcan-arenal-catarata-de-la-fortuna-almuerzo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/en/tours/minicombo-2-caminata-al-volcan-arenal-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:29:15-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/fr/tours/minicombo-2-caminata-al-volcan-arenal-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:29:15-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/de/tours/minicombo-2-caminata-al-volcan-arenal-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:29:15-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>
     <url>
     <loc>http://localhost:8000/pt/tours/minicombo-2-caminata-al-volcan-arenal-catarata-de-la-fortuna-almuerzo</loc>
-    <lastmod>2026-01-09T09:29:15-06:00</lastmod>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/en/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/fr/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/de/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+            </url>
+    <url>
+    <loc>http://localhost:8000/pt/tours/minicombo-3-safari-flotante-catarata-de-la-fortuna-almuerzo</loc>
+    <lastmod>2026-01-25T10:23:58-06:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
             </url>

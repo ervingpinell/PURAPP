@@ -23,7 +23,7 @@
   <div class="card">
     <div class="card-body">
       <div class="mb-3 small text-muted">
-        <strong>{{ __('reviews.common.tour') }}:</strong> {{ $review->tour_id }} |
+        <strong>{{ __('reviews.common.tour') }}:</strong> {{ $review->product_id }} |
         <strong>{{ __('reviews.common.rating') }}:</strong> {{ $review->rating }} |
         <strong>{{ __('reviews.common.author') }}:</strong> {{ $review->author_name ?? '—' }}
       </div>

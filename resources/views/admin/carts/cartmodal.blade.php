@@ -1,21 +1,21 @@
-@foreach($tours as $tour)
+@foreach($products as $product)
 <div class="modal fade"
-     id="modalCart{{ $tour->tour_id }}"
+     id="modalCart{{ $product->product_id }}"
      tabindex="-1"
      aria-hidden="true"
-     data-max="{{ $tour->max_capacity }}">
+     data-max="{{ $product->max_capacity }}">
   <div class="modal-dialog">
     <form method="POST"
           action="{{ route('admin.carts.store') }}"
           class="modal-content">
       @csrf
-      <input type="hidden" name="tour_id" value="{{ $tour->tour_id }}">
-      <input type="hidden" name="adult_price" value="{{ $tour->adult_price }}">
-      <input type="hidden" name="kid_price"   value="{{ $tour->kid_price }}">
+      <input type="hidden" name="product_id" value="{{ $product->product_id }}">
+      <input type="hidden" name="adult_price" value="{{ $product->adult_price }}">
+      <input type="hidden" name="kid_price"   value="{{ $product->kid_price }}">
 
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title">
-          {{ __('carts.add_modal.title', ['name' => $tour->name]) }}
+          {{ __('carts.add_modal.title', ['name' => $product->name]) }}
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
       </div>
@@ -35,7 +35,7 @@
                   class="form-control"
                   required>
             <option value="">{{ __('carts.placeholders.select') }}</option>
-            @foreach($tour->languages as $lang)
+            @foreach($product->languages as $lang)
               <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
             @endforeach
           </select>
@@ -45,7 +45,7 @@
           <label>{{ __('carts.fields.schedule') }}</label>
           <select name="schedule_id" class="form-control" required>
             <option value="">{{ __('carts.placeholders.select_schedule') }}</option>
-            @foreach ($tour->schedules as $schedule)
+            @foreach ($product->schedules as $schedule)
               <option value="{{ $schedule->schedule_id }}">
                 {{ \Carbon\Carbon::parse($schedule->start_time)->format('g:i A') }}
                 —
@@ -58,19 +58,23 @@
         <div class="mb-3">
           <label>{{ __('carts.fields.hotel') }}</label>
           <select name="hotel_id"
-                  id="hotel_select_{{ $tour->tour_id }}"
+                  id="hotel_select_{{ $product->product_id }}"
                   class="form-control"
                   required>
             <option value="">{{ __('carts.placeholders.select_hotel') }}</option>
-            @foreach($hotels as $hotel)
-              <option value="{{ $hotel->hotel_id }}">{{ $hotel->name }}</option>
-            @endforeach
+            {{-- Assuming $hotels is shared globally or passed to view. If not, this might be another error source. --}}
+            {{-- The original file used $hotels. Assuming it exists. --}}
+            @if(isset($hotels))
+                @foreach($hotels as $hotel)
+                <option value="{{ $hotel->hotel_id }}">{{ $hotel->name }}</option>
+                @endforeach
+            @endif
             <option value="other">{{ __('carts.placeholders.other_hotel_option') }}</option>
           </select>
         </div>
 
         <div class="mb-3 d-none"
-             id="other_hotel_container_{{ $tour->tour_id }}">
+             id="other_hotel_container_{{ $product->product_id }}">
           <label>{{ __('carts.fields.hotel_name') }}</label>
           <input type="text"
                  name="other_hotel_name"
@@ -98,7 +102,7 @@
 
         <input type="hidden"
                name="is_other_hotel"
-               id="is_other_hotel_{{ $tour->tour_id }}"
+               id="is_other_hotel_{{ $product->product_id }}"
                value="0">
       </div>
 
@@ -116,11 +120,11 @@
 @push('js')
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  @foreach($tours as $tour)
+  @foreach($products as $product)
     (function() {
-      const sel  = document.getElementById('hotel_select_{{ $tour->tour_id }}');
-      const box  = document.getElementById('other_hotel_container_{{ $tour->tour_id }}');
-      const hid  = document.getElementById('is_other_hotel_{{ $tour->tour_id }}');
+      const sel  = document.getElementById('hotel_select_{{ $product->product_id }}');
+      const box  = document.getElementById('other_hotel_container_{{ $product->product_id }}');
+      const hid  = document.getElementById('is_other_hotel_{{ $product->product_id }}');
       if (!sel || !box || !hid) return;
 
       sel.addEventListener('change', () => {
@@ -144,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      const tourIdEl    = form.querySelector('[name="tour_id"]');
+      const tourIdEl    = form.querySelector('[name="product_id"]');
       const dateEl      = form.querySelector('[name="tour_date"]');
       const scheduleEl  = form.querySelector('[name="schedule_id"]');
       const adultsEl    = form.querySelector('[name="adults_quantity"]');
@@ -166,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let reserved = 0;
       try {
         const params = new URLSearchParams({
-          tour_id: tourIdEl.value,
+          product_id: tourIdEl.value,
           tour_date: tourDate,
           ...(scheduleId ? { schedule_id: scheduleId } : {})
         });

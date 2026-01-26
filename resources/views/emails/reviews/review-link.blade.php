@@ -9,14 +9,14 @@
      * Priorizamos:
      *  - $tourLanguageCode (ej. 'es', 'en')
      *  - $tourLanguageName  (ej. 'Español', 'English')
-     *  - relaciones si vienen: $detail->tourLanguage->name / $booking->tourLanguage->name
+     *  - relaciones si vienen: $detail->tourLanguage->name / $booking->productLanguage->name
      */
     $tourLanguageCode = $tourLanguageCode
         ?? null;
 
     $tourLanguageName = $tourLanguageName
         ?? ($detail->tourLanguage->name ?? null)
-        ?? ($booking->tourLanguage->name ?? null);
+        ?? ($booking->productLanguage->name ?? null);
 
     $isSpanish = false;
 

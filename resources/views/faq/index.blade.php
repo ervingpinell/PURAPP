@@ -18,12 +18,17 @@
         <div class="accordion" id="faqAccordion">
             @foreach ($faqs as $index => $faq)
             @php
-                // Determine active locale translation or fallback
+                // Use Spatie Translatable methods
                 $locale = app()->getLocale();
-                $translation = $faq->translations->firstWhere('locale', $locale);
-                // Fallback mechanisms: specific translation -> ES translation -> base columns
-                $question = $translation ? $translation->question : $faq->question;
-                $answer   = $translation ? $translation->answer : $faq->answer;
+                $fallback = config('app.fallback_locale', 'es');
+                
+                $question = $faq->getTranslation('question', $locale, false) 
+                         ?: $faq->getTranslation('question', $fallback)
+                         ?: $faq->question;
+                         
+                $answer = $faq->getTranslation('answer', $locale, false)
+                       ?: $faq->getTranslation('answer', $fallback)
+                       ?: $faq->answer;
                 
                 $uid = 'faq-'.($faq->faq_id ?? $loop->index); 
             @endphp

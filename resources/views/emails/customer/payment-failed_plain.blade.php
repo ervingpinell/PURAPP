@@ -1,5 +1,5 @@
 @php
-$locale = $booking->tour->lang ?? config('app.locale');
+$locale = $booking->product->lang ?? config('app.locale');
 @endphp
 
 {{ __('adminlte::adminlte.email_templates.payment_failed.title', [], $locale) }}
@@ -10,7 +10,7 @@ $locale = $booking->tour->lang ?? config('app.locale');
 {{ __('adminlte::adminlte.email_templates.booking_details', [], $locale) }}
 ----------------
 {{ __('adminlte::adminlte.email_templates.reference', [], $locale) }}: {{ $booking->booking_reference }}
-{{ __('adminlte::adminlte.email_templates.tour', [], $locale) }}: {{ $booking->tour->title }}
+{{ __('adminlte::adminlte.email_templates.tour', [], $locale) }}: {{ $booking->product->title }}
 {{ __('adminlte::adminlte.email_templates.date', [], $locale) }}: {{ $booking->details->first()->tour_date ?? 'N/A' }}
 {{ __('adminlte::adminlte.email_templates.amount_due', [], $locale) }}: ${{ number_format($booking->total, 2) }}
 

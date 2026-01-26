@@ -49,7 +49,7 @@ class PendingDraftsReminder extends Notification
             $message->line("📝 **{$draft->name}**")
                    ->line("Paso actual: {$draft->current_step}/6")
                    ->line("Última actualización: {$draft->updated_at->diffForHumans()}")
-                   ->action('Continuar Editando', route('admin.tours.wizard.continue', $draft));
+                   ->action('Continuar Editando', route('admin.products.wizard.continue', $draft));
         } else {
             // Si hay múltiples drafts
             $message->line("Estos son tus borradores pendientes:");
@@ -62,7 +62,7 @@ class PendingDraftsReminder extends Notification
                 $message->line("... y " . ($count - 5) . " más");
             }
 
-            $message->action('Ver Mis Borradores', route('admin.tours.wizard.create'));
+            $message->action('Ver Mis Borradores', route('admin.products.wizard.create'));
         }
 
         $message->line('💡 **Consejo:** Completa o elimina tus borradores para mantener tu espacio organizado.')
@@ -85,15 +85,15 @@ class PendingDraftsReminder extends Notification
             'days_old' => $this->daysOld,
             'drafts' => $this->drafts->map(function ($draft) {
                 return [
-                    'tour_id' => $draft->tour_id,
+                    'product_id' => $draft->product_id,
                     'name' => $draft->name,
                     'current_step' => $draft->current_step,
                     'updated_at' => $draft->updated_at->toDateTimeString(),
-                    'url' => route('admin.tours.wizard.continue', $draft),
+                    'url' => route('admin.products.wizard.continue', $draft),
                 ];
             })->toArray(),
             'message' => "Tienes {$count} tour(es) en borrador sin completar",
-            'action_url' => route('admin.tours.wizard.create'),
+            'action_url' => route('admin.products.wizard.create'),
             'action_text' => 'Ver Borradores',
         ];
     }

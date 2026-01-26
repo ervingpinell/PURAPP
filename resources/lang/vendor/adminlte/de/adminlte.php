@@ -111,6 +111,8 @@ return [
 
     // 5. TOUREN UND BEWERTUNGEN
     'tours' => 'Dienstleistungen',
+    'services' => 'Dienstleistungen',
+    'all_services' => 'Alle Dienstleistungen',
     'tour' => 'Dienstleistung',
     'tour_name' => 'Tourname',
     'overview' => 'Überblick',
@@ -136,7 +138,9 @@ return [
     'half_day_tours' => 'Halbtagestouren',
     'see_tour' => 'Tour ansehen',
     'see_tours' => 'Touren ansehen',
-    'see_tour_details' => 'Tourdetails ansehen',
+    'see_tour_details' => 'Servicedetails ansehen',
+    'view_details' => 'Details ansehen',
+    'view_all_count' => 'Alle ansehen (:count)',
     'what_visitors_say' => 'Das sagen unsere Besucher',
     'quote_1' => 'Ein unvergessliches Erlebnis!',
     'guest_1' => 'Carlos M.',
@@ -365,6 +369,8 @@ return [
     'contact_spam_success' => 'Ihre Nachricht wurde gesendet.',
     'contact_success'      => 'Ihre Nachricht wurde erfolgreich gesendet. Wir werden uns in Kürze bei Ihnen melden.',
     'contact_error'        => 'Beim Senden Ihrer Nachricht ist ein Fehler aufgetreten. Bitte versuchen Sie es in ein paar Minuten erneut.',
+    'need_help_choosing' => 'Brauchen Sie Hilfe bei der Auswahl?',
+    'contact_cta_text' => 'Unser Team ist bereit, Ihnen bei der Planung des perfekten Erlebnisses zu helfen.',
 
     // SweetAlert
     'message_sent'                => 'Nachricht gesendet',
@@ -551,6 +557,7 @@ return [
     'filters_title'            => 'Ergebnisse filtern',
     'filters_subtitle'         => 'Kombiniere Textsuche und Kategorien, um die passende Tour zu finden.',
     'search_tours_placeholder' => 'Nach Name oder Beschreibung suchen…',
+    'search_services_placeholder' => 'Dienste suchen…',
 
     'all_categories'           => 'Alle Kategorien',
     'category_label'           => 'Kategorie',
@@ -571,6 +578,8 @@ return [
     'quantities' => 'Mengen',
     'quantitiesHelp' => 'Passen Sie die Mengen nach Bedarf an. Sie können nicht verwendete Kategorien auf 0 belassen.',
     'no_tours_found' => 'Keine Touren gefunden.',
+    'tours_count' => '1 verfügbarer Service|:count verfügbare Services',
+    'categories_count' => '1 Kategorie|:count Kategorien',
 
     // COOKIES (Cookie Consent)
     'cookies' => [

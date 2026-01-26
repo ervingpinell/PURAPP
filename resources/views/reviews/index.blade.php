@@ -32,16 +32,16 @@
         $provSlug = $tour->iframe_slug ?? config('reviews.providers.default', 'viator');
       @endphp
 
-      <div class="review-card" id="tour-card-{{ $tour->tour_id }}">
+      <div class="review-card" id="tour-card-{{ $tour->product_id }}">
         <h3 class="review-title">
-          <a href="{{ localized_route('tours.show', $tour) }}"
+          <a href="{{ localized_route('products.guided_tour.show', $tour) }}"
              class="text-light d-inline-block tour-link"
              style="text-decoration: underline;">
             {{ $tour->display_name }}
           </a>
         </h3>
 
-        <div class="js-carousel" data-tour="{{ $tour->tour_id }}">
+        <div class="js-carousel" data-tour="{{ $tour->product_id }}">
           @php
             $hasMixed = isset($tour->slides)
               && $tour->slides instanceof \Illuminate\Support\Collection
@@ -69,7 +69,7 @@
                     $src  = route('reviews.embed', ['provider' => $slug]) . '?' . http_build_query([
                       'layout'        => 'card',
                       'theme'         => 'site',
-                      'tour_id'       => $tour->tour_id,
+                      'product_id'       => $tour->product_id,
                       'limit'         => $limitForIframe, // usa pool real si existe
                       'nth'           => 1,                // siempre 1
                       'base'          => 400,
@@ -105,10 +105,10 @@
             <div class="powered-by js-powered"></div>
             <div class="carousel-buttons-row">
               <button class="carousel-prev"
-                      data-tour="{{ $tour->tour_id }}"
+                      data-tour="{{ $tour->product_id }}"
                       aria-label="{{ __('reviews.previous_review') }}">❮</button>
               <button class="carousel-next"
-                      data-tour="{{ $tour->tour_id }}"
+                      data-tour="{{ $tour->product_id }}"
                       aria-label="{{ __('reviews.next_review') }}">❯</button>
             </div>
 
@@ -129,10 +129,10 @@
               <div class="powered-by js-powered"></div>
               <div class="carousel-buttons-row">
                 <button class="carousel-prev"
-                        data-tour="{{ $tour->tour_id }}"
+                        data-tour="{{ $tour->product_id }}"
                         aria-label="{{ __('reviews.previous_review') }}">❮</button>
                 <button class="carousel-next"
-                        data-tour="{{ $tour->tour_id }}"
+                        data-tour="{{ $tour->product_id }}"
                         aria-label="{{ __('reviews.next_review') }}">❯</button>
               </div>
 
@@ -144,7 +144,7 @@
                 $src = route('reviews.embed', ['provider' => $slug]) . '?' . http_build_query([
                   'layout'        => 'card',
                   'theme'         => 'site',
-                  'tour_id'       => $tour->tour_id,
+                  'product_id'       => $tour->product_id,
                   'limit'         => max(8, $poolLimit),
                   'nth'           => 1,
                   'base'          => 400,
@@ -178,10 +178,10 @@
               <div class="powered-by js-powered"></div>
               <div class="carousel-buttons-row">
                 <button class="carousel-prev"
-                        data-tour="{{ $tour->tour_id }}"
+                        data-tour="{{ $tour->product_id }}"
                         aria-label="{{ __('reviews.previous_review') }}">❮</button>
                 <button class="carousel-next"
-                        data-tour="{{ $tour->tour_id }}"
+                        data-tour="{{ $tour->product_id }}"
                         aria-label="{{ __('reviews.next_review') }}">❯</button>
               </div>
 

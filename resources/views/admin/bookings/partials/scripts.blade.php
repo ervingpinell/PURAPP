@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form    = modalEl.querySelector('form');
     if (!form) return;
 
-    const tourSel  = form.querySelector('select[name="tour_id"]');
+    const tourSel  = form.querySelector('select[name="product_id"]');
     const schedSel = form.querySelector('select[name="schedule_id"]');
 
     if (tourSel && schedSel && tourSel.dataset.bound !== '1') {

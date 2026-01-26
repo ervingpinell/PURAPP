@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * Itinerary Model
@@ -13,9 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Itinerary extends Model
 {
-    use HasFactory, SoftDeletes;
-
-    // public $translatedAttributes = ['name', 'description']; // Removed
+    use HasFactory, SoftDeletes, HasTranslations;
 
     protected $table = 'itineraries';
     protected $primaryKey = 'itinerary_id';
@@ -23,7 +22,11 @@ class Itinerary extends Model
     protected $keyType = 'int';
     public $timestamps = true;
 
+    public $translatable = ['name', 'description'];
+
     protected $fillable = [
+        'name',
+        'description',
         'is_active',
         'deleted_by',
     ];
@@ -37,10 +40,6 @@ class Itinerary extends Model
         return $query->where('is_active', true);
     }
 
-    public function tours()
-    {
-        return $this->hasMany(Tour::class, 'itinerary_id', 'itinerary_id');
-    }
 
     public function items()
     {
@@ -73,94 +72,18 @@ class Itinerary extends Model
             ->orderBy('itinerary_item_itinerary.item_order');
     }
 
-    public function translations()
-    {
-        return $this->hasMany(ItineraryTranslation::class, 'itinerary_id', 'itinerary_id');
-    }
-
-    public function translate(?string $locale = null)
-    {
-        $locale = $locale ?? app()->getLocale();
-
-        if ($this->relationLoaded('translations')) {
-            return $this->translations->firstWhere('locale', $locale)
-                ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
-        }
-
-        return $this->translations()
-            ->where('locale', $locale)
-            ->first()
-            ?? $this->translations()
-            ->where('locale', config('app.fallback_locale'))
-            ->first();
-    }
-
     public function getNameTranslatedAttribute(): ?string
     {
-        return optional($this->translate())?->name;
+        return $this->name;
     }
 
     public function getDescriptionTranslatedAttribute(): ?string
     {
-        return optional($this->translate())?->description;
+        return $this->description;
     }
 
     public function deletedBy()
     {
         return $this->belongsTo(\App\Models\User::class, 'deleted_by', 'user_id');
     }
-
-
-
-    /**
-     * Obtiene una traducción específica por locale.
-     *
-     * @param string $locale
-     * @return ItineraryTranslation|null
-     */
-    public function getTranslation(string $locale): ?ItineraryTranslation
-    {
-        return $this->translations()->where('locale', $locale)->first();
-    }
-
-    /* =====================
-     * ACCESSORS MÁGICOS
-     * Para compatibilidad con código existente que accede a $itinerary->name
-     * ===================== */
-
-    /**
-     * Accessor mágico para 'name'.
-     * Retorna el nombre traducido según el locale actual.
-     */
-    public function getNameAttribute(): string
-    {
-        return $this->translate()?->name ?? '';
-    }
-
-    /**
-     * Accessor mágico para 'description'.
-     * Retorna la descripción traducida según el locale actual.
-     */
-    public function getDescriptionAttribute(): ?string
-    {
-        return $this->translate()?->description;
-    }
-
-    /* =====================
-     * ACCESSORS TRADUCIDOS (Mantener para compatibilidad)
-     * ===================== */
-
-
-
-    /**
-     * Scope para cargar traducciones de un locale específico.
-     * Útil para optimizar queries.
-     */
-    public function scopeWithTranslation($query, ?string $locale = null)
-    {
-        $locale = $locale ?? app()->getLocale();
-        return $query->with(['translations' => fn($q) => $q->where('locale', $locale)]);
-    }
-
-
 }

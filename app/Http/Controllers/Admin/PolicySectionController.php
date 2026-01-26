@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Policy;
 use App\Models\PolicySection;
-use App\Models\PolicySectionTranslation;
+// use App\Models\PolicySectionTranslation; // Removed
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\LoggerHelper;
 
@@ -36,8 +36,7 @@ class PolicySectionController extends Controller
     {
         $status = $request->get('status', 'active');
 
-        $query = $policy->sections()
-            ->with('translations');
+        $query = $policy->sections();
 
         if ($status === 'archived') {
             $query->onlyTrashed()->with('deletedBy');
@@ -116,14 +115,10 @@ class PolicySectionController extends Controller
 
                 foreach ($supportedLocales as $locale) {
                     $norm = Policy::canonicalLocale($locale);
-                    PolicySectionTranslation::updateOrCreate(
-                        ['section_id' => $section->section_id, 'locale' => $norm],
-                        [
-                            'name'    => $nameTranslations[$locale]    ?? $baseName,
-                            'content' => $contentTranslations[$locale] ?? $baseContent,
-                        ]
-                    );
+                    $section->setTranslation('name', $norm, $nameTranslations[$locale] ?? $baseName);
+                    $section->setTranslation('content', $norm, $contentTranslations[$locale] ?? $baseContent);
                 }
+                $section->save();
 
                 LoggerHelper::mutated($this->controller, 'store', 'policy_section', $section->section_id, [
                     'policy_id'     => $policy->policy_id,
@@ -191,14 +186,11 @@ class PolicySectionController extends Controller
                             continue;
                         }
 
-                        PolicySectionTranslation::updateOrCreate(
-                            ['section_id' => $section->section_id, 'locale' => $norm],
-                            [
-                                'name'    => trim($data['name'] ?? ''),
-                                'content' => trim($data['content'] ?? ''),
-                            ]
-                        );
+                        $section->setTranslation('name', $norm, trim($data['name'] ?? ''));
+                        $section->setTranslation('content', $norm, trim($data['content'] ?? ''));
                     }
+                    $section->save();
+
                 }
 
                 LoggerHelper::mutated($this->controller, 'update', 'policy_section', $section->section_id, [

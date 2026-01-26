@@ -5,7 +5,7 @@ This is a reminder regarding your upcoming booking.
 Booking Details
 ---------------
 Reference: {{ $booking->booking_reference }}
-Tour: {{ $booking->tour->title }}
+Tour: {{ $booking->product->title }}
 Date: {{ $booking->details->first()->tour_date ?? 'N/A' }}
 Amount Due: ${{ number_format($booking->total, 2) }}
 

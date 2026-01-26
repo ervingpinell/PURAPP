@@ -102,7 +102,7 @@ class ReviewAdminController extends Controller
 
         // Filtros (para locales)
         if ($st  = $request->get('status'))  $q->where('status', $st);
-        if ($tid = $request->get('tour_id')) $q->where('tour_id', (int) $tid);
+        if ($tid = $request->get('product_id')) $q->where('product_id', (int) $tid);
         if ($stars = $request->get('stars')) $q->where('rating', (int) $stars);
 
         // Búsqueda libre (incluye booking_reference si existe)
@@ -158,7 +158,7 @@ class ReviewAdminController extends Controller
         $this->authorize('create', Review::class);
 
         $validated = $request->validate([
-            'tour_id'     => ['required', 'integer', 'min:1'],
+            'product_id'     => ['required', 'integer', 'min:1'],
             'rating'      => ['required', 'integer', 'min:1', 'max:5'],
             'title'       => ['nullable', 'string', 'max:150'],
             'body'        => ['required', 'string', 'min:5', 'max:5000'],
@@ -172,7 +172,7 @@ class ReviewAdminController extends Controller
 
         $data = [
             'provider'    => 'local',
-            'tour_id'     => (int) $validated['tour_id'],
+            'product_id'     => (int) $validated['product_id'],
             'rating'      => (int) $validated['rating'],
             'title'       => $validated['title'] ?? null,
             'body'        => $validated['body'],
@@ -223,7 +223,7 @@ class ReviewAdminController extends Controller
     }
 
     /**
-     * Actualizar (tour_id suele venir disabled en el form).
+     * Actualizar (product_id suele venir disabled en el form).
      */
     public function update(Request $request, Review $review)
     {

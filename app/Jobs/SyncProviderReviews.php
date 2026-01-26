@@ -28,12 +28,12 @@ class SyncProviderReviews implements ShouldQueue
                 'limit'    => $this->limit,
             ]);
 
-            // Reverse map (para viator) si viene product_code sin tour_id
+            // Reverse map (para viator) si viene product_code sin product_id
             $productMap = (array) $prov->getSetting('product_map', []);
-            $revMap = array_flip($productMap); // product_code => tour_id
+            $revMap = array_flip($productMap); // product_code => product_id
 
             foreach ($rows as $r) {
-                $tourId = $r['tour_id'] ?? null;
+                $tourId = $r['product_id'] ?? null;
 
                 if (!$tourId && !empty($r['product_code'] ?? null) && isset($revMap[$r['product_code']])) {
                     $tourId = (int) $revMap[$r['product_code']];
@@ -45,7 +45,7 @@ class SyncProviderReviews implements ShouldQueue
                         'provider_review_id' => $r['provider_review_id'] ?? null,
                     ],
                     [
-                        'tour_id'      => $tourId ?: 0,
+                        'product_id'      => $tourId ?: 0,
                         'rating'       => (int)($r['rating'] ?? 0),
                         'title'        => $r['title'] ?? null,
                         'body'         => $r['body'] ?? '',

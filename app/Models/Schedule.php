@@ -75,17 +75,6 @@ class Schedule extends Model
         );
     }
 
-    public function tours()
-    {
-        return $this->belongsToMany(
-            Tour::class,
-            'schedule_tour',
-            'schedule_id',
-            'tour_id'
-        )
-            ->withPivot(['is_active', 'base_capacity', 'cutoff_hour', 'lead_days'])
-            ->withTimestamps();
-    }
 
     public function deletedBy()
     {

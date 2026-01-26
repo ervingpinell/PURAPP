@@ -36,8 +36,8 @@ class LocalReviewSource implements ReviewSource
         if (!empty($opts['language'])) {
             $q->where('language', $opts['language']);
         }
-        if (!empty($opts['tour_id'])) {
-            $q->where('tour_id', $opts['tour_id']);
+        if (!empty($opts['product_id'])) {
+            $q->where('product_id', $opts['product_id']);
         }
 
         $limit = (int)($opts['limit'] ?? 12);
@@ -52,7 +52,7 @@ class LocalReviewSource implements ReviewSource
                     'body'        => $r->body,
                     'author_name' => $r->author_name,
                     'date'        => optional($r->created_at)->toDateString(),
-                    'tour_id'     => $r->tour_id,
+                    'product_id'     => $r->product_id,
                 ];
             })->all();
     }

@@ -7,17 +7,27 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Review Model
  *
- * Represents a customer review for a tour.
+ * Represents a customer review for a product.
  */
 class Review extends Model
 {
     protected $fillable = [
-        'tour_id','booking_id','user_id',
-        'provider','provider_review_id',
-        'rating','title','body','language',
-        'author_name','author_email','manual_booking_ref', // Added manual fields
+        'product_id', // Renamed from product_id
+        'booking_id',
+        'user_id',
+        'provider',
+        'provider_review_id',
+        'rating',
+        'title',
+        'body',
+        'language',
+        'author_name',
+        'author_email',
+        'manual_booking_ref',
         'author_country',
-        'is_verified','is_public','status',
+        'is_verified',
+        'is_public',
+        'status',
         'source_url',
     ];
 
@@ -26,12 +36,24 @@ class Review extends Model
         'is_public'   => 'boolean',
     ];
 
-    public function tour()    { return $this->belongsTo(\App\Models\Tour::class); }
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
+    }
 
-public function booking()
-{
-    return $this->belongsTo(\App\Models\Booking::class, 'booking_id', 'booking_id');
-}
-    public function user()    { return $this->belongsTo(\App\Models\User::class); }
-    public function replies() { return $this->hasMany(ReviewReply::class); }
+
+    public function booking()
+    {
+        return $this->belongsTo(\App\Models\Booking::class, 'booking_id', 'booking_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(\App\Models\User::class);
+    }
+
+    public function replies()
+    {
+        return $this->hasMany(ReviewReply::class);
+    }
 }

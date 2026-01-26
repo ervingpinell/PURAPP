@@ -60,7 +60,7 @@ if ($len <= 0) return 1;
     $typeCover = $meta['cover_url'] ?? null;
     $firstCover = $typeCover
     ?: (optional($first->coverImage)->url
-    ?? $coverFromFolder($first->tour_id ?? $first->id ?? null));
+    ?? $coverFromFolder($first->product_id ?? $first->id ?? null));
 
     $slugKey = Str::slug((string)$key);
 
@@ -119,7 +119,7 @@ if ($len <= 0) return 1;
                 @foreach ($group as $tour)
                 @php
                 $tourCover = optional($tour->coverImage)->url
-                ?? $coverFromFolder($tour->tour_id ?? $tour->id ?? null);
+                ?? $coverFromFolder($tour->product_id ?? $tour->id ?? null);
 
                 $unitLabel = __('adminlte::adminlte.horas');
                 $durLabel = __('adminlte::adminlte.duration');
@@ -246,7 +246,7 @@ if ($len <= 0) return 1;
                     @endif
 
                     {{-- Botón CTA --}}
-                    <a href="{{ localized_route('tours.show', $tour) }}" class="btn-tour-cta">
+                    <a href="{{ localized_route('products.guided_tour.show', $tour) }}" class="btn-tour-cta">
                       {{ __('adminlte::adminlte.see_tour_details') }} →
                     </a>
                   </div>

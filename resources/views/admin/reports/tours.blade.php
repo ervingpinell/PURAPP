@@ -17,7 +17,7 @@
     <!-- Filters -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="GET" action="{{ route('admin.reports.tours') }}">
+            <form method="GET" action="{{ route('admin.reports.products') }}">
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label">From Date</label>
@@ -150,7 +150,7 @@
         const filters = new URLSearchParams(window.location.search);
 
         // Top Tours by Revenue
-        fetch(`{{ route('admin.reports.tours.chart.top-revenue') }}?${filters}&limit=10`)
+        fetch(`{{ route('admin.reports.products.chart.top-revenue') }}?${filters}&limit=10`)
             .then(res => res.json())
             .then(data => {
                 new Chart(document.getElementById('topRevenueChart'), {
@@ -192,7 +192,7 @@
             });
 
         // Top Tours by Bookings
-        fetch(`{{ route('admin.reports.tours.chart.top-bookings') }}?${filters}&limit=10`)
+        fetch(`{{ route('admin.reports.products.chart.top-bookings') }}?${filters}&limit=10`)
             .then(res => res.json())
             .then(data => {
                 new Chart(document.getElementById('topBookingsChart'), {
@@ -226,7 +226,7 @@
             });
 
         // Tour Type Chart
-        fetch(`{{ route('admin.reports.tours.chart.tour-type') }}?${filters}`)
+        fetch(`{{ route('admin.reports.products.chart.tour-type') }}?${filters}`)
             .then(res => res.json())
             .then(data => {
                 new Chart(document.getElementById('tourTypeChart'), {

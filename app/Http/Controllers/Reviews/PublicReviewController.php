@@ -95,7 +95,7 @@ class PublicReviewController extends Controller
     // Anti-duplicados: misma reserva o mismo user+tour
     $already = Review::query()
         ->where('provider', 'local')
-        ->where('tour_id', $rr->tour_id)
+        ->where('product_id', $rr->product_id)
         ->where(function ($q) use ($rr) {
             if ($rr->booking_id) {
                 $q->orWhere('booking_id', $rr->booking_id);
@@ -126,7 +126,7 @@ class PublicReviewController extends Controller
 
     $payload = [
         'provider'    => 'local',
-        'tour_id'     => (int) $rr->tour_id,
+        'product_id'     => (int) $rr->product_id,
         'booking_id'  => $rr->booking_id,       // vínculo para notificaciones futuras
         'user_id'     => $rr->user_id,          // puede ser null
         'rating'      => (int) $validated['rating'],

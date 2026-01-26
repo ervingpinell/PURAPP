@@ -126,7 +126,7 @@
             @foreach($bookingsIter as $booking)
             @php
             $detail = $booking->detail ?? null;
-            $tour = $booking->tour ?? null;
+            $tour = $booking->product ?? null;
             $hotel = $detail->hotel ?? null;
             $schedule = $detail->schedule ?? null;
 

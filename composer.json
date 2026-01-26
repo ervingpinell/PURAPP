@@ -30,6 +30,7 @@
     "phpoffice/phpspreadsheet": "^1.29",
     "spatie/laravel-permission": "^6.23",
     "spatie/laravel-sitemap": "^7.3",
+    "spatie/laravel-translatable": "^6.12",
     "stichoza/google-translate-php": "^5.3",
     "stripe/stripe-php": "^19.0"
   },
@@ -51,7 +52,9 @@
     "files": [
       "app/helpers.php",
       "app/Helpers/BrandingHelper.php",
-      "app/Helpers/SeoHelper.php"
+      "app/Helpers/SeoHelper.php",
+      "app/Helpers/ProductCategoryHelper.php",
+      "app/Helpers/NavigationHelper.php"
     ]
   },
   "autoload-dev": {

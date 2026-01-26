@@ -43,8 +43,8 @@
       <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="{{ __('reviews.requests.filters.q_placeholder') }}">
     </div>
     <div class="col-sm-2 mb-2">
-      <label>{{ __('reviews.requests.tour_id') }}</label>
-      <input type="number" name="tour_id" class="form-control" value="{{ request('tour_id') }}" placeholder="{{ __('reviews.requests.tour_id') }}">
+      <label>{{ __('reviews.requests.product_id') }}</label>
+      <input type="number" name="product_id" class="form-control" value="{{ request('product_id') }}" placeholder="{{ __('reviews.requests.product_id') }}">
     </div>
 
     @if($tab === 'eligible')
@@ -130,7 +130,7 @@
           </td>
           <td>
             {{ optional($b->tour)->name }}
-            <small class="text-muted d-block">ID: {{ $b->tour_id }}</small>
+            <small class="text-muted d-block">ID: {{ $b->product_id }}</small>
           </td>
           <td class="text-center align-middle">
             @can('create-review-requests')
@@ -210,7 +210,7 @@
           </td>
           <td>
             {{ optional($r->tour)->name }}
-            <small class="text-muted d-block">ID: {{ $r->tour_id }}</small>
+            <small class="text-muted d-block">ID: {{ $r->product_id }}</small>
           </td>
           <td>
             @if($ref)
@@ -298,7 +298,7 @@
           </td>
           <td>
              {{ optional($r->tour)->name }}
-             <small class="text-muted d-block">ID: {{ $r->tour_id }}</small>
+             <small class="text-muted d-block">ID: {{ $r->product_id }}</small>
           </td>
           <td>
              <code>{{ optional($r->booking)->booking_reference }}</code>

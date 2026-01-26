@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Payment;
 use App\Models\Setting;
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\PromoCode;
 use App\Services\PaymentService;
 use App\Models\Cart;
@@ -60,7 +60,7 @@ class PaymentController extends Controller
                     'user_id' => $booking->user_id,
                     'items' => [
                         [
-                            'tour_id' => $booking->tour_id,
+                            'product_id' => $booking->product_id,
                             'tour_date' => $booking->tour_date,
                             'schedule_id' => $booking->detail?->schedule_id,
                             'language_id' => $booking->detail?->tour_language_id, // Add language for PaymentService
@@ -195,13 +195,13 @@ class PaymentController extends Controller
             'enabledGateways' => $enabledGateways,
             'stripeKey'       => config('payment.gateways.stripe.publishable_key'),
             'items'           => collect($cartSnapshot['items'])->map(function ($item) {
-                // Determine tour_id (support both keys for robust handling)
-                $tourId = $item['tour_id'] ?? $item['tour'] ?? null;
+                // Determine product_id (support both keys for robust handling)
+                $tourId = $item['product_id'] ?? $item['tour'] ?? null;
                 // If it's an object, use it; if ID, fetch it.
                 if (is_object($tourId)) {
                     $item['tour'] = $tourId;
                 } elseif ($tourId) {
-                    $item['tour'] = \App\Models\Tour::with('translations')->find($tourId);
+                    $item['tour'] = \App\Models\Product::find($tourId);
                 }
 
                 // Schedule
@@ -211,7 +211,7 @@ class PaymentController extends Controller
 
                 // Language
                 if (empty($item['language']) && !empty($item['language_id'])) {
-                    $item['language'] = \App\Models\TourLanguage::find($item['language_id']);
+                    $item['language'] = \App\Models\ProductLanguage::find($item['language_id']);
                 }
 
                 // Hotel
@@ -329,7 +329,7 @@ class PaymentController extends Controller
             'user_id' => $booking->user_id,
             'items' => [
                 [
-                    'tour_id' => $booking->tour_id,
+                    'product_id' => $booking->product_id,
                     'tour_date' => $booking->tour_date,
                     'schedule_id' => $booking->detail?->schedule_id,
                     'language_id' => $booking->detail?->tour_language_id,

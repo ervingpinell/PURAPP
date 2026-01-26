@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\TourAuditLog;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -43,7 +43,7 @@ class CleanOldDrafts extends Command
         $cutoffDate = Carbon::now()->subDays($days);
 
         // Buscar drafts antiguos
-        $oldDrafts = Tour::where('is_draft', true)
+        $oldDrafts = Product::where('is_draft', true)
             ->where('updated_at', '<', $cutoffDate)
             ->with(['tourType', 'languages', 'created_by_user'])
             ->get();
@@ -61,7 +61,7 @@ class CleanOldDrafts extends Command
 
         $tableData = $oldDrafts->map(function ($draft) {
             return [
-                $draft->tour_id,
+                $draft->product_id,
                 \Illuminate\Support\Str::limit($draft->name, 30),
                 $draft->tourType?->name ?? 'N/A',
                 $draft->current_step ?? 1,
@@ -109,7 +109,7 @@ class CleanOldDrafts extends Command
             foreach ($oldDrafts as $draft) {
                 try {
                     // Guardar info para log de auditoría
-                    $tourId = $draft->tour_id;
+                    $tourId = $draft->product_id;
                     $tourName = $draft->name;
                     $userId = $draft->created_by;
 
@@ -140,7 +140,7 @@ class CleanOldDrafts extends Command
                     $deletedCount++;
                 } catch (\Exception $e) {
                     $errors[] = [
-                        'tour_id' => $draft->tour_id,
+                        'product_id' => $draft->product_id,
                         'name' => $draft->name,
                         'error' => $e->getMessage(),
                     ];
@@ -164,7 +164,7 @@ class CleanOldDrafts extends Command
                 $this->error("Errors occurred while deleting " . count($errors) . " draft(s):");
                 $this->table(
                     ['ID', 'Nombre', 'Error'],
-                    collect($errors)->map(fn($e) => [$e['tour_id'], $e['name'], $e['error']])->toArray()
+                    collect($errors)->map(fn($e) => [$e['product_id'], $e['name'], $e['error']])->toArray()
                 );
             }
 

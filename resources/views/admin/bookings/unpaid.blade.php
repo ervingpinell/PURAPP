@@ -92,7 +92,7 @@
                                     {{ $booking->user->full_name }}<br>
                                     <small class="text-muted">{{ $booking->user->email }}</small>
                                 </td>
-                                <td>{{ $booking->tour->title ?? 'N/A' }}</td>
+                                <td>{{ $booking->product->title ?? 'N/A' }}</td>
                                 <td>{{ $booking->details->first()->tour_date ?? 'N/A' }}</td>
                                 <td class="font-weight-bold">${{ number_format($booking->total, 2) }}</td>
                                 <td>

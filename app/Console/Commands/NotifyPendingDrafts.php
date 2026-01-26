@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\User;
 use App\Notifications\PendingDraftsReminder;
 use Carbon\Carbon;
@@ -41,7 +41,7 @@ class NotifyPendingDrafts extends Command
         $cutoffDate = Carbon::now()->subDays($days);
 
         // Obtener drafts antiguos agrupados por usuario
-        $draftsByUser = Tour::where('is_draft', true)
+        $draftsByUser = Product::where('is_draft', true)
             ->where('updated_at', '<', $cutoffDate)
             ->whereNotNull('created_by')
             ->with(['tourType', 'created_by_user'])

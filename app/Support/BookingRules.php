@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\Schedule;
 use Carbon\Carbon;
 
@@ -26,7 +26,7 @@ class BookingRules
     /**
      * Resuelve cutoff/lead con precedencia: pivot -> tour -> global
      */
-    public static function effectiveFor(?Tour $tour = null, ?Schedule $schedule = null): array
+    public static function effectiveFor(?Product $tour = null, ?Schedule $schedule = null): array
     {
         $global = self::global();
 
@@ -64,7 +64,7 @@ class BookingRules
      * Calcula la fecha mínima reservable según reglas (tz = config('app.timezone')).
      * lead_days se aplica siempre; si hoy ya pasó el cutoff, agrega 1 día adicional.
      */
-    public static function earliestBookableDate(?Tour $tour = null, ?Schedule $schedule = null): Carbon
+    public static function earliestBookableDate(?Product $tour = null, ?Schedule $schedule = null): Carbon
     {
         $tz = config('app.timezone', 'UTC');
         $now = Carbon::now($tz);

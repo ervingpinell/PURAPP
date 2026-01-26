@@ -14,7 +14,8 @@ use App\Models\{
     PromoCode,
     MeetingPoint,
     Cart,
-    Payment
+    Payment,
+    Product
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{DB, Log, Auth, Mail};
@@ -99,13 +100,14 @@ class BookingController extends Controller
             });
         }
 
-        if ($request->filled('tour_id'))           $query->where('tour_id', $request->tour_id);
+        if ($request->filled('product_id'))           $query->where('product_id', $request->product_id);
         if ($request->filled('schedule_id'))       $query->whereHas('detail', fn($q) => $q->where('schedule_id', $request->schedule_id));
         if ($request->filled('tour_language_id'))  $query->where('tour_language_id', $request->tour_language_id);
 
         $bookings = $query->orderBy('booking_date', 'desc')->paginate(15);
 
-        $tours         = Tour::orderBy('name')->get(['tour_id', 'name']);
+        $locale = app()->getLocale();
+        $tours = Product::orderByRaw("name->>'$locale' ASC")->get(['product_id', 'name']);
         $schedules     = Schedule::orderBy('start_time')->get(['schedule_id', 'start_time', 'end_time']);
         $hotels        = HotelList::where('is_active', true)->orderBy('name')->get(['hotel_id', 'name']);
         $meetingPoints = MeetingPoint::where('is_active', true)
@@ -140,7 +142,7 @@ class BookingController extends Controller
     public function create()
     {
         // Load ALL necessary data upfront - simple and clean
-        $tours = Tour::with([
+        $tours = Product::with([
             'schedules' => fn($q) => $q->orderBy('start_time'),
             'languages' => fn($q) => $q->orderBy('name'),
             'prices' => fn($q) => $q->where('is_active', true)
@@ -177,7 +179,7 @@ class BookingController extends Controller
         ]);
 
         // Load tours with all relationships like create-simple
-        $tours = Tour::with([
+        $tours = Product::with([
             'schedules' => fn($q) => $q->orderBy('start_time'),
             'languages' => fn($q) => $q->orderBy('name'),
             'prices' => fn($q) => $q->where('is_active', true)
@@ -265,7 +267,7 @@ class BookingController extends Controller
         try {
             $validated = $request->validate([
                 'user_id'           => 'required|exists:users,user_id',
-                'tour_id'           => 'required|exists:tours,tour_id',
+                'product_id'           => 'required|exists:tours,product_id',
                 'schedule_id'       => 'required|exists:schedules,schedule_id',
                 'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
                 'tour_date'         => 'required|date|after_or_equal:today',
@@ -320,7 +322,7 @@ class BookingController extends Controller
         // =======================
         try {
             // Cargar tour + precios
-            $tour = Tour::with('prices.category')->findOrFail((int)$validated['tour_id']);
+            $tour = Product::with('prices.category')->findOrFail((int)$validated['product_id']);
 
             // Verificar horario activo
             $schedule = $tour->schedules()
@@ -397,7 +399,7 @@ class BookingController extends Controller
             // Payload para BookingCreator
             $payload = [
                 'user_id'           => (int)$validated['user_id'],
-                'tour_id'           => (int)$validated['tour_id'],
+                'product_id'           => (int)$validated['product_id'],
                 'schedule_id'       => (int)$validated['schedule_id'],
                 'tour_language_id'  => (int)$validated['tour_language_id'],
                 'tour_date'         => $validated['tour_date'],
@@ -512,7 +514,7 @@ class BookingController extends Controller
         }
 
         // Prevalidación por grupo (tour+fecha+horario)
-        $groups = $cart->items->groupBy(fn($i) => $i->tour_id . '_' . $i->tour_date . '_' . $i->schedule_id);
+        $groups = $cart->items->groupBy(fn($i) => $i->product_id . '_' . $i->tour_date . '_' . $i->schedule_id);
 
         foreach ($groups as $items) {
             $first      = $items->first();
@@ -579,7 +581,7 @@ class BookingController extends Controller
 
             $payload = [
                 'user_id'           => (int)$cart->user_id,
-                'tour_id'           => (int)$item->tour_id,
+                'product_id'           => (int)$item->product_id,
                 'schedule_id'       => (int)$item->schedule_id,
                 'tour_language_id'  => (int)$item->tour_language_id,
                 'tour_date'         => $item->tour_date,
@@ -670,7 +672,7 @@ class BookingController extends Controller
 
         $validated = $request->validate([
             'user_id'           => 'required|exists:users,user_id',
-            'tour_id'           => 'required|exists:tours,tour_id',
+            'product_id'           => 'required|exists:tours,product_id',
             'schedule_id'       => 'required|exists:schedules,schedule_id',
             'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
             'tour_date'         => 'required|date',
@@ -708,7 +710,7 @@ class BookingController extends Controller
                     ->withErrors(['tour_date' => __('m_bookings.bookings.validation.past_date')]);
             }
 
-            $newTour = Tour::with('prices.category')->findOrFail($validated['tour_id']);
+            $newTour = Product::with('prices.category')->findOrFail($validated['product_id']);
             $newSchedule = $newTour->schedules()
                 ->where('schedules.schedule_id', $validated['schedule_id'])
                 ->where('schedules.is_active', true)
@@ -785,7 +787,7 @@ class BookingController extends Controller
             // Cabecera
             $booking->update([
                 'user_id'          => (int)$validated['user_id'],
-                'tour_id'          => (int)$validated['tour_id'],
+                'product_id'          => (int)$validated['product_id'],
                 'tour_language_id' => (int)$validated['tour_language_id'],
                 'booking_date'     => $validated['booking_date'] ?? $booking->booking_date,
                 'status'           => $validated['status'],
@@ -801,7 +803,7 @@ class BookingController extends Controller
             }
 
             $detail->update([
-                'tour_id'           => (int)$validated['tour_id'],
+                'product_id'           => (int)$validated['product_id'],
                 'schedule_id'       => (int)$validated['schedule_id'],
                 'tour_date'         => $validated['tour_date'],
                 'tour_language_id'  => (int)$validated['tour_language_id'],
@@ -1088,7 +1090,7 @@ class BookingController extends Controller
                         'email' => $booking->user?->email,
                     ],
                     'tour' => [
-                        'tour_id' => $booking->tour?->tour_id,
+                        'product_id' => $booking->tour?->product_id,
                         'name' => $booking->tour?->name,
                     ],
                     'detail' => $booking->detail ? [
@@ -1245,7 +1247,7 @@ class BookingController extends Controller
     }
 
     /** API: schedules por tour (AJAX) */
-    public function getSchedules(Tour $tour)
+    public function getSchedules(Product $tour)
     {
         return response()->json(
             $tour->schedules()
@@ -1257,7 +1259,7 @@ class BookingController extends Controller
     }
 
     /** API: languages por tour (AJAX) */
-    public function getLanguages(Tour $tour)
+    public function getLanguages(Product $tour)
     {
         return response()->json(
             $tour->languages()->get(['tour_language_id', 'name'])
@@ -1265,13 +1267,13 @@ class BookingController extends Controller
     }
 
     /** API: categorías/precios por tour (AJAX) */
-    public function getCategories(Request $request, Tour $tour)
+    public function getCategories(Request $request, Product $tour)
     {
         $locale = app()->getLocale();
         $tourDate = $request->input('tour_date');
 
         \Log::info('BookingController@getCategories called', [
-            'tour_id' => $tour->tour_id,
+            'product_id' => $tour->product_id,
             'tour_date' => $tourDate
         ]);
 
@@ -1541,7 +1543,7 @@ class BookingController extends Controller
         try {
             // Basic validation of inputs needed for capacity check
             $validated = $request->validate([
-                'tour_id' => 'required|integer|exists:tours,tour_id',
+                'product_id' => 'required|integer|exists:tours,product_id',
                 'tour_date' => 'required|date',
                 'schedule_id' => 'required|integer|exists:schedules,schedule_id',
                 'categories' => 'required|array',
@@ -1566,7 +1568,7 @@ class BookingController extends Controller
             }
 
             // 2. Check Tour Capacity
-            $tour = Tour::findOrFail((int)$validated['tour_id']);
+            $tour = Product::findOrFail((int)$validated['product_id']);
             $schedule = Schedule::findOrFail((int)$validated['schedule_id']);
 
             $remaining = $this->capacity->remainingCapacity(

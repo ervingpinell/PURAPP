@@ -74,7 +74,8 @@
         <tbody>
           @forelse ($policies as $p)
           @php
-          $t = $p->translation();
+          // Spatie: Access attributes directly for current locale
+          $tName = $p->name; 
           $from = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('d-M-Y') : null;
           $to = $p->effective_to ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('d-M-Y') : null;
           $isTrashed = method_exists($p, 'trashed') && $p->trashed();
@@ -86,7 +87,7 @@
               @if($isTrashed)
               <i class="fas fa-trash-alt text-muted me-1"></i>
               @endif
-              {{ $t?->name ?? '—' }}
+              {{ $tName ?? '—' }}
             </td>
             <td class="text-center"><code class="text-muted">{{ $p->slug }}</code></td>
             @if(($status ?? 'active') === 'archived')
@@ -297,7 +298,7 @@
 @php
 $fromVal = $p->effective_from ? \Illuminate\Support\Carbon::parse($p->effective_from)->format('d-M-Y') : '';
 $toVal = $p->effective_to ? \Illuminate\Support\Carbon::parse($p->effective_to)->format('d-M-Y') : '';
-$t = $p->translation();
+// $t = $p->translation(); // Removed
 @endphp
 <div class="modal fade" id="editPolicyModal-{{ $p->policy_id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -350,7 +351,7 @@ $t = $p->translation();
               {{ strtoupper($lang) }}
               @php
               // Indicador visual si falta traducción
-              $hasTrans = $p->translations->where('locale', $lang)->first();
+              $hasTrans = !empty($p->getTranslation('name', $lang, false));
               @endphp
               @if(!$hasTrans)
               <span class="text-danger small ms-1" title="Sin traducción"><i class="fas fa-exclamation-circle"></i></span>
@@ -363,9 +364,8 @@ $t = $p->translation();
         <div class="tab-content" id="policyTabContent-{{ $p->policy_id }}">
           @foreach(['es', 'en', 'fr', 'pt', 'de'] as $lang)
           @php
-          $trans = $p->translations->firstWhere('locale', $lang);
-          $valName = $trans ? $trans->name : '';
-          $valContent = $trans ? $trans->content : '';
+          $valName = $p->getTranslation('name', $lang, false);
+          $valContent = $p->getTranslation('content', $lang, false);
           @endphp
           <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
             id="content-{{ $p->policy_id }}-{{ $lang }}"

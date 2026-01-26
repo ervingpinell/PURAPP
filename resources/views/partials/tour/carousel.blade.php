@@ -19,7 +19,7 @@ $images = $imgs->map(fn ($img) => $img->url)->values();
 }
 }
 if ($images->isEmpty()) {
-$tourId = $tour->tour_id ?? $tour->id ?? null;
+$tourId = $tour->product_id ?? $tour->id ?? null;
 $folder = $tourId ? "tours/{$tourId}/gallery" : null;
 
 if ($folder && Storage::disk('public')->exists($folder)) {

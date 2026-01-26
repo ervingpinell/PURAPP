@@ -13,7 +13,7 @@ use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\PromoCode;
 use App\Models\Cart;
-use App\Models\Tour;
+use App\Models\Product;
 
 use App\Services\Bookings\{BookingCreator, BookingCapacityService};
 
@@ -67,7 +67,7 @@ class BookingController extends Controller
             }
 
             // Pre-validación por grupos (tour+fecha+horario)
-            $groups = $cart->items->groupBy(fn($i) => $i->tour_id . '_' . $i->tour_date . '_' . $i->schedule_id);
+            $groups = $cart->items->groupBy(fn($i) => $i->product_id . '_' . $i->tour_date . '_' . $i->schedule_id);
 
             foreach ($groups as $items) {
                 $first      = $items->first();
@@ -156,7 +156,7 @@ class BookingController extends Controller
 
                 $payload = [
                     'user_id'           => $user->user_id,
-                    'tour_id'           => $item->tour_id,
+                    'product_id'           => $item->product_id,
                     'schedule_id'       => $item->schedule_id,
                     'tour_language_id'  => $item->tour_language_id,
                     'tour_date'         => $item->tour_date,
@@ -349,7 +349,7 @@ class BookingController extends Controller
 
         // 4) Validación de input (similar a admin, pero sin permitir cambio de user_id)
         $validated = $request->validate([
-            'tour_id'           => 'required|exists:tours,tour_id',
+            'product_id'           => 'required|exists:tours,product_id',
             'schedule_id'       => 'required|exists:schedules,schedule_id',
             'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
             'tour_date'         => 'required|date|after:today',
@@ -376,7 +376,7 @@ class BookingController extends Controller
         }
 
         // 5) Validación cuantitativa + capacidad
-        $newTour = Tour::with('prices.category')->findOrFail((int)$in['tour_id']);
+        $newTour = Product::with('prices.category')->findOrFail((int)$in['product_id']);
         $newSchedule = $newTour->schedules()
             ->where('schedules.schedule_id', (int)$in['schedule_id'])
             ->where('schedules.is_active', true)
@@ -440,14 +440,14 @@ class BookingController extends Controller
         try {
             // Cabecera: status se mantiene (no permito que el cliente cambie status directo)
             $booking->update([
-                'tour_id'          => (int)$in['tour_id'],
+                'product_id'          => (int)$in['product_id'],
                 'tour_language_id' => (int)$in['tour_language_id'],
                 'total'            => $total,
                 'notes'            => $in['notes'] ?? $booking->notes,
             ]);
 
             $detail->update([
-                'tour_id'           => (int)$in['tour_id'],
+                'product_id'           => (int)$in['product_id'],
                 'schedule_id'       => (int)$in['schedule_id'],
                 'tour_date'         => $in['tour_date'],
                 'tour_language_id'  => (int)$in['tour_language_id'],

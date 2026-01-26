@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-use App\Models\Tour;
+use App\Models\Product;
 use Illuminate\Support\Facades\Storage;
 
 class SchemaHelper
@@ -10,7 +10,7 @@ class SchemaHelper
     /**
      * Generate TouristAttraction schema for a tour
      */
-    public static function generateTourSchema(Tour $tour, $reviews = null): array
+    public static function generateTourSchema(Product $tour, $reviews = null): array
     {
         $locale = app()->getLocale();
         $tourName = $tour->getTranslatedName();
@@ -101,12 +101,12 @@ class SchemaHelper
     /**
      * Get tour images from gallery
      */
-    protected static function getTourImages(Tour $tour): array
+    protected static function getTourImages(Product $tour): array
     {
         $images = [];
 
         // Try to get from gallery folder
-        $tourId = $tour->tour_id ?? $tour->id;
+        $tourId = $tour->product_id ?? $tour->id;
         $folder = "tours/{$tourId}/gallery";
 
         if (Storage::disk('public')->exists($folder)) {

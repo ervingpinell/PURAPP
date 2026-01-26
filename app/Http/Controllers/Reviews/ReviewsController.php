@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Reviews;
 use Illuminate\Routing\Controller;
 use App\Http\Requests\Reviews\StoreReviewRequest;
 use App\Models\Review;
-use App\Models\Tour;
+use App\Models\Product;
 use App\Services\Reviews\ReviewAggregator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,12 +41,12 @@ public function index(Request $request)
     $ttl      = $this->defaultTtl;
 
     // 1) Tours activos CON SLUG
-    $q = Tour::with('translations')->where('is_active', true);
+    $q = Product::where('is_active', true);
     if (Schema::hasColumn('tours', 'sort_order')) {
         $q->orderByRaw('sort_order IS NULL, sort_order ASC');
     }
     $q->orderBy('name');
-    $tours = $q->get(['tour_id', 'name', 'slug']);
+    $tours = $q->get(['product_id', 'name', 'slug']);
 
     // 2) Traducir nombres
     $tours = $tours->map(function ($t) use ($locale, $fallback) {
@@ -58,11 +58,11 @@ public function index(Request $request)
 
     // 3) Traer reviews y preparar slides (~5-6 por tour, sin repetir)
     $tours = $tours->map(function ($tour) use ($ttl) {
-        $cacheKey = "reviews:tour:{$tour->tour_id}:index";
+        $cacheKey = "reviews:tour:{$tour->product_id}:index";
 
         $reviews = Cache::remember($cacheKey, $ttl, function () use ($tour) {
             return app(ReviewAggregator::class)->aggregate([
-                'tour_id' => $tour->tour_id,
+                'product_id' => $tour->product_id,
                 'limit'   => 10, // Pool más grande
             ]);
         });
@@ -121,7 +121,7 @@ public function index(Request $request)
  * Reviews de un tour específico (mínimo 12-15, sin repetir)
  */
 public function tour(
-        Tour $tour, // CAMBIADO: recibe el modelo directamente
+        Product $tour, // CAMBIADO: recibe el modelo directamente
         ReviewAggregator $agg,
         Request $request
     ) {
@@ -134,13 +134,13 @@ public function tour(
         $tr = ($tour->translations ?? collect())->firstWhere('locale', $locale)
             ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
         $tourName = $tr->name ?? $tour->name ?? '';
-        $tourId = $tour->tour_id;
+        $tourId = $tour->product_id;
 
         $target = 15; // Objetivo: 15 reviews
 
         // 1) Traer reviews del tour (pedir más para tener pool)
         $ownReviews = $agg->aggregate([
-            'tour_id' => $tourId,
+            'product_id' => $tourId,
             'limit'   => 50, // Pool grande
         ]);
 
@@ -165,7 +165,7 @@ public function tour(
 
             $othersReviews = $agg->aggregate([
                 'limit' => $needed * 3, // Pool más grande
-            ])->filter(fn($r) => ($r['tour_id'] ?? null) != $tourId)
+            ])->filter(fn($r) => ($r['product_id'] ?? null) != $tourId)
               ->unique(function($r) {
                   $provider = strtolower($r['provider'] ?? 'p');
 
@@ -191,8 +191,8 @@ public function tour(
             if (empty($r['tour_name'])) {
                 $r['tour_name'] = $tourName;
             }
-            if (empty($r['tour_id'])) {
-                $r['tour_id'] = $tourId;
+            if (empty($r['product_id'])) {
+                $r['product_id'] = $tourId;
             }
             return $r;
         });
@@ -209,7 +209,7 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
     $provider = strtolower(trim($provider)) ?: 'viator';
 
     $limit   = min(60, max(1, (int) $request->query('limit', 12)));
-    $tourId  = $request->query('tour_id');
+    $tourId  = $request->query('product_id');
     $nth     = max(1, (int) $request->query('nth', 1));
     $ttlMin  = (int) $request->query('ttl', 60 * 24);
     $ttl     = max(60, $ttlMin) * 60;
@@ -227,7 +227,7 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
         return $agg->aggregate([
             'provider' => $provider,
             'limit'    => $limit * 2,
-            'tour_id'  => $tourId,
+            'product_id'  => $tourId,
         ]);
     });
 
@@ -261,16 +261,16 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
                 return $r;
             }
 
-            $id = (int)($r['tour_id'] ?? $tourId ?? 0);
+            $id = (int)($r['product_id'] ?? $tourId ?? 0);
             if ($id > 0) {
-                $tour = \App\Models\Tour::with('translations')->find($id);
+                $tour = \App\Models\Product::find($id);
                 if ($tour) {
                     $tr = ($tour->translations ?? collect())->firstWhere('locale', $lang)
                         ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
                     $resolved = $tr->name ?? $tour->name ?? null;
                     if ($resolved) {
                         $r['tour_name'] = $resolved;
-                        $r['tour_id']   = $id;
+                        $r['product_id']   = $id;
                         return $r;
                     }
                 }
@@ -312,7 +312,7 @@ public function embed(Request $request, ReviewAggregator $agg, string $provider)
      */
     public function store(StoreReviewRequest $request)
     {
-        $key = sprintf('review:%s:%s', $request->ip(), (string) $request->input('tour_id'));
+        $key = sprintf('review:%s:%s', $request->ip(), (string) $request->input('product_id'));
 
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $seconds = RateLimiter::availableIn($key);

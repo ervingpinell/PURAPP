@@ -53,7 +53,7 @@ $coverFromTour = function ($tour) {
 if (!$tour) return asset('images/volcano.png');
 if (!empty($tour->image_path)) return asset('storage/'.$tour->image_path);
 
-$tid = $tour->tour_id ?? $tour->id ?? null;
+$tid = $tour->product_id ?? $tour->id ?? null;
 if ($tid) {
 $folder = "tours/{$tid}/gallery";
 if (Storage::disk('public')->exists($folder)) {
@@ -321,7 +321,7 @@ return asset('images/volcano.png');
     <div class="mini-cart-list">
       @foreach($guestCartItems as $index => $guestItem)
       @php
-      $tour = \App\Models\Tour::find($guestItem['tour_id']);
+      $tour = \App\Models\Tour::find($guestItem['product_id']);
       $img = $tour ? $coverFromTour($tour) : asset('images/volcano.png');
       $itemCats = collect($guestItem['categories'] ?? []);
 

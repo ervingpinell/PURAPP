@@ -250,7 +250,7 @@
 
     @foreach($bookings as $booking)
     @php
-    $tour = $booking->tour;
+    $tour = $booking->product;
     $detail = $booking->detail;
 
     // ====== CATEGORÍAS (con nombre traducido) ======

@@ -115,7 +115,7 @@ Schedule::command('bookings:process-auto-charges')
 | Cancela reservas sin pagar X horas antes del tour (configurable).
 | Se ejecuta cada 30 minutos para verificar (tours pueden iniciar a :30).
 */
-Schedule::command('bookings:cancel-unpaid-before-tour')
+Schedule::command('bookings:cancel-unpaid-before-product')
     ->everyThirtyMinutes()
     ->timezone(config('app.timezone', 'UTC'))
     ->onOneServer()

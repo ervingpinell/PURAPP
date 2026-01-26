@@ -9,10 +9,12 @@ use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use Spatie\Permission\Models\Role;
 use App\Models\Schedule;
-use App\Models\Tour;
-use App\Models\TourLanguage;
-use App\Models\TourType;
+use App\Models\Product;
+use App\Models\ProductType;
+// use App\Models\TourLanguage; // Warning: Check if this model was renamed too.
+use App\Models\ProductLanguage; // Keeping for now if it wasn't renamed in previous steps.
 use App\Models\User;
+
 use App\Services\Bookings\BookingCapacityService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -117,10 +119,11 @@ class DashBoardController extends Controller
 
         // ===== Métricas básicas =====
         $totalUsers          = User::count();
-        $totalTours          = Tour::count();
+        $totalTours          = Product::count();
         $totalRoles          = Role::count();
-        $totalTourTypes      = TourType::count();
-        $totalLanguages      = TourLanguage::count();
+        $totalProductTypes      = ProductType::count();
+        $totalLanguages      = ProductLanguage::count();
+
         $totalSchedules      = Schedule::count();
         $totalAmenities      = Amenity::count();
         $totalItineraryItems = ItineraryItem::count();
@@ -145,7 +148,7 @@ class DashBoardController extends Controller
         // Traemos TODO: booking completo + detail con categories
         $details = BookingDetail::with([
             'booking', // Traer toda la info del booking
-            'tour:tour_id,name',
+            'tour:product_id,name',
             'schedule:schedule_id,start_time',
         ])
             ->whereHas('booking', fn($q) => $q->whereIn('status', ['confirmed', 'paid']))
@@ -154,7 +157,7 @@ class DashBoardController extends Controller
             ->get(); // Traer TODO, no solo campos específicos
 
         // Pre-caches de Tour y Schedule para evitar N+1
-        $tourCache     = Tour::whereIn('tour_id', $details->pluck('tour_id')->unique())->get()->keyBy('tour_id');
+        $tourCache     = Product::whereIn('product_id', $details->pluck('product_id')->unique())->get()->keyBy('product_id');
         $scheduleCache = Schedule::whereIn('schedule_id', $details->pluck('schedule_id')->unique())->get()->keyBy('schedule_id');
 
         // LOG temporal para debug
@@ -167,11 +170,11 @@ class DashBoardController extends Controller
         $buckets = [];
         foreach ($details as $d) {
             $date = Carbon::parse($d->tour_date, $tz)->toDateString();
-            $key  = $d->tour_id . '|' . $d->schedule_id . '|' . $date;
+            $key  = $d->product_id . '|' . $d->schedule_id . '|' . $date;
 
             if (!isset($buckets[$key])) {
                 $buckets[$key] = [
-                    'tour_id'     => (int) $d->tour_id,
+                    'product_id'     => (int) $d->product_id,
                     'schedule_id' => (int) $d->schedule_id,
                     'date'        => $date,
                     'tour_name'   => optional($d->tour)->name ?? '—',
@@ -216,7 +219,7 @@ class DashBoardController extends Controller
         Log::info('[DASHBOARD] Capacity buckets summary', [
             'total_buckets' => count($buckets),
             'buckets' => array_map(fn($b) => [
-                'key' => $b['tour_id'] . '|' . $b['schedule_id'] . '|' . $b['date'],
+                'key' => $b['product_id'] . '|' . $b['schedule_id'] . '|' . $b['date'],
                 'tour' => $b['tour_name'],
                 'used' => $b['used'],
                 'detail_count' => count($b['detail_ids']),
@@ -226,7 +229,7 @@ class DashBoardController extends Controller
         // Construir alertas consultando la CAPACIDAD EFECTIVA
         $alerts = collect();
         foreach ($buckets as $g) {
-            $tour     = $tourCache->get($g['tour_id']);
+            $tour     = $tourCache->get($g['product_id']);
             $schedule = $scheduleCache->get($g['schedule_id']);
             if (!$tour || !$schedule) {
                 continue;
@@ -253,8 +256,8 @@ class DashBoardController extends Controller
                 : (($remaining <= 3 || $pct >= 80) ? 'near_capacity' : 'info');
 
             $alerts->push([
-                'key'         => (string) ($g['tour_id'] . '|' . $g['schedule_id'] . '|' . $g['date']),
-                'tour_id'     => (int) $g['tour_id'],
+                'key'         => (string) ($g['product_id'] . '|' . $g['schedule_id'] . '|' . $g['date']),
+                'product_id'     => (int) $g['product_id'],
                 'schedule_id' => (int) $g['schedule_id'],
                 'date'        => (string) $g['date'],
                 'tour'        => (string) $g['tour_name'],
@@ -295,9 +298,10 @@ class DashBoardController extends Controller
             'totalUsers',
             'totalTours',
             'totalRoles',
-            'totalTourTypes',
+            'totalProductTypes',
             'totalLanguages',
             'totalSchedules',
+
             'totalAmenities',
             'totalItineraryItems',
             'totalBookings',

@@ -9,7 +9,7 @@
             <strong>@lang('emails.booking_expiring.label_reference'):</strong> {{ $booking->booking_reference }}<br>
             <strong>@lang('emails.booking_expiring.label_customer'):</strong> {{ $booking->user->full_name }}<br>
             <strong>@lang('emails.booking_expiring.label_email'):</strong> {{ $booking->user->email }}<br>
-            <strong>@lang('emails.booking_expiring.label_tour'):</strong> {{ $booking->tour->title }}<br>
+            <strong>@lang('emails.booking_expiring.label_tour'):</strong> {{ $booking->product->title }}<br>
             <strong>@lang('emails.booking_expiring.label_date'):</strong> {{ $booking->details->first()->tour_date ?? __('emails.booking_expiring.na') }}<br>
             <strong>@lang('emails.booking_expiring.label_amount'):</strong> ${{ number_format($booking->total, 2) }}<br>
             <strong>@lang('emails.booking_expiring.label_expires'):</strong> 

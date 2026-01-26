@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 // Imports para traducciones
 use App\Services\Contracts\TranslatorInterface;
-use App\Models\MeetingPointTranslation;
+// use App\Models\MeetingPointTranslation;
 use App\Services\LoggerHelper;
 
 /**
@@ -36,7 +36,7 @@ class MeetingPointSimpleController extends Controller
     public function index()
     {
         // Eager-load translations to avoid N+1
-        $points = MeetingPoint::with('translations')
+        $points = MeetingPoint::query()
             ->orderByRaw('sort_order IS NULL, sort_order ASC')
             ->get();
 
@@ -55,7 +55,7 @@ class MeetingPointSimpleController extends Controller
     public function trash()
     {
         $trashedPoints = MeetingPoint::onlyTrashed()
-            ->with(['translations', 'deletedBy'])
+            ->with(['deletedBy'])
             ->orderBy('deleted_at', 'desc')
             ->get();
 
@@ -130,14 +130,10 @@ class MeetingPointSimpleController extends Controller
         }
 
         // Update specific translation
-        MeetingPointTranslation::updateOrCreate(
-            ['meeting_point_id' => $meetingpoint->id, 'locale' => $data['locale']],
-            [
-                'name'         => $data['t_name'],
-                'description'  => $data['t_description'] ?? null,
-                'instructions' => $data['t_instructions'] ?? null,
-            ]
-        );
+        $meetingpoint->setTranslation('name', $data['locale'], $data['t_name']);
+        $meetingpoint->setTranslation('description', $data['locale'], $data['t_description'] ?? null);
+        $meetingpoint->setTranslation('instructions', $data['locale'], $data['t_instructions'] ?? null);
+        $meetingpoint->save();
 
         LoggerHelper::mutated('MeetingPointSimpleController', 'update', 'MeetingPoint', $meetingpoint->id);
 
@@ -230,14 +226,12 @@ class MeetingPointSimpleController extends Controller
         $packs['instructions'] = $sourceInstr ? $translator->translateAll($sourceInstr) : [];
 
         foreach (['es', 'en', 'fr', 'pt', 'de'] as $loc) {
-            MeetingPointTranslation::updateOrCreate(
-                ['meeting_point_id' => $mp->id, 'locale' => $loc],
-                [
-                    'name'         => $packs['name'][$loc] ?? $sourceName,
-                    'description'  => $packs['description'][$loc] ?? $sourceDesc,
-                    'instructions' => $packs['instructions'][$loc] ?? $sourceInstr,
-                ]
-            );
+        foreach (['es', 'en', 'fr', 'pt', 'de'] as $loc) {
+             $mp->setTranslation('name', $loc, $packs['name'][$loc] ?? $sourceName);
+             $mp->setTranslation('description', $loc, $packs['description'][$loc] ?? $sourceDesc);
+             $mp->setTranslation('instructions', $loc, $packs['instructions'][$loc] ?? $sourceInstr);
+        }
+        $mp->save();
         }
     }
 }

@@ -39,7 +39,7 @@
       </div>
 
       <div class="col-md-2">
-        <input type="number" name="tour_id" class="form-control" value="{{ request('tour_id') }}" placeholder="{{ __('reviews.admin.filters.tour_id') }}">
+        <input type="number" name="product_id" class="form-control" value="{{ request('product_id') }}" placeholder="{{ __('reviews.admin.filters.product_id') }}">
       </div>
 
       <div class="col-md-1">
@@ -136,7 +136,7 @@
                 {{ ucfirst($r->provider ?? 'local') }}
               </span>
             </td>
-            <td>{{ $r->tour_id ?? $r->tour_name ?? '—' }}</td>
+            <td>{{ $r->product_id ?? $r->tour_name ?? '—' }}</td>
             @if(!$isExternal && ($selectedProvider ?? 'local') === 'local')
             <td>
               @if($ref)

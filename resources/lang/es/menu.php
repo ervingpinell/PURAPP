@@ -36,18 +36,18 @@ return [
         'meeting_points'  => 'Meeting Points',
 
         // Tours
-        'tours'           => 'Tours',
+        'tours'           => 'Productos',
         'amenities'       => 'Amenidades',
         'schedules'       => 'Horarios',
         'languages'       => 'Idiomas',
         'itineraries'     => 'Itinerarios',
         'itinerary_items' => 'Ítems de Itinerario',
-        'all_tours'       => 'Todos los Tours',
-        'order_tours'     => 'Ordenar Tours',
+        'all_tours'       => 'Todos los Productos',
+        'order_tours'     => 'Ordenar Productos',
 
         // Imágenes
         'images'          => 'Imágenes',
-        'tour_images'     => 'Imágenes de Tours',
+        'tour_images'     => 'Imágenes de Productos',
         'category_covers' => 'Covers de Categorías',
 
         // Usuarios

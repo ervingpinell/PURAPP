@@ -94,7 +94,7 @@ class HttpJsonReviewSource implements ReviewSource
     }
 
     /**
-     * @param array{tour_id?:int|string|null,language?:string|null,limit?:int,min?:int,start?:int,min_rating?:int} $opts
+     * @param array{product_id?:int|string|null,language?:string|null,limit?:int,min?:int,start?:int,min_rating?:int} $opts
      */
     public function fetch(array $opts = []): array
     {
@@ -109,7 +109,7 @@ class HttpJsonReviewSource implements ReviewSource
         $start     = max(1, (int) ($opts['start'] ?? 1));
         $minRating = max(0, (int) ($opts['min_rating'] ?? ($this->filters['min_rating'] ?? ($this->settings['min_rating'] ?? 0))));
 
-        $codes = $this->codesFor($opts['tour_id'] ?? null);
+        $codes = $this->codesFor($opts['product_id'] ?? null);
         if (empty($codes)) $codes = [null];
 
         $client = new Client([
@@ -236,7 +236,7 @@ class HttpJsonReviewSource implements ReviewSource
             'date'               => $date,
             'provider_review_id' => $rid,
             'product_code'       => $pcode ?: null,
-            'tour_id'            => $tourId,
+            'product_id'            => $tourId,
             'language'           => $lang,
         ];
 

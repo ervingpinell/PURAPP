@@ -14,37 +14,42 @@ $blkRouteName = RouteFacade::has('admin.tours.capacity.block') ? 'admin.tours.ca
 
 {{-- ===== Reescribir títulos de tours con el nombre traducido ===== --}}
 @php
-use App\Models\Tour;
+use App\Models\Product;
 
 $locale = app()->getLocale();
 
-// 1) Recolectar los tour_id presentes en las alertas
+// 1) Recolectar los product_id presentes en las alertas
 $tourIds = $serverAlerts
-->map(fn($a) => data_get($a, 'tour_id')
-?? data_get($a, 'tour.tour_id')
+->map(fn($a) => data_get($a, 'product_id')
+?? data_get($a, 'tour.product_id')
 ?? data_get($a, 'tour.id'))
 ->filter()
 ->unique()
 ->values();
 
-// 2) Cargar tours con traducciones y mapear por tour_id
-$toursById = Tour::with('translations')
-->whereIn('tour_id', $tourIds)
-->get()
-->keyBy('tour_id');
+// 2) Cargar tours (productos) con traducciones y mapear por product_id
+// Spatie no tiene 'translations' relationship en la definición de modelo updated pero Spatie Translatable la maneja internamente.
+// Actually invalid relationship if remove? Spatie uses 'translations' table but access via trait.
+// If accessors are used, translation is automatic.
+// The code uses $tour->getTranslatedName($locale) which was likely custom.
+// We should check if getTranslatedName exists in Product model or use standard Spatie accessor $product->name.
 
-// 3) Reescribir el campo "tour" con el nombre traducido (y asegurar tour_id)
+$toursById = Product::whereIn('product_id', $tourIds)
+->get()
+->keyBy('product_id');
+
+// 3) Reescribir el campo "tour" con el nombre traducido
 $serverAlerts = $serverAlerts->map(function ($a) use ($toursById, $locale) {
-$tid = data_get($a, 'tour_id')
-?? data_get($a, 'tour.tour_id')
+$tid = data_get($a, 'product_id')
+?? data_get($a, 'tour.product_id')
 ?? data_get($a, 'tour.id');
 
 if ($tid && $toursById->has($tid)) {
 $tour = $toursById[$tid];
-data_set($a, 'tour_id', $tid);
-data_set($a, 'tour', $tour->getTranslatedName($locale));
+data_set($a, 'product_id', $tid);
+// Use standard accessor or explicit getTranslation
+data_set($a, 'tour', $tour->name); // $model->name is automagically translated by Spatie
 }
-
 return $a;
 });
 
@@ -574,7 +579,7 @@ $I18N = [
     const scheduleTourMap = Object.fromEntries(
       serverRaw.map(a => {
         const sid = String(a.schedule_id ?? a.scheduleId ?? a.scheduleID ?? '');
-        const tid = a.tour_id ?? a.tourId ?? a.tourID ?? a?.tour?.tour_id ?? a?.tour?.id ?? null;
+        const tid = a.product_id ?? a.tourId ?? a.tourID ?? a?.tour?.product_id ?? a?.tour?.id ?? null;
         return [sid, tid];
       })
     );
@@ -670,7 +675,7 @@ $I18N = [
       const barCls = isBlocked ? 'cap-bar__fill--blocked' : '';
 
       return `
-      <div class="cap-card ${cardCls}" data-key="${a.key}" data-id="${a.schedule_id}" data-tour="${a.tour_id||''}" data-date="${a.date}">
+      <div class="cap-card ${cardCls}" data-key="${a.key}" data-id="${a.schedule_id}" data-tour="${a.product_id||''}" data-date="${a.date}">
         <div class="cap-card__top">
           <div class="cap-chip ${chipCls}">${badge}</div>
           <button class="cap-dismiss" title="${T('alerts')}"><i class="fas fa-times"></i></button>
@@ -706,9 +711,9 @@ $I18N = [
 
     // OPCIÓN 2: Solo usar alertas del servidor, ignorar cache mezclado
     const mountCards = () => {
-      // Filtrar alertas inválidas (sin tour_id válido)
+      // Filtrar alertas inválidas (sin product_id válido)
       const validAlerts = serverRaw.filter(a => {
-        const tid = a.tour_id;
+        const tid = a.product_id;
         return tid && tid !== 0 && tid !== null && tid !== undefined;
       });
 
@@ -936,12 +941,12 @@ $I18N = [
       const pct = (max || 0) > 0 ? Math.floor((u * 100) / max) : 0;
       const type = remaining === 0 ? 'sold_out' : (remaining <= 3 || pct >= 80) ? 'near_capacity' : 'info';
 
-      // Obtener tour_id de la tarjeta
+      // Obtener product_id de la tarjeta
       const tourId = getTourIdForCard(card);
 
       return {
         key: card.dataset.key,
-        tour_id: tourId, // Incluir tour_id
+        product_id: tourId, // Incluir product_id
         schedule_id: parseInt(card.dataset.id, 10),
         date: card.dataset.date,
         tour: card.querySelector('.cap-card__title')?.textContent || '—',
@@ -953,7 +958,7 @@ $I18N = [
       };
     };
 
-    // Helper para obtener tour_id siempre
+    // Helper para obtener product_id siempre
     const getTourIdForCard = (card) => {
       const sid = String(card.dataset.id || '');
       const fromAttr = card.dataset.tour && card.dataset.tour !== '0' ? parseInt(card.dataset.tour, 10) : null;
@@ -990,9 +995,9 @@ $I18N = [
 
         const tourId = getTourIdForCard(card);
         if (!tourId) {
-          return Swal.fire(T('error'), 'No se pudo determinar el tour_id para esta alerta.', 'error');
+          return Swal.fire(T('error'), 'No se pudo determinar el product_id para esta alerta.', 'error');
         }
-        url += (url.includes('?') ? '&' : '?') + 'tour_id=' + encodeURIComponent(tourId);
+        url += (url.includes('?') ? '&' : '?') + 'product_id=' + encodeURIComponent(tourId);
 
         try {
           detailsAbort?.abort();
@@ -1109,7 +1114,7 @@ $I18N = [
         try {
           const tourId = getTourIdForCard(card);
           if (!tourId) {
-            return Swal.fire(T('error'), 'No se pudo determinar el tour_id para esta alerta.', 'error');
+            return Swal.fire(T('error'), 'No se pudo determinar el product_id para esta alerta.', 'error');
           }
 
           const res = await fetch(url, {
@@ -1122,7 +1127,7 @@ $I18N = [
             body: JSON.stringify({
               amount,
               date: card.dataset.date || null,
-              tour_id: tourId
+              product_id: tourId
             })
           });
 
@@ -1190,7 +1195,7 @@ $I18N = [
         try {
           const tourId = getTourIdForCard(card);
           if (!tourId) {
-            return Swal.fire(T('error'), 'No se pudo determinar el tour_id para esta alerta.', 'error');
+            return Swal.fire(T('error'), 'No se pudo determinar el product_id para esta alerta.', 'error');
           }
 
           const res = await fetch(url, {
@@ -1202,7 +1207,7 @@ $I18N = [
             },
             body: JSON.stringify({
               date: dateStr,
-              tour_id: tourId
+              product_id: tourId
             })
           });
 

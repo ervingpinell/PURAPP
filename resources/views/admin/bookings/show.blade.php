@@ -12,7 +12,7 @@ static $CAT_NAME_BY_ID = null;
 static $CAT_NAME_BY_SLUG = null;
 
 if ($CAT_NAME_BY_ID === null || $CAT_NAME_BY_SLUG === null) {
-$allCats = CustomerCategory::active()->with('translations')->get();
+$allCats = CustomerCategory::active()->get();
 $CAT_NAME_BY_ID = $allCats->mapWithKeys(function($c) use ($locale) {
 return [$c->category_id => ($c->getTranslatedName($locale) ?: $c->slug ?: '')];
 })->all();
@@ -54,11 +54,11 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
 
 // ===== Datos base
 $detail = $booking->detail;
-$tour = $booking->tour;
+$tour = $booking->product;
 
 // Nombre del tour (live o snapshot) con i18n
 $liveName = optional($tour)->name;
-$snapName = $detail->tour_name_snapshot ?? ($booking->tour_name_snapshot ?? null);
+$snapName = $detail->tour_name_snapshot ?? ($booking->product_name_snapshot ?? null);
 $tourName = $liveName
 ?? ($snapName
 ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])

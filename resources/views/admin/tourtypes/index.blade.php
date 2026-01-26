@@ -11,13 +11,13 @@
     {{-- Tabs: Activos / Papelera --}}
     <ul class="nav nav-tabs mb-3" role="tablist">
         <li class="nav-item" role="presentation">
-            <a class="nav-link active" href="{{ route('admin.tourtypes.index') }}" role="tab">
+            <a class="nav-link active" href="{{ route('admin.product-types.index') }}" role="tab">
                 {{ __('m_config.tourtypes.active_tab') ?? 'Activos' }}
             </a>
         </li>
         @can('restore-tour-types')
         <li class="nav-item" role="presentation">
-            <a class="nav-link" href="{{ route('admin.tourtypes.trash') }}" role="tab">
+            <a class="nav-link" href="{{ route('admin.product-types.trash') }}" role="tab">
                 {{ __('m_config.tourtypes.trash_tab') ?? 'Papelera' }}
                 @if(isset($trashedCount) && $trashedCount > 0)
                 <span class="badge badge-danger ml-1">{{ $trashedCount }}</span>
@@ -36,7 +36,7 @@
 
         {{-- Botón global para ordenar tours --}}
         @can('edit-tours')
-        <a href="{{ route('admin.tours.order.index') }}" class="btn btn-primary">
+        <a href="{{ route('admin.products.order.index') }}" class="btn btn-primary">
             <i class="fas fa-sort-amount-down"></i> Ordenar tours
         </a>
         @endcan
@@ -58,10 +58,11 @@
             <tr>
                 <td>{{ $tourtype->tour_type_id }}</td>
                 <td>
-                    {{ $tourtype->translate($currentLocale)->name ?? $tourtype->name }}
+                    {{ $tourtype->getTranslatedName($currentLocale) ?? $tourtype->name }}
                     {{-- Badges de idiomas disponibles --}}
                     @php
-                    $availableLocales = $tourtype->translations->pluck('locale')->toArray();
+                    $availableLocales = $tourtype->getTranslations('name');
+                    $availableLocales = array_keys($availableLocales);
                     @endphp
                     @if(count($availableLocales) > 0)
                     <div class="mt-1">
@@ -75,8 +76,8 @@
                     </div>
                     @endif
                 </td>
-                <td>{{ $tourtype->translate($currentLocale)->description ?? $tourtype->description }}</td>
-                <td>{{ $tourtype->translate($currentLocale)->duration ?? $tourtype->duration }}</td>
+                <td>{{ $tourtype->getTranslation('description', $currentLocale) ?: $tourtype->description }}</td>
+                <td>{{ $tourtype->getTranslation('duration', $currentLocale) ?: $tourtype->duration }}</td>
                 <td>
                     @if ($tourtype->is_active)
                     <span class="badge bg-success">{{ __('m_config.tourtypes.active') }}</span>
@@ -91,7 +92,7 @@
                     <a href="#"
                         class="btn btn-edit btn-sm me-1"
                         data-bs-toggle="modal"
-                        data-bs-target="#modalEditar{{ $tourtype->tour_type_id }}"
+                        data-bs-target="#modalEditar{{ $tourtype->product_type_id }}"
                         title="{{ __('m_config.tourtypes.edit') }}">
                         <i class="fas fa-edit"></i>
                     </a>
@@ -99,7 +100,7 @@
                     {{-- (Botón Traducciones Eliminado) --}}
 
                     {{-- Activar/Desactivar (SweetAlert) --}}
-                    <form action="{{ route('admin.tourtypes.toggle', $tourtype->tour_type_id) }}"
+                    <form action="{{ route('admin.product-types.toggle', $tourtype->product_type_id) }}"
                         method="POST"
                         class="d-inline me-1 js-confirm-toggle"
                         data-name="{{ $tourtype->name }}"
@@ -116,7 +117,7 @@
 
                     {{-- Ordenar tours de esta categoría --}}
                     @can('edit-tours')
-                    <a href="{{ route('admin.tours.order.index', ['tour_type_id' => $tourtype->tour_type_id]) }}"
+                    <a href="{{ route('admin.products.order.index', ['tour_type_id' => $tourtype->product_type_id]) }}"
                         class="btn btn-sm btn-primary me-1"
                         title="Ordenar tours de «{{ $tourtype->name }}»">
                         <i class="fas fa-sort-amount-down"></i>
@@ -126,7 +127,7 @@
                     {{-- Eliminar --}}
                     @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
                     @can('soft-delete-tour-types')
-                    <form action="{{ route('admin.tourtypes.destroy', $tourtype->tour_type_id) }}"
+                    <form action="{{ route('admin.product-types.destroy', $tourtype->product_type_id) }}"
                         method="POST"
                         class="d-inline js-confirm-delete"
                         data-name="{{ $tourtype->name }}">
@@ -142,9 +143,9 @@
             </tr>
 
             {{-- Modal editar --}}
-            <div class="modal fade" id="modalEditar{{ $tourtype->tour_type_id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal fade" id="modalEditar{{ $tourtype->product_type_id }}" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
-                    <form action="{{ route('admin.tourtypes.update', $tourtype->tour_type_id) }}" method="POST" autocomplete="off">
+                    <form action="{{ route('admin.product-types.update', $tourtype->product_type_id) }}" method="POST" autocomplete="off">
                         @csrf
                         @method('PUT')
                         <div class="modal-content">
@@ -161,9 +162,9 @@
                                     @foreach($locales as $i => $loc)
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link {{ $i===0 ? 'active' : '' }}"
-                                            id="edit-tab-{{ $tourtype->tour_type_id }}-{{ $loc }}"
+                                            id="edit-tab-{{ $tourtype->product_type_id }}-{{ $loc }}"
                                             data-bs-toggle="tab"
-                                            data-bs-target="#edit-pane-{{ $tourtype->tour_type_id }}-{{ $loc }}"
+                                            data-bs-target="#edit-pane-{{ $tourtype->product_type_id }}-{{ $loc }}"
                                             type="button"
                                             role="tab">
                                             {{ strtoupper($loc) }}
@@ -175,13 +176,13 @@
                                 <div class="tab-content">
                                     @foreach($locales as $i => $loc)
                                     @php
-                                        $trans = $tourtype->translations->firstWhere('locale', $loc);
-                                        $t_name = $trans ? $trans->name : '';
-                                        $t_desc = $trans ? $trans->description : '';
-                                        $t_dur  = $trans ? $trans->duration : '';
+                                        // Spatie: getTranslation returns string directly
+                                        $t_name = $tourtype->getTranslation('name', $loc, false);
+                                        $t_desc = $tourtype->getTranslation('description', $loc, false);
+                                        $t_dur  = $tourtype->getTranslation('duration', $loc, false);
                                     @endphp
                                     <div class="tab-pane fade {{ $i===0 ? 'show active' : '' }}" 
-                                         id="edit-pane-{{ $tourtype->tour_type_id }}-{{ $loc }}" 
+                                         id="edit-pane-{{ $tourtype->product_type_id }}-{{ $loc }}" 
                                          role="tabpanel">
                                         
                                         {{-- Nombre --}}
@@ -210,10 +211,10 @@
                                             <input type="text"
                                                 name="translations[{{ $loc }}][duration]"
                                                 class="form-control"
-                                                list="durationOptions-{{ $tourtype->tour_type_id }}-{{ $loc }}"
+                                                list="durationOptions-{{ $tourtype->product_type_id }}-{{ $loc }}"
                                                 value="{{ old("translations.$loc.duration", $t_dur) }}"
                                                 placeholder="{{ __('m_config.tourtypes.duration_placeholder') }}">
-                                            <datalist id="durationOptions-{{ $tourtype->tour_type_id }}-{{ $loc }}">
+                                            <datalist id="durationOptions-{{ $tourtype->product_type_id }}-{{ $loc }}">
                                                 <option value="4 horas"></option>
                                                 <option value="6 horas"></option>
                                                 <option value="8 horas"></option>
@@ -241,7 +242,7 @@
 {{-- Modal registrar --}}
 <div class="modal fade" id="modalRegistrar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
-        <form action="{{ route('admin.tourtypes.store') }}" method="POST" autocomplete="off">
+        <form action="{{ route('admin.product-types.store') }}" method="POST" autocomplete="off">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">

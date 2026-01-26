@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\ContactMessage;
 use App\Models\HotelList;
 use App\Models\MeetingPoint;
-use App\Models\Tour;
+use App\Models\Product;
 use App\Models\TourExcludedDate;
 use App\Models\TourType;
 use App\Models\CustomerCategory;
@@ -58,9 +58,9 @@ class HomeController extends Controller
 
             // 4) Asegurar nombre traducido y slug en cada review
             $homeReviews = $homeReviews->map(function ($review) use ($tours, $currentLocale, $fallbackLocale) {
-                $tourId = (int)($review['tour_id'] ?? 0);
+                $tourId = (int)($review['product_id'] ?? 0);
                 if ($tourId) {
-                    $tour = $tours->firstWhere('tour_id', $tourId);
+                    $tour = $tours->firstWhere('product_id', $tourId);
                     if ($tour) {
                         if (empty($tour->translated_name)) {
                             $tr = $this->pickTranslation($tour->translations, $currentLocale, $fallbackLocale);
@@ -75,7 +75,6 @@ class HomeController extends Controller
 
             // 5) Meeting Points
             $meetingPoints = MeetingPoint::active()
-                ->with('translations')
                 ->orderByRaw('sort_order IS NULL, sort_order ASC')
                 ->get();
 
@@ -109,8 +108,8 @@ class HomeController extends Controller
         }
     }
 
-    public function showTour(
-        Tour $tour,
+    public function showProduct(
+        Product $product,
         ReviewAggregator $agg,
         ReviewsCacheManager $cacheManager,
         BookingCapacityService $capacityService
@@ -119,7 +118,7 @@ class HomeController extends Controller
         $fb  = config('app.fallback_locale', 'es');
 
         try {
-            $tour->load([
+            $product->load([
                 'tourType.translations',
                 'images',
                 'schedules' => fn($q) => $q->where('schedules.is_active', true)
@@ -137,7 +136,6 @@ class HomeController extends Controller
                 'itinerary.translations',
                 'amenities.translations',
                 'excludedAmenities.translations',
-                'translations',
             ]);
 
             // Traducciones del tour
@@ -205,12 +203,12 @@ class HomeController extends Controller
 
             // [3] Reviews con caché
             $tourName = $tour->translated_name;
-            $tourId   = $tour->tour_id;
+            $tourId   = $tour->product_id;
             $cacheKey = "tour_reviews_pool:{$tourId}:" . $cacheManager->getRevision("tour.{$tourId}");
 
             $tourReviews = Cache::remember($cacheKey, 86400, function () use ($agg, $tourId, $tourName) {
-                return $agg->aggregate(['tour_id' => $tourId, 'limit' => 100])
-                    ->filter(fn($r) => (int)($r['tour_id'] ?? 0) === (int)$tourId)
+                return $agg->aggregate(['product_id' => $tourId, 'limit' => 100])
+                    ->filter(fn($r) => (int)($r['product_id'] ?? 0) === (int)$tourId)
                     ->unique(function ($r) {
                         $provider = strtolower($r['provider'] ?? 'p');
                         if (!empty($r['provider_review_id'])) {
@@ -222,15 +220,15 @@ class HomeController extends Controller
                                 trim($r['date'] ?? '')
                         );
                     })
-                    ->map(fn($r) => array_merge($r, ['tour_name' => $tourName, 'tour_id' => $tourId]))
+                    ->map(fn($r) => array_merge($r, ['tour_name' => $tourName, 'product_id' => $tourId]))
                     ->values();
             });
 
             // [4] Datos para el formulario de reserva (Refactorizado)
-            $reservationData = $this->prepareReservationData($tour);
+            $reservationData = $this->prepareReservationData($product);
 
-            return view('public.tour-show', array_merge([
-                'tour'               => $tour,
+            return view('public.product-show', array_merge([
+                'tour'               => $product, // Keep 'tour' key for view compatibility for now, or rename in view
                 'blockedGeneral'     => $blockedGeneral,
                 'blockedBySchedule'  => $blockedBySchedule,
                 'fullyBlockedDates'  => $fullyBlockedDates,
@@ -243,7 +241,7 @@ class HomeController extends Controller
             ], $reservationData));
         } catch (Throwable $e) {
             Log::error('tour.show.failed', [
-                'tour_id' => $tour->tour_id ?? 'unknown',
+                'product_id' => $tour->product_id ?? 'unknown',
                 'error'   => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
             ]);
@@ -251,7 +249,7 @@ class HomeController extends Controller
         }
     }
 
-    public function allTours(Request $request)
+    public function allProducts(Request $request)
     {
         $loc = app()->getLocale();
         $fb  = config('app.fallback_locale', 'es');
@@ -259,23 +257,22 @@ class HomeController extends Controller
         // =========================
         // QUERY DE TOURS
         // =========================
-        $query = Tour::query()
+        $query = Product::query()
             ->active() // scopeActive: is_active = true & is_draft = false
             ->with([
                 'coverImage',
                 'prices.category.translations',
                 'itinerary.items.translations',
                 'tourType.translations',
-                'translations',
             ]);
 
         // Filtro por texto
         if ($search = trim((string) $request->input('q', ''))) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhereHas('translations', function ($t) use ($search) {
-                        $t->where('name', 'ilike', "%{$search}%");
-                    });
+                // Search in name column (JSON)
+                $locale = app()->getLocale();
+                $q->whereRaw("name->>'$locale' ILIKE ?", ["%{$search}%"])
+                  ->orWhere('name', 'ilike', "%{$search}%"); // Fallback check entire JSON string
             });
         }
 
@@ -286,7 +283,7 @@ class HomeController extends Controller
 
         $tours = $query
             ->leftJoin('tour_type_tour_order as o', function ($join) {
-                $join->on('o.tour_id', '=', 'tours.tour_id')
+                $join->on('o.product_id', '=', 'tours.product_id')
                     ->on('o.tour_type_id', '=', 'tours.tour_type_id');
             })
             ->orderBy('tours.tour_type_id')
@@ -306,7 +303,6 @@ class HomeController extends Controller
         // =========================
         $categories = TourType::query()
             ->where('is_active', true)
-            ->with('translations')
             ->get()
             ->map(function (TourType $type) use ($loc, $fb) {
                 $tr = $type->translations
@@ -319,7 +315,7 @@ class HomeController extends Controller
             ->sortBy('translated_name')
             ->values();
 
-        return view('public.tours.index', [
+        return view('public.products.index', [
             'tours'      => $tours,
             'categories' => $categories,
         ]);
@@ -355,11 +351,10 @@ class HomeController extends Controller
     {
         $cacheKey = "home_active_tours:{$loc}";
         return Cache::remember($cacheKey, 3600, function () use ($loc, $fb) {
-            return Tour::query()
+            return Product::query()
                 ->with([
                     'tourType:tour_type_id',
                     'tourType.translations',
-                    'translations',
                     'coverImage',
                     // 👇 Aquí también cargamos translations de la categoría
                     'prices' => function ($q) {
@@ -370,7 +365,7 @@ class HomeController extends Controller
                     }
                 ])
                 ->leftJoin('tour_type_tour_order as o', function ($join) {
-                    $join->on('o.tour_id', '=', 'tours.tour_id')
+                    $join->on('o.product_id', '=', 'tours.product_id')
                         ->on('o.tour_type_id', '=', 'tours.tour_type_id');
                 })
                 ->where('tours.is_active', true)
@@ -379,7 +374,7 @@ class HomeController extends Controller
                 ->orderBy('o.position')
                 ->orderBy('tours.name')
                 ->get([
-                    'tours.tour_id',
+                    'tours.product_id',
                     'tours.name',
                     'tours.slug',
                     'tours.tour_type_id',
@@ -422,11 +417,11 @@ class HomeController extends Controller
         });
     }
 
-    private function computeTourBlocks(Tour $tour): array
+    private function computeTourBlocks(Product $tour): array
     {
         $visibleScheduleIds = $tour->schedules->pluck('schedule_id')->map(fn($sid) => (int)$sid)->all();
 
-        $blockedRows = TourExcludedDate::where('tour_id', $tour->tour_id)
+        $blockedRows = TourExcludedDate::where('product_id', $tour->product_id)
             ->where(function ($q) use ($visibleScheduleIds) {
                 $q->whereNull('schedule_id');
                 if (!empty($visibleScheduleIds)) {
@@ -506,7 +501,7 @@ class HomeController extends Controller
      * Prepara los datos necesarios para el formulario de reserva (precios, categorías, traducciones)
      * Refactorizado desde las vistas travelers.blade.php y fields.blade.php
      */
-    private function prepareReservationData(Tour $tour): array
+    private function prepareReservationData(Product $tour): array
     {
         // 1. Configuración de ventana de reserva
         $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_days_advance', 730));
@@ -904,5 +899,103 @@ class HomeController extends Controller
                 'email' => __('adminlte::adminlte.contact_error'),
             ]);
         }
+    }
+    
+    /**
+     * Products by category (dynamic routes)
+     */
+    public function productsByCategory(Request $request)
+    {
+        $category = $request->route('category');
+        $loc = app()->getLocale();
+        $fb  = config('app.fallback_locale', 'es');
+        
+        // Get category config
+        $categoryConfig = \App\Helpers\ProductCategoryHelper::getCategoryConfig($category);
+        if (!$categoryConfig) {
+            abort(404);
+        }
+        
+        // Query products
+        $query = Product::query()
+            ->active()
+            ->with([
+                'productType',
+                'coverImage',
+                'prices.category.translations',
+            ]);
+        
+        // Filter by search
+        if ($search = trim((string) $request->input('q', ''))) {
+            $query->where(function ($q) use ($search, $loc) {
+                $q->whereRaw("name->>'$loc' ILIKE ?", ["%{$search}%"])
+                  ->orWhere('name', 'ilike', "%{$search}%");
+            });
+        }
+        
+        // Filter by subcategory if provided
+        if ($subcategory = $request->input('subcategory')) {
+            $query->where('subcategory', $subcategory);
+        }
+        
+        $products = $query
+            ->orderBy('name')
+            ->paginate(12)
+            ->withQueryString()
+            ->through(function ($product) use ($loc, $fb) {
+                $tr = $this->pickTranslation($product->translations, $loc, $fb);
+                $product->translated_name = $tr->name ?? $product->name;
+                return $product;
+            });
+        
+        return view('public.products.index', [
+            'products' => $products,
+            'category' => $category,
+            'categoryConfig' => $categoryConfig,
+        ]);
+    }
+    
+    /**
+     * Products by subcategory (landing pages)
+     */
+    public function productsBySubcategory(Request $request, string $subcategory)
+    {
+        $category = $request->route('category');
+        $loc = app()->getLocale();
+        $fb  = config('app.fallback_locale', 'es');
+        
+        // Validate category and subcategory exist
+        if (!\App\Helpers\ProductCategoryHelper::subcategoryExists($category, $subcategory)) {
+            abort(404);
+        }
+        
+        $categoryConfig = \App\Helpers\ProductCategoryHelper::getCategoryConfig($category);
+        $subcategoryConfig = \App\Helpers\ProductCategoryHelper::getSubcategoryConfig($category, $subcategory);
+        
+        // Query products
+        $products = Product::query()
+            ->active()
+            ->with([
+                'productType',
+                'coverImage',
+                'prices.category.translations',
+            ])
+            ->where('subcategory', $subcategory)
+            ->orderBy('name')
+            ->paginate(12)
+            ->through(function ($product) use ($loc, $fb) {
+                $tr = $this->pickTranslation($product->translations, $loc, $fb);
+                $product->translated_name = $tr->name ?? $product->name;
+                return $product;
+            });
+        
+        // Use same view as category, but with subcategory data
+        return view('public.products.index', [
+            'products' => $products,
+            'category' => $category,
+            'subcategory' => $subcategory,
+            'categoryConfig' => $categoryConfig,
+            'subcategoryConfig' => $subcategoryConfig,
+        ]);
     }
 }

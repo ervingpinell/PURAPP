@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin\Reviews;
 
 use App\Http\Controllers\Controller;
 use App\Models\ReviewProvider;
-use App\Models\Tour;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
@@ -38,10 +38,9 @@ class ProductMappingController extends Controller
 
         // Load tours for the mapped IDs
         $tourIds = array_keys($productMap);
-        $tours = Tour::whereIn('tour_id', $tourIds)
-            ->with('translations')
+        $tours = Product::whereIn('product_id', $tourIds)
             ->get()
-            ->keyBy('tour_id');
+            ->keyBy('product_id');
 
         // Build mappings array with tour details
         $mappings = [];
@@ -49,7 +48,7 @@ class ProductMappingController extends Controller
             $tour = $tours->get($tourId);
             if ($tour) {
                 $mappings[] = [
-                    'tour_id' => $tourId,
+                    'product_id' => $tourId,
                     'tour_name' => $tour->getTranslatedName(),
                     'product_code' => $productCode,
                 ];
@@ -57,13 +56,12 @@ class ProductMappingController extends Controller
         }
 
         // Get all tours for dropdown
-        $allTours = Tour::where('is_active', true)
-            ->with('translations')
+        $allTours = Product::where('is_active', true)
             ->orderBy('name')
             ->get()
             ->map(function ($tour) {
                 return [
-                    'id' => $tour->tour_id,
+                    'id' => $tour->product_id,
                     'name' => $tour->getTranslatedName(),
                 ];
             });
@@ -77,11 +75,11 @@ class ProductMappingController extends Controller
     public function store(Request $request, ReviewProvider $provider)
     {
         $validated = $request->validate([
-            'tour_id' => [
+            'product_id' => [
                 'required',
                 'integer',
-                'exists:tours,tour_id',
-                Rule::unique('review_providers', 'settings->product_map->' . $request->tour_id)
+                'exists:tours,product_id',
+                Rule::unique('review_providers', 'settings->product_map->' . $request->product_id)
                     ->where('id', '!=', $provider->id),
             ],
             'product_code' => 'required|string|max:255',
@@ -91,7 +89,7 @@ class ProductMappingController extends Controller
         $productMap = (array) ($settings['product_map'] ?? []);
 
         // Add new mapping
-        $productMap[(string) $validated['tour_id']] = trim($validated['product_code']);
+        $productMap[(string) $validated['product_id']] = trim($validated['product_code']);
         $settings['product_map'] = $productMap;
 
         $provider->settings = $settings;

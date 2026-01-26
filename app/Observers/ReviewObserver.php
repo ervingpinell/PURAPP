@@ -18,9 +18,9 @@ class ReviewObserver
 
     public function updated(Review $review): void
     {
-        if ($review->wasChanged(['rating', 'status', 'is_public', 'title', 'body', 'tour_id'])) {
-            if ($review->wasChanged('tour_id')) {
-                $old = $review->getOriginal('tour_id');
+        if ($review->wasChanged(['rating', 'status', 'is_public', 'title', 'body', 'product_id'])) {
+            if ($review->wasChanged('product_id')) {
+                $old = $review->getOriginal('product_id');
                 if ($old) $this->cache->flushTour($old);
             }
             $this->invalidate($review);
@@ -36,8 +36,8 @@ class ReviewObserver
     {
         $this->cache->flush(); // Global
 
-        if ($review->tour_id) {
-            $this->cache->flushTour($review->tour_id);
+        if ($review->product_id) {
+            $this->cache->flushTour($review->product_id);
         }
     }
 }

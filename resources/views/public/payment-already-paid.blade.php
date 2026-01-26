@@ -40,10 +40,10 @@
                                     {{ __('payment.paid') ?? 'Paid' }}
                                 </span>
                             </div>
-                            @if($booking->tour)
+                            @if($booking->product)
                             <div class="col-12 text-start">
                                 <small class="text-muted d-block">{{ __('m_bookings.bookings.tour') ?? 'Tour' }}</small>
-                                <strong>{{ $booking->tour->getTranslatedName() ?? $booking->tour->name }}</strong>
+                                <strong>{{ $booking->product->getTranslatedName() ?? $booking->product->name }}</strong>
                             </div>
                             @endif
                             @if($booking->detail && $booking->detail->tour_date)

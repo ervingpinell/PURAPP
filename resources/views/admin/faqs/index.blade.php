@@ -210,9 +210,9 @@
                 <div class="tab-content" id="faqTabsContent{{ $faq->faq_id }}">
                   @foreach($locales as $locale)
                   @php
-                  $translation = $faq->translations->firstWhere('locale', $locale);
-                  $questionValue = $translation ? $translation->question : ($locale === 'es' ? $faq->question : '');
-                  $answerValue = $translation ? $translation->answer : ($locale === 'es' ? $faq->answer : '');
+                  // Spatie Translatable: get specific locale value
+                  $questionValue = $faq->getTranslation('question', $locale, false);
+                  $answerValue   = $faq->getTranslation('answer', $locale, false);
                   @endphp
                   <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
                     id="content-{{ $faq->faq_id }}-{{ $locale }}"

@@ -3,7 +3,7 @@
   use Illuminate\Support\Str;
 
   // Prefijo consistente con el resto
-  $prefix = $prefix ?? ('pol-' . ($tour->tour_id ?? Str::uuid()));
+  $prefix = $prefix ?? ('pol-' . ($tour->product_id ?? Str::uuid()));
   $locale = app()->getLocale();
 
   // Lookup robusto: primero IDs “matriculados”, luego type, luego slugs legacy

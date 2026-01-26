@@ -26,7 +26,7 @@ class StoreLocalReviewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tour_id'     => ['required', 'integer', 'exists:tours,tour_id'],
+            'product_id'     => ['required', 'integer', 'exists:tours,product_id'],
             'booking_id'  => ['nullable', 'integer', 'exists:bookings,booking_id'],
 
             'provider'    => ['in:local'],

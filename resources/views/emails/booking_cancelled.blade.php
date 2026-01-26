@@ -91,8 +91,8 @@ $scheduleTxt = $d?->schedule
 
 $tourLang = optional($d?->tourLanguage)->language_name
 ?? optional($d?->tourLanguage)->name
-?? optional($booking->tourLanguage)->language_name
-?? optional($booking->tourLanguage)->language
+?? optional($booking->productLanguage)->language_name
+?? optional($booking->productLanguage)->language
 ?? null;
 
 $meetingName = $d?->meeting_point_name;

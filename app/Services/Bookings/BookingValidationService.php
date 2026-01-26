@@ -2,7 +2,7 @@
 
 namespace App\Services\Bookings;
 
-use App\Models\Tour;
+use App\Models\Product;
 use Illuminate\Support\Collection;
 
 /**
@@ -16,7 +16,7 @@ class BookingValidationService
      * Valida cantidades según categorías activas del tour
      * $quantities = ['category_id' => quantity, ...]
      */
-    public function validateQuantities(Tour $tour, array $quantities, bool $skipGlobalLimit = false): array
+    public function validateQuantities(Product $tour, array $quantities, bool $skipGlobalLimit = false): array
     {
         $errors   = [];
         $totalPax = array_sum(array_map('intval', $quantities));
@@ -107,7 +107,7 @@ class BookingValidationService
      * Devuelve una colección de stdClass con:
      * category_id, name (traducido/resuelto), slug, min_quantity, max_quantity, price
      */
-    protected function getActiveCategoriesForTour(Tour $tour): Collection
+    protected function getActiveCategoriesForTour(Product $tour): Collection
     {
         return $tour->prices()
             ->where('tour_prices.is_active', true)
@@ -139,7 +139,7 @@ class BookingValidationService
     /**
      * Límits para frontend
      */
-    public function getLimitsForTour(Tour $tour): array
+    public function getLimitsForTour(Product $tour): array
     {
         $maxGlobal = (int) config('booking.max_persons_per_booking', 12);
         $active    = $this->getActiveCategoriesForTour($tour);

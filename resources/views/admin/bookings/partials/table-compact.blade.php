@@ -7,7 +7,6 @@ $currency = config('app.currency_symbol', '$');
 
 // Mapa de nombres traducidos por category_id y por slug para resolver rápido
 $allCats = CustomerCategory::active()
-->with('translations') // para que getTranslatedName use la relación ya cargada
 ->get();
 
 $catNameById = $allCats->mapWithKeys(function($c) use ($locale) {
@@ -54,7 +53,7 @@ return [$c->slug => ($label ?: $c->slug)];
 
     // ===== Tour name con fallback =====
     $liveName = optional($detail?->tour)->name;
-    $snapName = $detail->tour_name_snapshot ?: ($booking->tour_name_snapshot ?? null);
+    $snapName = $detail->tour_name_snapshot ?: ($booking->product_name_snapshot ?? null);
     $tourCellText = $liveName
     ?? ($snapName
     ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])
@@ -341,7 +340,7 @@ return [$c->slug => ($label ?: $c->slug)];
   // Re-calcular variables para móvil porque el scope del foreach anterior terminó
   $detail = $booking->detail;
   $liveName = optional($detail?->tour)->name;
-  $snapName = $detail->tour_name_snapshot ?: ($booking->tour_name_snapshot ?? null);
+  $snapName = $detail->tour_name_snapshot ?: ($booking->product_name_snapshot ?? null);
   $tourCellText = $liveName ?? ($snapName ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName]) : __('m_bookings.bookings.messages.deleted_tour'));
   
   $scheduleLabel = $detail?->schedule ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') : '—';

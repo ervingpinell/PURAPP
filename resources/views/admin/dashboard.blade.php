@@ -32,14 +32,14 @@
 
   <div class="col-md-4 mb-3">
     <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tours') }}" text="{{ $totalTours ?? 0 }}" icon="fas fa-map" theme="warning" />
-    <a href="{{ route('admin.tours.index') }}" class="btn btn-warning btn-block mt-2">
+    <a href="{{ route('admin.products.index') }}" class="btn btn-warning btn-block mt-2">
       {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.tours') }}
     </a>
   </div>
 
   <div class="col-md-4 mb-3">
-    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tour_types') }}" text="{{ $totalTourTypes ?? ($tourTypes ?? 0) }}" icon="fas fa-tags" theme="success" />
-    <a href="{{ route('admin.tourtypes.index') }}" class="btn btn-success btn-block mt-2">
+    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tour_types') }}" text="{{ $totalProductTypes ?? ($tourTypes ?? 0) }}" icon="fas fa-tags" theme="success" />
+    <a href="{{ route('admin.product-types.index') }}" class="btn btn-success btn-block mt-2">
       {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.tour_types') }}
     </a>
   </div>
@@ -53,7 +53,7 @@
 
   <div class="col-md-4 mb-3">
     <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.schedules') }}" text="{{ $totalSchedules ?? 0 }}" icon="fas fa-clock" theme="dark" />
-    <a href="{{ route('admin.tours.schedule.index') }}" class="btn btn-dark btn-block mt-2">
+    <a href="{{ route('admin.products.schedule.index') }}" class="btn btn-dark btn-block mt-2">
       {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.schedules') }}
     </a>
   </div>
@@ -61,7 +61,7 @@
   <div class="col-md-4 mb-3">
     {{-- Amenidades ahora con claves de traducción --}}
     <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.amenities') }}" text="{{ $totalAmenities ?? 0 }}" icon="fas fa-concierge-bell" theme="secondary" />
-    <a href="{{ route('admin.tours.amenities.index') }}" class="btn btn-secondary btn-block mt-2">
+    <a href="{{ route('admin.products.amenities.index') }}" class="btn btn-secondary btn-block mt-2">
       {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.amenities') }}
     </a>
   </div>

@@ -340,7 +340,7 @@
                     <div class="col-12 col-md-3">
                         <label class="filter-label">{{ __('reports.filters.tours') }}</label>
                         @php $tSel = $tourIds ?? []; @endphp
-                        <select name="tour_id[]" class="form-control" multiple size="5">
+                        <select name="product_id[]" class="form-control" multiple size="5">
                             @foreach($toursMap as $id => $name)
                             <option value="{{ $id }}" @selected(in_array($id, $tSel))>{{ $name }}</option>
                             @endforeach

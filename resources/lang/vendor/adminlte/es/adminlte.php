@@ -113,6 +113,8 @@ return [
 
     // 5. TOURS Y RESEÑAS
     'tours' => 'Servicios',
+    'services' => 'Servicios',
+    'all_services' => 'Todos los servicios',
     'tour' => 'Servicio',
     'tour_name' => 'Nombre del servicio',
     'overview' => 'Resumen',
@@ -139,6 +141,8 @@ return [
     'see_tour' => 'Ver servicio',
     'see_tours' => 'Ver servicios',
     'see_tour_details' => 'Ver detalles del servicio',
+    'view_details' => 'Ver detalles',
+    'view_all_count' => 'Ver todos (:count)',
     'what_visitors_say' => 'Lo que dicen nuestros visitantes',
     'quote_1' => '¡Una experiencia inolvidable!',
     'guest_1' => 'Carlos M.',
@@ -366,6 +370,8 @@ return [
     'contact_spam_success' => 'Tu mensaje ha sido enviado.',
     'contact_success'      => 'Tu mensaje se ha enviado correctamente. Nos pondremos en contacto contigo muy pronto.',
     'contact_error'        => 'Ocurrió un error al enviar tu mensaje. Por favor, inténtalo de nuevo en unos minutos.',
+    'need_help_choosing' => '¿Necesitas ayuda para elegir?',
+    'contact_cta_text' => 'Nuestro equipo está listo para ayudarte a planificar la experiencia perfecta.',
 
 
     // Placeholders
@@ -490,8 +496,8 @@ return [
     // 23. ENTIDADES
     'entities' => [
         'users'        => 'Usuarios',
-        'tours'        => 'Tours',
-        'tour_types'   => 'Tipos de tour',
+        'tours'        => 'Servicios',
+        'tour_types'   => 'Categorías de servicio',
         'languages'    => 'Idiomas',
         'schedules'    => 'Horarios',
         'amenities'    => 'Servicios',
@@ -503,7 +509,7 @@ return [
 
     // 24. SECCIONES
     'sections' => [
-        'available_tours' => 'Tours disponibles',
+        'available_tours' => 'Servicios disponibles',
         'upcoming_bookings'     => 'Próximas reservas',
     ],
 
@@ -560,6 +566,7 @@ return [
     'filters_title'            => 'Filtrar resultados',
     'filters_subtitle'         => 'Combina búsqueda por texto y categoría para encontrar el tour ideal.',
     'search_tours_placeholder' => 'Buscar por nombre o descripción…',
+    'search_services_placeholder' => 'Buscar servicios…',
 
     'all_categories'           => 'Todas las categorías',
     'category_label'           => 'Categoría',
@@ -579,6 +586,7 @@ return [
 
     // Para trans_choice
     'tours_count' => '1 servicio disponible|:count servicios disponibles',
+    'categories_count' => '1 categoría|:count categorías',
 
     // Quantities
     'quantities' => 'Cantidades',

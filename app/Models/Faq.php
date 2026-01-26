@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Translatable\HasTranslations;
 
 /**
  * Faq Model
@@ -13,7 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Faq extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTranslations;
 
     protected $table = 'faqs';
     protected $primaryKey = 'faq_id';
@@ -21,11 +22,11 @@ class Faq extends Model
     protected $keyType = 'int';
     public $timestamps = true;
 
+    public $translatable = ['question', 'answer'];
+
     protected $fillable = [
         'question',
         'answer',
-        'translated_question',
-        'translated_answer',
         'is_active',
         'sort_order',
         'deleted_by',
@@ -39,37 +40,17 @@ class Faq extends Model
     {
         return $query->where('is_active', true);
     }
-
-    public function translations()
-    {
-        return $this->hasMany(FaqTranslation::class, 'faq_id', 'faq_id');
-    }
-
-    public function translate(?string $locale = null)
-    {
-        $locale = $locale ?? app()->getLocale();
-
-        if ($this->relationLoaded('translations')) {
-            return $this->translations->firstWhere('locale', $locale)
-                ?? $this->translations->firstWhere('locale', config('app.fallback_locale'));
-        }
-
-        return $this->translations()
-            ->where('locale', $locale)
-            ->first()
-            ?? $this->translations()
-            ->where('locale', config('app.fallback_locale'))
-            ->first();
-    }
+    
+    // Removed hasMany translations
 
     public function getQuestionTranslatedAttribute(): ?string
     {
-        return optional($this->translate())?->question;
+        return $this->question;
     }
 
     public function getAnswerTranslatedAttribute(): ?string
     {
-        return optional($this->translate())?->answer;
+        return $this->answer;
     }
 
     public function deletedBy()

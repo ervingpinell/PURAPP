@@ -198,13 +198,13 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
 
                     {{-- Tour (sin Select2) --}}
                     <div class="form-group">
-                        <label for="tour_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
-                        <select name="tour_id" id="tour_id" class="form-control" required>
+                        <label for="product_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
+                        <select name="product_id" id="product_id" class="form-control" required>
                             <option value="">-- {{ __('m_bookings.bookings.ui.select_tour') }} --</option>
                             @foreach($tours as $tour)
-                            <option value="{{ $tour->tour_id }}"
+                            <option value="{{ $tour->product_id }}"
                                 data-tour='@json($tour, JSON_HEX_APOS)'
-                                {{ old('tour_id', $booking->tour_id) == $tour->tour_id ? 'selected' : '' }}>
+                                {{ old('product_id', $booking->product_id) == $tour->product_id ? 'selected' : '' }}>
                                 {{ $tour->name }}
                             </option>
                             @endforeach
@@ -221,7 +221,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
                                     name="tour_date"
                                     id="tour_date"
                                     class="form-control"
-                                    value="{{ old('tour_date', optional($booking->detail?->tour_date ?? $booking->tour_date)->toDateString()) }}"
+                                    value="{{ old('tour_date', optional($booking->detail?->tour_date ?? $booking->product_date)->toDateString()) }}"
                                     required>
                             </div>
                         </div>
@@ -409,7 +409,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         const locale = @json(app() -> getLocale());
         const initQtys = @json($categoryQuantitiesById ?? []);
 
-        const $tourSelect = $('#tour_id');
+        const $tourSelect = $('#product_id');
         const $dateInput = $('#tour_date');
         const $scheduleSelect = $('#schedule_id');
         const $languageSelect = $('#tour_language_id');
@@ -861,7 +861,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         syncHotelMeetingInitialState();
 
         // Inicializar valores al cargar
-        const initialTourId = @json(old('tour_id', $booking -> tour_id));
+        const initialTourId = @json(old('product_id', $booking -> product_id));
         const initialScheduleId = @json(old('schedule_id', optional($booking -> detail) -> schedule_id));
         const initialLanguageId = @json(old('tour_language_id', $booking -> tour_language_id));
 

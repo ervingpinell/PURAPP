@@ -43,16 +43,19 @@ class ItineraryService
         }
 
         return DB::transaction(function () use ($name, $items, $description) {
-            $itinerary = Itinerary::create([
-                'is_active' => true,
-            ]);
-
-            // Create Spanish translation
-            $itinerary->translations()->create([
-                'locale' => 'es',
-                'name' => $name,
-                'description' => $description ?? '',
-            ]);
+            // Spatie Translatable: Create with JSON attributes directly
+            // We set 'name' => ['es' => $name] automatically if we pass array, 
+            // or just assignment if the model casts it, but the model fills 'name'.
+            // To ensure specific locale 'es', we can set the attribute manually afterwards or pass array if model supports it.
+            // Assuming HasTranslations trait handles simple assignment as default locale or we should be explicit.
+            
+            $itinerary = new Itinerary();
+            $itinerary->is_active = true;
+            $itinerary->setTranslation('name', 'es', $name);
+            if ($description) {
+                $itinerary->setTranslation('description', 'es', $description);
+            }
+            $itinerary->save();
 
             foreach ($items as $index => $itemData) {
                 if (is_numeric($itemData)) {
@@ -64,24 +67,20 @@ class ItineraryService
                         ]);
                     }
                 } elseif (is_array($itemData) && !empty($itemData['title'])) {
-                    // Check if item exists by looking for a Spanish translation with this title
-                    $existingTranslation = \App\Models\ItineraryItemTranslation::where('locale', 'es')
-                        ->where('title', $itemData['title'])
-                        ->first();
+                    // Check if item exists by JSON search for Spanish title
+                    // JSON: title->>'es' = 'Value'
+                    $existingItem = ItineraryItem::whereRaw("LOWER(title->>'es') = ?", [strtolower($itemData['title'])])->first();
 
-                    if ($existingTranslation) {
-                        $itemId = $existingTranslation->item_id;
+                    if ($existingItem) {
+                        $itemId = $existingItem->item_id;
                     } else {
-                        $newItem = ItineraryItem::create([
-                            'is_active' => true
-                        ]);
-
-                        // Create Spanish translation
-                        $newItem->translations()->create([
-                            'locale' => 'es',
-                            'title' => $itemData['title'],
-                            'description' => $itemData['description'] ?? '',
-                        ]);
+                        $newItem = new ItineraryItem();
+                        $newItem->is_active = true;
+                        $newItem->setTranslation('title', 'es', $itemData['title']);
+                        if (!empty($itemData['description'])) {
+                            $newItem->setTranslation('description', 'es', $itemData['description']);
+                        }
+                        $newItem->save();
 
                         $itemId = $newItem->item_id;
                     }
@@ -107,7 +106,7 @@ class ItineraryService
                 $requestData['new_itinerary_description'] ?? ''
             );
         } elseif (!empty($requestData['itinerary_id']) && is_numeric($requestData['itinerary_id'])) {
-            return Itinerary::with(['items.translations', 'translations'])->find($requestData['itinerary_id']);
+            return Itinerary::with(['items'])->find($requestData['itinerary_id']);
         }
 
         return null;
@@ -129,7 +128,7 @@ class ItineraryService
 
     public function getAvailableItems()
     {
-        $query = ItineraryItem::query()->with('translations');
+        $query = ItineraryItem::query();
 
         if (request('estado') === 'activos') {
             $query->where('is_active', true);
@@ -146,7 +145,7 @@ class ItineraryService
     public function getAvailableItinerariesWithItems()
     {
         // Get itineraries with translations and sort by translated name in memory
-        return Itinerary::with(['items.translations', 'translations'])
+        return Itinerary::with(['items'])
             ->whereHas('items')
             ->get()
             ->sortBy(function ($itinerary) {

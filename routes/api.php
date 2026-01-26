@@ -5,7 +5,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Admin\Cart\CartController;
 use App\Http\Controllers\Admin\PromoCode\PromoCodeController;
 use App\Http\Controllers\Reviews\ReviewApiController;
-use App\Http\Controllers\Admin\API\TourDataController;
+use App\Http\Controllers\Admin\API\ProductDataController;
 use App\Http\Controllers\Admin\API\BookingApiController;
 use App\Http\Controllers\Admin\API\CapacityApiController;
 
@@ -49,9 +49,9 @@ Route::prefix('v1')
 
         // Tours data (solo para admin)
         Route::prefix('tours/{tour}')->group(function () {
-            Route::get('schedules',  [TourDataController::class, 'schedules'])->name('api.v1.tours.schedules');
-            Route::get('languages',  [TourDataController::class, 'languages'])->name('api.v1.tours.languages');
-            Route::get('categories', [TourDataController::class, 'categories'])->name('api.v1.tours.categories');
+            Route::get('schedules',  [ProductDataController::class, 'schedules'])->name('api.v1.tours.schedules');
+            Route::get('languages',  [ProductDataController::class, 'languages'])->name('api.v1.tours.languages');
+            Route::get('categories', [ProductDataController::class, 'categories'])->name('api.v1.tours.categories');
         });
 
         // Promo codes

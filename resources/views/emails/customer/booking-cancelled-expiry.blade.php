@@ -15,7 +15,7 @@
         
         <p style="margin-bottom: 0; font-size: 15px; line-height: 1.8;">
             <strong>{{ __('adminlte::adminlte.email_templates.reference') }}:</strong> {{ $booking->booking_reference }}<br>
-            <strong>{{ __('adminlte::adminlte.email_templates.tour') }}:</strong> {{ $booking->tour->title }}<br>
+            <strong>{{ __('adminlte::adminlte.email_templates.tour') }}:</strong> {{ $booking->product->title }}<br>
             <strong>{{ __('adminlte::adminlte.email_templates.date') }}:</strong> {{ $booking->details->first()->tour_date ?? 'N/A' }}
         </p>
     </div>
@@ -25,7 +25,7 @@
     </p>
 
     <div style="margin-bottom: 30px;">
-        <a href="{{ localized_route('tours.show', $booking->tour) }}" style="background-color: #4b5563; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+        <a href="{{ localized_route('products.show', $booking->product) }}" style="background-color: #4b5563; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
             {{ __('adminlte::adminlte.email_templates.booking_expired.book_again') }}
         </a>
     </div>

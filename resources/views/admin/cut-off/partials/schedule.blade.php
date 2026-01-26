@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <form method="POST" action="{{ route('admin.tours.cutoff.schedule.update') }}" id="form-schedule">
+    <form method="POST" action="{{ route('admin.products.cutoff.schedule.update') }}" id="form-schedule">
       @csrf
       @method('PUT')
 
@@ -24,7 +24,7 @@
         <select class="form-select" id="tourForSchedule">
           <option value="">{{ __('m_config.cut-off.selects.tour') }}</option>
           @foreach($tours as $t)
-          <option value="{{ $t->tour_id }}">{{ $t->name }}</option>
+          <option value="{{ $t->product_id }}">{{ $t->name }}</option>
           @endforeach
         </select>
         <div class="form-hint mt-1">1) {{ __('m_config.cut-off.hints.pick_tour') }}</div>
@@ -40,7 +40,7 @@
 
       <hr>
 
-      <input type="hidden" name="tour_id" id="tourIdHidden" value="">
+      <input type="hidden" name="product_id" id="tourIdHidden" value="">
 
       <div class="row g-3">
         <div class="col-md-3">

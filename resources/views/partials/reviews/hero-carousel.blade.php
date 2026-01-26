@@ -57,13 +57,13 @@ $seqByProvider = [];
     $isIndexable = !empty($r['indexable']);
 
     $tourName = trim((string)($r['tour_name'] ?? ''));
-    $tourId = !empty($r['tour_id']) ? (int)$r['tour_id'] : null;
+    $tourId = !empty($r['product_id']) ? (int)$r['product_id'] : null;
     $tourSlug = trim((string)($r['tour_slug'] ?? ''));
-    $tourUrl = ($tourId && $tourSlug) ? localized_route('tours.show', ['tour' => $tourSlug]) : '#';
+    $tourUrl = ($tourId && $tourSlug) ? localized_route('products.guided_tour.show', ['slug' => $tourSlug]) : '#';
 
     $avatarUrl = $r['avatar_url'] ?? null;
 
-    $uid = 'h_'.substr(sha1(($r['provider'] ?? 'p').'|'.($r['tour_id'] ?? '0').'|'.($r['nth'] ?? $idx).'|'.uniqid()),0,10);
+    $uid = 'h_'.substr(sha1(($r['provider'] ?? 'p').'|'.($r['product_id'] ?? '0').'|'.($r['nth'] ?? $idx).'|'.uniqid()),0,10);
     $seqByProvider[$provKey] = ($seqByProvider[$provKey] ?? 0) + 1;
     $nth = (int)($r['nth'] ?? $seqByProvider[$provKey]);
     @endphp
@@ -120,7 +120,7 @@ $seqByProvider = [];
       . '?layout=hero'
       . '&limit=' . urlencode($limit)
       . '&nth=' . urlencode($nth)
-      . ($tourId ? '&tour_id=' . urlencode($tourId) : '')
+      . ($tourId ? '&product_id=' . urlencode($tourId) : '')
       . ($tourName ? '&tname=' . urlencode($tourName) : '')
       . ($tourUrl ? '&turl=' . urlencode($tourUrl) : '')
       . '&base=' . urlencode($baseIframeHeight)

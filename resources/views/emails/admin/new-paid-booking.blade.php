@@ -16,7 +16,7 @@
         <p style="margin-bottom: 15px; font-size: 15px; line-height: 1.8;">
             <strong>@lang('emails.booking_expiring.label_reference'):</strong> {{ $booking->booking_reference }}<br>
             <strong>@lang('emails.booking_expiring.label_customer'):</strong> {{ $booking->user->full_name }} ({{ $booking->user->email }})<br>
-            <strong>@lang('emails.booking_expiring.label_tour'):</strong> {{ $booking->tour->title }}<br>
+            <strong>@lang('emails.booking_expiring.label_tour'):</strong> {{ $booking->product->title }}<br>
             <strong>@lang('emails.booking_expiring.label_date'):</strong> {{ $booking->details->first()->tour_date ?? __('emails.booking_expiring.na') }}<br>
             <strong>@lang('emails.booking_expiring.label_amount'):</strong> ${{ number_format($booking->paid_amount ?? $booking->total, 2) }}<br>
             <strong>@lang('emails.new_paid_booking.label_paid_at'):</strong> {{ optional($booking->paid_at)->format('Y-m-d H:i:s') ?? now()->format('Y-m-d H:i:s') }}
