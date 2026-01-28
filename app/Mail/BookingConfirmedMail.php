@@ -43,15 +43,12 @@ class BookingConfirmedMail extends Mailable implements ShouldQueue
     {
         $this->booking->loadMissing([
             'user',
-            'tour',
-            'tourLanguage',
+            'product',
             'hotel',
-            'details.tour',
+            'details.product',
             'details.hotel',
             'details.schedule',
-            'details.tourLanguage',
             'details.meetingPoint',
-            'details.meetingPoint.translations',
             'redemption.promoCode',
         ]);
 

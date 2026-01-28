@@ -297,6 +297,9 @@ return [
             'original_start'                   => 'Início Original',
             'original_end'                     => 'Fim Original',
             'back_to_list'                     => 'Voltar para a lista',
+            'capacity_override_help' => 'Apenas se precisar de uma capacidade diferente para este horário',
+            'capacity_override_placeholder' => 'Deixe em branco para usar a capacidade do tour',
+            'tour_base_capacity' => 'Capacidade base do tour:',
             'success' => [
                 'restored'      => 'Horário restaurado com sucesso.',
                 'force_deleted' => 'Horário eliminado permanentemente.',
@@ -329,10 +332,6 @@ return [
             'assignment_toggle'    => 'Não foi possível alterar o status da vinculação.',
             'not_assigned_to_tour' => 'O horário não está vinculado a este tour.',
             'delete'               => 'Houve um problema ao excluir o horário.',
-            'capacity_override_help' => 'Apenas se precisar de uma capacidade diferente para este horário',
-            'capacity_override_placeholder' => 'Deixe em branco para usar a capacidade do tour',
-            'capacity_definition_info' => 'A capacidade é definida ao atribuir este horário a um tour específico',
-            'tour_base_capacity' => 'Capacidade base do tour:',
         ],
 
         'placeholders' => [

@@ -310,6 +310,9 @@ return [
                 'restore'      => 'No se pudo restaurar el horario.',
                 'force_delete' => 'No se pudo eliminar permanentemente el horario.',
             ],
+            'capacity_override_help' => 'Solo si necesitas una capacidad diferente para este horario',
+            'capacity_override_placeholder' => 'Dejar vacío para usar capacidad del tour',
+            'tour_base_capacity' => 'Capacidad base del tour:',
 
         ],
 
@@ -335,10 +338,6 @@ return [
             'assignment_toggle'    => 'No se pudo cambiar el estado de la asignación.',
             'not_assigned_to_tour' => 'El horario no está asignado a este tour.',
             'delete'               => 'Hubo un problema al eliminar el horario.',
-            'capacity_override_help' => 'Solo si necesitas una capacidad diferente para este horario',
-            'capacity_override_placeholder' => 'Dejar vacío para usar capacidad del tour',
-            'capacity_definition_info' => 'La capacidad se define al asignar este horario a un tour específico',
-            'tour_base_capacity' => 'Capacidad base del tour:',
         ],
 
         'placeholders' => [

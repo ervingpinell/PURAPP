@@ -1,15 +1,15 @@
 {{-- resources/views/admin/tours/index.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('m_tours.tour.ui.page_title'))
+@section('title', 'Gestión de Productos')
 
 @section('content_header')
 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-  <h1 class="m-0">{{ __('m_tours.tour.ui.page_heading') }}</h1>
+  <h1 class="m-0">Gestión de Productos</h1>
   {{-- ANTES: route('admin.products.create') --}}
   @can('create-tours')
   <a href="{{ route('admin.products.wizard.create') }}" class="btn btn-success">
-    <i class="fas fa-plus"></i> {{ __('m_tours.tour.ui.add_tour') }}
+    <i class="fas fa-plus"></i> Añadir Producto
   </a>
   @endcan
 </div>
@@ -20,14 +20,14 @@
 @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show" role="alert">
   <span class="fw-semibold">{{ __('m_tours.common.success') }}: </span>{{ session('success') }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('m_tours.common.close') }}"></button>
+  <button type="button" class="close" data-dismiss="alert" aria-label="{{ __('m_tours.common.close') }}"></button>
 </div>
 @endif
 
 @if(session('error'))
 <div class="alert alert-danger alert-dismissible fade show" role="alert">
   <span class="fw-semibold">{{ __('m_tours.common.error') }}: </span>{{ session('error') }}
-  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('m_tours.common.close') }}"></button>
+  <button type="button" class="close" data-dismiss="alert" aria-label="{{ __('m_tours.common.close') }}"></button>
 </div>
 @endif
 
@@ -57,7 +57,7 @@
 {{-- Barra superior: filtros + acceso al carrito (solo en vista activos) --}}
 
 
-{{-- Tabla de tours --}}
+{{-- Tabla de productos --}}
 <div class="card">
   <div class="card-body p-0">
     @include('admin.products.tourlist')

@@ -1,13 +1,13 @@
 {{-- resources/views/admin/policies/sections/index.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('m_config.policies.sections_title', ['policy' => ($policy->translation()?->name ?? '')]))
+@section('title', __('m_config.policies.sections_title', ['policy' => ($policy->name ?? '')]))
 
 @section('content_header')
 <div class="d-flex align-items-center justify-content-between flex-wrap">
   <h1 class="mb-2">
     <i class="fas fa-list-ul"></i>
-    {{ __('m_config.policies.sections_title', ['policy' => ($policy->translation()?->name ?? '')]) }}
+    {{ __('m_config.policies.sections_title', ['policy' => ($policy->name ?? '')]) }}
     <small class="text-muted ms-2">({{ strtoupper(app()->getLocale()) }})</small>
   </h1>
   <div class="mb-2">
@@ -15,7 +15,7 @@
       <i class="fas fa-arrow-left"></i> {{ __('m_config.policies.back_to_categories') }}
     </a>
     @can('create-policy-sections')
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSectionModal">
+    <button class="btn btn-primary" data-toggle="modal" data-target="#createSectionModal">
       <i class="fas fa-plus"></i> {{ __('m_config.policies.new_section') }}
     </button>
     @endcan
@@ -43,13 +43,9 @@
 
 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
   <div class="btn-group" role="group" aria-label="{{ __('m_config.policies.filter_status_aria') }}">
-    <a href="{{ route('admin.policies.sections.index', ['policy' => $policy, 'status' => 'active']) }}"
-      class="btn btn-outline-primary {{ ($status ?? 'active') === 'active' ? 'active' : '' }}">
-      {{ __('m_config.policies.filter_active') }}
-    </a>
-    <a href="{{ route('admin.policies.sections.index', ['policy' => $policy, 'status' => 'inactive']) }}"
-      class="btn btn-outline-primary {{ ($status ?? '') === 'inactive' ? 'active' : '' }}">
-      {{ __('m_config.policies.filter_inactive') }}
+    <a href="{{ route('admin.policies.sections.index', ['policy' => $policy]) }}"
+      class="btn btn-outline-primary {{ ($status ?? 'all') === 'all' ? 'active' : '' }}">
+      {{ __('m_config.policies.filter_all') ?? 'Todas' }}
     </a>
     <a href="{{ route('admin.policies.sections.index', ['policy' => $policy, 'status' => 'archived']) }}"
       class="btn btn-outline-primary {{ ($status ?? '') === 'archived' ? 'active' : '' }}">
@@ -79,7 +75,6 @@
         <tbody>
           @forelse ($sections as $s)
           @php
-          $tr = $s->translation();
           $isTrashed = method_exists($s, 'trashed') && $s->trashed();
           @endphp
           <tr>
@@ -88,7 +83,7 @@
               @if($isTrashed)
               <i class="fas fa-trash-alt text-muted me-1"></i>
               @endif
-              {{ $tr?->name ?? '—' }}
+              {{ $s->name ?? '—' }}
             </td>
             <td class="text-center">{{ $s->sort_order }}</td>
             @if(($status ?? 'active') === 'archived')
@@ -125,8 +120,8 @@
                 @can('edit-policy-sections')
                 <button class="btn btn-sm btn-edit"
                   title="{{ __('m_config.policies.edit') }}"
-                  data-bs-toggle="modal"
-                  data-bs-target="#editSectionModal-{{ $s->section_id }}">
+                  data-toggle="modal"
+                  data-target="#editSectionModal-{{ $s->section_id }}">
                   <i class="fas fa-edit"></i>
                 </button>
                 @endcan
@@ -138,7 +133,7 @@
                   @csrf
                   <button class="btn btn-sm {{ $s->is_active ? 'btn-toggle' : 'btn-secondary' }}"
                     title="{{ $s->is_active ? __('m_config.policies.deactivate_section') : __('m_config.policies.activate_section') }}"
-                    data-bs-toggle="tooltip">
+                    data-toggle="tooltip">
                     <i class="fas {{ $s->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                   </button>
                 </form>
@@ -151,7 +146,7 @@
                   data-message="{{ __('m_config.policies.confirm_delete_section') }}">
                   @csrf @method('DELETE')
                   <button class="btn btn-sm btn-delete"
-                    title="{{ __('m_config.policies.move_to_trash') }}" data-bs-toggle="tooltip">
+                    title="{{ __('m_config.policies.move_to_trash') }}" data-toggle="tooltip">
                     <i class="fas fa-trash"></i>
                   </button>
                 </form>
@@ -165,7 +160,7 @@
                   data-message="{{ __('m_config.policies.confirm_restore_section') }}">
                   @csrf
                   <button class="btn btn-sm btn-restore"
-                    title="{{ __('m_config.policies.restore') }}" data-bs-toggle="tooltip">
+                    title="{{ __('m_config.policies.restore') }}" data-toggle="tooltip">
                     <i class="fas fa-undo"></i>
                   </button>
                 </form>
@@ -178,7 +173,7 @@
                   data-message="{{ __('m_config.policies.confirm_force_delete_section') }}">
                   @csrf @method('DELETE')
                   <button class="btn btn-sm btn-force-delete"
-                    title="{{ __('m_config.policies.delete_permanently') }}" data-bs-toggle="tooltip">
+                    title="{{ __('m_config.policies.delete_permanently') }}" data-toggle="tooltip">
                     <i class="fas fa-times-circle"></i>
                   </button>
                 </form>
@@ -197,7 +192,7 @@
                   @csrf @method('PUT')
                   <div class="modal-header">
                     <h5 class="modal-title">{{ __('m_config.policies.edit_section') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="close" data-dismiss="modal"></button>
                   </div>
                   <div class="modal-body">
                       <div class="row g-3 mb-3">
@@ -223,12 +218,13 @@
                         <li class="nav-item" role="presentation">
                           <button class="nav-link {{ $loop->first ? 'active' : '' }}"
                             id="tab-sec-{{ $s->section_id }}-{{ $lang }}"
-                            data-bs-toggle="tab"
-                            data-bs-target="#content-sec-{{ $s->section_id }}-{{ $lang }}"
+                            data-toggle="tab"
+                            data-target="#content-sec-{{ $s->section_id }}-{{ $lang }}"
                             type="button" role="tab">
                             {{ strtoupper($lang) }}
                             @php
-                            $hasTrans = $s->translations->where('locale', $lang)->first();
+                            // Check if translation exists for this locale using Spatie
+                            $hasTrans = !empty($s->getTranslation('name', $lang, false));
                             @endphp
                             @if(!$hasTrans)
                             <span class="text-danger small ms-1" title="Sin traducción"><i class="fas fa-exclamation-circle"></i></span>
@@ -241,9 +237,9 @@
                       <div class="tab-content" id="policySectionTabContent-{{ $s->section_id }}">
                         @foreach(['es', 'en', 'fr', 'pt', 'de'] as $lang)
                         @php
-                        $trans = $s->translations->firstWhere('locale', $lang);
-                        $valName = $trans ? $trans->name : '';
-                        $valContent = $trans ? $trans->content : '';
+                        // Get translations using Spatie (false = no fallback)
+                        $valName = $s->getTranslation('name', $lang, false) ?? '';
+                        $valContent = $s->getTranslation('content', $lang, false) ?? '';
                         @endphp
                         <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
                           id="content-sec-{{ $s->section_id }}-{{ $lang }}"
@@ -265,7 +261,7 @@
                   </div>
                   <div class="modal-footer">
                     <button class="btn btn-primary">{{ __('m_config.policies.save_changes') }}</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.policies.close') }}</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_config.policies.close') }}</button>
                   </div>
                 </form>
               </div>
@@ -291,7 +287,7 @@
         @csrf
         <div class="modal-header">
           <h5 class="modal-title">{{ __('m_config.policies.new_section') }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="close" data-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="row g-3">
@@ -324,7 +320,7 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-primary">{{ __('m_config.policies.save') }}</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.policies.close') }}</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_config.policies.close') }}</button>
         </div>
       </form>
     </div>
@@ -407,7 +403,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-  [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
+  [...document.querySelectorAll('[data-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
 
   // limpiar backdrops duplicados
   document.addEventListener('hidden.bs.modal', () => {

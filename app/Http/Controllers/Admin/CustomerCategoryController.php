@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CustomerCategory;
 // use App\Models\CustomerCategoryTranslation;
-use App\Http\Requests\Tour\CustomerCategory\StoreCustomerCategoryRequest;
+use App\Http\Requests\Product\CustomerCategory\StoreCustomerCategoryRequest;
 use App\Services\DeepLTranslator; // tu servicio
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -302,34 +302,7 @@ class CustomerCategoryController extends Controller
         ]);
     }
 
-    public function getTranslations(CustomerCategory $category)
-    {
-        $translations = [];
-        $locales = supported_locales(); // ['es', 'en', ...]
-        foreach ($locales as $loc) {
-            $translations[$loc] = $category->getTranslation('name', $loc, false) ?: '';
-        }
-        return response()->json($translations);
-    }
 
-    public function updateTranslations(Request $request, CustomerCategory $category)
-    {
-        $data = $request->input('translations', []);
-        
-        foreach($data as $loc => $val) {
-             if(in_array($loc, supported_locales())) {
-                 $category->setTranslation('name', $loc, $val);
-             }
-        }
-        $category->save();
-        
-        \Illuminate\Support\Facades\Cache::forget('customer_categories_active');
-        
-        return response()->json([
-            'status' => 'success', 
-            'current_locale_name' => $category->getTranslatedName()
-        ]);
-    }
 
     public function reorder(Request $request)
     {

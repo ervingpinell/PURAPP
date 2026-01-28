@@ -2,7 +2,7 @@
 <div class="d-flex justify-content-between align-items-center mb-2">
   <h4>{{ __('m_tours.itinerary_item.ui.list_title') }}</h4>
   @can('create-itinerary-items')
-  <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarItem">
+  <a href="#" class="btn btn-primary" data-toggle="modal" data-target="#modalRegistrarItem">
     <i class="fas fa-plus"></i> {{ __('m_tours.itinerary_item.ui.add_item') }}
   </a>
   @endcan
@@ -50,8 +50,8 @@
           {{-- Editar --}}
           @can('edit-itinerary-items')
           <a href="#" class="btn btn-edit btn-sm"
-            data-bs-toggle="modal"
-            data-bs-target="#modalEditarItem{{ $item->item_id }}"
+            data-toggle="modal"
+            data-target="#modalEditarItem{{ $item->item_id }}"
             title="{{ __('m_tours.itinerary_item.ui.edit_item') }}">
             <i class="fas fa-edit"></i>
           </a>
@@ -137,8 +137,8 @@
         {{-- Editar --}}
         @can('edit-itinerary-items')
         <button type="button" class="btn btn-primary btn-sm"
-          data-bs-toggle="modal"
-          data-bs-target="#modalEditarItem{{ $item->item_id }}">
+          data-toggle="modal"
+          data-target="#modalEditarItem{{ $item->item_id }}">
           <i class="fas fa-edit me-1"></i> {{ __('m_tours.itinerary_item.ui.edit_item') }}
         </button>
         @endcan
@@ -195,7 +195,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ __('m_tours.itinerary_item.ui.edit_item') }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="close" data-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <!-- Tabs de idiomas -->
@@ -204,8 +204,8 @@
             <li class="nav-item" role="presentation">
               <button class="nav-link {{ $index === 0 ? 'active' : '' }}"
                 id="tab-{{ $locale }}-item-{{ $item->item_id }}"
-                data-bs-toggle="tab"
-                data-bs-target="#content-{{ $locale }}-item-{{ $item->item_id }}"
+                data-toggle="tab"
+                data-target="#content-{{ $locale }}-item-{{ $item->item_id }}"
                 type="button"
                 role="tab">
                 {{ strtoupper($locale) }}
@@ -258,7 +258,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
             {{ __('m_tours.itinerary_item.ui.cancel') }}
           </button>
           <button type="submit" class="btn btn-warning">
@@ -281,7 +281,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ __('m_tours.itinerary_item.ui.register_item') }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="close" data-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
@@ -295,7 +295,7 @@
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-primary">{{ __('m_tours.itinerary_item.ui.save') }}</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.itinerary_item.ui.cancel') }}</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_tours.itinerary_item.ui.cancel') }}</button>
         </div>
       </div>
     </form>

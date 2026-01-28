@@ -21,7 +21,7 @@
           <li>{{ $error }}</li>
         @endforeach
       </ul>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('m_tours.common.close') }}"></button>
+      <button type="button" class="close" data-dismiss="alert" aria-label="{{ __('m_tours.common.close') }}"></button>
     </div>
   @endif
 

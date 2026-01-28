@@ -297,6 +297,9 @@ return [
             'original_start'                   => 'Original Start',
             'original_end'                     => 'Original End',
             'back_to_list'                     => 'Back to list',
+            'capacity_override_help' => 'Only if you need a different capacity for this schedule',
+            'capacity_override_placeholder' => 'Leave empty to use tour capacity',
+            'tour_base_capacity' => 'Tour base capacity:',
             'success' => [
                 'restored'      => 'Schedule restored successfully.',
                 'force_deleted' => 'Schedule permanently deleted.',
@@ -329,10 +332,6 @@ return [
             'assignment_toggle'    => 'Could not change the assignment status.',
             'not_assigned_to_tour' => 'The schedule is not assigned to this tour.',
             'delete'               => 'There was an error deleting the schedule.',
-            'capacity_override_help' => 'Only if you need a different capacity for this schedule',
-            'capacity_override_placeholder' => 'Leave empty to use tour capacity',
-            'capacity_definition_info' => 'Capacity is defined when assigning this schedule to a specific tour',
-            'tour_base_capacity' => 'Tour base capacity:',
         ],
 
         'placeholders' => [

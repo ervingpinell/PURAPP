@@ -1,7 +1,7 @@
 <!-- Modal editar itinerario con pestañas de traducción -->
 <div class="modal fade" id="modalEditar{{ $itinerary->itinerary_id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
-    <form action="{{ route('admin.products.itinerary.updateTranslations', $itinerary->itinerary_id) }}"
+    <form action="{{ route('admin.products.itinerary.update', $itinerary->itinerary_id) }}"
       method="POST"
       class="form-edit-itinerary-translations">
       @csrf
@@ -9,7 +9,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ __('m_tours.itinerary.ui.edit') }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.itinerary.ui.close') }}"></button>
+          <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.itinerary.ui.close') }}"></button>
         </div>
         <div class="modal-body">
           <!-- Tabs de idiomas -->
@@ -18,8 +18,8 @@
             <li class="nav-item" role="presentation">
               <button class="nav-link {{ $index === 0 ? 'active' : '' }}"
                 id="tab-{{ $locale }}-{{ $itinerary->itinerary_id }}"
-                data-bs-toggle="tab"
-                data-bs-target="#content-{{ $locale }}-{{ $itinerary->itinerary_id }}"
+                data-toggle="tab"
+                data-target="#content-{{ $locale }}-{{ $itinerary->itinerary_id }}"
                 type="button"
                 role="tab">
                 {{ strtoupper($locale) }}
@@ -55,7 +55,6 @@
                   id="it-name-{{ $locale }}-{{ $itinerary->itinerary_id }}"
                   class="form-control"
                   value="{{ $tName }}"
-                  {{ $locale === 'es' ? 'required' : '' }}
                   maxlength="255">
               </div>
 
@@ -74,7 +73,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
             {{ __('m_tours.itinerary.ui.cancel') }}
           </button>
           <button type="submit" class="btn btn-warning">

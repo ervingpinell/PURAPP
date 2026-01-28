@@ -6,10 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class ProductType extends Model
+class ProductType extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, HasTranslations;
+    use HasFactory, SoftDeletes, HasTranslations, InteractsWithMedia;
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('cover')
+             ->singleFile(); // Ensures only one cover image exists
+    }
 
     protected $table = 'product_types';
     protected $primaryKey = 'product_type_id';
@@ -18,7 +26,7 @@ class ProductType extends Model
 
     public function getTranslatedName(?string $locale = null): string
     {
-        return $this->getTranslation('name', $locale ?: app()->getLocale());
+        return $this->getTranslation('name', $locale ?: app()->getLocale()) ?? $this->name ?? '';
     }
 
     public function getNameTranslatedAttribute()
@@ -30,6 +38,7 @@ class ProductType extends Model
         'name',
         'duration',
         'cover_path',
+        'is_active',
     ];
 
     protected $casts = [
@@ -57,9 +66,18 @@ class ProductType extends Model
 
     public function orderedProducts()
     {
-        return $this->belongsToMany(Product::class, 'tour_type_tour_order', 'tour_type_id', 'product_id')
+        return $this->belongsToMany(Product::class, 'tour_type_tour_order', 'tour_type_id', 'tour_id')
                     ->withPivot('position')
                     ->orderBy('tour_type_tour_order.position');
+    }
+
+    /**
+     * Relación con subcategorías
+     */
+    public function subcategories()
+    {
+        return $this->hasMany(ProductTypeSubcategory::class, 'product_type_id', 'product_type_id')
+                    ->orderBy('sort_order');
     }
     
 }

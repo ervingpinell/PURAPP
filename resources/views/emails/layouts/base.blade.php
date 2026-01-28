@@ -76,8 +76,7 @@
 
     /* ===== Header ===== */
     .email-header {
-      background-color: #0f2419;
-      /* --primary-header */
+      background-color: transparent;
       padding: 20px;
       text-align: center;
     }
@@ -325,7 +324,7 @@
         <table role="presentation" class="email-container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%;">
 
           <tr>
-            <td class="email-header" style="background-color:#0f2419; padding:20px; text-align:center;">
+            <td class="email-header" style="background-color:transparent; padding:20px; text-align:center;">
               <img src="{{ $logoUrl }}"
                 alt="{{ $brand }}"
                 width="{{ $logoDimensions['width'] }}"

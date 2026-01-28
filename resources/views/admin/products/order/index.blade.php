@@ -122,10 +122,10 @@
 
   <form method="get" action="{{ route('admin.products.order.index') }}" class="mb-3">
     <label class="form-label fw-semibold">Categoría</label>
-    <select name="tour_type_id" class="form-control" onchange="this.form.submit()">
+    <select name="product_type_id" class="form-control" onchange="this.form.submit()">
       <option value="">— Selecciona una categoría —</option>
       @foreach ($types as $t)
-        <option value="{{ $t->tour_type_id }}" @selected(optional($selected)->tour_type_id === $t->tour_type_id)>
+        <option value="{{ $t->product_type_id }}" @selected(optional($selected)->product_type_id === $t->product_type_id)>
           {{ $t->name }}
         </option>
       @endforeach
@@ -137,9 +137,9 @@
       Arrastra para reordenar. Luego pulsa <strong>Guardar</strong>.
     </div>
 
-    <div id="list" class="list" data-type="{{ $selected->tour_type_id }}">
+    <div id="list" class="list" data-type="{{ $selected->product_type_id }}">
       @foreach ($products as $i => $row)
-        <div class="tour-item" draggable="true" data-id="{{ $row->product_id }}">
+        <div class="tour-item" data-id="{{ $row->product_id }}">
           <div class="tour-index">{{ $i + 1 }}</div>
 
           <div>
@@ -149,9 +149,6 @@
                 <span class="badge-inactive">inactivo</span>
               @endunless
             </div>
-            {{-- Si quieres más info, descomenta:
-            <div class="tour-meta">ID: {{ $row->product_id }}</div>
-            --}}
           </div>
 
           <div class="handle" title="Arrastrar">
@@ -170,22 +167,23 @@
 @endsection
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
 (function(){
   const list = document.getElementById('list');
   if(!list) return;
 
-  let dragEl = null;
-  const ghostEl = document.createElement('div');
-  ghostEl.className = 'tour-item ghost';
-  ghostEl.innerHTML = `
-    <div class="tour-index">—</div>
-    <div class="tour-name"><em>Soltar aquí</em></div>
-    <div class="handle"><i class="fas fa-grip-vertical"></i></div>
-  `;
+  // Initialize SortableJS
+  new Sortable(list, {
+      animation: 150,    // Smooth animation
+      ghostClass: 'ghost', // Class for the placeholder
+      onSort: function() {
+          renumber();
+      }
+  });
 
   function getItems(){
-    return Array.from(list.querySelectorAll('.tour-item:not(.ghost)'));
+    return Array.from(list.querySelectorAll('.tour-item'));
   }
 
   function renumber(){
@@ -193,67 +191,6 @@
       const badge = el.querySelector('.tour-index');
       if(badge) badge.textContent = String(idx + 1);
     });
-  }
-
-  list.addEventListener('dragstart', (e) => {
-    const item = e.target.closest('.tour-item');
-    if(!item) return;
-    dragEl = item;
-    item.classList.add('dragging');
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', item.dataset.id);
-
-    // ghost image más ligera
-    const crt = item.cloneNode(true);
-    crt.style.position = 'absolute';
-    crt.style.left = '-9999px';
-    document.body.appendChild(crt);
-    e.dataTransfer.setDragImage(crt, 10, 10);
-    setTimeout(() => document.body.removeChild(crt), 0);
-  });
-
-  list.addEventListener('dragend', () => {
-    if(dragEl) dragEl.classList.remove('dragging');
-    dragEl = null;
-    ghostEl.remove();
-    renumber();
-  });
-
-  list.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    const after = getDragAfterElement(list, e.clientY);
-    if(!list.contains(ghostEl)) list.appendChild(ghostEl);
-    if(after == null) {
-      list.appendChild(ghostEl);
-    } else {
-      list.insertBefore(ghostEl, after);
-    }
-  });
-
-  list.addEventListener('drop', (e) => {
-    e.preventDefault();
-    if(!dragEl) return;
-    const after = getDragAfterElement(list, e.clientY);
-    if(after == null){
-      list.appendChild(dragEl);
-    } else {
-      list.insertBefore(dragEl, after);
-    }
-    ghostEl.remove();
-    renumber();
-  });
-
-  function getDragAfterElement(container, y) {
-    const els = getItems().filter(el => el !== dragEl);
-    let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
-    for (const child of els) {
-      const box = child.getBoundingClientRect();
-      const offset = y - box.top - box.height / 2;
-      if (offset < 0 && offset > closest.offset) {
-        closest = { offset, element: child };
-      }
-    }
-    return closest.element;
   }
 
   const saveBtn = document.getElementById('saveBtn');
@@ -268,7 +205,7 @@
     btn.disabled = true;
     if(btnText) btnText.textContent = 'Guardando…';
 
-    const res = await fetch(`{{ url('admin/tours/order') }}/${typeId}/save`, {
+    const res = await fetch(`{{ url('admin/products/order') }}/${typeId}/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -288,10 +225,17 @@
       }
     } else {
       const txt = await res.text();
+      // Try to parse JSON error if possible
+      let errMsg = txt;
+      try {
+          const json = JSON.parse(txt);
+          if(json.error) errMsg = json.error;
+      } catch(e){}
+      
       if(window.Swal){
-        Swal.fire({ icon:'error', title:'Error al guardar', text: txt || 'Intenta de nuevo' });
+        Swal.fire({ icon:'error', title:'Error al guardar', text: errMsg || 'Intenta de nuevo' });
       } else {
-        alert('Error al guardar: ' + txt);
+        alert('Error al guardar: ' + errMsg);
       }
     }
   });

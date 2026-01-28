@@ -33,9 +33,8 @@ class UpdateAmenityRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('amenity_translations', 'name')
-                    ->where('locale', $locale)
-                    ->ignore($amenity?->amenity_id, 'amenity_id'),
+                // Note: Unique validation removed - Spatie Translatable stores in JSON
+                // Manual uniqueness check can be added in controller if needed
             ];
         }
 

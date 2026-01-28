@@ -9,8 +9,8 @@ use App\Models\Amenity;
 // use App\Models\AmenityTranslation;
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\LoggerHelper;
-use App\Http\Requests\Tour\Amenity\StoreAmenityRequest;
-use App\Http\Requests\Tour\Amenity\UpdateAmenityRequest;
+use App\Http\Requests\Product\Amenity\StoreAmenityRequest;
+use App\Http\Requests\Product\Amenity\UpdateAmenityRequest;
 
 /**
  * AmenityController
@@ -59,6 +59,9 @@ class AmenityController extends Controller
                 foreach ($locales as $locale) {
                     $amenity->setTranslation('name', $locale, $translated[$locale] ?? $name);
                 }
+
+                // CRITICAL: Save translations to database
+                $amenity->save();
 
                 return $amenity;
             });
@@ -196,12 +199,12 @@ class AmenityController extends Controller
     {
         $amenity = Amenity::onlyTrashed()->findOrFail($id);
 
-        // Verificar si tiene tours relacionados antes de borrar permanentemente
+        // Verificar si tiene productos relacionados antes de borrar permanentemente
         // Nota: Amenity usa belongsToMany, así que verificamos la tabla pivote
-        if ($amenity->tours()->exists()) {
+        if ($amenity->products()->exists()) {
             return redirect()
                 ->route('admin.products.amenities.trash')
-                ->with('error', 'No se puede eliminar permanentemente porque tiene tours asociados.');
+                ->with('error', 'No se puede eliminar permanentemente porque tiene productos asociados.');
         }
 
         $amenity->forceDelete();

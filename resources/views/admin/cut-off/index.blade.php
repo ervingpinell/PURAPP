@@ -98,27 +98,27 @@
   {{-- Tabs --}}
   <ul id="settingsTabs" class="nav nav-pills mb-3" role="tablist">
     <li class="nav-item">
-      <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pane-global" type="button">
+      <button class="nav-link active" data-toggle="pill" data-target="#pane-global" type="button">
         <i class="fas fa-globe-americas me-1"></i> {{ __('m_config.cut-off.tabs.global') }}
       </button>
     </li>
     <li class="nav-item">
-      <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pane-tour" type="button">
+      <button class="nav-link" data-toggle="pill" data-target="#pane-tour" type="button">
         <i class="fas fa-route me-1"></i> {{ __('m_config.cut-off.tabs.tour') }}
       </button>
     </li>
     <li class="nav-item">
-      <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pane-schedule" type="button">
+      <button class="nav-link" data-toggle="pill" data-target="#pane-schedule" type="button">
         <i class="fas fa-clock me-1"></i> {{ __('m_config.cut-off.tabs.schedule') }}
       </button>
     </li>
     <li class="nav-item">
-      <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pane-summary" type="button">
+      <button class="nav-link" data-toggle="pill" data-target="#pane-summary" type="button">
         <i class="fas fa-list-ul me-1"></i> {{ __('m_config.cut-off.tabs.summary') }}
       </button>
     </li>
     <li class="nav-item ms-auto">
-      <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pane-help" type="button">
+      <button class="nav-link" data-toggle="pill" data-target="#pane-help" type="button">
         <i class="fas fa-info-circle me-1"></i> {{ __('m_config.cut-off.tabs.help') }}
       </button>
     </li>
@@ -161,10 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const url = new URL(window.location.href);
   const qsTab = url.searchParams.get('tab'); // 'global'|'tour'|'schedule'|'summary'|'help'
   const hash  = url.hash;                    // '#pane-...'
-  const list  = document.querySelectorAll('#settingsTabs [data-bs-toggle="pill"]');
+  const list  = document.querySelectorAll('#settingsTabs [data-toggle="pill"]');
 
   function showTabByTarget(targetSel) {
-    const trigger = document.querySelector(`#settingsTabs [data-bs-target="${targetSel}"]`);
+    const trigger = document.querySelector(`#settingsTabs [data-target="${targetSel}"]`);
     if (trigger) {
       new bootstrap.Tab(trigger).show();
       const short = targetSel.replace('#pane-', '');
@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Cuando el usuario cambia de pestaña, persiste en URL + localStorage
   list.forEach(el => {
     el.addEventListener('shown.bs.tab', (ev) => {
-      const sel = ev.target.getAttribute('data-bs-target'); // '#pane-...'
+      const sel = ev.target.getAttribute('data-target'); // '#pane-...'
       const short = sel.replace('#pane-','');
       history.replaceState({}, '', `${window.location.pathname}?tab=${short}${sel}`);
       localStorage.setItem(KEY, sel);

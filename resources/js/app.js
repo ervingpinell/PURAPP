@@ -430,3 +430,4 @@
   // Primera sincronización del theme-color
   refreshThemeColor(true);
 })();
+import './plyr-config';

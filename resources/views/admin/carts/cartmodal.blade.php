@@ -17,7 +17,7 @@
         <h5 class="modal-title">
           {{ __('carts.add_modal.title', ['name' => $product->name]) }}
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
+        <button type="button" class="close close-white" data-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
       </div>
 
       <div class="modal-body">

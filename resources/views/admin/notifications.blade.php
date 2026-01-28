@@ -173,13 +173,13 @@ $I18N = [
     <div class="modal-content">
       <div class="modal-header">
         <div class="flex-grow-1"></div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_notifications.modal.close') }}"></button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_notifications.modal.close') }}"></button>
       </div>
       <div class="modal-body p-0">
         <div id="capDetailsBody" class="p-3">{{ __('m_notifications.modal.loading_details') }}</div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_notifications.modal.close') }}</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_notifications.modal.close') }}</button>
       </div>
     </div>
   </div>

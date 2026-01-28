@@ -28,7 +28,7 @@ $scheduleTxt = $d?->schedule
 
 {{ $mailLocale === 'es' ? 'Resumen' : 'Summary' }}
 ----------------
-Tour: {{ $tourName }}
+{{ __('adminlte::email.service') }}: {{ $tourName }}
 @if($tourDate)
 {{ $mailLocale === 'es' ? 'Fecha' : 'Date' }}: {{ $tourDate }}
 @endif

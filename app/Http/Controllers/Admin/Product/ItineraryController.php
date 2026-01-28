@@ -11,9 +11,9 @@ use App\Models\Itinerary;
 use App\Services\ItineraryService;
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\LoggerHelper;
-use App\Http\Requests\Tour\Itinerary\StoreItineraryRequest;
-use App\Http\Requests\Tour\Itinerary\UpdateItineraryRequest;
-use App\Http\Requests\Tour\Itinerary\AssignItineraryItemsRequest;
+use App\Http\Requests\Product\Itinerary\StoreItineraryRequest;
+use App\Http\Requests\Product\Itinerary\UpdateItineraryRequest;
+use App\Http\Requests\Product\Itinerary\AssignItineraryItemsRequest;
 
 /**
  * ItineraryController
@@ -26,7 +26,7 @@ class ItineraryController extends Controller
     {
         $this->middleware(['can:view-itineraries'])->only(['index']);
         $this->middleware(['can:create-itineraries'])->only(['store']);
-        $this->middleware(['can:edit-itineraries'])->only(['update', 'assignItems', 'updateTranslations']);
+        $this->middleware(['can:edit-itineraries'])->only(['update', 'assignItems']);
         $this->middleware(['can:publish-itineraries'])->only(['toggle']);
         $this->middleware(['can:delete-itineraries'])->only(['destroy']);
         $this->middleware(['can:restore-itineraries'])->only(['restore']);
@@ -117,11 +117,27 @@ class ItineraryController extends Controller
         try {
             $data = $request->validated();
 
-            // Update Spanish translation
-            $itinerary->setTranslation('name', 'es', $data['name']);
-            if (isset($data['description'])) {
-                $itinerary->setTranslation('description', 'es', $data['description']);
+            // Check if using new tab-based translations array
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                // Update via Translations Array (New Tabs Approach)
+                foreach ($data['translations'] as $locale => $transData) {
+                    if (isset($transData['name'])) {
+                        $itinerary->setTranslation('name', $locale, $transData['name']);
+                    }
+                    if (isset($transData['description'])) {
+                        $itinerary->setTranslation('description', $locale, $transData['description']);
+                    }
+                }
+            } else {
+                // Legacy / Single Field Update (fallback for old forms)
+                if (isset($data['name'])) {
+                    $itinerary->setTranslation('name', app()->getLocale(), $data['name']);
+                }
+                if (isset($data['description'])) {
+                    $itinerary->setTranslation('description', app()->getLocale(), $data['description']);
+                }
             }
+            
             $itinerary->save();
 
             LoggerHelper::mutated($this->controller, 'update', 'itinerary', $itinerary->itinerary_id, [
@@ -306,47 +322,4 @@ class ItineraryController extends Controller
         }
     }
 
-    /**
-     * Update translations for an itinerary across multiple locales.
-     */
-    public function updateTranslations(Request $request, Itinerary $itinerary)
-    {
-        $locales = config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']);
-
-        // Build validation rules dynamically
-        $rules = [];
-        foreach ($locales as $locale) {
-            $rules["translations.{$locale}.name"] = $locale === 'es'
-                ? 'required|string|max:255'
-                : 'nullable|string|max:255';
-            $rules["translations.{$locale}.description"] = 'nullable|string|max:1000';
-        }
-
-        $validated = $request->validate($rules);
-
-        // Update or create translations for each locale
-        foreach ($locales as $locale) {
-            $translationData = $validated['translations'][$locale] ?? null;
-
-            if (!$translationData) {
-                continue;
-            }
-
-            // Skip if both fields are empty (except for Spanish which is required)
-            if (empty($translationData['name']) && empty($translationData['description'])) {
-                if ($locale !== 'es') {
-                    continue;
-                }
-            }
-
-            $itinerary->setTranslation('name', $locale, $translationData['name'] ?? '');
-            $itinerary->setTranslation('description', $locale, $translationData['description'] ?? '');
-        }
-        $itinerary->save();
-
-
-        return redirect()
-            ->route('admin.products.itinerary.index')
-            ->with('success', __('m_tours.itinerary.ui.translations_updated'));
-    }
 }

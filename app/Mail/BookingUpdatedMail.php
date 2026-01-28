@@ -47,15 +47,12 @@ class BookingUpdatedMail extends Mailable implements ShouldQueue
         // Cargar relaciones necesarias
         $this->booking->loadMissing([
             'user',
-            'tour',
-            'tourLanguage',
+            'product',
             'hotel',
-            'details.tour',
+            'details.product',
             'details.hotel',
             'details.schedule',
-            'details.tourLanguage',
             'details.meetingPoint',
-            'details.meetingPoint.translations',
             'redemption.promoCode',
         ]);
 

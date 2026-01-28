@@ -17,7 +17,7 @@
 @section('content')
 <div class="card shadow-sm">
     <div class="card-body">
-        @if($tourTypes->isEmpty())
+        @if($productTypes->isEmpty())
         <div class="alert alert-info mb-0">
             <i class="fas fa-info-circle me-2"></i>{{ __('m_config.tourtypes.trash_empty') ?? 'No hay tipos de tour eliminados' }}
         </div>
@@ -34,7 +34,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($tourTypes as $tourType)
+                    @foreach($productTypes as $tourType)
                     @php
                     $daysLeft = max(0, 30 - now()->diffInDays($tourType->deleted_at));
                     $ttName = $tourType->name ?: 'Sin nombre';
@@ -46,7 +46,7 @@
                         <td class="text-center">
                             @if($tourType->deletedBy)
                             <i class="fas fa-user-circle fa-2x text-primary"
-                                data-bs-toggle="tooltip"
+                                data-toggle="tooltip"
                                 data-bs-placement="top"
                                 title="{{ $tourType->deletedBy->name }}"
                                 style="cursor: help;">
@@ -64,7 +64,7 @@
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
                                 @can('restore-tour-types')
-                                <form action="{{ route('admin.product-types.restore', $tourType->tour_type_id) }}" method="POST" class="d-inline restore-form">
+                                <form action="{{ route('admin.product-types.restore', $tourType->product_type_id) }}" method="POST" class="d-inline restore-form">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="btn btn-success" title="Restaurar">
@@ -74,7 +74,7 @@
                                 @endcan
 
                                 @can('hard-delete-tour-types')
-                                <form action="{{ route('admin.product-types.forceDelete', $tourType->tour_type_id) }}" method="POST" class="d-inline force-delete-form">
+                                <form action="{{ route('admin.product-types.forceDelete', $tourType->product_type_id) }}" method="POST" class="d-inline force-delete-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger" title="Eliminar permanentemente">
@@ -100,7 +100,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Inicializar tooltips de Bootstrap
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });

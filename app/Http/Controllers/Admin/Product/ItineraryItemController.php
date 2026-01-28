@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\DB;
 use App\Models\ItineraryItem;
 use App\Services\Contracts\TranslatorInterface;
 use App\Services\LoggerHelper;
-use App\Http\Requests\Tour\ItineraryItem\StoreItineraryItemRequest;
-use App\Http\Requests\Tour\ItineraryItem\UpdateItineraryItemRequest;
-use App\Http\Requests\Tour\ItineraryItem\ToggleItineraryItemRequest;
+use App\Http\Requests\Product\ItineraryItem\StoreItineraryItemRequest;
+use App\Http\Requests\Product\ItineraryItem\UpdateItineraryItemRequest;
+use App\Http\Requests\Product\ItineraryItem\ToggleItineraryItemRequest;
 
 /**
  * ItineraryItemController
@@ -34,7 +34,7 @@ class ItineraryItemController extends Controller
         // Re-reading task description: "Identified Modules... ItineraryItemController... needs publish-itinerary-items".
         // Use separate permissions logic:
         $this->middleware(['can:view-itineraries'])->only(['index']);
-        $this->middleware(['can:edit-itineraries'])->only(['store', 'update', 'updateTranslations', 'destroy', 'trash', 'restore', 'forceDelete']);
+        $this->middleware(['can:edit-itineraries'])->only(['store', 'update', 'destroy', 'trash', 'restore', 'forceDelete']);
         $this->middleware(['can:publish-itinerary-items'])->only(['toggle']);
     }
 
@@ -49,11 +49,10 @@ class ItineraryItemController extends Controller
         if ($search) {
              $locale = app()->getLocale();
              $query->whereRaw("LOWER(title->>?) LIKE ?", [$locale, "%" . strtolower($search) . "%"]);
-        } else {
-             $query->where('is_active', true);
         }
-
-        $items = $query->get()->sortBy('title');
+        
+        // Order by title and paginate
+        $items = $query->orderBy('title->es')->paginate(15)->withQueryString();
 
         return view('admin.products.itinerary.items.index', [
             'items' => $items,
@@ -113,9 +112,26 @@ class ItineraryItemController extends Controller
         try {
             $data = $request->validated();
 
-            // Update only Spanish translation for now
-            $itinerary_item->setTranslation('title', 'es', $data['title']);
-            $itinerary_item->setTranslation('description', 'es', $data['description']);
+            // Check if using new tab-based translations array
+            if (isset($data['translations']) && is_array($data['translations'])) {
+                // Update via Translations Array (New Tabs Approach)
+                foreach ($data['translations'] as $locale => $transData) {
+                    if (isset($transData['title'])) {
+                        $itinerary_item->setTranslation('title', $locale, $transData['title']);
+                    }
+                    if (isset($transData['description'])) {
+                        $itinerary_item->setTranslation('description', $locale, $transData['description']);
+                    }
+                }
+            } else {
+                // Legacy / Single Field Update (fallback for old forms)
+                if (isset($data['title'])) {
+                    $itinerary_item->setTranslation('title', app()->getLocale(), $data['title']);
+                }
+                if (isset($data['description'])) {
+                    $itinerary_item->setTranslation('description', app()->getLocale(), $data['description']);
+                }
+            }
 
             // If is_active is in the payload, apply it to the parent model
             if (array_key_exists('is_active', $data)) {
@@ -177,76 +193,35 @@ class ItineraryItemController extends Controller
         }
     }
 
-    /**
-     * Update translations for an itinerary item across multiple locales.
-     */
-    public function updateTranslations(Request $request, ItineraryItem $itinerary_item)
-    {
-        $locales = config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']);
 
-        // Build validation rules dynamically
-        $rules = [];
-        foreach ($locales as $locale) {
-            $rules["translations.{$locale}.title"] = $locale === 'es'
-                ? 'required|string|max:255'
-                : 'nullable|string|max:255';
-            $rules["translations.{$locale}.description"] = 'nullable|string|max:1000';
-        }
-
-        $validated = $request->validate($rules);
-
-        // Update or create translations for each locale
-        foreach ($locales as $locale) {
-            $translationData = $validated['translations'][$locale] ?? null;
-
-            if (!$translationData) {
-                continue;
-            }
-
-            // Skip if both fields are empty (except for Spanish which is required)
-            if (empty($translationData['title']) && empty($translationData['description'])) {
-                if ($locale !== 'es') {
-                    continue;
-                }
-            }
-
-            $itinerary_item->setTranslation('title', $locale, $translationData['title'] ?? '');
-            $itinerary_item->setTranslation('description', $locale, $translationData['description'] ?? '');
-        }
-        $itinerary_item->save();
-
-        return redirect()
-            ->route('admin.products.itinerary.index')
-            ->with('success', __('m_tours.itinerary_item.ui.translations_updated'));
-    }
 
     /** DELETE: Eliminación definitiva */
-    public function destroy(ItineraryItem $itinerary_item)
+    public function destroy(Request $request, ItineraryItem $itinerary_item)
     {
         try {
             $id = $itinerary_item->item_id;
+            $userId = optional($request->user())->getAuthIdentifier();
 
-            DB::transaction(function () use ($itinerary_item) {
+            DB::transaction(function () use ($itinerary_item, $userId) {
+                // Set deleted_by before soft deleting
+                $itinerary_item->deleted_by = $userId;
+                $itinerary_item->save();
+                
                 if (method_exists($itinerary_item, 'itineraries')) {
                     $itinerary_item->itineraries()->detach();
                 }
-                // Translations are in JSON now, no need to delete separate records
-                /*
-                if (method_exists($itinerary_item, 'translations')) {
-                    $itinerary_item->translations()->delete();
-                }
-                */
+                
                 $itinerary_item->delete();
             });
 
             LoggerHelper::mutated($this->controller, 'destroy', 'itinerary_item', $id, [
-                'user_id' => optional(request()->user())->getAuthIdentifier(),
+                'user_id' => $userId,
             ]);
 
             return back()->with('success', __('m_tours.itinerary_item.success.deleted'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'itinerary_item', $itinerary_item->item_id ?? null, $e, [
-                'user_id' => optional(request()->user())->getAuthIdentifier(),
+                'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
             return back()->with('error', __('m_tours.itinerary_item.error.delete'));
         }
@@ -258,8 +233,8 @@ class ItineraryItemController extends Controller
     public function trash()
     {
         $items = ItineraryItem::onlyTrashed()
-            ->get()
-            ->sortBy('title');
+            ->orderBy('title->es')
+            ->paginate(15);
 
         return view('admin.products.itinerary.items.trash', ['items' => $items]);
     }

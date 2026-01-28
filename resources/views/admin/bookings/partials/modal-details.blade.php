@@ -59,7 +59,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
           <i class="fas fa-info-circle me-2"></i>
           {{ __('m_bookings.bookings.ui.booking_details') }} #{{ $booking->booking_id }}
         </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('m_bookings.bookings.buttons.close') }}"></button>
+        <button type="button" class="close close-white" data-dismiss="modal" aria-label="{{ __('m_bookings.bookings.buttons.close') }}"></button>
       </div>
 
       <div class="modal-body">
@@ -250,8 +250,8 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
           <div class="btn-group btn-group-sm" role="group">
             @if($booking->status !== 'confirmed')
             <button type="button" class="btn btn-success btn-sm"
-              data-bs-toggle="modal"
-              data-bs-target="#confirmBookingModal{{ $booking->booking_id }}"
+              data-toggle="modal"
+              data-target="#confirmBookingModal{{ $booking->booking_id }}"
               title="{{ __('m_bookings.actions.confirm') }}">
               <i class="fas fa-check-circle"></i> {{ __('m_bookings.actions.confirm') }}
             </button>
@@ -598,7 +598,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
     </div>
 
     <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+      <button type="button" class="btn btn-secondary" data-dismiss="modal">
         <i class="fas fa-times me-1"></i>{{ __('Cancel') }}
       </button>
       <button type="submit" class="btn btn-success" id="confirm_btn_{{ $booking->booking_id }}">

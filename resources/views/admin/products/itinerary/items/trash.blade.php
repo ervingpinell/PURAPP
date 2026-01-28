@@ -85,6 +85,11 @@
                         </tbody>
                     </table>
                 </div>
+                
+                {{-- Paginación --}}
+                <div class="px-3 py-3">
+                  {{ $items->links() }}
+                </div>
                 @endif
 
             </div>

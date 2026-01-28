@@ -29,7 +29,7 @@
     </ul>
 
     @can('create-amenities')
-    <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+    <a href="#" class="btn btn-success mb-3" data-toggle="modal" data-target="#modalRegistrar">
         <i class="fas fa-plus"></i> {{ __('m_tours.amenity.ui.add') }}
     </a>
     @endcan
@@ -64,8 +64,8 @@
                     {{-- Editar --}}
                     @can('edit-amenities')
                     <a href="#" class="btn btn-edit btn-sm"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalEditar{{ $amenity->amenity_id }}"
+                        data-toggle="modal"
+                        data-target="#modalEditar{{ $amenity->amenity_id }}"
                         title="{{ __('m_tours.amenity.ui.edit_title') }}">
                         <i class="fas fa-edit"></i>
                     </a>
@@ -118,7 +118,7 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title">{{ __('m_tours.amenity.ui.edit_title') }}</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.amenity.ui.close') }}"></button>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.amenity.ui.close') }}"><span aria-hidden="true">&times;</span></button>
                             </div>
                             <div class="modal-body">
                                 @php
@@ -131,8 +131,8 @@
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link {{ $loop->first ? 'active' : '' }}"
                                             id="tab-{{ $amenity->amenity_id }}-{{ $locale }}"
-                                            data-bs-toggle="tab"
-                                            data-bs-target="#content-{{ $amenity->amenity_id }}-{{ $locale }}"
+                                            data-toggle="tab"
+                                            data-target="#content-{{ $amenity->amenity_id }}-{{ $locale }}"
                                             type="button"
                                             role="tab">
                                             {{ strtoupper($locale) }}
@@ -159,7 +159,7 @@
                                                 name="translations[{{ $locale }}]"
                                                 class="form-control"
                                                 value="{{ $value }}"
-                                                required
+                                                
                                                 maxlength="255">
                                         </div>
                                     </div>
@@ -167,7 +167,7 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
                                     {{ __('m_tours.amenity.ui.cancel') }}
                                 </button>
                                 <button type="submit" class="btn btn-warning">
@@ -191,7 +191,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">{{ __('m_tours.amenity.ui.create_title') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.amenity.ui.close') }}"></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.amenity.ui.close') }}"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -200,7 +200,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         {{ __('m_tours.amenity.ui.cancel') }}
                     </button>
                     <button type="submit" class="btn btn-primary">

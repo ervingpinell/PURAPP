@@ -5,6 +5,7 @@ return [
     'booking_details' => 'Detalles de tu reserva',
     'booking_reference' => 'Código de Reserva',
     'tour' => 'Tour',
+    'service' => 'Servicio',
     'tour_language' => 'Idioma del tour',
     'date' => 'Fecha',
     'adults' => 'Adultos',

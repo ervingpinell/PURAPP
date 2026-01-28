@@ -15,7 +15,7 @@ $tourName = $d?->relationLoaded('tour') ? ($d->tour->title ?? 'Tour') : ($bookin
 
 {{ $mailLocale === 'es' ? 'Resumen' : 'Summary' }}
 ----------------
-Tour: {{ $tourName }}
+{{ __('adminlte::email.service') }}: {{ $tourName }}
 {{ $mailLocale === 'es' ? 'Fecha' : 'Date' }}: {{ $d?->tour_date ? \Illuminate\Support\Carbon::parse($d->tour_date)->format('d-M-Y') : 'N/A' }}
 
 {{ $mailLocale === 'es' ? 'Total' : 'Total' }}: ${{ number_format($booking->total, 2) }}

@@ -197,8 +197,8 @@
                   <li class="nav-item" role="presentation">
                     <button class="nav-link {{ $loop->first ? 'active' : '' }}"
                       id="tab-{{ $faq->faq_id }}-{{ $locale }}"
-                      data-bs-toggle="tab"
-                      data-bs-target="#content-{{ $faq->faq_id }}-{{ $locale }}"
+                      data-toggle="tab"
+                      data-target="#content-{{ $faq->faq_id }}-{{ $locale }}"
                       type="button"
                       role="tab">
                       {{ strtoupper($locale) }}

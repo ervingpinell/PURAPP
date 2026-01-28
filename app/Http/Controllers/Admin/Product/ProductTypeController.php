@@ -11,6 +11,7 @@ use App\Services\LoggerHelper;
 use App\Http\Requests\Product\ProductType\StoreProductTypeRequest;
 use App\Http\Requests\Product\ProductType\UpdateProductTypeRequest;
 // use App\Http\Requests\Tour\TourType\UpdateTourTypeTranslationRequest; // Unused if merged logic, or need to check
+use App\Services\DeepLTranslator;
 use Illuminate\Http\Request; // Use basic request for manual translation update or keep interface if compatible
 
 
@@ -21,11 +22,14 @@ use Illuminate\Http\Request; // Use basic request for manual translation update 
  */
 class ProductTypeController extends Controller
 {
-    public function __construct()
+    protected DeepLTranslator $translator;
+
+    public function __construct(DeepLTranslator $translator)
     {
+        $this->translator = $translator;
         $this->middleware(['can:view-tour-types'])->only(['index']);
         $this->middleware(['can:create-tour-types'])->only(['store']);
-        $this->middleware(['can:edit-tour-types'])->only(['update', 'editTranslations', 'updateTranslation']);
+        $this->middleware(['can:edit-tour-types'])->only(['update']);
         $this->middleware(['can:publish-tour-types'])->only(['toggle']);
         $this->middleware(['can:delete-tour-types'])->only(['destroy']);
         $this->middleware(['can:restore-tour-types'])->only(['trash', 'restore']);
@@ -38,14 +42,14 @@ class ProductTypeController extends Controller
     {
         // Spatie autoloads or just works with attributes. 
         // No 'with("translations")' needed as it's JSON in same table.
-        $tourTypes = ProductType::orderByDesc('created_at')
+        $productTypes = ProductType::orderByDesc('created_at')
             ->get();
 
         $trashedCount = ProductType::onlyTrashed()->count();
 
         $currentLocale = app()->getLocale();
 
-        return view('admin.tourtypes.index', compact('tourTypes', 'currentLocale', 'trashedCount'));
+        return view('admin.tourtypes.index', compact('productTypes', 'currentLocale', 'trashedCount'));
     }
 
     public function store(StoreProductTypeRequest $request)
@@ -54,10 +58,10 @@ class ProductTypeController extends Controller
             DB::beginTransaction();
             $data = $request->validated();
             
-            $tourType = new ProductType();
-            $tourType->is_active = true;
+            $productType = new ProductType();
+            $productType->is_active = true;
             // Spatie: set translation for current locale
-            $tourType->setTranslation('name', app()->getLocale(), $data['name']);
+            $productType->setTranslation('name', app()->getLocale(), $data['name']);
             // If description/duration are translatable? ProductType only has 'name' in $translatable in the file I saw.
             // But if they were translatable before, we should check. 
             // File: public $translatable = ['name']; (Step 553 verified)
@@ -68,17 +72,20 @@ class ProductTypeController extends Controller
             // Assuming duration is plain field.
             
             if (isset($data['duration'])) {
-                $tourType->duration = $data['duration'];
+                $productType->duration = $data['duration'];
             }
             if (isset($data['cover_path'])) {
-                 $tourType->cover_path = $data['cover_path'];
+                 $productType->cover_path = $data['cover_path'];
             }
             
-            $tourType->save();
+            $productType->save();
+
+            // Auto-translate with DeepL
+            $this->autoTranslate($productType, $data['name']);
 
             DB::commit();
 
-            LoggerHelper::mutated($this->controller, 'store', 'tour_type', $tourType->getKey(), [
+            LoggerHelper::mutated($this->controller, 'store', 'tour_type', $productType->getKey(), [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -94,7 +101,7 @@ class ProductTypeController extends Controller
         }
     }
 
-    public function update(UpdateProductTypeRequest $request, ProductType $tourType)
+    public function update(UpdateProductTypeRequest $request, ProductType $productType)
     {
         try {
             DB::beginTransaction();
@@ -105,13 +112,14 @@ class ProductTypeController extends Controller
                 // Update via Translations Array (New Tabs Approach)
                 foreach ($translations as $locale => $transData) {
                     if (isset($transData['name'])) {
-                        $tourType->setTranslation('name', $locale, $transData['name']);
+                        $productType->setTranslation('name', $locale, $transData['name']);
                     }
-                    // Description/Duration ignored as ProductType model only lists 'name' as translatable and 'duration' as standard column?
-                    // If duration is per-locale (legacy), we have a problem.
-                    // But ProductType model only has 'duration' in fillable, likely not translatable.
-                    if (isset($transData['duration']) && $locale == app()->getLocale()) {
-                         $tourType->duration = $transData['duration'];
+                    if (isset($transData['description'])) {
+                        $productType->setTranslation('description', $locale, $transData['description']);
+                    }
+                    // Duration is translatable per locale
+                    if (isset($transData['duration'])) {
+                        $productType->setTranslation('duration', $locale, $transData['duration']);
                     }
                 }
             } else {
@@ -120,20 +128,20 @@ class ProductTypeController extends Controller
                 // Fallback to request input if validated doesn't cover all
                 $name = $data['name'] ?? $request->input('name');
                 if ($name) {
-                    $tourType->setTranslation('name', app()->getLocale(), $name);
+                    $productType->setTranslation('name', app()->getLocale(), $name);
                 }
                 
                 $duration = $data['duration'] ?? $request->input('duration');
                 if ($duration) {
-                     $tourType->duration = $duration;
+                     $productType->duration = $duration;
                 }
             }
             
-            $tourType->save();
+            $productType->save();
 
             DB::commit();
 
-            LoggerHelper::mutated($this->controller, 'update', 'tour_type', $tourType->getKey(), [
+            LoggerHelper::mutated($this->controller, 'update', 'tour_type', $productType->getKey(), [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -142,38 +150,40 @@ class ProductTypeController extends Controller
 
         } catch (Exception $e) {
             DB::rollBack();
-            LoggerHelper::exception($this->controller, 'update', 'tour_type', $tourType->getKey(), $e, [
+            LoggerHelper::exception($this->controller, 'update', 'tour_type', $productType->getKey(), $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
             return back()->with('error', 'Error al actualizar el tipo de tour.')->withInput();
         }
     }
 
-    public function toggle(ProductType $tourType)
+    public function toggle(ProductType $productType)
     {
         try {
-            $tourType->update(['is_active' => !$tourType->is_active]);
+            // Use update() instead of save() to avoid creating duplicates
+            $newStatus = !$productType->is_active;
+            $productType->update(['is_active' => $newStatus]);
 
-            LoggerHelper::mutated($this->controller, 'toggle', 'tour_type', $tourType->getKey(), [
+            LoggerHelper::mutated($this->controller, 'toggle', 'tour_type', $productType->getKey(), [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
-                'new_status' => $tourType->is_active
+                'new_status' => $newStatus
             ]);
 
-            return back()->with('success', $tourType->is_active ? 'Activado correctamente' : 'Desactivado correctamente');
+            return back()->with('success', $newStatus ? 'Activado correctamente' : 'Desactivado correctamente');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'toggle', 'tour_type', $tourType->getKey(), $e);
+            LoggerHelper::exception($this->controller, 'toggle', 'tour_type', $productType->getKey(), $e);
             return back()->with('error', 'Error al cambiar el estado.');
         }
     }
 
     public function destroy(int $id): RedirectResponse
     {
-        $tourType = ProductType::findOrFail($id);
+        $productType = ProductType::findOrFail($id);
 
         try {
-            $tourType->deleted_by = auth()->id();
-            $tourType->save();
-            $tourType->delete();
+            $productType->deleted_by = auth()->id();
+            $productType->save();
+            $productType->delete();
 
             LoggerHelper::mutated($this->controller, 'destroy', 'tour_type', $id, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
@@ -191,20 +201,19 @@ class ProductTypeController extends Controller
 
     public function trash()
     {
-        $tourTypes = ProductType::onlyTrashed()
-            ->with(['deletedBy']) // Translations not a relation
+        $productTypes = ProductType::onlyTrashed()
             ->orderByDesc('deleted_at')
             ->get();
 
-        return view('admin.tourtypes.trash', compact('tourTypes'));
+        return view('admin.tourtypes.trash', compact('productTypes'));
     }
 
     public function restore($id)
     {
-        $tourType = ProductType::onlyTrashed()->findOrFail($id);
-        $tourType->deleted_by = null;
-        $tourType->save();
-        $tourType->restore();
+        $productType = ProductType::onlyTrashed()->findOrFail($id);
+        $productType->deleted_by = null;
+        $productType->save();
+        $productType->restore();
 
         LoggerHelper::mutated($this->controller, 'restore', 'tour_type', $id);
 
@@ -215,16 +224,16 @@ class ProductTypeController extends Controller
 
     public function forceDelete($id)
     {
-        $tourType = ProductType::onlyTrashed()->findOrFail($id);
+        $productType = ProductType::onlyTrashed()->findOrFail($id);
 
         // Verificar si tiene tours relacionados antes de borrar permanentemente
-        if ($tourType->products()->exists()) {
+        if ($productType->products()->exists()) {
             return redirect()
                 ->route('admin.product-types.trash')
                 ->with('error', 'No se puede eliminar permanentemente porque tiene tours asociados.');
         }
 
-        $tourType->forceDelete();
+        $productType->forceDelete();
 
         LoggerHelper::mutated($this->controller, 'forceDelete', 'tour_type', $id);
 
@@ -234,76 +243,33 @@ class ProductTypeController extends Controller
     }
 
     /**
-     * Mostrar vista de edición de traducciones con pestañas por locale
+     * Auto-translate product type name to other languages using DeepL
      */
-    public function editTranslations(ProductType $tourType)
+    protected function autoTranslate(ProductType $productType, string $sourceName): void
     {
-        // Spatie stores translations in the model attributes, no relation to load.
-        // But to pass to view as 'translationsByLocale', we need to extract them from JSON.
-        // The view likely expects a collection of objects with 'name', 'locale' properties.
-        
-        $translationsByLocale = collect();
-        $locales = $tourType->getTranslations('name'); // ['en' => 'Name', 'es' => 'Nombre']
-        
-        foreach ($locales as $locale => $name) {
-             $translationsByLocale[$locale] = (object)[
-                 'locale' => $locale,
-                 'name' => $name,
-                 // description/duration? ProductType only translatable 'name'
-             ];
-        }
-
-        return view('admin.tourtypes.edit-translations', compact(
-            'tourType',
-            'supportedLocales',
-            'translationsByLocale'
-        ));
-    }
-
-    /**
-     * Actualizar o crear traducción para un locale específico
-     */
-    public function updateTranslation(
-        Request $request, // Or CustomRequest if compatible
-        ProductType $tourType,
-        string $locale
-    ): RedirectResponse {
         try {
-            $data = $request->validate([
-                'name' => 'required|string|max:191',
-                // 'description' => 'nullable|string',
-            ]);
+            $sourceLocale = app()->getLocale();
+            $targetLocales = array_diff(['es', 'en', 'fr', 'pt', 'de'], [$sourceLocale]);
 
-            // Validar que el locale sea soportado
-            $supportedLocales = ['es', 'en', 'fr', 'pt', 'de'];
-            if (!in_array($locale, $supportedLocales)) {
-                return back()
-                    ->with('error', 'Locale no soportado.')
-                    ->withInput();
+            foreach ($targetLocales as $targetLocale) {
+                if ($productType->getTranslation('name', $targetLocale, false)) {
+                    continue;
+                }
+
+                $translated = $this->translator->translate($sourceName, $sourceLocale, $targetLocale);
+                
+                if ($translated) {
+                    $productType->setTranslation('name', $targetLocale, $translated);
+                }
             }
 
-            // Actualizar o crear traducción
-            $tourType->setTranslation('name', $locale, $data['name']);
-            $tourType->save();
-
-            LoggerHelper::mutated($this->controller, 'updateTranslation', 'tour_type', $tourType->getKey(), [
-                'locale' => $locale,
-                'user_id' => optional($request->user())->getAuthIdentifier(),
-            ]);
-
-            return redirect()
-                ->route('admin.product-types.translations.edit', $tourType)
-                ->with('success', "Traducción en {$locale} guardada correctamente.")
-                ->with('active_locale', $locale); // Para mantener la pestaña activa
+            $productType->save();
+            
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'updateTranslation', 'tour_type', $tourType->getKey(), $e, [
-                'locale' => $locale,
-                'user_id' => optional($request->user())->getAuthIdentifier(),
+            \Log::warning('DeepL translation failed for product type', [
+                'product_type_id' => $productType->product_type_id,
+                'error' => $e->getMessage()
             ]);
-
-            return back()
-                ->with('error', 'Error al guardar la traducción.')
-                ->withInput();
         }
     }
 }

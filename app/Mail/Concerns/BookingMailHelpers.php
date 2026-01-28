@@ -34,17 +34,15 @@ trait BookingMailHelpers
     }
 
     /**
-     * Locale del correo según el idioma elegido del tour.
-     * Preferimos el detalle (lo realmente reservado) y luego la cabecera.
+     * Locale del correo según el usuario o fallback.
      * SIEMPRE devuelve 'es' o 'en'.
      */
     protected function mailLocaleFromBooking(Booking $booking): string
     {
-        $booking->loadMissing(['tourLanguage', 'detail.tourLanguage']);
+        $booking->loadMissing(['user']);
 
-        $code = $this->resolveLangCode($booking->detail->tourLanguage ?? null)
-             ?? $this->resolveLangCode($booking->tourLanguage ?? null)
-             ?? 'en';
+        // Try to get locale from user, otherwise fallback to 'en'
+        $code = $booking->user->locale ?? 'en';
 
         // Forzar a solo español o inglés
         return $this->restrictedLocale($code);

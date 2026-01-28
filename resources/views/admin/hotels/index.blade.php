@@ -145,8 +145,8 @@
                         @can('edit-hotels')
                         <button
                             class="btn btn-edit btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#editHotelModal"
+                            data-toggle="modal"
+                            data-target="#editHotelModal"
                             data-id="{{ $hotel->hotel_id }}"
                             data-name="{{ $hotel->name }}"
                             data-active="{{ $hotel->is_active ? 1 : 0 }}"
@@ -212,7 +212,7 @@
                     <i class="fas fa-edit me-1"></i>
                     {{ __('pickups.hotels.edit_title') }}
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('pickups.hotels.close') }}"></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('pickups.hotels.close') }}"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
@@ -236,7 +236,7 @@
                     <i class="fas fa-save me-1"></i>
                     {{ __('pickups.hotels.save_changes') }}
                 </button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     {{ __('pickups.hotels.cancel') }}
                 </button>
             </div>

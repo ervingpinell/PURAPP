@@ -36,8 +36,6 @@ class StoreProductTypeRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('tour_type_translations', 'name')
-                    ->where('locale', 'es')
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'duration'    => ['nullable', 'string', 'max:255'],

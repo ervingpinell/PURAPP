@@ -136,11 +136,11 @@
 
   // Fix main button toggle
   document.addEventListener('DOMContentLoaded', function() {
-    const filterButton = document.querySelector('[data-bs-toggle="collapse"][data-bs-target="#advancedFilters"]');
+    const filterButton = document.querySelector('[data-toggle="collapse"][data-target="#advancedFilters"]');
 
     if (filterButton) {
       // Remove Bootstrap's default handler and add our own
-      filterButton.removeAttribute('data-bs-toggle');
+      filterButton.removeAttribute('data-toggle');
 
       filterButton.addEventListener('click', function(e) {
         e.preventDefault();

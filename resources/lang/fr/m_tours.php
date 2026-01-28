@@ -296,6 +296,9 @@ return [
             'original_start'                   => 'Début original',
             'original_end'                     => 'Fin originale',
             'back_to_list'                     => 'Retour à la liste',
+            'capacity_override_help' => 'Seulement si vous avez besoin d\'une capacité différente pour cet horaire',
+            'capacity_override_placeholder' => 'Laisser vide pour utiliser la capacité du tour',
+            'tour_base_capacity' => 'Capacité de base du tour :',
             'success' => [
                 'restored'      => 'Horaires restaurés avec succès.',
                 'force_deleted' => 'Horaires supprimés définitivement.',
@@ -328,10 +331,6 @@ return [
             'assignment_toggle'    => 'Impossible de changer le statut de l’affectation.',
             'not_assigned_to_tour' => 'L’horaire n’est pas assigné à ce tour.',
             'delete'               => 'Un problème est survenu lors de la suppression de l’horaire.',
-            'capacity_override_help' => 'Seulement si vous avez besoin d\'une capacité différente pour cet horaire',
-            'capacity_override_placeholder' => 'Laisser vide pour utiliser la capacité du tour',
-            'capacity_definition_info' => 'La capacité est définie lors de l\'attribution de cet horaire à un tour spécifique',
-            'tour_base_capacity' => 'Capacité de base du tour :',
         ],
 
         'placeholders' => [

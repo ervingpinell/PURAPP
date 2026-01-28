@@ -75,8 +75,8 @@
                 @endforeach
             </ul>
             <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert"
+                    class="close"
+                    data-dismiss="alert"
                     aria-label="{{ __('m_tours.common.close') }}"></button>
         </div>
     @endif
@@ -85,8 +85,8 @@
         <div class="alert alert-success alert-dismissible fade show" role="alert" aria-live="polite">
             {{ session('success') }}
             <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert"
+                    class="close"
+                    data-dismiss="alert"
                     aria-label="{{ __('m_tours.common.close') }}"></button>
         </div>
     @endif

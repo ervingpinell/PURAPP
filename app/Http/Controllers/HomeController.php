@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ProductCategoryHelper;
 use App\Mail\ContactMessage;
 use App\Models\HotelList;
 use App\Models\MeetingPoint;
@@ -289,7 +290,7 @@ class HomeController extends Controller
             ->orderBy('tours.tour_type_id')
             ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
             ->orderBy('o.position')
-            ->orderBy('tours.name')
+            ->orderByRaw("tours.name->>'$loc' ASC")
             ->paginate(12)
             ->withQueryString()
             ->through(function ($tour) use ($loc, $fb) {
@@ -318,6 +319,68 @@ class HomeController extends Controller
         return view('public.products.index', [
             'tours'      => $tours,
             'categories' => $categories,
+        ]);
+    }
+
+    /**
+     * Display products by subcategory (e.g., /tours/full-day)
+     */
+    public function bySubcategory(Request $request, string $category, string $subcategory)
+    {
+        $loc = app()->getLocale();
+        $fb  = config('app.fallback_locale', 'es');
+
+        // Validate subcategory exists
+        if (!ProductCategoryHelper::subcategoryExists($category, $subcategory)) {
+            abort(404);
+        }
+
+        // Get products filtered by category and subcategory
+        $query = Product::query()
+            ->active()
+            ->with([
+                'coverImage',
+                'prices.category.translations',
+                'itinerary.items.translations',
+                'tourType.translations',
+            ])
+            ->where('product_category', $category)
+            ->where('subcategory', $subcategory);
+
+        // Apply ordering
+        $tours = $query
+            ->leftJoin('tour_type_tour_order as o', function ($join) {
+                $join->on('o.product_id', '=', 'product2.product_id')
+                     ->on('o.tour_type_id', '=', 'product2.tour_type_id');
+            })
+            ->orderBy('product2.tour_type_id')
+            ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('o.position')
+            ->orderByRaw("product2.name->>'$loc' ASC")
+            ->paginate(12)
+            ->withQueryString()
+            ->through(function ($tour) use ($loc, $fb) {
+                $tr = $this->pickTranslation($tour->translations, $loc, $fb);
+                $tour->translated_name = $tr->name ?? $tour->name;
+                return $tour;
+            });
+
+        // Get category and subcategory config
+        $categoryConfig = ProductCategoryHelper::getCategoryConfig($category);
+        $subcategoryConfig = ProductCategoryHelper::getSubcategoryConfig($category, $subcategory);
+
+        // SEO Meta tags
+        $metaTitle = $subcategoryConfig['meta_title'] ?? ($subcategoryConfig['label'] . ' | Green Vacations CR');
+        $metaDescription = $subcategoryConfig['meta_description'] ?? $subcategoryConfig['description'];
+
+        return view('public.products.subcategory', [
+            'tours'             => $tours,
+            'category'          => $category,
+            'subcategory'       => $subcategory,
+            'categoryConfig'    => $categoryConfig,
+            'subcategoryConfig' => $subcategoryConfig,
+            'metaTitle'         => $metaTitle,
+            'metaDescription'   => $metaDescription,
         ]);
     }
 
@@ -372,7 +435,7 @@ class HomeController extends Controller
                 ->orderBy('tours.tour_type_id')
                 ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
                 ->orderBy('o.position')
-                ->orderBy('tours.name')
+                ->orderByRaw("tours.name->>'$loc' ASC")
                 ->get([
                     'tours.product_id',
                     'tours.name',
@@ -939,7 +1002,7 @@ class HomeController extends Controller
         }
         
         $products = $query
-            ->orderBy('name')
+            ->orderByRaw("name->>'$loc' ASC")
             ->paginate(12)
             ->withQueryString()
             ->through(function ($product) use ($loc, $fb) {
@@ -981,7 +1044,7 @@ class HomeController extends Controller
                 'prices.category.translations',
             ])
             ->where('subcategory', $subcategory)
-            ->orderBy('name')
+            ->orderByRaw("name->>'$loc' ASC")
             ->paginate(12)
             ->through(function ($product) use ($loc, $fb) {
                 $tr = $this->pickTranslation($product->translations, $loc, $fb);

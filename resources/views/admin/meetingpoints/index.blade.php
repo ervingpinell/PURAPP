@@ -178,9 +178,14 @@
         <tbody>
           @forelse ($points as $i => $p)
           @php
-          $transPack = $p->translations->mapWithKeys(fn($t) => [
-          $t->locale => ['name' => $t->name, 'description' => $t->description, 'instructions' => $t->instructions]
-          ]);
+          // Build translations array from Spatie JSONB fields
+          $transPack = collect(config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']))->mapWithKeys(function($locale) use ($p) {
+            return [$locale => [
+              'name' => $p->getTranslation('name', $locale, false),
+              'description' => $p->getTranslation('description', $locale, false),
+              'instructions' => $p->getTranslation('instructions', $locale, false)
+            ]];
+          });
           @endphp
           <tr data-row-text="{{ strtolower(trim(($p->name_localized ?? '').' '.($p->description_localized ?? ''))) }}">
             <td class="text-center text-muted">{{ $i+1 }}</td>
@@ -273,9 +278,14 @@
   <div id="mobilePointsList">
     @forelse ($points as $p)
     @php
-    $transPack = $p->translations->mapWithKeys(fn($t) => [
-    $t->locale => ['name' => $t->name, 'description' => $t->description, 'instructions' => $t->instructions]
-    ]);
+    // Build translations array from Spatie JSONB fields
+    $transPack = collect(config('app.supported_locales', ['es', 'en', 'fr', 'de', 'pt']))->mapWithKeys(function($locale) use ($p) {
+      return [$locale => [
+        'name' => $p->getTranslation('name', $locale, false),
+        'description' => $p->getTranslation('description', $locale, false),
+        'instructions' => $p->getTranslation('instructions', $locale, false)
+      ]];
+    });
     @endphp
     <div class="card shadow-sm mb-3 mobile-point-card"
       data-row-text="{{ strtolower(trim(($p->name ?? '').' '.($p->description_localized ?? ''))) }}">
@@ -369,7 +379,7 @@
         <h5 class="modal-title">
           <i class="fas fa-edit me-2"></i>{{ __('pickups.meeting_point.actions.title') }}
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" title="{{ __('pickups.meeting_point.buttons.close') }}"></button>
+        <button type="button" class="close" data-dismiss="modal" title="{{ __('pickups.meeting_point.buttons.close') }}"></button>
       </div>
       <form id="editForm" method="POST">
         @csrf @method('PUT')
@@ -384,8 +394,8 @@
             <li class="nav-item" role="presentation">
               <button class="nav-link {{ $i===0 ? 'active' : '' }}"
                 id="edit-tab-{{ $loc }}"
-                data-bs-toggle="tab"
-                data-bs-target="#edit-pane-{{ $loc }}"
+                data-toggle="tab"
+                data-target="#edit-pane-{{ $loc }}"
                 type="button"
                 role="tab">
                 {{ strtoupper($loc) }}
@@ -444,7 +454,7 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
             <i class="fas fa-times me-1"></i> {{ __('pickups.meeting_point.buttons.cancel') }}
           </button>
           <button type="submit" class="btn btn-primary">
@@ -561,7 +571,7 @@
       keyboard: true,
       focus: true
     });
-    editModalElement.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => btn.addEventListener('click', () => editModal.hide()));
+    editModalElement.querySelectorAll('[data-dismiss="modal"]').forEach(btn => btn.addEventListener('click', () => editModal.hide()));
   }
 
   // Desktop edit buttons

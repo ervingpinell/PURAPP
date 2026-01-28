@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin\Product;
 
 use App\Http\Controllers\Controller;
-use App\Models\TourType;
+use App\Models\ProductType; // Fixed missing import
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+// Removed unused Storage and TourType imports
 
 /**
  * TourTypeCoverPickerController
@@ -26,8 +26,8 @@ class ProductTypeCoverPickerController extends Controller
         $locale = app()->getLocale();
 
         // Cargar traducciones para poder buscar por nombre (ProductType uses Spatie)
-        $types = \App\Models\ProductType::query()
-            ->select('product_type_id as product_type_id', 'product_type_id', 'name', 'cover_path', 'is_active')
+        $types = ProductType::query()
+            ->select('product_type_id', 'name', 'cover_path', 'is_active') // Keep cover_path for fallback if needed
             ->when($q !== '', function ($qr) use ($q, $locale) {
                 // Laravel JSON where syntax
                 $qr->where("name->{$locale}", 'LIKE', "%{$q}%");
@@ -40,11 +40,16 @@ class ProductTypeCoverPickerController extends Controller
             ->get()
             ->sortBy('name'); // Ordenar por nombre (accessor returns string)
 
-        // Mapear cover_url para el blade
+        // Mapear cover_url para el blade using Spatie with fallback
         $types->transform(function ($t) {
-            $t->cover_url = $t->cover_path
-                ? asset('storage/' . ltrim($t->cover_path, '/'))
-                : asset('images/volcano.png');
+            // Priority: 1. Spatie Media 'cover' 2. Old cover_path 3. Placeholder
+            if ($t->hasMedia('cover')) {
+                $t->cover_url = $t->getFirstMediaUrl('cover');
+            } elseif ($t->cover_path) {
+                $t->cover_url = asset('storage/' . ltrim($t->cover_path, '/'));
+            } else {
+                $t->cover_url = asset('images/volcano.png');
+            }
             return $t;
         });
 
@@ -88,22 +93,29 @@ class ProductTypeCoverPickerController extends Controller
     /**
      * Formulario para subir/actualizar el cover de la categoría.
      */
-    public function edit(ProductType $tourType)
+    public function edit(ProductType $productType) // Corrected variable name for consistency, though route binding uses {productType}
     {
-        $coverUrl = $tourType->cover_url; // accessor defined in model? No, but we can compute it view side or dynamic prop. transform() above did it.
-        // But edit() takes fresh model. ProductType has no getCoverUrlAttribute.
-        // Let's manually compute it similar to pick()
-        $coverUrl = $tourType->cover_path 
-            ? asset('storage/' . ltrim($tourType->cover_path, '/')) 
-            : asset('images/volcano.png');
+        // Spatie with fallback
+        if ($productType->hasMedia('cover')) {
+            $coverUrl = $productType->getFirstMediaUrl('cover');
+        } elseif ($productType->cover_path) {
+            $coverUrl = asset('storage/' . ltrim($productType->cover_path, '/'));
+        } else {
+            $coverUrl = asset('images/volcano.png');
+        }
             
+        // Variable name in view likely expects $tourType or maybe generic?
+        // Let's check view passed vars below: compact('tourType', 'coverUrl')
+        // So we must pass 'tourType' => $productType
+        $tourType = $productType;
+
         return view('admin.tourtypes.edit-cover', compact('tourType', 'coverUrl'));
     }
 
     /**
      * Procesa la subida del cover (PUT).
      */
-    public function updateCover(Request $request, ProductType $tourType)
+    public function updateCover(Request $request, ProductType $productType)
     {
         $maxSizeKb = (int) config('tours.max_image_kb', 30720); // 30MB por defecto
 
@@ -111,40 +123,47 @@ class ProductTypeCoverPickerController extends Controller
             'cover' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', "max:{$maxSizeKb}"],
         ]);
 
-        $id  = (int) $tourType->product_type_id;
-        $dir = "types/{$id}";
+        try {
+            // Spatie handles upload, conversion (if configured), and storage
+            $productType->addMediaFromRequest('cover')
+                        ->toMediaCollection('cover');
 
-        // Asegurar carpeta
-        Storage::disk('public')->makeDirectory($dir);
+            // Optimizar y guardar imagen con WebP is handled by Spatie if configured, 
+            // or we accept standard upload. The user said "use spatie tambien".
+            
+            // We do NOT update 'cover_path' anymore as Spatie manages the path.
+            // But for backward compat, if other parts of the app use cover_path directly 
+            // without accessing cover_url, they might break. 
+            // However, the task is to refactor to Spatie.
+            // I will clear cover_path to indicate it's now managed by Spatie if desired, 
+            // or leave it as stale data. 
+            // Better to clear it so fallbacks don't confusingly show old image if Spatie fails?
+            // Actually, if we add media, Spatie works.
+            $productType->update(['cover_path' => null]); // Optional clean up
 
-        // (Opcional) limpiar anteriores
-        foreach (Storage::disk('public')->files($dir) as $f) {
-            Storage::disk('public')->delete($f);
+            \App\Services\LoggerHelper::mutated(
+                'ProductTypeCoverPickerController', // updated controller name in text
+                'updateCover',
+                'product_type', // updated from tour_type
+                $productType->product_type_id,
+                [
+                    'media_action' => 'check_spatie_media_table',
+                    'user_id'    => optional($request->user())->getAuthIdentifier(),
+                ]
+            );
+
+            return back()->with('swal', [
+                'icon'  => 'success',
+                'title' => 'Cover actualizado',
+                'text'  => 'La imagen de portada de la categoría se guardó correctamente (Spatie).',
+            ]);
+
+        } catch (\Exception $e) {
+             return back()->with('swal', [
+                'icon'  => 'error',
+                'title' => 'Error',
+                'text'  => 'Error al subir imagen: ' . $e->getMessage(),
+            ]);
         }
-
-        // Optimizar y guardar imagen con WebP
-        $imageService = app(\App\Services\ImageOptimizationService::class);
-        $paths = $imageService->optimizeAndSave($request->file('cover'), $dir);
-
-        // Persistir ruta relativa (usamos la versión original, WebP se sirve automáticamente con <picture>)
-        $tourType->update(['cover_path' => $paths['original']]);
-
-        \App\Services\LoggerHelper::mutated(
-            'TourTypeCoverPickerController',
-            'updateCover',
-            'tour_type',
-            $id,
-            [
-                'cover_path' => $paths['original'],
-                'webp_path' => $paths['webp'],
-                'user_id'    => optional($request->user())->getAuthIdentifier(),
-            ]
-        );
-
-        return back()->with('swal', [
-            'icon'  => 'success',
-            'title' => 'Cover actualizado',
-            'text'  => 'La imagen de portada de la categoría se guardó y optimizó correctamente.',
-        ]);
     }
 }

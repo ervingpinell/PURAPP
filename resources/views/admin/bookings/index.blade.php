@@ -167,8 +167,8 @@ $activeFilters = request()->hasAny([
 
       {{-- Advanced Filters Button --}}
       <button class="btn btn-secondary" type="button"
-        data-bs-toggle="collapse"
-        data-bs-target="#advancedFilters"
+        data-toggle="collapse"
+        data-target="#advancedFilters"
         aria-expanded="false"
         aria-controls="advancedFilters">
         <i class="fas fa-filter"></i> {{ __('m_bookings.filters.advanced_filters') }}

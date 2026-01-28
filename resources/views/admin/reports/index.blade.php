@@ -550,7 +550,7 @@
 
         {{-- Toggle Más filtros (mobile) --}}
         <div class="col-12 d-lg-none mt-2">
-          <a class="text-decoration-none" data-bs-toggle="collapse" href="#moreFilters" role="button" aria-expanded="false" aria-controls="moreFilters">
+          <a class="text-decoration-none" data-toggle="collapse" href="#moreFilters" role="button" aria-expanded="false" aria-controls="moreFilters">
             <i class="fas fa-filter me-1"></i> {{ __('reports.filters.more_filters') }}
           </a>
         </div>

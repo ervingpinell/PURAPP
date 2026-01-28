@@ -197,8 +197,8 @@ $currentStep = $step ?? 1;
             @endforeach
         </ul>
         <button type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
+            class="close"
+            data-dismiss="alert"
             aria-label="{{ __('m_tours.common.close') }}"></button>
     </div>
     @endif
@@ -207,8 +207,8 @@ $currentStep = $step ?? 1;
     <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
         {{ session('success') }}
         <button type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
+            class="close"
+            data-dismiss="alert"
             aria-label="{{ __('m_tours.common.close') }}"></button>
     </div>
     @endif
@@ -217,8 +217,8 @@ $currentStep = $step ?? 1;
     <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
         {!! $limitWarning !!}
         <button type="button"
-            class="btn-close"
-            data-bs-dismiss="alert"
+            class="close"
+            data-dismiss="alert"
             aria-label="{{ __('m_tours.common.close') }}"></button>
     </div>
     @endif
@@ -428,8 +428,8 @@ $currentStep = $step ?? 1;
                                     <button
                                         type="button"
                                         class="btn btn-success"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalCreateLanguage">
+                                        data-toggle="modal"
+                                        data-target="#modalCreateLanguage">
                                         <i class="fas fa-plus"></i>
                                     </button>
                                     <a href="{{ route('admin.languages.index') }}"
@@ -515,8 +515,8 @@ $currentStep = $step ?? 1;
                                     <button
                                         type="button"
                                         class="btn btn-success"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalCreateTourType">
+                                        data-toggle="modal"
+                                        data-target="#modalCreateTourType">
                                         <i class="fas fa-plus"></i>
                                     </button>
 
@@ -547,6 +547,24 @@ $currentStep = $step ?? 1;
                             @error('product_type_id')
                             <span class="invalid-feedback">{{ $message }}</span>
                             @enderror
+                        </div>
+
+                        {{-- Subtipo de Producto (dinámico) --}}
+                        <div class="form-group" id="subtype-container" style="display: none;">
+                            <label for="product_subtype_id" class="mb-0">
+                                <i class="fas fa-layer-group text-info"></i>
+                                Subtipo
+                            </label>
+                            <small class="form-text text-muted d-block mb-2">
+                                Clasificación específica del producto (opcional)
+                            </small>
+
+                            <select
+                                name="product_subtype_id"
+                                id="product_subtype_id"
+                                class="form-control">
+                                <option value="">Seleccionar subtipo...</option>
+                            </select>
                         </div>
 
                         {{-- Estado (oculto, siempre borrador en este paso) --}}
@@ -593,7 +611,7 @@ $currentStep = $step ?? 1;
                 <h5 class="modal-title" id="modalCreateTourTypeLabel">
                     <i class="fas fa-tags"></i> Agregar Categoría de Producto
                 </h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.common.close') }}">
+                <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.common.close') }}">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -657,7 +675,7 @@ $currentStep = $step ?? 1;
                 </small>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     {{ __('m_tours.common.cancel') }}
                 </button>
                 <button type="submit" class="btn btn-primary">
@@ -680,7 +698,7 @@ $currentStep = $step ?? 1;
                 <h5 class="modal-title" id="modalCreateLanguageLabel">
                     <i class="fas fa-language"></i> {{ __('m_tours.tour.ui.add_language') }}
                 </h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.common.close') }}">
+                <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.common.close') }}">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -700,7 +718,7 @@ $currentStep = $step ?? 1;
                 </small>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
                     {{ __('m_tours.common.cancel') }}
                 </button>
                 <button type="submit" class="btn btn-primary">
@@ -1124,6 +1142,54 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
                 errorDiv.style.display = 'none';
             }
             return true;
+        }
+
+        // ============================================================
+        // DYNAMIC SUBTYPE LOADING
+        // ============================================================
+        const productTypeSelect = document.getElementById('product_type_id');
+        const subtypeContainer = document.getElementById('subtype-container');
+        const subtypeSelect = document.getElementById('product_subtype_id');
+
+        if (productTypeSelect && subtypeContainer && subtypeSelect) {
+            // Load subtypes when product type changes
+            productTypeSelect.addEventListener('change', function() {
+                const productTypeId = this.value;
+                
+                if (!productTypeId) {
+                    subtypeContainer.style.display = 'none';
+                    subtypeSelect.innerHTML = '<option value="">Seleccionar subtipo...</option>';
+                    return;
+                }
+
+                // Fetch subtypes from database
+                fetch(`/admin/product-types/${productTypeId}/subtypes-data`)
+                    .then(response => response.json())
+                    .then(data => {
+                        subtypeSelect.innerHTML = '<option value="">Seleccionar subtipo...</option>';
+                        
+                        if (data.length > 0) {
+                            data.forEach(subtype => {
+                                const option = document.createElement('option');
+                                option.value = subtype.subtype_id;
+                                option.textContent = subtype.name;
+                                subtypeSelect.appendChild(option);
+                            });
+                            subtypeContainer.style.display = 'block';
+                        } else {
+                            subtypeContainer.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading subtypes:', error);
+                        subtypeContainer.style.display = 'none';
+                    });
+            });
+
+            // Trigger on page load if editing
+            if (productTypeSelect.value) {
+                productTypeSelect.dispatchEvent(new Event('change'));
+            }
         }
 
         // ============================================================

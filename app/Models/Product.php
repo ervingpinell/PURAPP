@@ -6,11 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Translatable\HasTranslations;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Illuminate\Support\Str;
 
-class Product extends Model
+class Product extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, HasTranslations;
+    use HasFactory, SoftDeletes, HasTranslations, InteractsWithMedia;
 
     protected $table = 'product2';
     protected $primaryKey = 'product_id';
@@ -46,7 +49,10 @@ class Product extends Model
         'deleted_at' => 'datetime',
     ];
 
-    protected $appends = ['cover_image', 'display_category'];
+    protected $appends = ['cover_url', 'display_category'];
+
+
+
 
     // ==========================================
     // RELATIONSHIPS
@@ -71,6 +77,15 @@ class Product extends Model
     {
         return $this->hasMany(ProductImage::class, 'product_id', 'product_id')
                     ->orderBy('position');
+    }
+
+    /**
+     * Get the cover image relationship
+     */
+    public function coverImage()
+    {
+        return $this->hasOne(ProductImage::class, 'product_id', 'product_id')
+                    ->where('is_cover', true);
     }
 
     public function prices()
@@ -155,6 +170,16 @@ class Product extends Model
         return $this->hasMany(ProductAuditLog::class, 'product_id', 'product_id');
     }
 
+    public function pricingStrategies()
+    {
+        return $this->hasMany(ProductPricingStrategy::class, 'product_id', 'product_id');
+    }
+
+    public function subtype()
+    {
+        return $this->belongsTo(ProductTypeSubcategory::class, 'product_subtype_id', 'subtype_id');
+    }
+
     // ==========================================
     // SCOPES
     // ==========================================
@@ -188,10 +213,28 @@ class Product extends Model
     // ACCESSORS & MUTATORS
     // ==========================================
 
-    public function getCoverImageAttribute()
+    /**
+     * Get cover image URL for appends
+     * Note: The coverImage() relationship returns the ProductImage model
+     * This accessor returns the URL string for backward compatibility
+     */
+    public function getCoverUrlAttribute(): string
     {
-        return $this->images()->first()?->path ?? '/images/placeholder-tour.jpg';
+        // If coverImage relationship is loaded, use it
+        if ($this->relationLoaded('coverImage') && $this->coverImage) {
+            return $this->coverImage->url;
+        }
+        
+        // Otherwise, get first image
+        $firstImage = $this->images()->where('is_cover', true)->first();
+        if ($firstImage) {
+            return $firstImage->url;
+        }
+        
+        // Fallback to placeholder
+        return asset('images/volcano.png');
     }
+
 
     public function getDisplayCategoryAttribute()
     {
@@ -233,6 +276,57 @@ class Product extends Model
         })?->price ?? 0;
     }
 
+    /**
+     * Get active pricing strategy para una fecha
+     */
+    public function activePricingStrategy(?string $date = null)
+    {
+        $query = $this->pricingStrategies()->active();
+        
+        if ($date) {
+            $query->validForDate($date);
+        }
+        
+        return $query->orderBy('priority', 'desc')->first();
+    }
+
+    /**
+     * Calcular precio del producto
+     */
+    public function calculatePrice(int $totalPassengers, array $breakdown = [], ?string $date = null): array
+    {
+        $strategy = $this->activePricingStrategy($date);
+        
+        if (!$strategy) {
+            return [
+                'error' => 'No hay estrategia de pricing configurada',
+                'total' => 0,
+            ];
+        }
+        
+        return $strategy->calculatePrice($totalPassengers, $breakdown);
+    }
+
+    /**
+     * Get base price for display (lowest possible)
+     */
+    public function getBasePriceAttribute(): float
+    {
+        $strategy = $this->activePricingStrategy();
+        
+        if (!$strategy) {
+            return 0;
+        }
+
+        // Obtener el precio más bajo
+        $lowestRule = $strategy->rules()
+            ->where('is_active', true)
+            ->orderBy('price', 'asc')
+            ->first();
+
+        return $lowestRule ? (float) $lowestRule->price : 0;
+    }
+
     // ==========================================
     // AUTO SLUG
     // ==========================================
@@ -252,6 +346,70 @@ class Product extends Model
                 $product->slug = Str::slug($product->name);
             }
         });
+    }
+
+    // ==========================================
+    // MEDIA LIBRARY
+    // ==========================================
+
+    public function registerMediaCollections(): void
+    {
+        // Images collection
+        $this->addMediaCollection('images')
+             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'])
+             ->useFallbackUrl(asset('images/volcano.png'))
+             ->useFallbackPath(public_path('images/volcano.png'));
+        
+        // Videos collection
+        $this->addMediaCollection('videos')
+             ->acceptsMimeTypes(['video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo'])
+             ->useFallbackUrl(asset('images/video-placeholder.jpg'))
+             ->useFallbackPath(public_path('images/video-placeholder.jpg'));
+    }
+
+    public function registerMediaConversions(Media $media = null): void
+    {
+        // Thumbnail for cards/listings (400x300)
+        $this->addMediaConversion('thumb')
+             ->width(400)
+             ->height(300)
+             ->format('webp')
+             ->quality(90)
+             ->optimize()
+             ->performOnCollections('images');
+        
+        // Medium for detail pages (800x600)
+        $this->addMediaConversion('medium')
+             ->width(800)
+             ->height(600)
+             ->format('webp')
+             ->quality(92)
+             ->optimize()
+             ->performOnCollections('images');
+        
+        // Large for lightbox/zoom (1920x1080)
+        $this->addMediaConversion('large')
+             ->width(1920)
+             ->height(1080)
+             ->format('webp')
+             ->quality(92)
+             ->optimize()
+             ->performOnCollections('images');
+        
+        // Optimized original JPEG (fallback)
+        $this->addMediaConversion('optimized')
+             ->quality(90)
+             ->optimize()
+             ->performOnCollections('images');
+        
+        // Video thumbnail/poster (first frame)
+        $this->addMediaConversion('video_thumb')
+             ->width(1920)
+             ->height(1080)
+             ->format('jpg')
+             ->quality(85)
+             ->performOnCollections('videos')
+             ->nonQueued(); // Generate immediately for preview
     }
 
     // ==========================================

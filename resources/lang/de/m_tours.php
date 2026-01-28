@@ -293,6 +293,9 @@ return [
             'original_start'                   => 'Ursprünglicher Start',
             'original_end'                     => 'Ursprüngliches Ende',
             'back_to_list'                     => 'Zurück zur Liste',
+            'capacity_override_help' => 'Nur wenn Sie eine andere Kapazität für diesen Zeitplan benötigen',
+            'capacity_override_placeholder' => 'Leer lassen, um die Tour-Kapazität zu verwenden',
+            'tour_base_capacity' => 'Tour-Basiskapazität:',
             'success' => [
                 'restored'      => 'Zeitplan erfolgreich wiederhergestellt.',
                 'force_deleted' => 'Zeitplan dauerhaft gelöscht.',
@@ -325,10 +328,6 @@ return [
             'assignment_toggle'    => 'Der Status der Zuweisung konnte nicht geändert werden.',
             'not_assigned_to_tour' => 'Die Zeit ist dieser Tour nicht zugewiesen.',
             'delete'               => 'Beim Löschen der Zeit ist ein Problem aufgetreten.',
-            'capacity_override_help' => 'Nur wenn Sie eine andere Kapazität für diesen Zeitplan benötigen',
-            'capacity_override_placeholder' => 'Leer lassen, um die Tour-Kapazität zu verwenden',
-            'capacity_definition_info' => 'Die Kapazität wird festgelegt, wenn dieser Zeitplan einem bestimmten Tour zugewiesen wird',
-            'tour_base_capacity' => 'Tour-Basiskapazität:',
         ],
 
         'placeholders' => [

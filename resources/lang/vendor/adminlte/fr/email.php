@@ -6,6 +6,7 @@ return [
     'booking_details' => 'Détails de votre réservation',
     'booking_reference' => 'Référence de réservation',
     'tour' => 'Excursion',
+    'service' => 'Service',
     'tour_language' => 'Langue de l’excursion',
     'date' => 'Date',
     'adults' => 'Adultes',

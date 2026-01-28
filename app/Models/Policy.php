@@ -185,6 +185,15 @@ class Policy extends Model
 
     /* ===================== HELPERS ===================== */
 
+    /**
+     * Normalize locale code to canonical form
+     * Example: 'en-US' -> 'en', 'es-MX' -> 'es'
+     */
+    public static function canonicalLocale(string $locale): string
+    {
+        return strtolower(explode('-', $locale)[0]);
+    }
+
     public static function byType(string $type): ?self
     {
         $query = static::query()

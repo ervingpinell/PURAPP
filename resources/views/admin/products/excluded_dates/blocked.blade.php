@@ -71,7 +71,7 @@
     <div class="ms-auto d-flex align-items-end gap-2">
       <div class="bulk-dd">
         <div class="btn-group">
-          <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-toggle="dropdown" aria-expanded="false">
             {{ __('m_bookings.excluded_dates.filters.update_state') }}
           </button>
           <div class="dropdown-menu dropdown-menu-right dropdown-menu-end p-2">

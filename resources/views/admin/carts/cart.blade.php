@@ -90,8 +90,8 @@
                 </td>
                 <td>
                     <button class="btn btn-sm btn-edit"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalEditar{{ $item->item_id }}">
+                        data-toggle="modal"
+                        data-target="#modalEditar{{ $item->item_id }}">
                         <i class="fas fa-edit"></i>
                     </button>
                     <form method="POST"
@@ -214,7 +214,7 @@ $__adminTotal = $hasPromo
 
             <div class="modal-header bg-warning text-white">
                 <h5 class="modal-title" id="modalLabel{{ $item->item_id }}">{{ __('carts.actions.edit') }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="close" data-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
@@ -283,7 +283,7 @@ $__adminTotal = $hasPromo
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {{ __('carts.actions.save_changes') }}</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('carts.actions.cancel') }}</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('carts.actions.cancel') }}</button>
             </div>
         </form>
     </div>

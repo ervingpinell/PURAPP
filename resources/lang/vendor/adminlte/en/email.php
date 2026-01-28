@@ -5,6 +5,7 @@ return [
     'booking_details' => 'Your Booking Details',
     'booking_reference' => 'Booking Reference',
     'tour' => 'Tour',
+    'service' => 'Service',
     'tour_language' => 'Tour language',
     'date' => 'Date',
     'adults' => 'Adults',

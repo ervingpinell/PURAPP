@@ -491,6 +491,99 @@ $isFull = $count >= $max;
     @endforelse
   </div>
 
+  {{-- Videos Section --}}
+  @php
+  $videos = $product->getMedia('videos');
+  $videoCount = $videos->count();
+  $maxVideos = 3;
+  @endphp
+
+  <div class="mt-5">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h3 class="card-title mb-0">
+          <i class="fas fa-video me-2"></i> Videos del Producto
+        </h3>
+      </div>
+      <div class="card-body">
+        {{-- Upload Form --}}
+        @can('create-tour-images')
+        <form action="{{ route('admin.products.videos.store', $product) }}" 
+              method="POST" 
+              enctype="multipart/form-data"
+              class="mb-4 p-3 border rounded bg-light">
+          @csrf
+          <div class="row align-items-end">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">
+                <i class="fas fa-upload me-1"></i> Subir Videos
+              </label>
+              <input type="file" 
+                     name="files[]" 
+                     class="form-control" 
+                     accept="video/mp4,video/webm,video/quicktime,video/x-msvideo" 
+                     multiple
+                     {{ $videoCount >= $maxVideos ? 'disabled' : '' }}>
+              <small class="form-text text-muted d-block mt-1">
+                <i class="fas fa-info-circle me-1"></i>
+                Formatos: MP4, WebM, MOV, AVI | Máx: 400MB por video | Duración: 2 minutos | Límite: {{ $videoCount }}/{{ $maxVideos }}
+              </small>
+            </div>
+            <div class="col-md-4">
+              <button type="submit" 
+                      class="btn btn-primary w-100"
+                      {{ $videoCount >= $maxVideos ? 'disabled' : '' }}>
+                <i class="fas fa-cloud-upload-alt me-1"></i> Subir Videos
+              </button>
+            </div>
+          </div>
+        </form>
+        @endcan
+
+        {{-- Video Gallery --}}
+        <div class="row g-3">
+          @forelse($videos as $video)
+          <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+              <div class="card-body p-2">
+                <x-video-player :video="$video" controls class="mb-2" />
+                <div class="d-flex justify-content-between align-items-center px-2">
+                  <div>
+                    <small class="text-muted d-block">
+                      <i class="fas fa-file-video me-1"></i> {{ $video->human_readable_size }}
+                    </small>
+                    <small class="text-muted d-block">
+                      <i class="fas fa-clock me-1"></i> {{ $video->getCustomProperty('duration', 'N/A') }}
+                    </small>
+                  </div>
+                  @can('delete-tour-images')
+                  <form action="{{ route('admin.products.videos.destroy', [$product, $video->id]) }}" 
+                        method="POST" 
+                        onsubmit="return confirm('¿Eliminar este video?')"
+                        class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger btn-sm">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                  @endcan
+                </div>
+              </div>
+            </div>
+          </div>
+          @empty
+          <div class="col-12">
+            <div class="alert alert-info text-center mb-0">
+              <i class="fas fa-info-circle me-2"></i> No hay videos subidos para este producto.
+            </div>
+          </div>
+          @endforelse
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 {{-- Modal Preview --}}
@@ -499,14 +592,14 @@ $isFull = $count >= $max;
     <div class="modal-content bg-dark text-white">
       <div class="modal-header border-0">
         <h5 class="modal-title">{{ __('m_tours.image.ui.preview_title') }}</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('m_tours.image.ui.close_btn') }}"></button>
+        <button type="button" class="close close-white" data-dismiss="modal" aria-label="{{ __('m_tours.image.ui.close_btn') }}"></button>
       </div>
       <div class="modal-body p-0 text-center">
         <img id="previewImg" src="" alt="" class="img-fluid" style="max-height:80vh;object-fit:contain;">
       </div>
       <div class="modal-footer border-0">
         <p class="text-muted mb-0 me-auto" id="previewCaption"></p>
-        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('m_tours.image.ui.close_btn') }}</button>
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">{{ __('m_tours.image.ui.close_btn') }}</button>
       </div>
     </div>
   </div>
@@ -761,6 +854,10 @@ $isFull = $count >= $max;
   
   @if(session('error'))
     toast('error', @json(__('m_tours.image.ui.error_title') . ': ' . session('error')));
+  @endif
+
+  @if(session('swal'))
+    Swal.fire(@json(session('swal')));
   @endif
   
   @if($errors->any())

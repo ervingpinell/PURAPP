@@ -90,20 +90,66 @@ class ProductController extends Controller
         $oldValues = $product->toArray();
         
         $validated = $request->validate([
-            'name' => 'required|string|max:191',
-            'product_type_id' => 'required|exists:product_types,product_type_id',
+            'translations' => 'sometimes|array',
+            'translations.*.name' => 'nullable|string|max:191',
+            'translations.*.description' => 'nullable|string',
+            'translations.*.overview' => 'nullable|string',
+            'translations.*.recommendations' => 'nullable|string',
+            'name' => 'sometimes|required|string|max:191',
+            'product_type_id' => 'sometimes|required|exists:product_types,product_type_id',
             'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'allow_custom_time' => 'boolean',
-            'allow_custom_pickup' => 'boolean',
+            'is_active' => 'sometimes|boolean',
+            'allow_custom_time' => 'sometimes|boolean',
+            'allow_custom_pickup' => 'sometimes|boolean',
         ]);
 
-        $product->update($validated);
+        // Handle translations if provided (new tab-based approach)
+        if (isset($validated['translations']) && is_array($validated['translations'])) {
+            foreach ($validated['translations'] as $locale => $transData) {
+                if (isset($transData['name'])) {
+                    $product->setTranslation('name', $locale, $transData['name']);
+                }
+                if (isset($transData['description'])) {
+                    $product->setTranslation('description', $locale, $transData['description']);
+                }
+                if (isset($transData['overview'])) {
+                    $product->setTranslation('overview', $locale, $transData['overview']);
+                }
+                if (isset($transData['recommendations'])) {
+                    $product->setTranslation('recommendations', $locale, $transData['recommendations']);
+                }
+            }
+        } else {
+            // Legacy single-field update (fallback for old forms)
+            if (isset($validated['name'])) {
+                $product->setTranslation('name', app()->getLocale(), $validated['name']);
+            }
+            if (isset($validated['description'])) {
+                $product->setTranslation('description', app()->getLocale(), $validated['description']);
+            }
+        }
+
+
+        // Update non-translatable fields only if provided
+        if (isset($validated['product_type_id'])) {
+            $product->product_type_id = $validated['product_type_id'];
+        }
+        if (isset($validated['is_active'])) {
+            $product->is_active = $validated['is_active'];
+        }
+        if (isset($validated['allow_custom_time'])) {
+            $product->allow_custom_time = $validated['allow_custom_time'];
+        }
+        if (isset($validated['allow_custom_pickup'])) {
+            $product->allow_custom_pickup = $validated['allow_custom_pickup'];
+        }
+        
+        $product->save();
         
         ProductAuditLog::logAction('updated', $product->product_id, auth()->id(), $oldValues, $product->toArray());
 
-        return redirect()->route('admin.products.show', $product)
-            ->with('success', __('Product updated successfully'));
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Traducciones actualizadas correctamente');
     }
 
     public function toggle(Product $product)

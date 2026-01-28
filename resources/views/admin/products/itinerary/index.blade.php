@@ -64,7 +64,7 @@ $itineraryToEdit = request('itinerary_id');
             </div>
             <div class="col-md-6 text-md-end">
                 @can('create-itineraries')
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearItinerario">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCrearItinerario">
                     <i class="fas fa-plus"></i> {{ __('m_tours.itinerary.ui.new_itinerary') }}
                 </button>
                 @endcan
@@ -113,8 +113,8 @@ $itineraryToEdit = request('itinerary_id');
                                 {{-- Asignar Ítems --}}
                                 @can('edit-itineraries')
                                 <a href="#" class="btn btn-sm btn-info"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalAsignar{{ $itinerary->itinerary_id }}"
+                                    data-toggle="modal"
+                                    data-target="#modalAsignar{{ $itinerary->itinerary_id }}"
                                     title="{{ __('m_tours.itinerary.ui.assign') }}">
                                     <i class="fas fa-link"></i>
                                 </a>
@@ -123,8 +123,8 @@ $itineraryToEdit = request('itinerary_id');
                                 {{-- Editar --}}
                                 @can('edit-itineraries')
                                 <a href="#" class="btn btn-sm btn-success"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalEditar{{ $itinerary->itinerary_id }}"
+                                    data-toggle="modal"
+                                    data-target="#modalEditar{{ $itinerary->itinerary_id }}"
                                     title="{{ __('m_tours.itinerary.ui.edit') }}">
                                     <i class="fas fa-edit"></i>
                                 </a>

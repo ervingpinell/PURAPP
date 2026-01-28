@@ -47,6 +47,20 @@ class Amenity extends Model
     }
 
 
+    /**
+     * Products that have this amenity
+     */
+    public function products()
+    {
+        return $this->belongsToMany(
+            Product::class,
+            'amenity_product',
+            'amenity_id',
+            'product_id'
+        )
+            ->withTimestamps();
+    }
+
     public function excludedFromTours()
     {
         return $this->belongsToMany(

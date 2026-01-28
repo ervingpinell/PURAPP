@@ -61,8 +61,8 @@
                 <td>{{ $cart->user->full_phone ?? 'N/A' }}</td>
                 <td>
                     <button class="btn btn-sm btn-info"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalItemsCart{{ $cart->cart_id }}"
+                        data-toggle="modal"
+                        data-target="#modalItemsCart{{ $cart->cart_id }}"
                         title="{{ __('carts.actions.view_items') }}">
                         <i class="fas fa-list"></i> ({{ $cart->items_count }})
                     </button>
@@ -78,8 +78,8 @@
 
                 <td class="text-center">
                     <button class="btn btn-info btn-sm me-1"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modalItemsCart{{ $cart->cart_id }}"
+                        data-toggle="modal"
+                        data-target="#modalItemsCart{{ $cart->cart_id }}"
                         title="{{ __('carts.actions.view_items') }}">
                         <i class="fas fa-eye"></i>
                     </button>
@@ -119,7 +119,7 @@
                 <h5 class="modal-title" id="modalLabelCart{{ $cart->cart_id }}">
                     {{ __('carts.items_modal.title', ['name' => $cart->user->full_name]) }}
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
+                <button type="button" class="close close-white" data-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
             </div>
 
             <div class="modal-body p-0">
@@ -218,7 +218,7 @@
                 <div class="fs-5">
                     {{ __('carts.items_modal.cart_total') }}: <strong>${{ number_format($cartTotalFooter, 2) }}</strong>
                 </div>
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">{{ __('carts.items_modal.close') }}</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">{{ __('carts.items_modal.close') }}</button>
             </div>
 
         </div>

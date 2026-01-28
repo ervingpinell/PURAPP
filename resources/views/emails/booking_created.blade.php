@@ -276,7 +276,7 @@ $notes = trim((string)($booking->notes ?? ''));
 <div class="section-card" style="margin-bottom:12px;">
   <div class="section-title" style="margin-bottom:6px;font-weight:700;">{{ $tSummary }}</div>
   <div style="font-size:14px;color:#374151;">
-    @if($tourName)<div><strong>Tour:</strong> {{ $tourName }}</div>@endif
+    @if($tourName)<div><strong>{{ __('adminlte::email.service') }}:</strong> {{ $tourName }}</div>@endif
     @if($tourDate)<div><strong>{{ $mailLocale==='es'?'Fecha del tour':'Tour date' }}:</strong> {{ $tourDate }}</div>@endif
     @if($scheduleTxt)<div><strong>{{ $mailLocale==='es'?'Horario':'Schedule' }}:</strong> {{ $scheduleTxt }}</div>@endif
     @if($tourLang)<div><strong>{{ $mailLocale==='es'?'Idioma':'Language' }}:</strong> {{ $tourLang }}</div>@endif

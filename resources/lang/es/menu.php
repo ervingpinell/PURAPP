@@ -27,7 +27,7 @@ return [
         'policies'        => 'Políticas',
         'promo_codes'     => 'Generar Códigos Promocionales',
         'translations'    => 'Traducciones',
-        'tour_types'      => 'Tipos de Tour',
+        'tour_types'      => 'Tipos de Producto',
         'customer_types'  => 'Tipos de clientes',
 
         // Hoteles / Pickups

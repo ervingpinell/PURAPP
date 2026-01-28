@@ -46,7 +46,7 @@
                         <td class="text-center">
                             @if($amenity->deletedBy)
                             <i class="fas fa-user-circle fa-2x text-primary"
-                                data-bs-toggle="tooltip"
+                                data-toggle="tooltip"
                                 data-bs-placement="top"
                                 title="{{ $amenity->deletedBy->name }}"
                                 style="cursor: help;">
@@ -100,7 +100,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Inicializar tooltips de Bootstrap
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });

@@ -202,7 +202,7 @@
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">{{ __('m_tours.schedule.ui.general_title') }}</h5>
         @can('create-tour-schedules')
-        <button class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#modalNuevoHorarioGeneral">
+        <button class="btn btn-edit btn-sm" data-toggle="modal" data-target="#modalNuevoHorarioGeneral">
           <i class="fas fa-plus"></i> {{ __('m_tours.schedule.ui.new_schedule') }}
         </button>
         @endcan
@@ -237,8 +237,8 @@
                   {{-- Editar (modal único) --}}
                   @can('edit-tour-schedules')
                   <button class="btn btn-edit btn-sm"
-                    data-bs-toggle="modal"
-                    data-bs-target="#modalEditarHorarioGeneral"
+                    data-toggle="modal"
+                    data-target="#modalEditarHorarioGeneral"
                     data-id="{{ $s->schedule_id }}"
                     data-start="{{ $s->start_time }}"
                     data-end="{{ $s->end_time }}"
@@ -299,16 +299,16 @@
               {{-- Asignar existente --}}
               @can('edit-tour-schedules')
               <button class="btn btn-view btn-sm"
-                data-bs-toggle="modal"
-                data-bs-target="#modalAsignarExistente{{ $product->product_id }}">
+                data-toggle="modal"
+                data-target="#modalAsignarExistente{{ $product->product_id }}">
                 <i class="fas fa-link"></i> {{ __('m_tours.schedule.ui.assign_existing') }}
               </button>
               @endcan
               {{-- Crear nuevo para este tour --}}
               @can('create-tour-schedules')
               <button class="btn btn-edit btn-sm"
-                data-bs-toggle="modal"
-                data-bs-target="#modalCrearParaTour{{ $product->product_id }}">
+                data-toggle="modal"
+                data-target="#modalCrearParaTour{{ $product->product_id }}">
                 <i class="fas fa-plus"></i> {{ __('m_tours.schedule.ui.new') }}
               </button>
               @endcan
@@ -361,8 +361,8 @@
                 {{-- Editar GLOBAL --}}
                 @can('edit-tour-schedules')
                 <button class="btn btn-edit btn-sm"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalEditarHorarioGeneral"
+                  data-toggle="modal"
+                  data-target="#modalEditarHorarioGeneral"
                   data-id="{{ $bloque->schedule_id }}"
                   data-start="{{ $bloque->start_time }}"
                   data-end="{{ $bloque->end_time }}"
@@ -376,8 +376,8 @@
                 {{-- Editar CAPACIDAD del pivote --}}
                 @can('edit-tour-schedules')
                 <button class="btn btn-sm btn-view"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalEditarCapacidadPivote{{ $product->product_id }}_{{ $bloque->schedule_id }}"
+                  data-toggle="modal"
+                  data-target="#modalEditarCapacidadPivote{{ $product->product_id }}_{{ $bloque->schedule_id }}"
                   title="Editar capacidad para este tour">
                   <i class="fas fa-users"></i>
                 </button>
@@ -418,7 +418,7 @@
                   @csrf @method('PATCH')
                   <div class="modal-header">
                     <h5 class="modal-title">{{ __('m_tours.schedule.ui.capacity_override') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="close" data-dismiss="modal"></button>
                   </div>
                   <div class="modal-body">
                     <p class="small text-muted mb-3">
@@ -448,7 +448,7 @@
                     <button type="submit" class="btn btn-view btn-sm">
                       <i class="fas fa-save"></i> Guardar
                     </button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
                   </div>
                 </form>
               </div>
@@ -473,7 +473,7 @@
             @csrf
             <div class="modal-header">
               <h5 class="modal-title">{{ __('m_tours.schedule.ui.assign_to_tour', ['tour' => $product->name]) }}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              <button type="button" class="close" data-dismiss="modal"></button>
             </div>
             <div class="modal-body">
               <div class="mb-3">
@@ -512,7 +512,7 @@
             </div>
             <div class="modal-footer">
               <button class="btn btn-view">{{ __('m_tours.schedule.ui.assign') }}</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
             </div>
           </form>
         </div>
@@ -526,7 +526,7 @@
             <input type="hidden" name="product_id" value="{{ $product->product_id }}">
             <div class="modal-header">
               <h5 class="modal-title">{{ __('m_tours.schedule.ui.new_for_tour_title', ['tour' => $product->name]) }}</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              <button type="button" class="close" data-dismiss="modal"></button>
             </div>
             <div class="modal-body">
               <div class="row g-2">
@@ -568,7 +568,7 @@
             </div>
             <div class="modal-footer">
               <button class="btn btn-edit"><i class="fas fa-save"></i> {{ __('m_tours.schedule.ui.save') }}</button>
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
             </div>
           </form>
         </div>
@@ -586,7 +586,7 @@
       @csrf
       <div class="modal-header">
         <h5 class="modal-title">{{ __('m_tours.schedule.ui.new_general_title') }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="close" data-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="row g-2">
@@ -617,7 +617,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-edit"><i class="fas fa-save"></i> {{ __('m_tours.schedule.ui.save') }}</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
       </div>
     </form>
   </div>
@@ -630,7 +630,7 @@
       @csrf @method('PUT')
       <div class="modal-header">
         <h5 class="modal-title">{{ __('m_tours.schedule.ui.edit_schedule') }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="close" data-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div class="row g-2">
@@ -662,7 +662,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-edit" type="submit"><i class="fas fa-save"></i> {{ __('m_tours.schedule.ui.save_changes') }}</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_tours.schedule.ui.cancel') }}</button>
       </div>
     </form>
   </div>

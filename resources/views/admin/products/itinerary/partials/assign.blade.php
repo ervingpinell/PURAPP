@@ -15,7 +15,7 @@
           <span class="text-warning small ps-4">
             {{ __('m_tours.itinerary.ui.drag_hint') }}
           </span>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.itinerary.ui.close') }}"></button>
+          <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.itinerary.ui.close') }}"></button>
         </div>
 
         <div class="modal-body">
@@ -61,7 +61,7 @@
           <button type="submit" class="btn btn-primary">
             {{ __('m_tours.itinerary.ui.save') }}
           </button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
             {{ __('m_tours.itinerary.ui.cancel') }}
           </button>
         </div>

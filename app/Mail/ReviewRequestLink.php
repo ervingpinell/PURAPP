@@ -18,7 +18,7 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
 
     public function __construct(ReviewRequest $rr, ?string $locale = null)
     {
-        $this->rr = $rr->loadMissing(['booking.tour', 'user']);
+        $this->rr = $rr->loadMissing(['booking.product', 'user']);
 
         // Detect locale: Spanish or English (controller determines based on tour language)
         $current = strtolower($locale ?? app()->getLocale() ?: config('app.locale', 'en'));
@@ -27,7 +27,7 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
 
     public function build()
     {
-        $rr  = $this->rr->loadMissing(['booking.tour', 'user']);
+        $rr  = $this->rr->loadMissing(['booking.product', 'user']);
         $loc = $this->mailLocale;
         Carbon::setLocale($loc);
 
@@ -68,13 +68,12 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
                 ]);
         }
 
-        // === Tour y textos ===
-        $tour = optional($rr->booking)->tour;
+        // === Product y textos ===
+        $product = optional($rr->booking)->product;
         
-        // Get tour name in the email's language
-        if ($tour) {
-            $translation = $tour->translate($loc);
-            $tourName = $translation ? $translation->name : $tour->name;
+        // Get product name in the email's language
+        if ($product) {
+            $tourName = $product->getTranslation('name', $loc, false) ?? $product->name;
         } else {
             $tourName = __('reviews.generic.our_tour', [], $loc);
         }

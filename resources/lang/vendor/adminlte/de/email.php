@@ -5,6 +5,7 @@ return [
     'booking_details' => 'Buchungsdetails',
     'booking_reference' => 'Buchungsreferenz',
     'tour' => 'Tour',
+    'service' => 'Service',
     'tour_language' => 'Toursprache',
     'date' => 'Datum',
     'adults' => 'Erwachsene',

@@ -678,14 +678,11 @@ class ProductWizardController extends Controller
             case 'prices':
                 $data['categories'] = CustomerCategory::active()
                     ->ordered()
-                    ->ordered()
                     ->get();
-                $data['taxes'] = Tax::where('is_active', true)->orderBy('sort_order')->get();
-
-                // Group existing prices by periods
-                $product->load(['prices.category']);
-                $data['pricingPeriods'] = \App\Models\ProductPrice::groupByPeriods($product->prices);
-
+                
+                // Load active pricing strategy
+                $data['activeStrategy'] = $product->activePricingStrategy();
+                
                 break;
         }
 
@@ -1024,88 +1021,133 @@ class ProductWizardController extends Controller
 
     /**
      * ============================================================
-     * GUARDAR PRECIOS (PASO 5) - NUEVA ESTRUCTURA POR PERIODOS
+     * GUARDAR PRECIOS (PASO 5) - NUEVO SISTEMA FLEXIBLE
      * ============================================================
      */
     public function storePrices(Request $request, Product $product)
     {
-        $data = $request->validate([
-            'periods'                            => 'required|array|min:1',
-            'periods.*.valid_from'               => 'nullable|date',
-            'periods.*.valid_until'              => 'nullable|date|after_or_equal:periods.*.valid_from',
-            'periods.*.label'                    => 'nullable|string|max:255',
-            'periods.*.categories'               => 'required|array|min:1',
-            'periods.*.categories.*.category_id' => 'required|exists:customer_categories,category_id',
-            'periods.*.categories.*.price'       => 'required|numeric|min:0',
-            'periods.*.categories.*.min_quantity' => 'nullable|integer|min:0',
-            'periods.*.categories.*.max_quantity' => 'nullable|integer|min:0',
-            'periods.*.categories.*.is_active'   => 'nullable|boolean',
-            'taxes'                              => 'nullable|array',
-            'taxes.*'                            => 'exists:taxes,tax_id',
-        ], [
-            'periods.required' => __('m_tours.tour.pricing.add_at_least_one_period') ?? 'Debes agregar al menos un periodo de precios.',
-            'periods.min' => __('m_tours.tour.pricing.add_at_least_one_period') ?? 'Debes agregar al menos un periodo de precios.',
-            'periods.*.categories.required' => __('m_tours.tour.pricing.add_at_least_one_category') ?? 'Debes agregar al menos una categoría a cada periodo.',
-            'periods.*.categories.min' => __('m_tours.tour.pricing.add_at_least_one_category') ?? 'Debes agregar al menos una categoría a cada periodo.',
-            'periods.*.categories.*.price.required' => __('m_tours.prices.validation.price_required') ?? 'El precio es obligatorio.',
-            'periods.*.categories.*.price.min' => __('m_tours.prices.validation.price_min') ?? 'El precio debe ser mayor o igual a 0.',
-            'periods.*.valid_until.after_or_equal' => __('m_tours.tour.pricing.invalid_date_range') ?? 'La fecha de fin debe ser posterior o igual a la fecha de inicio.',
-        ]);
-
         $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
 
-        // Validar que al menos un precio sea mayor a 0
-        $hasPriceGreaterThanZero = false;
-        foreach ($data['periods'] as $period) {
-            foreach ($period['categories'] as $category) {
-                if (isset($category['price']) && floatval($category['price']) > 0) {
-                    $hasPriceGreaterThanZero = true;
-                    break 2;
-                }
-            }
+        // Validación base
+        $baseRules = [
+            'strategy_type' => 'required|in:flat_rate,per_person,per_category,tiered,tiered_per_category',
+        ];
+
+        // Validación dinámica según estrategia
+        $strategyType = $request->input('strategy_type');
+        $rules = $baseRules;
+
+        switch ($strategyType) {
+            case 'flat_rate':
+            case 'tiered':
+                $rules['rules'] = 'required|array|min:1';
+                $rules['rules.*.min_passengers'] = 'required|integer|min:1';
+                $rules['rules.*.max_passengers'] = 'required|integer|gte:rules.*.min_passengers';
+                $rules['rules.*.price'] = 'required|numeric|min:0';
+                $rules['rules.*.label'] = 'nullable|string|max:255';
+                break;
+
+            case 'per_person':
+                $rules['per_person_price'] = 'required|numeric|min:0';
+                break;
+
+            case 'per_category':
+                $rules['rules'] = 'required|array|min:1';
+                $rules['rules.*.category_id'] = 'required|exists:customer_categories,category_id';
+                $rules['rules.*.price'] = 'required|numeric|min:0';
+                break;
+
+            case 'tiered_per_category':
+                $rules['rules'] = 'required|array|min:1';
+                $rules['rules.*.category_id'] = 'required|exists:customer_categories,category_id';
+                $rules['rules.*.min_passengers'] = 'required|integer|min:1';
+                $rules['rules.*.max_passengers'] = 'required|integer|gte:rules.*.min_passengers';
+                $rules['rules.*.price'] = 'required|numeric|min:0';
+                break;
         }
 
-        if (!$hasPriceGreaterThanZero) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'periods' => __('m_tours.prices.validation.no_price_greater_zero') ?? 'Debe haber al menos una categoría con precio mayor a $0.00',
-                ]);
-        }
+        $data = $request->validate($rules, [
+            'strategy_type.required' => 'Debes seleccionar una estrategia de pricing',
+            'rules.required' => 'Debes agregar al menos una regla de pricing',
+            'rules.min' => 'Debes agregar al menos una regla de pricing',
+            'per_person_price.required' => 'El precio por persona es obligatorio',
+        ]);
 
         DB::beginTransaction();
         try {
-            // Eliminar precios existentes
-            $product->prices()->delete();
+            // Eliminar estrategias existentes
+            $product->pricingStrategies()->delete();
 
-            $totalPricesCreated = 0;
+            // Crear nueva estrategia
+            $strategy = $product->pricingStrategies()->create([
+                'strategy_type' => $strategyType,
+                'is_active' => true,
+                'priority' => 10,
+            ]);
 
-            // Crear precios por periodo
-            foreach ($data['periods'] as $period) {
-                $validFrom = !empty($period['valid_from']) ? $period['valid_from'] : null;
-                $validUntil = !empty($period['valid_until']) ? $period['valid_until'] : null;
-                $label = !empty($period['label']) ? $period['label'] : null;
+            // Crear reglas según tipo de estrategia
+            switch ($strategyType) {
+                case 'flat_rate':
+                    foreach ($data['rules'] as $rule) {
+                        $strategy->rules()->create([
+                            'min_passengers' => $rule['min_passengers'],
+                            'max_passengers' => $rule['max_passengers'],
+                            'price' => $rule['price'],
+                            'price_type' => 'per_group',
+                            'label' => $rule['label'] ?? null,
+                            'is_active' => true,
+                        ]);
+                    }
+                    break;
 
-                foreach ($period['categories'] as $categoryData) {
-                    $product->prices()->create([
-                        'category_id'  => $categoryData['category_id'],
-                        'price'        => $categoryData['price'],
-                        'min_quantity' => $categoryData['min_quantity'] ?? 0,
-                        'max_quantity' => $categoryData['max_quantity'] ?? 12,
-                        'is_active'    => isset($categoryData['is_active']) ? (bool)$categoryData['is_active'] : true,
-                        'valid_from'   => $validFrom,
-                        'valid_until'  => $validUntil,
-                        'label'        => $label,
+                case 'per_person':
+                    $strategy->rules()->create([
+                        'min_passengers' => 1,
+                        'max_passengers' => 99,
+                        'price' => $data['per_person_price'],
+                        'price_type' => 'per_person',
+                        'is_active' => true,
                     ]);
-                    $totalPricesCreated++;
-                }
-            }
+                    break;
 
-            // Sincronizar impuestos
-            if (isset($data['taxes'])) {
-                $product->taxes()->sync($data['taxes']);
-            } else {
-                $product->taxes()->detach();
+                case 'per_category':
+                    foreach ($data['rules'] as $rule) {
+                        $strategy->rules()->create([
+                            'customer_category_id' => $rule['category_id'],
+                            'min_passengers' => 0,
+                            'max_passengers' => 99,
+                            'price' => $rule['price'],
+                            'price_type' => 'per_person',
+                            'is_active' => true,
+                        ]);
+                    }
+                    break;
+
+                case 'tiered':
+                    foreach ($data['rules'] as $rule) {
+                        $strategy->rules()->create([
+                            'min_passengers' => $rule['min_passengers'],
+                            'max_passengers' => $rule['max_passengers'],
+                            'price' => $rule['price'],
+                            'price_type' => 'per_person',
+                            'label' => $rule['label'] ?? null,
+                            'is_active' => true,
+                        ]);
+                    }
+                    break;
+
+                case 'tiered_per_category':
+                    foreach ($data['rules'] as $rule) {
+                        $strategy->rules()->create([
+                            'customer_category_id' => $rule['category_id'],
+                            'min_passengers' => $rule['min_passengers'],
+                            'max_passengers' => $rule['max_passengers'],
+                            'price' => $rule['price'],
+                            'price_type' => 'per_person',
+                            'is_active' => true,
+                        ]);
+                    }
+                    break;
             }
 
             // Actualizar updated_by
@@ -1114,15 +1156,14 @@ class ProductWizardController extends Controller
             DB::commit();
 
             LoggerHelper::mutated(
-                'TourWizardController',
+                'ProductWizardController',
                 'storePrices',
-                'tour',
-                $product->product_id ?? $product->getKey(),
+                'product',
+                $product->product_id,
                 [
-                    'user_id'        => $userId,
-                    'step'           => 5,
-                    'periods_count'  => count($data['periods']),
-                    'prices_count'   => $totalPricesCreated,
+                    'user_id' => $userId,
+                    'strategy_type' => $strategyType,
+                    'rules_count' => $strategy->rules()->count(),
                 ]
             );
 
@@ -1133,10 +1174,10 @@ class ProductWizardController extends Controller
             DB::rollBack();
 
             LoggerHelper::exception(
-                'TourWizardController',
+                'ProductWizardController',
                 'storePrices',
-                'tour',
-                $product->product_id ?? $product->getKey(),
+                'product',
+                $product->product_id,
                 $e,
                 ['user_id' => $userId]
             );

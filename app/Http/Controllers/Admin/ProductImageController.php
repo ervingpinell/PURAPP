@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use App\Models\TourImage;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
+use App\Rules\MaxVideoDuration;
 
 // === WebP (Intervention Image) ===
 use Intervention\Image\Laravel\Facades\Image as Img;
@@ -31,11 +32,11 @@ class ProductImageController extends Controller
     public function index(Product $product)
     {
         try {
-            $product->load(['images', 'coverImage']);
+            $product->load(['images']);
             $maxImagesPerTour = (int) config('tours.max_images_per_tour', 20);
 
             return view('admin.products.images', [
-                'tour' => $tour,
+                'product' => $product,
                 'max'  => $maxImagesPerTour,
             ]);
         } catch (Throwable $e) {
@@ -95,34 +96,102 @@ class ProductImageController extends Controller
                 $truncatedForLimit = true;
             }
 
+            // 3. Validar cada archivo individualmente
+            $validFiles   = [];
+            $invalidFiles = [];
+
+            foreach ($uploadedFiles as $file) {
+                // Validar tipo MIME (incluyendo HEIC/HEIF con múltiples variantes)
+                $allowedMimes = [
+                    'image/jpeg',
+                    'image/jpg',
+                    'image/png',
+                    'image/webp',
+                    'image/heic',
+                    'image/heif',
+                    'image/heic-sequence',
+                    'image/heif-sequence',
+                    // Algunos navegadores/sistemas usan estos MIME types para HEIC
+                    'application/octet-stream', // Fallback común para HEIC
+                ];
+
+
+                $fileMime = $file->getMimeType();
+                $fileExt  = strtolower($file->getClientOriginalExtension());
+                
+                // Rechazar HEIC/HEIF explícitamente con mensaje útil
+                if (in_array($fileExt, ['heic', 'heif'])) {
+                    $invalidFiles[] = [
+                        'name'   => $file->getClientOriginalName(),
+                        'reason' => 'HEIC no soportado. Por favor convierte la imagen a JPG o PNG antes de subirla.',
+                    ];
+                    continue;
+                }
+                
+                // Aceptar si el MIME type es válido O si la extensión es válida
+                $isValidType = in_array($fileMime, $allowedMimes) || 
+                               in_array($fileExt, ['jpg', 'jpeg', 'png', 'webp']);
+
+                if (!$isValidType) {
+                    $invalidFiles[] = [
+                        'name'   => $file->getClientOriginalName(),
+                        'reason' => __('m_tours.image.errors.invalid_type'),
+                    ];
+                    continue;
+                }
+
+
+                // Validar tamaño
+                $fileSizeKb = (int) ($file->getSize() / 1024);
+                if ($fileSizeKb > $maxImageKb) {
+                    $invalidFiles[] = [
+                        'name'   => $file->getClientOriginalName(),
+                        'reason' => __('m_tours.image.errors.too_large', ['max' => $maxImageKb]),
+                    ];
+                    continue;
+                }
+
+                // Validar que sea imagen real (solo para formatos soportados por getimagesize)
+                // HEIC/HEIF no son soportados por getimagesize(), así que los omitimos
+                if (!in_array($fileExt, ['heic', 'heif'])) {
+                    try {
+                        $imageInfo = @getimagesize($file->getRealPath());
+                        if (!$imageInfo) {
+                            $invalidFiles[] = [
+                                'name'   => $file->getClientOriginalName(),
+                                'reason' => __('m_tours.image.errors.not_image'),
+                            ];
+                            continue;
+                        }
+                    } catch (\Throwable $e) {
+                        $invalidFiles[] = [
+                            'name'   => $file->getClientOriginalName(),
+                            'reason' => __('m_tours.image.errors.not_image'),
+                        ];
+                        continue;
+                    }
+                }
+
+                $validFiles[] = $file;
+            }
+
             $storageFolder   = "tours/{$product->product_id}/gallery";
             $nextPosition    = (int) ($product->images()->max('position') ?? 0);
             $createdCount    = 0;
             $newImageRecords = [];
-            $skippedFiles    = [];
+            
+            // Copiar invalidFiles a skippedFiles para mostrar en el mensaje
+            $skippedFiles = [];
+            foreach ($invalidFiles as $invalidFile) {
+                $skippedFiles[] = "{$invalidFile['name']} ({$invalidFile['reason']})";
+            }
 
             // 4. Procesar uno a uno
-            foreach ($uploadedFiles as $uploaded) {
+            foreach ($validFiles as $uploaded) { // Iterate over validFiles
                 $fileName = $uploaded->getClientOriginalName();
 
-                // 4.1. Validar archivo individual
-                $validator = Validator::make(['file' => $uploaded], [
-                    'file' => ['image', 'mimes:jpeg,jpg,png,webp', "max:{$maxImageKb}"],
-                ]);
-
-                if ($validator->fails()) {
-                    $errors = $validator->errors()->all(); // Lista de errores
-                    $reason = implode(', ', $errors);
-                    // O un mensaje corto genérico si prefieres
-                    $skippedFiles[] = "$fileName ($reason)";
-
-                    Log::warning('Skipped invalid image upload', [
-                        'product_id' => $product->product_id,
-                        'file'    => $fileName,
-                        'errors'  => $errors,
-                    ]);
-                    continue;
-                }
+                // 4.1. Validar archivo individual (removed, now done before loop)
+                // The previous validation block is removed here.
 
                 $inputExt = strtolower((string) $uploaded->getClientOriginalExtension());
                 $basename = pathinfo($fileName, PATHINFO_FILENAME);
@@ -159,7 +228,7 @@ class ProductImageController extends Controller
                 }
 
                 // 4.3. Crear registro
-                $image = TourImage::create([
+                $image = ProductImage::create([
                     'product_id'  => $product->product_id,
                     'path'     => $finalPath,
                     'caption'  => null,
@@ -176,60 +245,55 @@ class ProductImageController extends Controller
                 $newImageRecords[0]->update(['is_cover' => true]);
             }
 
+
             LoggerHelper::mutated('TourImageController', 'store', 'Tour', $product->product_id, ['count' => $createdCount]);
 
-            // 6. Construir mensaje de respuesta
-            // Caso A: Éxito total
-            if ($createdCount > 0 && empty($skippedFiles) && !$truncatedForLimit) {
-                return back()->with('swal', [
-                    'icon'  => 'success',
-                    'title' => __('m_tours.image.upload_success_title') ?? '¡Listo!',
-                    'text'  => __('Se subieron :n imágenes correctamente.', ['n' => $createdCount]),
-                ]);
-            }
-
-            // Caso B: Éxito parcial (algunos subidos, otros fallaron o se truncaron)
-            if ($createdCount > 0) {
-                $msg = __('Se subieron :n imágenes.', ['n' => $createdCount]);
-
-                if ($truncatedForLimit) {
-                    $msg .= ' ' . __('Algunas se omitieron por límite de cupo.');
+            // 6. Construir mensaje de respuesta con SweetAlert
+            
+            // Caso A: Todos los archivos fueron rechazados
+            if ($createdCount === 0 && !empty($skippedFiles)) {
+                $errorList = '<ul style="text-align: left; margin: 10px 0;">';
+                foreach ($skippedFiles as $skipped) {
+                    $errorList .= "<li style='margin: 5px 0;'>{$skipped}</li>";
                 }
+                $errorList .= '</ul>';
 
-                if (!empty($skippedFiles)) {
-                    $msg .= ' ' . __('Archivos no permitidos:') . ' ' . implode(', ', $skippedFiles);
-                }
-
-                return back()->with('swal', [
-                    'icon'  => 'warning',
-                    'title' => __('Subida parcial'),
-                    'text'  => $msg,
-                ]);
-            }
-
-            // Caso C: Fallo total (ninguno subido)
-            if (!empty($skippedFiles)) {
                 return back()->with('swal', [
                     'icon'  => 'error',
-                    'title' => __('Error al subir'),
-                    'text'  => __('No se pudo subir ningún archivo válido. Errores: ') . implode(', ', $skippedFiles),
+                    'title' => 'No se subieron imágenes',
+                    'html'  => '<div style="text-align: center;">Los siguientes archivos fueron rechazados:</div>' . $errorList,
                 ]);
             }
 
-            // Caso D: Fallo total por límite (0 subidos porque no había cupo)
-            if ($remainingCap <= 0 && $truncatedForLimit) {
+            // Caso B: Algunos archivos se subieron, otros fueron rechazados
+            if ($createdCount > 0 && !empty($skippedFiles)) {
+                $errorList = '<ul style="text-align: left; margin: 10px 0;">';
+                foreach ($skippedFiles as $skipped) {
+                    $errorList .= "<li style='margin: 5px 0;'>{$skipped}</li>";
+                }
+                $errorList .= '</ul>';
+
                 return back()->with('swal', [
                     'icon'  => 'warning',
-                    'title' => __('Límite alcanzado'),
-                    'text'  => __('No tienes espacio para subir más imágenes.'),
+                    'title' => "✓ Se subieron {$createdCount} imagen(es)",
+                    'html'  => '<div style="text-align: center;">Pero los siguientes archivos fueron rechazados:</div>' . $errorList,
                 ]);
             }
 
-            // Fallback raro
+            // Caso C: Todos los archivos se subieron correctamente
+            $message = $createdCount === 1
+                ? '¡Imagen subida correctamente!'
+                : "¡Se subieron {$createdCount} imágenes correctamente!";
+
+            if ($truncatedForLimit) {
+                $message .= ' (Se alcanzó el límite máximo de imágenes)';
+            }
+
+
             return back()->with('swal', [
-                'icon'  => 'info',
-                'title' => __('Aviso'),
-                'text'  => __('No se procesaron imágenes.'),
+                'icon'  => 'success',
+                'title' => '¡Listo!',
+                'text'  => $message,
             ]);
 
         } catch (ValidationException $e) {
@@ -254,7 +318,7 @@ class ProductImageController extends Controller
 
 
     /** Update an image (caption only for now). */
-    public function update(Request $request, Product $product, TourImage $image)
+    public function update(Request $request, Product $product, ProductImage $image)
     {
         abort_unless($image->product_id === $product->product_id, 404);
 
@@ -303,7 +367,7 @@ class ProductImageController extends Controller
     }
 
     /** Delete an image. If it was cover, set next image as cover. */
-    public function destroy(Product $product, TourImage $image)
+    public function destroy(Product $product, ProductImage $image)
     {
         abort_unless($image->product_id === $product->product_id, 404);
 
@@ -363,7 +427,7 @@ class ProductImageController extends Controller
 
             DB::transaction(function () use ($newOrder) {
                 foreach ($newOrder as $pos => $id) {
-                    TourImage::where('id', $id)->update(['position' => $pos + 1]);
+                    ProductImage::where('id', $id)->update(['position' => $pos + 1]);
                 }
             });
 
@@ -395,13 +459,13 @@ class ProductImageController extends Controller
     }
 
     /** Set an image as cover. */
-    public function setCover(Product $product, TourImage $image)
+    public function setCover(Product $product, ProductImage $image)
     {
         abort_unless($image->product_id === $product->product_id, 404);
 
         try {
             DB::transaction(function () use ($product, $image) {
-                TourImage::where('product_id', $product->product_id)->update(['is_cover' => false]);
+                ProductImage::where('product_id', $product->product_id)->update(['is_cover' => false]);
                 $image->update(['is_cover' => true]);
             });
 
@@ -433,6 +497,7 @@ class ProductImageController extends Controller
     {
         try {
             $q = trim((string) $request->query('q', ''));
+            $locale = app()->getLocale();
 
             $tours = Product::select('product_id', 'name')
                 ->with(['coverImage:id,product_id,path,is_cover'])
@@ -444,7 +509,7 @@ class ProductImageController extends Controller
                         }
                     });
                 })
-                ->orderBy('name')
+                ->orderByRaw("name->>'$locale' ASC")
                 ->paginate(24)
                 ->withQueryString();
 
@@ -460,7 +525,7 @@ class ProductImageController extends Controller
                 'idField'       => 'product_id',
                 'nameField'     => 'name',
                 'coverAccessor' => 'cover_url',
-                'manageRoute'   => 'admin.tours.images.index',
+                'manageRoute'   => 'admin.products.images.index',
                 'requiredPermission' => 'view-tour-images',
                 'i18n'          => [
                     'title'   => __('m_tours.image.ui.page_title_pick'),
@@ -547,7 +612,7 @@ class ProductImageController extends Controller
         }
 
         // Solo imágenes del tour actual
-        $images = TourImage::query()
+        $images = ProductImage::query()
             ->where('product_id', $product->getKey())
             ->whereIn('id', $ids->all())
             ->get();
@@ -572,7 +637,7 @@ class ProductImageController extends Controller
             }
 
             // Borrar registros
-            TourImage::whereIn('id', $images->pluck('id'))->delete();
+            ProductImage::whereIn('id', $images->pluck('id'))->delete();
         });
 
         LoggerHelper::mutated('TourImageController', 'bulkDestroy', 'Tour', $product->product_id, ['count' => $images->count()]);
@@ -590,7 +655,7 @@ class ProductImageController extends Controller
      */
     public function destroyAll(Request $request, Product $product)
     {
-        $images = TourImage::query()
+        $images = ProductImage::query()
             ->where('product_id', $product->getKey())
             ->get();
 
@@ -613,7 +678,7 @@ class ProductImageController extends Controller
             }
 
             // Borrar registros
-            TourImage::where('product_id', $product->getKey())->delete();
+            ProductImage::where('product_id', $product->getKey())->delete();
         });
 
         LoggerHelper::mutated('TourImageController', 'destroyAll', 'Tour', $product->product_id);
@@ -623,5 +688,120 @@ class ProductImageController extends Controller
             'title' => __('m_tours.image.deleted'),
             'text'  => __('Se eliminaron todas las imágenes del tour.'),
         ]);
+    }
+
+    /**
+     * Upload videos using Spatie Media Library
+     */
+    public function storeVideo(Request $request, Product $product)
+    {
+        try {
+            $maxVideosPerProduct = 3;
+
+            $request->validate([
+                'files' => ['required', 'array'],
+                'files.*' => [
+                    'file',
+                    'mimetypes:video/mp4,video/quicktime,video/webm,video/x-msvideo',
+                    'max:409600', // 400MB
+                    new MaxVideoDuration(120), // 2 minutes
+                ],
+            ]);
+
+            $uploadedFiles = $request->file('files', []);
+            if (empty($uploadedFiles)) {
+                return back()->with('swal', [
+                    'icon' => 'info',
+                    'title' => 'Sin archivos',
+                    'text' => 'No se seleccionaron videos.',
+                ]);
+            }
+
+            $currentCount = $product->getMedia('videos')->count();
+            $remainingCap = max(0, $maxVideosPerProduct - $currentCount);
+
+            if ($remainingCap <= 0) {
+                return back()->with('swal', [
+                    'icon' => 'warning',
+                    'title' => 'Límite alcanzado',
+                    'text' => "Máximo {$maxVideosPerProduct} videos por producto",
+                ]);
+            }
+
+            if (count($uploadedFiles) > $remainingCap) {
+                $uploadedFiles = array_slice($uploadedFiles, 0, $remainingCap);
+            }
+
+            $createdCount = 0;
+            foreach ($uploadedFiles as $video) {
+                try {
+                    $product->addMedia($video)->toMediaCollection('videos');
+                    $createdCount++;
+                } catch (\Throwable $e) {
+                    Log::error('Video upload failed', [
+                        'product_id' => $product->product_id,
+                        'file' => $video->getClientOriginalName(),
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            return back()->with('swal', [
+                'icon' => 'success',
+                'title' => '¡Listo!',
+                'text' => "Se subieron {$createdCount} videos correctamente.",
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Video upload failed', [
+                'product_id' => $product->product_id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('swal', [
+                'icon' => 'error',
+                'title' => 'Error al subir videos',
+                'text' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Delete a video from product
+     */
+    public function destroyVideo(Product $product, $mediaId)
+    {
+        try {
+            $media = $product->getMedia('videos')->where('id', $mediaId)->first();
+            
+            if (!$media) {
+                return back()->with('swal', [
+                    'icon' => 'error',
+                    'title' => 'Error',
+                    'text' => 'Video no encontrado.',
+                ]);
+            }
+
+            $media->delete();
+
+            return back()->with('swal', [
+                'icon' => 'success',
+                'title' => '¡Eliminado!',
+                'text' => 'Video eliminado correctamente.',
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('Video deletion failed', [
+                'product_id' => $product->product_id,
+                'media_id' => $mediaId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()->with('swal', [
+                'icon' => 'error',
+                'title' => 'Error',
+                'text' => 'No se pudo eliminar el video.',
+            ]);
+        }
     }
 }

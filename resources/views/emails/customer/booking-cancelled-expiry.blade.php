@@ -14,8 +14,8 @@
         </h3>
         
         <p style="margin-bottom: 0; font-size: 15px; line-height: 1.8;">
-            <strong>{{ __('adminlte::adminlte.email_templates.reference') }}:</strong> {{ $booking->booking_reference }}<br>
-            <strong>{{ __('adminlte::adminlte.email_templates.tour') }}:</strong> {{ $booking->product->title }}<br>
+            <strong>{{ __('adminlte::email.reference') }}:</strong> {{ $booking->booking_reference }}<br>
+            <strong>{{ __('adminlte::email.service') }}:</strong> {{ optional($booking->product)->name ?? 'N/A' }}<br>
             <strong>{{ __('adminlte::adminlte.email_templates.date') }}:</strong> {{ $booking->details->first()->tour_date ?? 'N/A' }}
         </p>
     </div>

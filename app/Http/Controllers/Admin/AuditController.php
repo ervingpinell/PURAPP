@@ -80,8 +80,9 @@ class AuditController extends Controller
         $logs = $query->paginate($perPage)->withQueryString();
 
         // Datos para filtros
+        $locale = app()->getLocale();
         $tours = Product::select('product_id', 'name')
-            ->orderBy('name')
+            ->orderByRaw("name->>'$locale' ASC")
             ->get();
 
         $users = User::select('user_id', 'first_name', 'last_name')

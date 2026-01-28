@@ -34,20 +34,14 @@ class PolicySectionController extends Controller
     /** Listado de secciones de una política */
     public function index(Request $request, Policy $policy)
     {
-        $status = $request->get('status', 'active');
+        $status = $request->get('status', 'all'); // Changed default to 'all'
 
         $query = $policy->sections();
 
         if ($status === 'archived') {
             $query->onlyTrashed()->with('deletedBy');
-        } elseif ($status === 'active') {
-            $query->where('is_active', true);
-        } elseif ($status === 'inactive') {
-            $query->where('is_active', false);
         }
-        // 'all' includes both active and inactive (but not trashed unless strictly needed, usually 'all' in admin means everything non-deleted + deleted? No, usually just non-deleted unless specified)
-        // If 'all' means everything including trashed, we'd use withTrashed(). But usually 'all' implies current registry.
-        // Let's stick to standard behavior: 'all' = users can see active and inactive.
+        // Default: show all (active + inactive), no filtering
 
         $sections = $query->orderBy('sort_order')->get();
 

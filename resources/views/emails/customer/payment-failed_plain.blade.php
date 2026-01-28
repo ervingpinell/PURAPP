@@ -10,7 +10,7 @@ $locale = $booking->product->lang ?? config('app.locale');
 {{ __('adminlte::adminlte.email_templates.booking_details', [], $locale) }}
 ----------------
 {{ __('adminlte::adminlte.email_templates.reference', [], $locale) }}: {{ $booking->booking_reference }}
-{{ __('adminlte::adminlte.email_templates.tour', [], $locale) }}: {{ $booking->product->title }}
+{{ __('adminlte::email.service', [], $locale) }}: {{ optional($booking->product)->name ?? 'N/A' }}
 {{ __('adminlte::adminlte.email_templates.date', [], $locale) }}: {{ $booking->details->first()->tour_date ?? 'N/A' }}
 {{ __('adminlte::adminlte.email_templates.amount_due', [], $locale) }}: ${{ number_format($booking->total, 2) }}
 

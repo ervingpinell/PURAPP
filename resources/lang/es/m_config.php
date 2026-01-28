@@ -203,14 +203,14 @@ return [
     // =========================================================
     'tourtypes' => [
         // Títulos / encabezados
-        'title'                   => 'Tipos de Tours',
-        'new'                     => 'Agregar Tipo de Tour',
+        'title'                   => 'Tipos de Productos',
+        'new'                     => 'Agregar Tipo de Producto',
 
         'active_tab'              => 'Activos',
         'trash_tab'               => 'Papelera',
-        'trash_title'             => 'Papelera de Tipos de Tour',
-        'trash_header'            => 'Papelera de Tipos de Tour',
-        'trash_empty'             => 'No hay tipos de tour eliminados',
+        'trash_title'             => 'Papelera de Tipos de Producto',
+        'trash_header'            => 'Papelera de Tipos de Producto',
+        'trash_empty'             => 'No hay tipos de producto eliminados',
 
         // Columnas / campos
         'id'                      => 'ID',
@@ -234,8 +234,8 @@ return [
         'deactivate'              => 'Desactivar',
 
         // Títulos de modal
-        'edit_title'              => 'Editar Tipo de Tour',
-        'create_title'            => 'Crear Tipo de Tour',
+        'edit_title'              => 'Editar Tipo de Producto',
+        'create_title'            => 'Crear Tipo de Producto',
 
         // Placeholders / ayudas
         'examples_placeholder'    => 'Ej.: Aventura, Naturaleza, Relax',
@@ -250,12 +250,12 @@ return [
         'confirm_deactivate'      => '¿Seguro que deseas desactivar ":name"?',
 
         // Mensajes (flash)
-        'created_success'         => 'Tipo de tour creado correctamente.',
-        'updated_success'         => 'Tipo de tour actualizado correctamente.',
-        'deleted_success'         => 'Tipo de tour eliminado correctamente.',
-        'activated_success'       => 'Tipo de tour activado correctamente.',
-        'deactivated_success'     => 'Tipo de tour desactivado correctamente.',
-        'in_use_error'            => 'No se pudo eliminar: este tipo de tour está en uso.',
+        'created_success'         => 'Tipo de producto creado correctamente.',
+        'updated_success'         => 'Tipo de producto actualizado correctamente.',
+        'deleted_success'         => 'Tipo de producto eliminado correctamente.',
+        'activated_success'       => 'Tipo de producto activado correctamente.',
+        'deactivated_success'     => 'Tipo de producto desactivado correctamente.',
+        'in_use_error'            => 'No se pudo eliminar: este tipo de producto está en uso.',
         'unexpected_error'        => 'Ocurrió un error inesperado. Intenta de nuevo.',
 
         // Validación / genéricos
@@ -428,9 +428,9 @@ return [
         // En el blade: primero intenta entity_fields.<type>.<field>,
         // si no existe usa fields.<field>.
         'entity_fields' => [
-            'tour_types' => [
+            'product_types' => [
                 'duration' => 'Duración sugerida',
-                'name'     => 'Nombre del tipo de tour',
+                'name'     => 'Nombre del tipo de producto',
             ],
             'faqs' => [
                 'question' => 'Pregunta (visible al cliente)',
@@ -446,7 +446,7 @@ return [
             'amenities'        => 'Amenidades',
             'faqs'             => 'Preguntas frecuentes',
             'policies'         => 'Políticas',
-            'tour_types'       => 'Tipos de tour',
+            'product_types'    => 'Tipos de producto',
         ],
 
         // Nombres de entidades (singular)
@@ -457,7 +457,7 @@ return [
             'amenities'        => 'amenidad',
             'faqs'             => 'pregunta frecuente',
             'policies'         => 'política',
-            'tour_types'       => 'tipo de tour',
+            'product_types'    => 'tipo de producto',
         ],
     ],
 

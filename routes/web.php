@@ -274,14 +274,14 @@ Route::middleware([SetLocale::class])->group(function () {
             
             Route::prefix($urlPrefix)->group(function () use ($categoryKey, $subcategorySlugs) {
                 // Category listing: /tours
-                Route::get('/', [HomeController::class, 'productsByCategory'])
+                Route::get('/', [HomeController::class, 'allProducts'])
                      ->defaults('category', $categoryKey)
                      ->name("products.{$categoryKey}.index");
                 
                 // Subcategory landing: /tours/full-day (only if subcategories exist)
                 if (!empty($subcategorySlugs)) {
                     $pattern = implode('|', $subcategorySlugs);
-                    Route::get('/{subcategory}', [HomeController::class, 'productsBySubcategory'])
+                    Route::get('/{subcategory}', [HomeController::class, 'bySubcategory'])
                          ->where('subcategory', $pattern)
                          ->defaults('category', $categoryKey)
                          ->name("products.{$categoryKey}.subcategory");
@@ -786,10 +786,7 @@ Route::middleware([SetLocale::class])->group(function () {
                         ->name('customer_categories.toggle');
                     Route::post('customer_categories/{category}/quick-update', [CustomerCategoryController::class, 'quickUpdate'])
                         ->name('customer_categories.quick-update');
-                    Route::get('customer_categories/{category}/translations', [CustomerCategoryController::class, 'getTranslations'])
-                        ->name('customer_categories.get-translations');
-                    Route::post('customer_categories/{category}/update-translations', [CustomerCategoryController::class, 'updateTranslations'])
-                        ->name('customer_categories.update-translations');
+
                     Route::post('customer_categories/reorder', [CustomerCategoryController::class, 'reorder'])
                         ->name('customer_categories.reorder');
 
@@ -1106,9 +1103,7 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::post('itinerary/{itinerary}/assign-items', [ItineraryController::class, 'assignItems'])
                         ->middleware('throttle:sensitive')
                         ->name('itinerary.assignItems');
-                    Route::put('itinerary/{itinerary}/translations', [ItineraryController::class, 'updateTranslations'])
-                        ->middleware('throttle:sensitive')
-                        ->name('itinerary.updateTranslations');
+
 
                     // -------------------- ITINERARY ITEMS --------------------
                     Route::resource('itinerary_items', ItineraryItemController::class)->except(['show', 'create', 'edit']);
@@ -1116,32 +1111,7 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::post('itinerary_items/{item}/restore', [ItineraryItemController::class, 'restore'])->name('itinerary_items.restore');
                     Route::delete('itinerary_items/{item}/force-delete', [ItineraryItemController::class, 'forceDelete'])->name('itinerary_items.force-delete');
                     Route::patch('itinerary_items/{itinerary_item}/toggle', [ItineraryItemController::class, 'toggle'])->name('itinerary_items.toggle');
-                    Route::put('itinerary_items/{itinerary_item}/translations', [ItineraryItemController::class, 'updateTranslations'])
-                        ->middleware('throttle:sensitive')
-                        ->name('itinerary_items.updateTranslations');
-                });
 
-                // ============================
-                // TOURS (ADMIN) - IMAGES
-                // ============================
-                Route::group(['middleware' => ['can:view-tour-images']], function () {
-                    Route::prefix('products')->name('products.')->group(function () {
-                        Route::get('images', [ProductImageController::class, 'pick'])->name('images.pick');
-                        Route::get('{product}/images', [ProductImageController::class, 'index'])->name('images.index');
-                        Route::post('{product}/images', [ProductImageController::class, 'store'])
-                            ->middleware('throttle:sensitive')
-                            ->name('images.store');
-                        Route::put('{product}/images/reorder', [ProductImageController::class, 'reorder'])
-                            ->middleware('throttle:sensitive')
-                            ->name('images.reorder');
-                        Route::put('{product}/images/{image}', [ProductImageController::class, 'update'])
-                            ->middleware('throttle:sensitive')
-                            ->name('images.update');
-                        Route::delete('{product}/images/bulk-destroy', [ProductImageController::class, 'bulkDestroy'])->name('images.bulk-destroy');
-                        Route::delete('{product}/images/destroy-all', [ProductImageController::class, 'destroyAll'])->name('images.destroyAll');
-                        Route::delete('{product}/images/{image}', [ProductImageController::class, 'destroy'])->name('images.destroy');
-                        Route::post('{product}/images/{image}/cover', [ProductImageController::class, 'setCover'])->name('images.cover');
-                    });
                 });
 
                 // ============================
@@ -1242,6 +1212,12 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::delete('{product}/images/destroy-all', [ProductImageController::class, 'destroyAll'])->name('images.destroyAll');
                         Route::delete('{product}/images/{image}', [ProductImageController::class, 'destroy'])->name('images.destroy');
                         Route::post('{product}/images/{image}/cover', [ProductImageController::class, 'setCover'])->name('images.setCover');
+                        
+                        // Video routes
+                        Route::post('{product}/videos', [ProductImageController::class, 'storeVideo'])
+                            ->middleware('throttle:sensitive')
+                            ->name('videos.store');
+                        Route::delete('{product}/videos/{media}', [ProductImageController::class, 'destroyVideo'])->name('videos.destroy');
                     });
 
                     // Tour Type Images
@@ -1258,14 +1234,6 @@ Route::middleware([SetLocale::class])->group(function () {
                 // TOUR TYPES
                 // ============================
                 Route::group(['middleware' => ['can:view-tour-types']], function () {
-                    // Translation management routes (before resource)
-
-                    Route::get('product-types/{productType}/translations', [ProductTypeController::class, 'editTranslations'])
-                        ->name('product-types.translations.edit');
-                    Route::put('product-types/{productType}/translations/{locale}', [ProductTypeController::class, 'updateTranslation'])
-                        ->middleware('throttle:sensitive')
-                        ->name('product-types.translations.update');
-
                     Route::resource('product-types', ProductTypeController::class, ['parameters' => ['product-types' => 'productType']])->except(['show']);
 
                     // Soft Delete Routes (Tour Types)
@@ -1274,6 +1242,35 @@ Route::middleware([SetLocale::class])->group(function () {
                     Route::delete('product-types/{productType}/force', [ProductTypeController::class, 'forceDelete'])->name('product-types.forceDelete');
 
                     Route::put('product-types/{productType}/toggle', [ProductTypeController::class, 'toggle'])->name('product-types.toggle');
+
+                    // Product Type Subcategories
+                    Route::get('product-types/{productType}/subtypes', [\App\Http\Controllers\Admin\Product\ProductTypeSubcategoryController::class, 'index'])
+                         ->name('product-types.subtypes.index');
+                    Route::post('product-types/{productType}/subtypes', [\App\Http\Controllers\Admin\Product\ProductTypeSubcategoryController::class, 'store'])
+                         ->name('product-types.subtypes.store');
+                    Route::put('product-types/subtypes/{subtype}', [\App\Http\Controllers\Admin\Product\ProductTypeSubcategoryController::class, 'update'])
+                         ->name('product-types.subtypes.update');
+                    Route::delete('product-types/subtypes/{subtype}', [\App\Http\Controllers\Admin\Product\ProductTypeSubcategoryController::class, 'destroy'])
+                         ->name('product-types.subtypes.destroy');
+                    Route::put('product-types/subtypes/{subtype}/toggle', [\App\Http\Controllers\Admin\Product\ProductTypeSubcategoryController::class, 'toggle'])
+                         ->name('product-types.subtypes.toggle');
+                    Route::post('product-types/{productType}/subtypes/reorder', [\App\Http\Controllers\Admin\Product\ProductTypeSubcategoryController::class, 'reorder'])
+                         ->name('product-types.subtypes.reorder');
+                    
+                    // JSON endpoint for wizard
+                    Route::get('product-types/{productType}/subtypes-data', function($productTypeId) {
+                        $subtypes = \App\Models\ProductTypeSubcategory::where('product_type_id', $productTypeId)
+                            ->where('is_active', true)
+                            ->orderBy('sort_order')
+                            ->get(['subtype_id', 'name']);
+                        
+                        return response()->json($subtypes->map(function($sub) {
+                            return [
+                                'subtype_id' => $sub->subtype_id,
+                                'name' => $sub->getTranslatedName(),
+                            ];
+                        }));
+                    });
                 });
 
                 // ============================

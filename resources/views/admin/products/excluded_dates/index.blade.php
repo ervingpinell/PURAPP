@@ -315,7 +315,7 @@
     <div class="bulk-dd">
       @can('edit-tour-excluded-dates')
       <div class="btn-group">
-        <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown">
+        <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-toggle="dropdown">
           {{ __('m_bookings.excluded_dates.filters.bulk_actions') }}
         </button>
         <div class="dropdown-menu dropdown-menu-right dropdown-menu-end p-2">
@@ -529,7 +529,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">{{ __('m_bookings.excluded_dates.modals.capacity_title') }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="close" data-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <p><strong id="capacityModalLabel"></strong></p>
@@ -555,7 +555,7 @@
         <input type="hidden" id="capacityModalDay">
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_bookings.excluded_dates.buttons.cancel') }}</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_bookings.excluded_dates.buttons.cancel') }}</button>
         <button type="button" class="btn btn-primary" onclick="saveCapacity()">{{ __('m_bookings.excluded_dates.buttons.save') }}</button>
       </div>
     </div>
@@ -568,7 +568,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">{{ __('m_bookings.excluded_dates.modals.selected_capacity_title') }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="close" data-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <p>{!! __('m_bookings.excluded_dates.modals.selected_count', ['count' => '<strong id="bulkCapacityCount">0</strong>']) !!}</p>
@@ -578,7 +578,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_bookings.excluded_dates.buttons.cancel') }}</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_bookings.excluded_dates.buttons.cancel') }}</button>
         <button type="button" class="btn btn-primary" onclick="saveBulkCapacity()">{{ __('m_bookings.excluded_dates.buttons.apply') }}</button>
       </div>
     </div>

@@ -29,8 +29,8 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link {{ $i===0 ? 'active' : '' }}" 
                         id="tab-{{ $loc }}" 
-                        data-bs-toggle="tab" 
-                        data-bs-target="#pane-{{ $loc }}" 
+                        data-toggle="tab" 
+                        data-target="#pane-{{ $loc }}" 
                         type="button" 
                         role="tab" 
                         aria-controls="pane-{{ $loc }}" 

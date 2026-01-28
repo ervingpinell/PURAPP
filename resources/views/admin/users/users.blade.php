@@ -7,7 +7,7 @@
   <h1 class="mb-0">Gestión de Usuarios</h1>
   <div class="d-flex gap-2">
     @can('create-users')
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+    <button class="btn btn-success" data-toggle="modal" data-target="#modalRegistrar">
       <i class="fas fa-plus me-1"></i> Añadir Usuario
     </button>
     @endcan
@@ -133,7 +133,7 @@
             <td>
               <div class="btn-group btn-group-sm">
                 @can('edit-users')
-                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalEditarDesktop{{ $user->user_id }}" title="Editar">
+                <button class="btn btn-primary" data-toggle="modal" data-target="#modalEditarDesktop{{ $user->user_id }}" title="Editar">
                   <i class="fas fa-edit"></i>
                 </button>
                 @endcan
@@ -214,7 +214,7 @@
         </div>
 
         <div class="d-flex gap-2 flex-wrap">
-          <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalEditarMobile{{ $user->user_id }}">
+          <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#modalEditarMobile{{ $user->user_id }}">
             <i class="fas fa-edit me-1"></i>Editar
           </button>
           <button type="button" class="btn btn-sm btn-danger delete-user-btn"
@@ -259,7 +259,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Registrar Usuario</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="close" data-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="row">
@@ -354,7 +354,7 @@
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-primary">Guardar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
         </div>
       </div>
     </form>
@@ -370,7 +370,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Editar Usuario</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="close" data-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="row">
@@ -467,7 +467,7 @@
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-warning">Actualizar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
         </div>
       </div>
     </form>
@@ -484,7 +484,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Editar Usuario</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <button type="button" class="close" data-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="row">
@@ -573,7 +573,7 @@
         </div>
         <div class="modal-footer">
           <button type="submit" class="btn btn-warning">Actualizar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
         </div>
       </div>
     </form>

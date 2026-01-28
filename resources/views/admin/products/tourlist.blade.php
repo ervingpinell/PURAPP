@@ -600,6 +600,15 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                 aria-label="{{ __('m_tours.tour.ui.edit') }}">
                 <i class="fas fa-edit"></i>
               </a>
+
+              <button type="button"
+                class="btn btn-primary btn-sm"
+                data-toggle="modal"
+                data-target="#translateModal{{ $product->product_id }}"
+                title="Traducir producto"
+                aria-label="Traducir producto">
+                <i class="fas fa-language"></i>
+              </button>
               @endcan
 
               @unless($isArchived)
@@ -692,6 +701,81 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             </div>
           </td>
         </tr>
+
+        {{-- Translation Modal --}}
+        <div class="modal fade" id="translateModal{{ $product->product_id }}" tabindex="-1" role="dialog">
+          <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <form action="{{ route('admin.products.update', $product) }}" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="product_type_id" value="{{ $product->product_type_id }}">
+                
+                <div class="modal-header">
+                  <h5 class="modal-title">Traducir: {{ $product->name }}</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                
+                <div class="modal-body">
+                  {{-- Language Tabs --}}
+                  <ul class="nav nav-tabs" role="tablist">
+                    @foreach(['es' => 'ES', 'en' => 'EN', 'fr' => 'FR', 'pt' => 'PT', 'de' => 'DE'] as $loc => $label)
+                    <li class="nav-item">
+                      <a class="nav-link {{ $loop->first ? 'active' : '' }}" 
+                         data-toggle="tab" 
+                         href="#lang{{ $loc }}{{ $product->product_id }}" 
+                         role="tab">
+                        {{ $label }}
+                      </a>
+                    </li>
+                    @endforeach
+                  </ul>
+
+                  {{-- Tab Content --}}
+                  <div class="tab-content mt-3">
+                    @foreach(['es', 'en', 'fr', 'pt', 'de'] as $loc)
+                    <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" 
+                         id="lang{{ $loc }}{{ $product->product_id }}" 
+                         role="tabpanel">
+                      
+                      <div class="mb-3">
+                        <label>Nombre ({{ strtoupper($loc) }})</label>
+                        <input type="text" 
+                               name="translations[{{ $loc }}][name]" 
+                               class="form-control"
+                               value="{{ $product->getTranslation('name', $loc, false) }}">
+                      </div>
+
+                      <div class="mb-3">
+                        <label>Resumen / Overview ({{ strtoupper($loc) }})</label>
+                        <textarea name="translations[{{ $loc }}][overview]" 
+                                  class="form-control" 
+                                  rows="5">{{ $product->getTranslation('overview', $loc, false) }}</textarea>
+                      </div>
+
+                      <div class="mb-3">
+                        <label>Recomendaciones ({{ strtoupper($loc) }})</label>
+                        <textarea name="translations[{{ $loc }}][recommendations]" 
+                                  class="form-control" 
+                                  rows="3">{{ $product->getTranslation('recommendations', $loc, false) }}</textarea>
+                      </div>
+
+                    </div>
+                    @endforeach
+                  </div>
+                </div>
+                
+                <div class="modal-footer">
+                  <button type="submit" class="btn btn-success">Guardar Traducciones</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
         @endforeach
       </tbody>
     </table>
@@ -1125,7 +1209,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
     // Rotar chevron de los acordeones mobile (Bootstrap 4: data-target)
     document.querySelectorAll('.tour-mobile-main').forEach(el => {
-      const targetSel = el.getAttribute('data-target') || el.getAttribute('data-bs-target');
+      const targetSel = el.getAttribute('data-target') || el.getAttribute('data-target');
       const tgt = targetSel ? document.querySelector(targetSel) : null;
       const chevron = el.querySelector('.tour-mobile-chevron');
 

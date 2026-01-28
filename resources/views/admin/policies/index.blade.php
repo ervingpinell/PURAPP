@@ -11,7 +11,7 @@
   </h1>
 
   @can('create-policies')
-  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPolicyModal">
+  <button class="btn btn-success" data-toggle="modal" data-target="#createPolicyModal">
     <i class="fas fa-plus"></i> {{ __('m_config.policies.new_category') }}
   </button>
   @endcan
@@ -137,15 +137,15 @@
                 {{-- Ver secciones --}}
                 <a class="btn btn-info btn-sm me-1"
                   href="{{ route('admin.policies.sections.index', $p) }}"
-                  title="{{ __('m_config.policies.view_sections') }}" data-bs-toggle="tooltip">
+                  title="{{ __('m_config.policies.view_sections') }}" data-toggle="tooltip">
                   <i class="fas fa-eye"></i>
                 </a>
 
                 {{-- Editar --}}
                 @can('edit-policies')
                 <button class="btn btn-edit btn-sm me-1"
-                  data-bs-toggle="modal"
-                  data-bs-target="#editPolicyModal-{{ $p->policy_id }}"
+                  data-toggle="modal"
+                  data-target="#editPolicyModal-{{ $p->policy_id }}"
                   title="{{ __('m_config.policies.edit') }}">
                   <i class="fas fa-edit"></i>
                 </button>
@@ -159,7 +159,7 @@
                   @csrf
                   <button class="btn {{ $p->is_active ? 'btn-toggle' : 'btn-secondary' }} btn-sm"
                     title="{{ $p->is_active ? __('m_config.policies.deactivate_category') : __('m_config.policies.activate_category') }}"
-                    data-bs-toggle="tooltip">
+                    data-toggle="tooltip">
                     <i class="fas {{ $p->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                   </button>
                 </form>
@@ -172,7 +172,7 @@
                   data-message="{{ __('m_config.policies.delete_category_confirm') }}">
                   @csrf @method('DELETE')
                   <button class="btn btn-delete btn-sm"
-                    title="{{ __('m_config.policies.move_to_trash') }}" data-bs-toggle="tooltip">
+                    title="{{ __('m_config.policies.move_to_trash') }}" data-toggle="tooltip">
                     <i class="fas fa-trash"></i>
                   </button>
                 </form>
@@ -185,7 +185,7 @@
                   data-message="{{ __('m_config.policies.restore_category_confirm') }}">
                   @csrf
                   <button class="btn btn-restore btn-sm me-1"
-                    title="{{ __('m_config.policies.restore') }}" data-bs-toggle="tooltip">
+                    title="{{ __('m_config.policies.restore') }}" data-toggle="tooltip">
                     <i class="fas fa-undo"></i>
                   </button>
                 </form>
@@ -198,7 +198,7 @@
                   data-message="{{ __('m_config.policies.force_delete_confirm') }}">
                   @csrf @method('DELETE')
                   <button class="btn btn-force-delete btn-sm"
-                    title="{{ __('m_config.policies.delete_permanently') }}" data-bs-toggle="tooltip">
+                    title="{{ __('m_config.policies.delete_permanently') }}" data-toggle="tooltip">
                     <i class="fas fa-times-circle"></i>
                   </button>
                 </form>
@@ -227,7 +227,7 @@
       @csrf
       <div class="modal-header">
         <h5 class="modal-title">{{ __('m_config.policies.new_category') }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.policies.close') }}"></button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_config.policies.close') }}"></button>
       </div>
       <div class="modal-body">
         <div class="row g-3">
@@ -287,7 +287,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary"><i class="fas fa-save"></i> {{ __('m_config.policies.register') }}</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_config.policies.close') }}</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_config.policies.close') }}</button>
       </div>
     </form>
   </div>
@@ -313,7 +313,7 @@ $toVal = $p->effective_to ? \Illuminate\Support\Carbon::parse($p->effective_to)-
           {{ __('m_config.policies.edit_category') }}
           <small class="text-muted ms-2">({{ strtoupper(app()->getLocale()) }})</small>
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_config.policies.close') }}"></button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_config.policies.close') }}"></button>
       </div>
 
       <div class="modal-body">
@@ -345,8 +345,8 @@ $toVal = $p->effective_to ? \Illuminate\Support\Carbon::parse($p->effective_to)-
           <li class="nav-item" role="presentation">
             <button class="nav-link {{ $loop->first ? 'active' : '' }}"
               id="tab-{{ $p->policy_id }}-{{ $lang }}"
-              data-bs-toggle="tab"
-              data-bs-target="#content-{{ $p->policy_id }}-{{ $lang }}"
+              data-toggle="tab"
+              data-target="#content-{{ $p->policy_id }}-{{ $lang }}"
               type="button" role="tab">
               {{ strtoupper($lang) }}
               @php
@@ -421,7 +421,7 @@ $toVal = $p->effective_to ? \Illuminate\Support\Carbon::parse($p->effective_to)-
         <button class="btn btn-primary">
           <i class="fas fa-save"></i> {{ __('m_config.policies.save_changes') }}
         </button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
           {{ __('m_config.policies.close') }}
         </button>
       </div>
@@ -505,7 +505,7 @@ $toVal = $p->effective_to ? \Illuminate\Support\Carbon::parse($p->effective_to)-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     // Tooltips
-    [...document.querySelectorAll('[data-bs-toggle="tooltip"]')]
+    [...document.querySelectorAll('[data-toggle="tooltip"]')]
     .forEach(el => new bootstrap.Tooltip(el));
 
     // Confirmar eliminar (mover a papelera)

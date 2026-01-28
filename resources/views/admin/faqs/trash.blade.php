@@ -48,7 +48,7 @@
                     class="d-inline js-confirm-restore">
                     @csrf
                     @method('PATCH')
-                    <button type="submit" class="btn btn-sm btn-success" title="{{ __('m_config.faq.restore') }}" data-bs-toggle="tooltip">
+                    <button type="submit" class="btn btn-sm btn-success" title="{{ __('m_config.faq.restore') }}" data-toggle="tooltip">
                         <i class="fas fa-undo"></i>
                     </button>
                 </form>
@@ -59,7 +59,7 @@
                     class="d-inline js-confirm-force-delete">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-danger" title="{{ __('m_config.faq.force_delete') }}" data-bs-toggle="tooltip">
+                    <button type="submit" class="btn btn-sm btn-danger" title="{{ __('m_config.faq.force_delete') }}" data-toggle="tooltip">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </form>
@@ -100,7 +100,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         if (window.bootstrap && bootstrap.Tooltip) {
-            [...document.querySelectorAll('[data-bs-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
+            [...document.querySelectorAll('[data-toggle="tooltip"]')].forEach(el => new bootstrap.Tooltip(el));
         }
 
         // Confirmación RESTAURAR

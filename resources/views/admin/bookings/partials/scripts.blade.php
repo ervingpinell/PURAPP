@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', (ev) => {
     const badge = ev.target.closest('.badge-interactive');
     if (!badge) return;
-    const modalTarget = badge.getAttribute('data-bs-target');
+    const modalTarget = badge.getAttribute('data-target');
     if (!modalTarget) return;
     const modal = document.querySelector(modalTarget);
     if (modal) new bootstrap.Modal(modal).show();

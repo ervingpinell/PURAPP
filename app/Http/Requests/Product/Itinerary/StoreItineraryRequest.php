@@ -29,7 +29,7 @@ class StoreItineraryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => ['bail','required','string','max:255', Rule::unique('itinerary_translations','name')],
+            'name'        => ['bail','required','string','max:255'],
             'description' => ['nullable','string','max:1000'],
         ];
     }

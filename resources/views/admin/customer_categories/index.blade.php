@@ -150,7 +150,11 @@
                             @endcan
 
                             {{-- Translations Button --}}
-                            <button type="button" class="btn btn-sm btn-info" onclick="openTranslations({{ $category->category_id }})" title="{{ __('customer_categories.form.translations.title') }}">
+                            <button type="button" 
+                                class="btn btn-sm btn-info" 
+                                data-toggle="modal"
+                                data-target="#translateModal{{ $category->category_id }}"
+                                title="{{ __('customer_categories.form.translations.title') }}">
                                 <i class="fas fa-language"></i>
                             </button>
 
@@ -207,43 +211,66 @@
     </div>
 </div>
 
-{{-- Translations Modal --}}
-<div class="modal fade" id="translationsModal" tabindex="-1" role="dialog" aria-hidden="true">
+{{-- Translation Modals (one per category) --}}
+@foreach($categories as $category)
+<div class="modal fade" id="translateModal{{ $category->category_id }}" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-language"></i> Editar Traducciones</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="trans-category-id">
-                <ul class="nav nav-tabs" id="transTabs" role="tablist">
-                    @foreach(supported_locales() as $locale)
-                    <li class="nav-item">
-                        <a class="nav-link {{ $loop->first ? 'active' : '' }}" id="tab-{{ $locale }}" data-toggle="tab" href="#pane-{{ $locale }}" role="tab">{{ strtoupper($locale) }}</a>
-                    </li>
-                    @endforeach
-                </ul>
-                <div class="tab-content pt-3" id="transTabsContent">
-                    @foreach(supported_locales() as $locale)
-                    <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="pane-{{ $locale }}" role="tabpanel">
-                        <div class="form-group">
-                            <label>Nombre ({{ strtoupper($locale) }})</label>
-                            <input type="text" class="form-control trans-input" data-locale="{{ $locale }}" id="trans-input-{{ $locale }}">
-                        </div>
-                    </div>
-                    @endforeach
+            <form action="{{ route('admin.customer_categories.update', $category) }}" method="POST">
+                @csrf
+                @method('PUT')
+                
+                <div class="modal-header">
+                    <h5 class="modal-title">Traducir: {{ $category->getTranslatedName() }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="saveTranslations()">Guardar Traducciones</button>
-            </div>
+                
+                <div class="modal-body">
+                    {{-- Language Tabs --}}
+                    <ul class="nav nav-tabs" role="tablist">
+                        @foreach(['es' => 'ES', 'en' => 'EN', 'fr' => 'FR', 'pt' => 'PT', 'de' => 'DE'] as $loc => $label)
+                        <li class="nav-item">
+                            <a class="nav-link {{ $loop->first ? 'active' : '' }}" 
+                               data-toggle="tab" 
+                               href="#lang{{ $loc }}{{ $category->category_id }}" 
+                               role="tab">
+                                {{ $label }}
+                            </a>
+                        </li>
+                        @endforeach
+                    </ul>
+
+                    {{-- Tab Content --}}
+                    <div class="tab-content mt-3">
+                        @foreach(['es', 'en', 'fr', 'pt', 'de'] as $loc)
+                        <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" 
+                             id="lang{{ $loc }}{{ $category->category_id }}" 
+                             role="tabpanel">
+                            
+                            <div class="mb-3">
+                                <label>Nombre ({{ strtoupper($loc) }})</label>
+                                <input type="text" 
+                                       name="names[{{ $loc }}]" 
+                                       class="form-control"
+                                       value="{{ $category->getTranslation('name', $loc, false) }}">
+                            </div>
+
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Guardar Traducciones</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+@endforeach
 @stop
 
 @section('css')
@@ -328,48 +355,6 @@
                     btn.html('<i class="fas fa-save"></i>');
                     btn.prop('disabled', false);
                 }, 2000);
-            }
-        });
-    }
-
-    function openTranslations(id) {
-        $('#trans-category-id').val(id);
-        // Load translations
-        $.get('/admin/customer_categories/' + id + '/translations', function(data) {
-            $('.trans-input').val(''); // Clear
-            $.each(data, function(loc, val) {
-                $('#trans-input-' + loc).val(val);
-            });
-            $('#translationsModal').modal('show');
-        });
-    }
-
-    function saveTranslations() {
-        let id = $('#trans-category-id').val();
-        let translations = {};
-        $('.trans-input').each(function() {
-            let loc = $(this).data('locale');
-            let val = $(this).val();
-            translations[loc] = val;
-        });
-
-        $.ajax({
-            url: '/admin/customer_categories/' + id + '/update-translations',
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                translations: translations
-            },
-            success: function(res) {
-                toastr.success('{{ __('customer_categories.messages.translations_saved') }}');
-                $('#translationsModal').modal('hide');
-                // Update the main row name if current locale changed
-                if(res.current_locale_name) {
-                    $('#name-' + id).val(res.current_locale_name);
-                }
-            },
-            error: function() {
-                toastr.error('{{ __('customer_categories.messages.translations_error') }}');
             }
         });
     }

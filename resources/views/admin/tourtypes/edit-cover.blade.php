@@ -31,7 +31,7 @@
     </div>
     @isset($tourType)
       <div class="brand-sub mt-1">
-        {{ $tourType->name }} • {{ __('m_tours.image.ui.id_label') }}: {{ $tourType->tour_type_id }}
+        {{ $tourType->name }} • {{ __('m_tours.image.ui.id_label') }}: {{ $tourType->product_type_id }}
       </div>
     @endisset
   </div>
@@ -51,7 +51,7 @@
             alt="{{ __('m_tours.image.ui.cover_alt') }}"
             class="img-fluid rounded mb-2">
           <div class="text-muted small">
-            {{ $tourType->name }} ({{ __('m_tours.image.ui.id_label') }}: {{ $tourType->tour_type_id }})
+            {{ $tourType->name }} ({{ __('m_tours.image.ui.id_label') }}: {{ $tourType->product_type_id }})
           </div>
         </div>
       </div>

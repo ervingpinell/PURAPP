@@ -69,13 +69,13 @@ return $val === $key ? $fallback : $val;
               @if($isActive)
               <span class="badge badge-success"
                 title="{{ $t('reviews.common.active', 'Activo') }}"
-                data-bs-toggle="tooltip" aria-label="{{ $t('reviews.common.active', 'Activo') }}">
+                data-toggle="tooltip" aria-label="{{ $t('reviews.common.active', 'Activo') }}">
                 {{ $t('reviews.common.yes', 'Sí') }}
               </span>
               @else
               <span class="badge badge-secondary"
                 title="{{ $t('reviews.common.inactive', 'Inactivo') }}"
-                data-bs-toggle="tooltip" aria-label="{{ $t('reviews.common.inactive', 'Inactivo') }}">
+                data-toggle="tooltip" aria-label="{{ $t('reviews.common.inactive', 'Inactivo') }}">
                 {{ $t('reviews.common.no', 'No') }}
               </span>
               @endif
@@ -86,12 +86,12 @@ return $val === $key ? $fallback : $val;
               @if($isIndexable)
               <span class="badge badge-info"
                 title="{{ $t('reviews.common.indexable_yes', 'Incluye marcado indexable/JSON-LD') }}"
-                data-bs-toggle="tooltip" aria-label="{{ $t('reviews.common.indexable_yes', 'Incluye marcado indexable/JSON-LD') }}">
+                data-toggle="tooltip" aria-label="{{ $t('reviews.common.indexable_yes', 'Incluye marcado indexable/JSON-LD') }}">
                 {{ $t('reviews.common.yes', 'Sí') }}
               </span>
               @else
               <span title="{{ $t('reviews.common.indexable_no', 'No indexable') }}"
-                data-bs-toggle="tooltip" aria-label="{{ $t('reviews.common.indexable_no', 'No indexable') }}">
+                data-toggle="tooltip" aria-label="{{ $t('reviews.common.indexable_no', 'No indexable') }}">
                 —
               </span>
               @endif
@@ -106,14 +106,14 @@ return $val === $key ? $fallback : $val;
               <a class="btn btn-xs btn-edit"
                 href="{{ route('admin.review-providers.edit',$p) }}"
                 title="{{ $t('reviews.common.edit', 'Editar') }}"
-                data-bs-toggle="tooltip" aria-label="{{ $t('reviews.common.edit', 'Editar') }}">
+                data-toggle="tooltip" aria-label="{{ $t('reviews.common.edit', 'Editar') }}">
                 <i class="fa fa-edit"></i>
               </a>
 
               {{-- Toggle: si es de sistema, NO renderizamos form ni clase js-confirm-toggle (evita clic/parpadeo) --}}
               @if($isSystem)
               <span class="d-inline-block" tabindex="0"
-                data-bs-toggle="tooltip"
+                data-toggle="tooltip"
                 title="{{ $t('reviews.common.system_locked', 'Proveedor del sistema (bloqueado)') }}">
                 <button class="btn btn-xs btn-secondary" type="button" disabled aria-disabled="true" style="pointer-events:none;">
                   <i class="fas {{ $isActive ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
@@ -128,7 +128,7 @@ return $val === $key ? $fallback : $val;
                 @csrf
                 <button class="btn btn-xs {{ $isActive ? 'btn-toggle' : 'btn-secondary' }}"
                   title="{{ $toggleTitle }}"
-                  data-bs-toggle="tooltip" aria-label="{{ $toggleTitle }}">
+                  data-toggle="tooltip" aria-label="{{ $toggleTitle }}">
                   <i class="fas {{ $isActive ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                 </button>
               </form>
@@ -139,7 +139,7 @@ return $val === $key ? $fallback : $val;
               <form method="post" action="{{ route('admin.review-providers.test',$p) }}" class="d-inline">@csrf
                 <button class="btn btn-xs btn-info"
                   title="{{ $t('reviews.common.test', 'Probar conexión') }}"
-                  data-bs-toggle="tooltip" aria-label="{{ $t('reviews.common.test', 'Probar conexión') }}">
+                  data-toggle="tooltip" aria-label="{{ $t('reviews.common.test', 'Probar conexión') }}">
                   <i class="fa fa-vial"></i>
                 </button>
               </form>
@@ -148,7 +148,7 @@ return $val === $key ? $fallback : $val;
               <form method="post" action="{{ route('admin.review-providers.flush',$p) }}" class="d-inline">@csrf
                 <button class="btn btn-xs btn-secondary"
                   title="{{ $t('reviews.common.flush_cache', 'Vaciar caché') }}"
-                  data-bs-toggle="tooltip" aria-label="{{ $t('reviews.common.flush_cache', 'Vaciar caché') }}">
+                  data-toggle="tooltip" aria-label="{{ $t('reviews.common.flush_cache', 'Vaciar caché') }}">
                   <i class="fa fa-broom"></i>
                 </button>
               </form>
@@ -161,7 +161,7 @@ return $val === $key ? $fallback : $val;
                 @csrf @method('DELETE')
                 <button class="btn btn-xs btn-danger"
                   title="{{ $t('reviews.common.delete', 'Eliminar') }}"
-                  data-bs-toggle="tooltip" aria-label="{{ $t('reviews.common.delete', 'Eliminar') }}">
+                  data-toggle="tooltip" aria-label="{{ $t('reviews.common.delete', 'Eliminar') }}">
                   <i class="fa fa-trash"></i>
                 </button>
               </form>
@@ -196,7 +196,7 @@ return $val === $key ? $fallback : $val;
 <script>
   (function() {
     // Inicializar tooltips (BS5 o fallback a jQuery/BS4)
-    const triggers = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    const triggers = document.querySelectorAll('[data-toggle="tooltip"]');
     if (window.bootstrap && bootstrap.Tooltip) {
       triggers.forEach(el => new bootstrap.Tooltip(el));
     } else if (window.$ && $.fn.tooltip) {

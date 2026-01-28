@@ -301,7 +301,7 @@
                         <a href="{{ route('admin.reports.by-category') }}" class="btn btn-outline-secondary">{{ __('reports.filters.reset') }}</a>
                         <button class="btn btn-primary flex-fill">{{ __('reports.filters.apply') }}</button>
                         <div class="btn-group flex-sm-shrink-0">
-                            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown">
+                            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
                                 <i class="fas fa-download"></i> <span class="d-none d-sm-inline">{{ __('reports.filters.export') }}</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
@@ -318,7 +318,7 @@
 
                 {{-- Toggle Más filtros (mobile) --}}
                 <div class="col-12 d-lg-none mt-2">
-                    <a class="text-decoration-none" data-bs-toggle="collapse" href="#moreFilters" role="button">
+                    <a class="text-decoration-none" data-toggle="collapse" href="#moreFilters" role="button">
                         <i class="fas fa-filter me-1"></i> {{ __('reports.filters.more_filters') }}
                     </a>
                 </div>

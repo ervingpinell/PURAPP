@@ -42,7 +42,7 @@
 <!-- Botón para crear nuevo rol -->
 @can('create-roles')
 <div class="mb-3">
-  <a href="#" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearRol">
+  <a href="#" class="btn btn-success" data-toggle="modal" data-target="#modalCrearRol">
     <i class="fas fa-plus"></i> {{ __('admin.roles.add_role') }}
   </a>
 </div>
@@ -144,8 +144,8 @@ $urlClear = route('admin.roles.index');
 
             <button type="button"
               class="btn btn-sm btn-warning"
-              data-bs-toggle="modal"
-              data-bs-target="#modalEditarRol{{ $role->id }}"
+              data-toggle="modal"
+              data-target="#modalEditarRol{{ $role->id }}"
               title="{{ __('admin.roles.edit') }}">
               <i class="fas fa-edit"></i>
             </button>
@@ -183,7 +183,7 @@ $urlClear = route('admin.roles.index');
 
                 <div class="modal-header">
                   <h5 class="modal-title" id="modalEditarRolLabel{{ $role->id }}">{{ __('admin.roles.edit_role') }}</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('admin.roles.cancel') }}"></button>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('admin.roles.cancel') }}"></button>
                 </div>
 
                 <div class="modal-body">
@@ -213,7 +213,7 @@ $urlClear = route('admin.roles.index');
                 </div>
 
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('admin.roles.cancel') }}</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('admin.roles.cancel') }}</button>
                   <button type="submit" class="btn btn-primary">{{ __('admin.roles.save_changes') }}</button>
                 </div>
               </form>
@@ -252,7 +252,7 @@ $urlClear = route('admin.roles.index');
             <i class="fas fa-key me-1"></i> {{ __('admin.roles.manage_permissions') }}
           </a>
 
-          <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditarRol{{ $role->id }}">
+          <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEditarRol{{ $role->id }}">
             <i class="fas fa-edit me-1"></i> {{ __('admin.roles.edit') }}
           </button>
 
@@ -288,7 +288,7 @@ $urlClear = route('admin.roles.index');
       @csrf
       <div class="modal-header">
         <h5 class="modal-title" id="modalCrearRolLabel">{{ __('admin.roles.create_role') }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('admin.roles.cancel') }}"></button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('admin.roles.cancel') }}"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
@@ -301,7 +301,7 @@ $urlClear = route('admin.roles.index');
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('admin.roles.cancel') }}</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('admin.roles.cancel') }}</button>
         <button type="submit" class="btn btn-success">{{ __('admin.roles.save') }}</button>
       </div>
     </form>

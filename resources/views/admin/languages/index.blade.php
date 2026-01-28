@@ -25,7 +25,7 @@
   <div class="card-body">
     <div class="p-3 table-responsive">
       @can('create-tour-languages')
-      <a href="#" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistrar">
+      <a href="#" class="btn btn-success mb-3" data-toggle="modal" data-target="#modalRegistrar">
         <i class="fas fa-plus"></i> {{ __('m_tours.language.ui.add') }}
       </a>
       @endcan
@@ -55,8 +55,8 @@
               {{-- Editar --}}
               @can('edit-tour-languages')
               <a href="#" class="btn btn-edit btn-sm"
-                data-bs-toggle="modal"
-                data-bs-target="#modalEditar{{ $language->tour_language_id }}"
+                data-toggle="modal"
+                data-target="#modalEditar{{ $language->tour_language_id }}"
                 title="{{ __('m_tours.language.ui.edit_title') }}">
                 <i class="fas fa-edit"></i>
               </a>
@@ -107,7 +107,7 @@
                 <div class="modal-content">
                   <div class="modal-header">
                     <h5 class="modal-title">{{ __('m_tours.language.ui.edit_title') }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.language.ui.close') }}"></button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.language.ui.close') }}"></button>
                   </div>
                   <div class="modal-body">
                     <div class="mb-3">
@@ -119,7 +119,7 @@
                     <button type="submit" class="btn btn-warning">
                       <i class="fas fa-save me-1"></i> {{ __('m_tours.language.ui.update') }}
                     </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.language.ui.cancel') }}</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_tours.language.ui.cancel') }}</button>
                   </div>
                 </div>
               </form>
@@ -141,7 +141,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">{{ __('m_tours.language.ui.create_title') }}</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.language.ui.close') }}"></button>
+          <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.language.ui.close') }}"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
@@ -153,7 +153,7 @@
           <button type="submit" class="btn btn-primary">
             <i class="fas fa-save me-1"></i> {{ __('m_tours.language.ui.save') }}
           </button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('m_tours.language.ui.cancel') }}</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_tours.language.ui.cancel') }}</button>
         </div>
       </div>
     </form>

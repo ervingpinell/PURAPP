@@ -9,7 +9,7 @@
         <h5 class="modal-title" id="modalCrearItinerarioLabel">
           {{ __('m_tours.itinerary.ui.create_title') }}
         </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('m_tours.itinerary.ui.close') }}"></button>
+        <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.itinerary.ui.close') }}"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
@@ -33,7 +33,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
           {{ __('m_tours.itinerary.ui.cancel') }}
         </button>
         <button type="submit" class="btn btn-primary">

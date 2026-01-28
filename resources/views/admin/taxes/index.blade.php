@@ -82,7 +82,7 @@
                             @csrf
                             <button class="btn {{ $tax->is_active ? 'btn-warning' : 'btn-secondary' }} btn-sm"
                                 title="{{ $tax->is_active ? __('m_general.deactivate') : __('m_general.activate') }}"
-                                data-bs-toggle="tooltip">
+                                data-toggle="tooltip">
                                 <i class="fas {{ $tax->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                             </button>
                         </form>

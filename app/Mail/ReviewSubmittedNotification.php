@@ -32,7 +32,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         ?string $adminPanelUrl = null
     ) {
         // Cargar relaciones mínimas para mostrar info en el correo
-        $this->review        = $review->loadMissing('tour', 'booking', 'user');
+        $this->review        = $review->loadMissing('product', 'booking', 'user');
         $this->tourName      = $tourName;
         $this->customerName  = $customerName;
         $this->adminPanelUrl = $adminPanelUrl;
@@ -74,10 +74,10 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         $loc = $this->mailLocale;
 
         // ===== Resolver nombres =====
-        $tour = $this->review->tour;
+        $product = $this->review->product;
 
         $resolvedTourName = $this->tourName
-            ?? ($tour->translated_name ?? $tour->name ?? null);
+            ?? ($product ? ($product->getTranslation('name', $loc, false) ?? $product->name) : null);
 
         $resolvedCustomer = $this->customerName
             ?? $this->review->author_name
