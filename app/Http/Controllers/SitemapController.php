@@ -21,7 +21,7 @@ class SitemapController extends Controller
         // Páginas básicas por locale
         foreach ($locales as $loc) {
             $urls[] = $this->url("{$base}/{$loc}",            now(), 'daily',  '1.0');
-            $urls[] = $this->url("{$base}/{$loc}/tours",      now(), 'daily',  '0.9');
+            $urls[] = $this->url("{$base}/{$loc}/products",      now(), 'daily',  '0.9');
             $urls[] = $this->url("{$base}/{$loc}/faq",        now(), 'weekly', '0.6');
             $urls[] = $this->url("{$base}/{$loc}/contact",    now(), 'weekly', '0.6');
             $urls[] = $this->url("{$base}/{$loc}/policies",   now(), 'monthly','0.4');
@@ -36,7 +36,7 @@ class SitemapController extends Controller
 
             foreach ($products as $product) {
                 foreach ($locales as $loc) {
-                    $urls[] = $this->url("{$base}/{$loc}/tours/{$product->slug}",
+                    $urls[] = $this->url("{$base}/{$loc}/products/{$product->slug}",
                         $product->updated_at ?? now(), 'daily', '0.85');
                 }
             }

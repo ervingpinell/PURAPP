@@ -10,7 +10,7 @@ use App\Models\ProductAuditLog;
  * Agrega funcionalidad de auditoría automática a cualquier modelo.
  *
  * USO:
- * 1. Agrega el trait al modelo Tour: use Auditable;
+ * 1. Agrega el trait al modelo Product: use Auditable;
  * 2. Los cambios se registrarán automáticamente
  *
  * PERSONALIZACIÓN:
@@ -56,9 +56,9 @@ trait Auditable
 
         ProductAuditLog::logAction(
             action: $action,
-            tourId: $this->getKey(),
+            productId: $this->getKey(),
             newValues: $this->getAuditableData(),
-            description: "Tour '{$this->name}' fue creado",
+            description: "Product '{$this->name}' fue creado",
             context: $this->getAuditContext(),
             wizardStep: $this->current_step ?? null
         );
@@ -97,7 +97,7 @@ trait Auditable
 
         ProductAuditLog::logAction(
             action: $action,
-            tourId: $this->getKey(),
+            productId: $this->getKey(),
             oldValues: $oldValues,
             newValues: $newValues,
             description: $this->generateUpdateDescription($auditableChanges),
@@ -115,9 +115,9 @@ trait Auditable
 
         ProductAuditLog::logAction(
             action: $action,
-            tourId: $this->getKey(),
+            productId: $this->getKey(),
             oldValues: $this->getAuditableData(),
-            description: "Tour '{$this->name}' fue eliminado",
+            description: "Product '{$this->name}' fue eliminado",
             context: $this->getAuditContext()
         );
     }
@@ -129,9 +129,9 @@ trait Auditable
     {
         ProductAuditLog::logAction(
             action: 'restored',
-            tourId: $this->getKey(),
+            productId: $this->getKey(),
             newValues: $this->getAuditableData(),
-            description: "Tour '{$this->name}' fue restaurado",
+            description: "Product '{$this->name}' fue restaurado",
             context: $this->getAuditContext()
         );
     }
@@ -197,15 +197,15 @@ trait Auditable
         $fieldCount = count($changedFields);
 
         if ($fieldCount === 0) {
-            return "Tour '{$this->name}' fue actualizado";
+            return "Product '{$this->name}' fue actualizado";
         }
 
         if ($fieldCount === 1) {
             $field = $this->getFieldLabel($changedFields[0]);
-            return "Se actualizó el campo '{$field}' del tour '{$this->name}'";
+            return "Se actualizó el campo '{$field}' del product '{$this->name}'";
         }
 
-        return "Se actualizaron {$fieldCount} campos del tour '{$this->name}'";
+        return "Se actualizaron {$fieldCount} campos del product '{$this->name}'";
     }
 
     /**
@@ -221,7 +221,7 @@ trait Auditable
             'is_draft' => 'Borrador',
             'current_step' => 'Paso del Wizard',
             'max_capacity' => 'Capacidad Máxima',
-            'tour_type_id' => 'Tipo de Tour',
+            'product_type_id' => 'Tipo de Product',
             'length' => 'Duración',
             // Agrega más según necesites
         ];
@@ -265,9 +265,9 @@ trait Auditable
     ): ProductAuditLog {
         return ProductAuditLog::logAction(
             action: $action,
-            tourId: $this->getKey(),
+            productId: $this->getKey(),
             newValues: $additionalData,
-            description: $description ?? "Acción '{$action}' ejecutada en tour '{$this->name}'",
+            description: $description ?? "Acción '{$action}' ejecutada en product '{$this->name}'",
             context: $this->getAuditContext()
         );
     }

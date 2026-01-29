@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Ordenar Tours por Categoría')
+@section('title', 'Ordenar Products por Categoría')
 
 @section('content_header')
-  <h1 class="mb-0">Ordenar Tours por Categoría</h1>
+  <h1 class="mb-0">Ordenar Products por Categoría</h1>
 @stop
 
 @push('css')
@@ -41,7 +41,7 @@
 
   .list{ min-height: 48px; }
 
-  .tour-item{
+  .product-item{
     display: grid;
     grid-template-columns: 56px 1fr 28px;
     align-items: center;
@@ -56,10 +56,10 @@
     transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
     cursor: grab;
   }
-  .tour-item:hover{ box-shadow: 0 4px 14px rgba(0,0,0,.08); }
-  .tour-item.dragging{ opacity:.75; transform: scale(.997); cursor: grabbing; }
+  .product-item:hover{ box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+  .product-item.dragging{ opacity:.75; transform: scale(.997); cursor: grabbing; }
 
-  .tour-index{
+  .product-index{
     width: 40px; height: 40px;
     display:flex; align-items:center; justify-content:center;
     border-radius: .6rem;
@@ -70,12 +70,12 @@
     user-select: none;
   }
 
-  .tour-name{
+  .product-name{
     font-weight: 600;
     line-height: 1.25;
     word-break: break-word;
   }
-  .tour-meta{
+  .product-meta{
     font-size: .85rem;
     color: var(--muted);
     margin-top: .15rem;
@@ -107,12 +107,12 @@
 
   /* Responsive tweaks */
   @media (max-width: 576px){
-    .tour-item{
+    .product-item{
       grid-template-columns: 48px 1fr 28px;
       padding: .6rem .7rem;
     }
-    .tour-index{ width: 36px; height: 36px; font-size: .95rem; }
-    .tour-name{ font-size: .95rem; }
+    .product-index{ width: 36px; height: 36px; font-size: .95rem; }
+    .product-name{ font-size: .95rem; }
   }
 </style>
 @endpush
@@ -139,11 +139,11 @@
 
     <div id="list" class="list" data-type="{{ $selected->product_type_id }}">
       @foreach ($products as $i => $row)
-        <div class="tour-item" data-id="{{ $row->product_id }}">
-          <div class="tour-index">{{ $i + 1 }}</div>
+        <div class="product-item" data-id="{{ $row->product_id }}">
+          <div class="product-index">{{ $i + 1 }}</div>
 
           <div>
-            <div class="tour-name">
+            <div class="product-name">
               {{ $row->name ?? '— Sin nombre —' }}
               @unless($row->is_active)
                 <span class="badge-inactive">inactivo</span>
@@ -183,12 +183,12 @@
   });
 
   function getItems(){
-    return Array.from(list.querySelectorAll('.tour-item'));
+    return Array.from(list.querySelectorAll('.product-item'));
   }
 
   function renumber(){
     getItems().forEach((el, idx) => {
-      const badge = el.querySelector('.tour-index');
+      const badge = el.querySelector('.product-index');
       if(badge) badge.textContent = String(idx + 1);
     });
   }

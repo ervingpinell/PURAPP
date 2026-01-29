@@ -31,7 +31,7 @@ class CapacityController extends Controller
     public function increase(Schedule $schedule, Request $request)
     {
         $data = $request->validate([
-            'product_id' => ['required', 'exists:tours,product_id'],
+            'product_id' => ['required', 'exists:products,product_id'],
             'amount'  => ['required', 'integer', 'min:-999', 'max:999'], // Permite negativos
             'date'    => ['required', 'date'],
         ]);
@@ -121,7 +121,7 @@ class CapacityController extends Controller
     public function show(Schedule $schedule, Request $request)
     {
         $data = $request->validate([
-            'product_id' => ['required', 'exists:tours,product_id'],
+            'product_id' => ['required', 'exists:products,product_id'],
             'date'    => ['nullable', 'date'],
         ]);
 
@@ -173,7 +173,7 @@ class CapacityController extends Controller
     public function block(Schedule $schedule, Request $request)
     {
         $data = $request->validate([
-            'product_id' => ['required', 'exists:tours,product_id'],
+            'product_id' => ['required', 'exists:products,product_id'],
             'date'    => ['required', 'date'],
             'reason'  => ['nullable', 'string', 'max:255'],
         ]);

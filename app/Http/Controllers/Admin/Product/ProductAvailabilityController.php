@@ -16,18 +16,18 @@ use Carbon\Carbon;
 /**
  * ProductAvailabilityController
  *
- * Handles touravailability operations.
+ * Handles productavailability operations.
  */
 class ProductAvailabilityController extends Controller
 {
     public function __construct()
     {
         // View permission
-        $this->middleware(['can:view-tour-availability'])->only(['index']);
+        $this->middleware(['can:view-product-availability'])->only(['index']);
 
         // Edit permissions (capacity updates, overrides)
-        $this->middleware(['can:edit-tour-availability'])->only([
-            'updateTourCapacity',
+        $this->middleware(['can:edit-product-availability'])->only([
+            'updateProductCapacity',
             'updateScheduleBaseCapacity',
             'upsertDayScheduleOverride',
             'store', // legacy
@@ -36,20 +36,20 @@ class ProductAvailabilityController extends Controller
         ]);
 
         // Publish permission for blocking/unblocking
-        $this->middleware(['can:publish-tour-availability'])->only(['toggleBlockDaySchedule']);
+        $this->middleware(['can:publish-product-availability'])->only(['toggleBlockDaySchedule']);
     }
 
     protected string $controller = 'ProductAvailabilityController';
 
     /**
-     * Vista principal con tabs: Global, Por Tour+Horario, Día+Horario
+     * Vista principal con tabs: Global, Por Product+Horario, Día+Horario
      */
     public function index(Request $request)
     {
         $tab = $request->get('tab', 'global');
 
-        // Capacidad global y schedules por tour
-        $products = Product::with(['tourType', 'schedules' => function ($q) {
+        // Capacidad global y schedules por product
+        $products = Product::with(['productType', 'schedules' => function ($q) {
             $q->orderBy('start_time');
         }])->orderByRaw('name->>\'' . app()->getLocale() . '\' ASC')->get();
 
@@ -58,7 +58,7 @@ class ProductAvailabilityController extends Controller
 
         // Overrides por día+horario
         $dayScheduleOverrides = ProductAvailability::whereNotNull('schedule_id')
-            ->with(['tour', 'schedule'])
+            ->with(['product', 'schedule'])
             ->orderBy('date', 'desc')
             ->orderBy('product_id')
             ->orderBy('schedule_id')
@@ -73,9 +73,9 @@ class ProductAvailabilityController extends Controller
     }
 
     /**
-     * Capacidad GLOBAL de un tour (Tour.max_capacity).
+     * Capacidad GLOBAL de un product (Product.max_capacity).
      */
-    public function updateTourCapacity(Request $request, Product $product)
+    public function updateProductCapacity(Request $request, Product $product)
     {
         $request->validate([
             'max_capacity' => 'required|integer|min:0|max:9999',
@@ -86,14 +86,14 @@ class ProductAvailabilityController extends Controller
                 'max_capacity' => $request->max_capacity,
             ]);
 
-            LoggerHelper::mutated($this->controller, 'updateTourCapacity', 'tour', $product->product_id, [
+            LoggerHelper::mutated($this->controller, 'updateProductCapacity', 'product', $product->product_id, [
                 'max_capacity' => $request->max_capacity,
                 'user_id'      => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', 'Capacidad global del tour actualizada correctamente.');
+            return back()->with('success', 'Capacidad global del product actualizada correctamente.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'updateTourCapacity', 'tour', $product->product_id, $e, [
+            LoggerHelper::exception($this->controller, 'updateProductCapacity', 'product', $product->product_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
             return back()->with('error', 'Error al actualizar capacidad global.');
@@ -101,7 +101,7 @@ class ProductAvailabilityController extends Controller
     }
 
     /**
-     * Capacidad BASE por HORARIO (pivot schedule_tour.base_capacity).
+     * Capacidad BASE por HORARIO (pivot schedule_product.base_capacity).
      * Body: { schedule_id:int, base_capacity:int|null }
      */
     public function updateScheduleBaseCapacity(Request $request, Product $product)
@@ -117,16 +117,16 @@ class ProductAvailabilityController extends Controller
                 'updated_at'    => now(),
             ];
 
-            if (Schema::hasColumn('schedule_tour', 'created_at')) {
+            if (Schema::hasColumn('schedule_product', 'created_at')) {
                 $payload['created_at'] = DB::raw("COALESCE(created_at, '" . now() . "')");
             }
 
-            DB::table('schedule_tour')->updateOrInsert(
+            DB::table('schedule_product')->updateOrInsert(
                 ['product_id' => $product->product_id, 'schedule_id' => $data['schedule_id']],
                 $payload
             );
 
-            LoggerHelper::mutated($this->controller, 'updateScheduleBaseCapacity', 'schedule_tour', null, [
+            LoggerHelper::mutated($this->controller, 'updateScheduleBaseCapacity', 'schedule_product', null, [
                 'product_id'       => $product->product_id,
                 'schedule_id'   => $data['schedule_id'],
                 'base_capacity' => $data['base_capacity'],
@@ -135,7 +135,7 @@ class ProductAvailabilityController extends Controller
 
             return back()->with('success', 'Capacidad por horario actualizada.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'updateScheduleBaseCapacity', 'schedule_tour', null, $e, [
+            LoggerHelper::exception($this->controller, 'updateScheduleBaseCapacity', 'schedule_product', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
             return back()->with('error', 'Error al actualizar capacidad por horario.');
@@ -145,7 +145,7 @@ class ProductAvailabilityController extends Controller
     /**
      * Override puntual por DÍA+HORARIO (upsert).
      * Body: { schedule_id:int, date:YYYY-MM-DD, max_capacity:int|null }
-     * Nota: max_capacity = null => deja pasar a pivot/tour.
+     * Nota: max_capacity = null => deja pasar a pivot/product.
      */
     public function upsertDayScheduleOverride(Request $request, Product $product)
     {
@@ -169,7 +169,7 @@ class ProductAvailabilityController extends Controller
                 ]
             );
 
-            LoggerHelper::mutated($this->controller, 'upsertDayScheduleOverride', 'tour_availability', $availability->getKey(), [
+            LoggerHelper::mutated($this->controller, 'upsertDayScheduleOverride', 'product_availability', $availability->getKey(), [
                 'was_recently_created' => $availability->wasRecentlyCreated,
                 'product_id'     => $product->product_id,
                 'schedule_id' => $data['schedule_id'],
@@ -179,7 +179,7 @@ class ProductAvailabilityController extends Controller
 
             return back()->with('success', $availability->wasRecentlyCreated ? 'Override creado.' : 'Override actualizado.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'upsertDayScheduleOverride', 'tour_availability', null, $e, [
+            LoggerHelper::exception($this->controller, 'upsertDayScheduleOverride', 'product_availability', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
             return back()->with('error', 'Error al guardar override por día+horario.');
@@ -246,7 +246,7 @@ class ProductAvailabilityController extends Controller
             LoggerHelper::mutated(
                 'ProductAvailabilityController',
                 'toggleBlockDaySchedule',
-                'tour_availability',
+                'product_availability',
                 $availability->getKey(),
                 [
                     'product_id'     => $product->product_id,
@@ -262,7 +262,7 @@ class ProductAvailabilityController extends Controller
             LoggerHelper::exception(
                 'ProductAvailabilityController',
                 'toggleBlockDaySchedule',
-                'tour_availability',
+                'product_availability',
                 null,
                 $e,
                 ['user_id' => optional($request->user())->getAuthIdentifier()]
@@ -303,7 +303,7 @@ class ProductAvailabilityController extends Controller
 
             $availability = \App\Models\ProductAvailability::updateOrCreate($conditions, $attributes);
 
-            LoggerHelper::mutated($this->controller, 'store', 'tour_availability', $availability->getKey(), [
+            LoggerHelper::mutated($this->controller, 'store', 'product_availability', $availability->getKey(), [
                 'was_recently_created' => $availability->wasRecentlyCreated,
                 'product_id'              => $data['product_id'],
                 'schedule_id'          => $data['schedule_id'],
@@ -317,7 +317,7 @@ class ProductAvailabilityController extends Controller
 
             return back()->with('success', $message);
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'store', 'tour_availability', null, $e, [
+            LoggerHelper::exception($this->controller, 'store', 'product_availability', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
             return back()->with('error', 'Error al guardar el override de capacidad.');
@@ -350,13 +350,13 @@ class ProductAvailabilityController extends Controller
                 $availability->update($updateData);
             }
 
-            LoggerHelper::mutated($this->controller, 'update', 'tour_availability', $availability->getKey(), [
+            LoggerHelper::mutated($this->controller, 'update', 'product_availability', $availability->getKey(), [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return back()->with('success', 'Override de capacidad actualizado.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'update', 'tour_availability', $availability->getKey(), $e, [
+            LoggerHelper::exception($this->controller, 'update', 'product_availability', $availability->getKey(), $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -373,13 +373,13 @@ class ProductAvailabilityController extends Controller
             $id = $availability->getKey();
             $availability->delete();
 
-            LoggerHelper::mutated($this->controller, 'destroy', 'tour_availability', $id, [
+            LoggerHelper::mutated($this->controller, 'destroy', 'product_availability', $id, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
             return back()->with('success', 'Override eliminado correctamente.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'destroy', 'tour_availability', $availability->getKey(), $e, [
+            LoggerHelper::exception($this->controller, 'destroy', 'product_availability', $availability->getKey(), $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $product_id Product being booked
  * @property int $schedule_id Schedule/time slot
  * @property \Carbon\Carbon $tour_date Date of the product (DB column name)
- * @property int|null $tour_language_id Language (DB column name)
+ * @property int|null $product_language_id Language (DB column name)
  * @property array $categories JSON array
  * @property float $total Total amount
  * @property-read Booking $booking
@@ -31,8 +31,8 @@ class BookingDetail extends Model
         'booking_id',
         'product_id', // Renamed from product_id
         'schedule_id',
-        'tour_date', // Kept legacy name in DB column
-        'tour_language_id',
+        'product_date', // Kept legacy name in DB column
+        'product_language_id',
         'categories',   // JSON
         'total',
         'hotel_id',
@@ -49,7 +49,7 @@ class BookingDetail extends Model
     ];
 
     protected $casts = [
-        'tour_date'       => 'date',
+        'product_date'     => 'date',
         'categories'      => 'array',
         'is_other_hotel'  => 'boolean',
         'created_at'      => 'datetime',
@@ -65,7 +65,7 @@ class BookingDetail extends Model
             $this->load('product.taxes'); // Assuming product has taxes relation
         }
         
-        // Use product instead of tour
+        // Use product instead of product
         $product = $this->product;
         // If product doesn't exist or has no taxes relation yet, return empty
         if (!$product) {

@@ -6,7 +6,7 @@
   $carouselId     = 'tourReviewsCarousel_'.uniqid();
 
   $routeName = request()->route()->getName();
-  $isSpecificProductPage = $routeName && str_ends_with($routeName, '.products.guided_tour.show');
+  $isSpecificProductPage = $routeName && str_ends_with($routeName, '.products.guided_product.show');
 
   $TXT_MORE = __('reviews.read_more');  if (str_starts_with($TXT_MORE,'reviews.')) $TXT_MORE = 'Leer más';
   $TXT_LESS = __('reviews.read_less');  if (str_starts_with($TXT_LESS,'reviews.')) $TXT_LESS = 'Mostrar menos';
@@ -57,7 +57,7 @@
 
           $productId   = $r['product_id'] ?? null;
           $productSlug = trim((string)($r['product_slug'] ?? ''));
-          $productUrl  = ($productId && $productSlug) ? localized_route('products.guided_tour.show', ['slug' => $productSlug]) : '#';
+          $productUrl  = ($productId && $productSlug) ? localized_route('products.guided_product.show', ['slug' => $productSlug]) : '#';
           $productName = trim((string)($r['product_name'] ?? ''));
 
           $avatarUrl= $r['avatar_url'] ?? null;
@@ -69,7 +69,7 @@
           <div class="slide-wrap">
             <article class="hero-card">
               @if(!$isSpecificProductPage && $productName !== '')
-                <h3 class="tour-title-abs">
+                <h3 class="product-title-abs">
                   <a href="{{ $productUrl }}" class="product-link" data-id="{{ $productId ?? '' }}" data-name="{{ $productName }}">{{ $productName }}</a>
                 </h3>
               @endif

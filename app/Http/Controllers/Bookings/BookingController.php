@@ -48,7 +48,7 @@ class BookingController extends Controller
 
         // ===== Crear reservas dentro de transacción =====
         $createdBookings = DB::transaction(function () use ($user, $request, $notes) {
-            $cart = \App\Models\Cart::with(['items.tour.prices.category', 'items.schedule'])
+            $cart = \App\Models\Cart::with(['items.product.prices.category', 'items.schedule'])
                 ->where('user_id', $user->user_id)
                 ->where('is_active', true)
                 ->orderByDesc('cart_id')
@@ -66,12 +66,12 @@ class BookingController extends Controller
                 ]);
             }
 
-            // Pre-validación por grupos (tour+fecha+horario)
+            // Pre-validación por grupos (product+fecha+horario)
             $groups = $cart->items->groupBy(fn($i) => $i->product_id . '_' . $i->product_date . '_' . $i->schedule_id);
 
             foreach ($groups as $items) {
                 $first      = $items->first();
-                $product       = $first->tour;
+                $product       = $first->product;
                 $productDate   = $first->product_date;
                 $scheduleId = $first->schedule_id;
 
@@ -105,7 +105,7 @@ class BookingController extends Controller
                     throw \Illuminate\Validation\ValidationException::withMessages([
                         'capacity' => __("m_bookings.messages.limited_seats_available", [
                             'available' => $remaining,
-                            'tour'      => $product->getTranslatedName(),
+                            'product'    => $product->getTranslatedName(),
                             'date'      => \Carbon\Carbon::parse($productDate)->translatedFormat('M d, Y')
                         ]),
                     ]);
@@ -158,7 +158,7 @@ class BookingController extends Controller
                     'user_id'           => $user->user_id,
                     'product_id'           => $item->product_id,
                     'schedule_id'       => $item->schedule_id,
-                    'tour_language_id'  => $item->tour_language_id,
+                    'product_language_id'  => $item->product_language_id,
                     'product_date'         => $item->product_date,
                     'booking_date'      => now(),
                     'categories'        => $quantities,
@@ -227,7 +227,7 @@ class BookingController extends Controller
     {
         $bookings = Booking::with([
             'user',
-            'tour.prices.category',
+            'product.prices.category',
             'detail.hotel',
             'detail.meetingPoint.translations',
             'detail.schedule',
@@ -250,7 +250,7 @@ class BookingController extends Controller
             'detail.hotel',
             'detail.meetingPoint',
             'user',
-            'tour.prices.category',
+            'product.prices.category',
             'payments'
         ]);
 
@@ -258,8 +258,8 @@ class BookingController extends Controller
 
         // Mapa de nombres de categorías traducidos para el PDF
         $categoryNamesById = [];
-        if ($booking->tour && $booking->tour->relationLoaded('prices')) {
-            $categoryNamesById = $booking->tour->prices->mapWithKeys(function ($p) use ($locale) {
+        if ($booking->product && $booking->product->relationLoaded('prices')) {
+            $categoryNamesById = $booking->product->prices->mapWithKeys(function ($p) use ($locale) {
                 $cat  = $p->category;
                 $name = method_exists($cat, 'getTranslatedName')
                     ? ($cat->getTranslatedName($locale) ?: ($cat->name ?? null))
@@ -269,7 +269,7 @@ class BookingController extends Controller
                     foreach (
                         [
                             "customer_categories.labels.$slug",
-                            "m_tours.customer_categories.labels.$slug",
+                            "m_products.customer_categories.labels.$slug",
                         ] as $key
                     ) {
                         $tr = __($key);
@@ -318,8 +318,8 @@ class BookingController extends Controller
             return back()->withInput()->withErrors(['update' => __('m_bookings.bookings.errors.modifications_disabled')]);
         }
 
-        // Cargar detalle + tour
-        $booking->loadMissing(['detail', 'tour.prices.category']);
+        // Cargar detalle + product
+        $booking->loadMissing(['detail', 'product.prices.category']);
         $detail = $booking->detail;
         if (!$detail) {
             return back()->withErrors(['detail' => __('m_bookings.bookings.errors.detail_not_found')]);
@@ -349,9 +349,9 @@ class BookingController extends Controller
 
         // 4) Validación de input (similar a admin, pero sin permitir cambio de user_id)
         $validated = $request->validate([
-            'product_id'           => 'required|exists:tours,product_id',
+            'product_id'           => 'required|exists:products,product_id',
             'schedule_id'       => 'required|exists:schedules,schedule_id',
-            'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
+            'product_language_id'  => 'required|exists:product_languages,product_language_id',
             'product_date'         => 'required|date|after:today',
             'categories'        => 'required|array|min:1',
             'categories.*'      => 'required|integer|min:0',
@@ -376,8 +376,8 @@ class BookingController extends Controller
         }
 
         // 5) Validación cuantitativa + capacidad
-        $newTour = Product::with('prices.category')->findOrFail((int)$in['product_id']);
-        $newSchedule = $newTour->schedules()
+        $newProduct = Product::with('prices.category')->findOrFail((int)$in['product_id']);
+        $newSchedule = $newProduct->schedules()
             ->where('schedules.schedule_id', (int)$in['schedule_id'])
             ->where('schedules.is_active', true)
             ->wherePivot('is_active', true)
@@ -387,7 +387,7 @@ class BookingController extends Controller
             return back()->withInput()->withErrors(['schedule_id' => __('carts.messages.schedule_unavailable')]);
         }
 
-        $validation = app(\App\Services\Bookings\BookingValidationService::class)->validateQuantities($newTour, $in['categories']);
+        $validation = app(\App\Services\Bookings\BookingValidationService::class)->validateQuantities($newProduct, $in['categories']);
         if (!$validation['valid']) {
             return back()->withInput()->withErrors(['categories' => implode(' ', $validation['errors'])]);
         }
@@ -401,7 +401,7 @@ class BookingController extends Controller
         }
 
         $cap = app(BookingCapacityService::class)->capacitySnapshot(
-            $newTour,
+            $newProduct,
             $newSchedule,
             $in['product_date'],
             excludeBookingId: (int)$booking->booking_id,
@@ -410,7 +410,7 @@ class BookingController extends Controller
         if ($totalPax > $cap['available']) {
             return back()->withInput()->withErrors([
                 'capacity' => __('m_bookings.bookings.errors.insufficient_capacity', [
-                    'tour'      => $newTour->name,
+                    'product'    => $newProduct->name,
                     'date'      => \Carbon\Carbon::parse($in['product_date'])->translatedFormat('M d, Y'),
                     'time'      => \Carbon\Carbon::parse($newSchedule->start_time)->format('g:i A'),
                     'requested' => $totalPax,
@@ -422,7 +422,7 @@ class BookingController extends Controller
 
         // 6) Snapshot + totales + promo
         $pricing = app(\App\Services\Bookings\BookingPricingService::class);
-        $categoriesSnapshot = $pricing->buildCategoriesSnapshot($newTour, $in['categories']);
+        $categoriesSnapshot = $pricing->buildCategoriesSnapshot($newProduct, $in['categories']);
         $detailSubtotal     = $pricing->calculateSubtotal($categoriesSnapshot);
 
         $promo = null;
@@ -441,7 +441,7 @@ class BookingController extends Controller
             // Cabecera: status se mantiene (no permito que el cliente cambie status directo)
             $booking->update([
                 'product_id'          => (int)$in['product_id'],
-                'tour_language_id' => (int)$in['tour_language_id'],
+                'product_language_id' => (int)$in['product_language_id'],
                 'total'            => $total,
                 'notes'            => $in['notes'] ?? $booking->notes,
             ]);
@@ -450,7 +450,7 @@ class BookingController extends Controller
                 'product_id'           => (int)$in['product_id'],
                 'schedule_id'       => (int)$in['schedule_id'],
                 'product_date'         => $in['product_date'],
-                'tour_language_id'  => (int)$in['tour_language_id'],
+                'product_language_id'  => (int)$in['product_language_id'],
                 'categories'        => $categoriesSnapshot,
                 'total'             => $detailSubtotal,
                 'hotel_id'          => !empty($in['is_other_hotel']) ? null : ($in['hotel_id'] ?? null),

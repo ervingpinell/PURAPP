@@ -34,8 +34,8 @@
 
       <div class="review-card" id="product-card-{{ $product->product_id }}">
         <h3 class="review-title">
-          <a href="{{ localized_route('products.guided_tour.show', $product) }}"
-             class="text-light d-inline-block tour-link"
+          <a href="{{ localized_route('products.guided_product.show', $product) }}"
+             class="text-light d-inline-block product-link"
              style="text-decoration: underline;">
             {{ $product->display_name }}
           </a>

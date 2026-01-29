@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\TourType;
+use App\Models\ProductType;
 use Illuminate\Console\Command;
 
 class CleanupOldProductTypes extends Command
@@ -19,7 +19,7 @@ class CleanupOldProductTypes extends Command
      *
      * @var string
      */
-    protected $description = 'Permanently delete tour types older than X days from trash';
+    protected $description = 'Permanently delete product types older than X days from trash';
 
     /**
      * Execute the console command.
@@ -27,25 +27,25 @@ class CleanupOldProductTypes extends Command
     public function handle()
     {
         $days = (int) $this->option('days');
-        $this->info("Looking for tour types deleted more than {$days} days ago...");
+        $this->info("Looking for product types deleted more than {$days} days ago...");
 
-        $oldItems = TourType::onlyTrashed()
+        $oldItems = ProductType::onlyTrashed()
             ->olderThan($days)
             ->get();
 
         if ($oldItems->isEmpty()) {
-            $this->info('No tour types found for cleanup.');
+            $this->info('No product types found for cleanup.');
             return 0;
         }
 
         $this->info("Found {$oldItems->count()} item(s) to permanently delete.");
 
         foreach ($oldItems as $item) {
-            $name = $item->name ?? $item->tour_type_id;
+            $name = $item->name ?? $item->product_type_id;
             try {
-                // Verificar si tiene tours asociados antes de forzar borrado
-                if ($item->tours()->exists()) {
-                    $this->warn("! Skipped {$name}: Has associated tours.");
+                // Verificar si tiene products asociados antes de forzar borrado
+                if ($item->products()->exists()) {
+                    $this->warn("! Skipped {$name}: Has associated products.");
                     continue;
                 }
 

@@ -250,8 +250,8 @@
                                 </small>
                             </div>
 
-                            <!-- Tours Page SEO -->
-                            <h5 class="mt-4"><i class="fas fa-map-marked-alt"></i> Tours Page</h5>
+                            <!-- Products Page SEO -->
+                            <h5 class="mt-4"><i class="fas fa-map-marked-alt"></i> Products Page</h5>
                             <div class="mb-3">
                                 <label for="seo_tours_title_es">Title (Spanish)</label>
                                 <input type="text" 
@@ -285,7 +285,7 @@
                                        name="settings[seo_tours_keywords_es]" 
                                        value="{{ branding('seo_tours_keywords_es', '') }}"
                                        maxlength="200"
-                                       placeholder="e.g., tours La Fortuna, actividades, volcán Arenal, aventura"
+                                       placeholder="e.g., products La Fortuna, actividades, volcán Arenal, aventura"
                                        oninput="updateCharCount(this, 'seo_tours_keywords_count', 200)">
                                 <small class="text-muted">
                                     <span id="seo_tours_keywords_count">{{ strlen(branding('seo_tours_keywords_es', '')) }}</span>/200 characters

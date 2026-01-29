@@ -10,7 +10,7 @@ use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
-use App\Models\TourType;
+use App\Models\ProductType;
 use App\Models\Policy;
 use App\Models\PolicySection;
 
@@ -20,7 +20,7 @@ use App\Models\ItineraryTranslation;
 use App\Models\ItineraryItemTranslation;
 use App\Models\AmenityTranslation;
 use App\Models\FaqTranslation;
-use App\Models\TourTypeTranslation;
+use App\Models\ProductTypeTranslation;
 use App\Models\PolicyTranslation;
 use App\Models\PolicySectionTranslation;
 
@@ -42,7 +42,7 @@ class TranslationSeeder extends Seeder
         /** @var TranslatorInterface $translator */
         $translator = app(TranslatorInterface::class);
 
-        $this->translateTourTypes($translator);
+        $this->translateProductTypes($translator);
         $this->translatePolicies($translator);
         $this->translatePolicySections($translator);
         $this->translateTours($translator);
@@ -57,7 +57,7 @@ class TranslationSeeder extends Seeder
     protected function clearTranslations(): void
     {
         // Limpieza completa de tablas regulares
-        // TourTypeTranslation::truncate(); // Handled in translateTourTypes
+        // ProductTypeTranslation::truncate(); // Handled in translateProductTypes
         TourTranslation::truncate();
         ItineraryTranslation::truncate();
         ItineraryItemTranslation::truncate();
@@ -145,14 +145,14 @@ class TranslationSeeder extends Seeder
         $this->command?->info('🧾 Policy sections translated.');
     }
 
-    protected function translateTourTypes(TranslatorInterface $translator): void
+    protected function translateProductTypes(TranslatorInterface $translator): void
     {
-        $tourTypes = TourType::where('is_active', true)->get();
+        $productTypes = ProductType::where('is_active', true)->get();
 
-        foreach ($tourTypes as $tourType) {
+        foreach ($productTypes as $productType) {
             // Source is typically Spanish for fallback
-            $sourceTranslation = $tourType->translations->firstWhere('locale', 'es')
-                ?? $tourType->translations->firstWhere('locale', 'en');
+            $sourceTranslation = $productType->translations->firstWhere('locale', 'es')
+                ?? $productType->translations->firstWhere('locale', 'en');
 
             if (!$sourceTranslation) {
                 continue;
@@ -167,7 +167,7 @@ class TranslationSeeder extends Seeder
 
             foreach ($this->locales as $locale) {
                 // If translation exists and has a name, skip (preserve manual edits)
-                $existing = $tourType->translations->firstWhere('locale', $locale);
+                $existing = $productType->translations->firstWhere('locale', $locale);
                 if ($existing && !empty($existing->name)) {
                     continue;
                 }
@@ -187,8 +187,8 @@ class TranslationSeeder extends Seeder
                 // For now, let's copy it or attempt translate if it's text.
                 $durTr  = $sourceDuration ? $translator->translate($sourceDuration, $targetLocale) : null;
 
-                TourTypeTranslation::updateOrCreate(
-                    ['tour_type_id' => $tourType->tour_type_id, 'locale' => $locale],
+                ProductTypeTranslation::updateOrCreate(
+                    ['product_type_id' => $productType->product_type_id, 'locale' => $locale],
                     [
                         'name' => $nameTr,
                         'description' => $descTr,
@@ -198,16 +198,16 @@ class TranslationSeeder extends Seeder
             }
         }
 
-        $this->command?->info('🏷️ Tour types translated (gaps filled, existing preserved).');
+        $this->command?->info('🏷️ Product types translated (gaps filled, existing preserved).');
     }
 
     protected function translateTours(TranslatorInterface $translator): void
     {
-        $tours = Tour::where('is_active', true)->get();
+        $products = Product::where('is_active', true)->get();
 
-        foreach ($tours as $tour) {
-            $origName     = (string) ($tour->name ?? '');
-            $origOverview = (string) ($tour->overview ?? '');
+        foreach ($products as $product) {
+            $origName     = (string) ($product->name ?? '');
+            $origOverview = (string) ($product->overview ?? '');
 
             foreach ($this->locales as $locale) {
                 $targetLocale = $this->normalizeLocaleForTranslation($locale);
@@ -217,12 +217,12 @@ class TranslationSeeder extends Seeder
                 $overview = $translator->translate($origOverview, $targetLocale);
 
                 TourTranslation::updateOrCreate(
-                    ['tour_id' => $tour->tour_id, 'locale' => $locale],
+                    ['product_id' => $product->tour_id, 'locale' => $locale],
                     ['name' => $name, 'overview' => $overview]
                 );
             }
 
-            $this->command?->info("🎯 Tour '{$tour->name}' translated");
+            $this->command?->info("🎯 Product '{$product->name}' translated");
         }
 
         $this->command?->info('🎯 Tours translated (name preserves parentheses).');

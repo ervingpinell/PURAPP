@@ -42,14 +42,14 @@
                             </div>
                             @if($booking->product)
                             <div class="col-12 text-start">
-                                <small class="text-muted d-block">{{ __('m_bookings.bookings.tour') ?? 'Tour' }}</small>
+                                <small class="text-muted d-block">{{ __('m_bookings.bookings.product') ?? 'Tour' }}</small>
                                 <strong>{{ $booking->product->getTranslatedName() ?? $booking->product->name }}</strong>
                             </div>
                             @endif
-                            @if($booking->detail && $booking->detail->tour_date)
+                            @if($booking->detail && $booking->detail->product_date)
                             <div class="col-12 text-start">
-                                <small class="text-muted d-block">{{ __('m_bookings.bookings.tour_date') ?? 'Tour Date' }}</small>
-                                <strong>{{ \Carbon\Carbon::parse($booking->detail->tour_date)->format('l, F d, Y') }}</strong>
+                                <small class="text-muted d-block">{{ __('m_bookings.bookings.product_date') ?? 'Product Date' }}</small>
+                                <strong>{{ \Carbon\Carbon::parse($booking->detail->product_date)->format('l, F d, Y') }}</strong>
                             </div>
                             @endif
                         </div>

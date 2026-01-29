@@ -36,7 +36,7 @@ class ProductsReportController extends Controller
         // ====== Base Query ======
         $baseQuery = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
+            ->join('products', 'products.product_id', '=', 'booking_details.product_id')
             ->whereBetween('bookings.created_at', [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->when(!empty($productIds), fn($q) => $q->whereIn('booking_details.product_id', $productIds));
@@ -46,38 +46,38 @@ class ProductsReportController extends Controller
 
         $topProductsByRevenue = (clone $baseQuery)
             ->selectRaw('
-                tours.product_id,
-                tours.name as product_name,
+                products.product_id,
+                products.name as product_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
-            ->groupBy('tours.product_id', 'tours.name')
+            ->groupBy('products.product_id', 'products.name')
             ->orderByDesc('revenue')
             ->limit(10)
             ->get();
 
         $topProductsByBookings = (clone $baseQuery)
             ->selectRaw('
-                tours.product_id,
-                tours.name as product_name,
+                products.product_id,
+                products.name as product_name,
                 COUNT(DISTINCT bookings.booking_id) as bookings,
                 SUM(booking_details.total) as revenue
             ')
-            ->groupBy('tours.product_id', 'tours.name')
+            ->groupBy('products.product_id', 'products.name')
             ->orderByDesc('bookings')
             ->limit(10)
             ->get();
 
-        // Tours by type
+        // Products by type
         $productsByType = (clone $baseQuery)
-            ->join('tour_types', 'tour_types.tour_type_id', '=', 'tours.tour_type_id')
+            ->join('product_types', 'product_types.product_type_id', '=', 'products.product_type_id')
             ->selectRaw('
-                tour_types.tour_type_id,
-                COUNT(DISTINCT tours.product_id) as product_count,
+                product_types.product_type_id,
+                COUNT(DISTINCT products.product_id) as product_count,
                 COUNT(DISTINCT bookings.booking_id) as bookings,
                 SUM(booking_details.total) as revenue
             ')
-            ->groupBy('tour_types.tour_type_id')
+            ->groupBy('product_types.product_type_id')
             ->get();
 
         // Calculate PAX for top products
@@ -100,8 +100,8 @@ class ProductsReportController extends Controller
         $kpis = [
             'total_active_products' => $totalProducts,
             'products_with_bookings' => $topProductsByRevenue->count(),
-            'most_profitable_product' => $topProductsByRevenue->first()?->tour_name ?? 'N/A',
-            'most_booked_product' => $topProductsByBookings->first()?->tour_name ?? 'N/A',
+            'most_profitable_product' => $topProductsByRevenue->first()?->product_name ?? 'N/A',
+            'most_booked_product' => $topProductsByBookings->first()?->product_name ?? 'N/A',
         ];
 
         return view('admin.reports.products', compact(
@@ -127,15 +127,15 @@ class ProductsReportController extends Controller
 
         $data = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
+            ->join('products', 'products.product_id', '=', 'booking_details.product_id')
             ->whereBetween('bookings.created_at', [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->selectRaw('
-                tours.name as product_name,
+                products.name as product_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
-            ->groupBy('tours.product_id', 'tours.name')
+            ->groupBy('products.product_id', 'products.name')
             ->orderByDesc('revenue')
             ->limit($limit)
             ->get();
@@ -159,15 +159,15 @@ class ProductsReportController extends Controller
 
         $data = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
+            ->join('products', 'products.product_id', '=', 'booking_details.product_id')
             ->whereBetween('bookings.created_at', [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->selectRaw('
-                tours.name as product_name,
+                products.name as product_name,
                 COUNT(DISTINCT bookings.booking_id) as bookings,
                 SUM(booking_details.total) as revenue
             ')
-            ->groupBy('tours.product_id', 'tours.name')
+            ->groupBy('products.product_id', 'products.name')
             ->orderByDesc('bookings')
             ->limit($limit)
             ->get();
@@ -180,7 +180,7 @@ class ProductsReportController extends Controller
     }
 
     /**
-     * Chart: Tour performance matrix (scatter plot: revenue vs bookings)
+     * Chart: Product performance matrix (scatter plot: revenue vs bookings)
      */
     public function chartProductPerformanceMatrix(Request $request)
     {
@@ -190,16 +190,16 @@ class ProductsReportController extends Controller
 
         $data = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
+            ->join('products', 'products.product_id', '=', 'booking_details.product_id')
             ->whereBetween('bookings.created_at', [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->selectRaw('
-                tours.product_id,
-                tours.name as product_name,
+                products.product_id,
+                products.name as product_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
-            ->groupBy('tours.product_id', 'tours.name')
+            ->groupBy('products.product_id', 'products.name')
             ->having('bookings', '>', 0)
             ->get();
 
@@ -207,7 +207,7 @@ class ProductsReportController extends Controller
             'data' => $data->map(fn($product) => [
                 'x' => (int) $product->bookings,
                 'y' => round((float) $product->revenue, 2),
-                'label' => $product->tour_name,
+                'label' => $product->product_name,
             ]),
         ]);
     }
@@ -223,26 +223,26 @@ class ProductsReportController extends Controller
 
         $data = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
-            ->join('tour_types', 'tour_types.tour_type_id', '=', 'tours.tour_type_id')
+            ->join('products', 'products.product_id', '=', 'booking_details.product_id')
+            ->join('product_types', 'product_types.product_type_id', '=', 'products.product_type_id')
             ->whereBetween('bookings.created_at', [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->selectRaw('
-                tour_types.tour_type_id,
+                product_types.product_type_id,
                 COUNT(DISTINCT bookings.booking_id) as bookings,
                 SUM(booking_details.total) as revenue
             ')
-            ->groupBy('tour_types.tour_type_id')
+            ->groupBy('product_types.product_type_id')
             ->orderByDesc('bookings')
             ->get();
 
         // Get type names with translations
         $typeNames = ProductType::query()
             ->get()
-            ->mapWithKeys(fn($type) => [$type->tour_type_id => $type->translated]);
+            ->mapWithKeys(fn($type) => [$type->product_type_id => $type->translated]);
 
         return response()->json([
-            'labels' => $data->map(fn($item) => $typeNames[$item->tour_type_id] ?? "Type #{$item->tour_type_id}"),
+            'labels' => $data->map(fn($item) => $typeNames[$item->product_type_id] ?? "Type #{$item->product_type_id}"),
             'bookings' => $data->pluck('bookings'),
             'revenue' => $data->pluck('revenue')->map(fn($v) => round((float)$v, 2)),
         ]);
@@ -260,10 +260,10 @@ class ProductsReportController extends Controller
         // Get bookings with PAX
         $productBookings = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
+            ->join('products', 'products.product_id', '=', 'booking_details.product_id')
             ->whereBetween('bookings.created_at', [$from, $to])
             ->whereIn('bookings.status', ['confirmed', 'paid', 'completed'])
-            ->select('tours.product_id', 'tours.name as product_name', 'tours.max_capacity', 'booking_details.categories')
+            ->select('products.product_id', 'products.name as product_name', 'products.max_capacity', 'booking_details.categories')
             ->get()
             ->groupBy('product_id');
 
@@ -279,7 +279,7 @@ class ProductsReportController extends Controller
             $utilization = $maxCapacity > 0 ? ($totalPax / $maxCapacity) * 100 : 0;
 
             return [
-                'product_name' => $product->tour_name,
+                'product_name' => $product->product_name,
                 'utilization' => round($utilization, 2),
                 'booked_pax' => $totalPax,
                 'max_capacity' => $maxCapacity,

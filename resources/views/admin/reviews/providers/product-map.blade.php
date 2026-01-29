@@ -42,7 +42,7 @@
             <table class="table table-hover table-striped">
                 <thead>
                     <tr>
-                        <th style="width: 50%">{{ __('reviews.providers.tour') }}</th>
+                        <th style="width: 50%">{{ __('reviews.providers.product') }}</th>
                         <th style="width: 35%">{{ __('reviews.providers.product_code') }}</th>
                         <th style="width: 15%" class="text-right">{{ __('reviews.providers.actions') }}</th>
                     </tr>
@@ -83,7 +83,7 @@
                         </td>
                         <td class="text-right">
                             <button type="button" class="btn btn-sm btn-info btn-edit-mapping"
-                                data-tour-id="{{ $mapping['product_id'] }}">
+                                data-product-id="{{ $mapping['product_id'] }}">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <form action="{{ route('admin.review-providers.product-map.destroy', [$provider, $mapping['product_id']]) }}"
@@ -207,8 +207,8 @@
 
         // Edit mapping inline
         $('.btn-edit-mapping').on('click', function() {
-            const tourId = $(this).data('tour-id');
-            const row = $('#mapping-' + tourId);
+            const productId = $(this).data('product-id');
+            const row = $('#mapping-' + productId);
 
             row.find('.product-code-display').addClass('d-none');
             row.find('.product-code-edit').removeClass('d-none');

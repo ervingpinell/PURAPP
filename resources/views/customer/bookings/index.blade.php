@@ -316,8 +316,8 @@ $detailTotalPax = fn($detail) => (int) collect($catLinesFromDetail($detail))->su
 
                         <p class="card-text text-muted small mb-1">
                             <i class="fas fa-calendar-check"></i>
-                            <strong>{{ __('adminlte::adminlte.tour_date') }}:</strong>
-                            {{ \Carbon\Carbon::parse(optional($detail)->tour_date)->format('M d, Y') }}
+                            <strong>{{ __('adminlte::adminlte.product_date') }}:</strong>
+                            {{ \Carbon\Carbon::parse(optional($detail)->product_date)->format('M d, Y') }}
                         </p>
 
                         @if(optional($detail)->schedule)
@@ -330,7 +330,7 @@ $detailTotalPax = fn($detail) => (int) collect($catLinesFromDetail($detail))->su
                         @endif
                         @php
                         // Prioridad: idioma del detalle → idioma del booking
-                        $langName = optional($detail?->tourLanguage)->name
+                        $langName = optional($detail?->productLanguage)->name
                         ?? optional($booking->productLanguage)->name;
                         @endphp
 

@@ -68,9 +68,9 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
         $detail = $booking->detail;
         $product = $booking->product;
 
-        // Nombre del tour (live o snapshot) con i18n
+        // Nombre del product (live o snapshot) con i18n
         $liveName = optional($product)->name;
-        $snapName = $detail->tour_name_snapshot ?? ($booking->product_name_snapshot ?? null);
+        $snapName = $detail->product_name_snapshot ?? ($booking->product_name_snapshot ?? null);
         $productName = $liveName
         ?? ($snapName
         ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])
@@ -319,17 +319,17 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
         {{-- Product Information --}}
         <div class="card mb-3">
           <div class="card-header bg-warning">
-            <strong>{{ __('m_bookings.details.tour_info') }}</strong>
+            <strong>{{ __('m_bookings.details.product_info') }}</strong>
           </div>
           <div class="card-body">
             <div class="row">
               <div class="col-md-6">
                 <dl class="row">
-                  <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.tour') }}:</dt>
+                  <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.product') }}:</dt>
                   <dd class="col-sm-8">{{ $productName }}</dd>
 
-                  <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.tour_date') }}:</dt>
-                  <dd class="col-sm-8">{{ optional($detail?->tour_date)?->format('M d, Y') ?? '—' }}</dd>
+                  <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.product_date') }}:</dt>
+                  <dd class="col-sm-8">{{ optional($detail?->product_date)?->format('M d, Y') ?? '—' }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.schedule') }}:</dt>
                   <dd class="col-sm-8">
@@ -348,7 +348,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
                   <dd class="col-sm-8">{{ $pickupTime ?? '—' }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.language') }}:</dt>
-                  <dd class="col-sm-8">{{ optional($detail?->tourLanguage)->name ?? '—' }}</dd>
+                  <dd class="col-sm-8">{{ optional($detail?->productLanguage)->name ?? '—' }}</dd>
                 </dl>
               </div>
 
@@ -631,19 +631,19 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
   }
 
   @if($detail ? -> schedule)
-  // Validate pickup time against tour schedule
+  // Validate pickup time against product schedule
   (function() {
     const pickupInput = document.getElementById('pickup_time_{{ $booking->booking_id }}');
     const warningDiv = document.getElementById('pickup_time_warning_{{ $booking->booking_id }}');
     const warningText = document.getElementById('pickup_time_warning_text_{{ $booking->booking_id }}');
     const confirmBtn = document.getElementById('confirm_btn_{{ $booking->booking_id }}');
 
-    const tourStartHour = {
+    const productStartHour = {
       {
         $scheduleStart -> hour
       }
     };
-    const tourPeriod = '{{ $productPeriod }}';
+    const productPeriod = '{{ $productPeriod }}';
 
     pickupInput.addEventListener('change', function() {
       if (!this.value) {
@@ -655,8 +655,8 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
       const [hours, minutes] = this.value.split(':').map(Number);
       const pickupPeriod = hours < 12 ? 'AM' : 'PM';
 
-      if (pickupPeriod !== tourPeriod) {
-        warningText.textContent = `Warning: Pickup time is ${pickupPeriod} but tour starts at ${tourPeriod}. Please verify this is correct.`;
+      if (pickupPeriod !== productPeriod) {
+        warningText.textContent = `Warning: Pickup time is ${pickupPeriod} but product starts at ${productPeriod}. Please verify this is correct.`;
         warningDiv.style.display = 'block';
         warningDiv.classList.remove('alert-danger');
         warningDiv.classList.add('alert-warning');

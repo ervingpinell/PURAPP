@@ -57,9 +57,9 @@ trait BookingMailHelpers
     }
 
     /**
-     * Etiqueta legible del idioma del tour, alineada con el locale del correo.
+     * Etiqueta legible del idioma del product, alineada con el locale del correo.
      */
-    protected function humanTourLanguage(string $mailLocale, Booking $booking): string
+    protected function humanProductLanguage(string $mailLocale, Booking $booking): string
     {
         return $mailLocale === 'es' ? 'Español' : 'English';
     }

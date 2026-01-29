@@ -37,8 +37,8 @@ return [$c->slug => ($label ?: $c->slug)];
       <th>{{ __('m_bookings.bookings.fields.status') }}</th>
       <th>{{ __('m_bookings.bookings.fields.customer') }}</th>
       <th>{{ __('m_bookings.bookings.fields.email') }}</th>
-      <th>{{ __('m_bookings.bookings.fields.tour') }}</th>
-      <th>{{ __('m_bookings.bookings.fields.tour_date') }}</th>
+      <th>{{ __('m_bookings.bookings.fields.product') }}</th>
+      <th>{{ __('m_bookings.bookings.fields.product_date') }}</th>
       <th>{{ __('m_bookings.bookings.fields.schedule') }}</th>
       <th>{{ __('m_bookings.bookings.fields.pickup_place') }}</th>
       <th>{{ __('m_bookings.bookings.fields.travelers') }}</th>
@@ -52,8 +52,8 @@ return [$c->slug => ($label ?: $c->slug)];
     $detail = $booking->detail;
 
     // ===== Product name con fallback =====
-    $liveName = optional($detail?->tour)->name;
-    $snapName = $detail->tour_name_snapshot ?: ($booking->product_name_snapshot ?? null);
+    $liveName = optional($detail?->product)->name;
+    $snapName = $detail->product_name_snapshot ?: ($booking->product_name_snapshot ?? null);
     $productCellText = $liveName
     ?? ($snapName
     ? __('m_bookings.bookings.messages.deleted_product_snapshot', ['name' => $snapName])
@@ -225,7 +225,7 @@ return [$c->slug => ($label ?: $c->slug)];
 
       <td title="{{ $productCellText }}">{{ $productDisplay }}</td>
 
-      <td>{{ optional($detail?->tour_date)->format('d-M-Y') ?? '—' }}</td>
+      <td>{{ optional($detail?->product_date)->format('d-M-Y') ?? '—' }}</td>
 
       <td>{{ $scheduleLabel }}</td>
 
@@ -339,8 +339,8 @@ return [$c->slug => ($label ?: $c->slug)];
   @php
   // Re-calcular variables para móvil porque el scope del foreach anterior terminó
   $detail = $booking->detail;
-  $liveName = optional($detail?->tour)->name;
-  $snapName = $detail->tour_name_snapshot ?: ($booking->product_name_snapshot ?? null);
+  $liveName = optional($detail?->product)->name;
+  $snapName = $detail->product_name_snapshot ?: ($booking->product_name_snapshot ?? null);
   $productCellText = $liveName ?? ($snapName ? __('m_bookings.bookings.messages.deleted_product_snapshot', ['name' => $snapName]) : __('m_bookings.bookings.messages.deleted_product'));
   
   $scheduleLabel = $detail?->schedule ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') : '—';
@@ -372,7 +372,7 @@ return [$c->slug => ($label ?: $c->slug)];
       </div>
       
       <div class="d-flex justify-content-between mb-2 text-sm text-secondary">
-        <span><i class="far fa-calendar me-1"></i> {{ optional($detail?->tour_date)->format('d/M/Y') ?? '—' }}</span>
+        <span><i class="far fa-calendar me-1"></i> {{ optional($detail?->product_date)->format('d/M/Y') ?? '—' }}</span>
         <span><i class="far fa-clock me-1"></i> {{ $scheduleLabel }}</span>
       </div>
 

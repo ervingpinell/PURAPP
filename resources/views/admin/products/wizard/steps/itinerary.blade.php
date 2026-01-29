@@ -2,7 +2,7 @@
 
 @extends('adminlte::page')
 
-@section('title', __('m_tours.tour.wizard.steps.itinerary'))
+@section('title', __('m_tours.product.wizard.steps.itinerary'))
 
 @push('css')
 <style>
@@ -581,14 +581,14 @@ $oldItems = old('items', []);
             <div>
                 <h1>
                     <i class="fas fa-route"></i>
-                    {{ __('m_tours.tour.wizard.steps.itinerary') }}
+                    {{ __('m_tours.product.wizard.steps.itinerary') }}
                 </h1>
                 <p class="mb-0">{{ $product->name }}</p>
             </div>
         </div>
     </div>
 
-    <form id="tour-itinerary-form" method="POST" action="{{ route('admin.products.wizard.store.itinerary', $product) }}">
+    <form id="product-itinerary-form" method="POST" action="{{ route('admin.products.wizard.store.itinerary', $product) }}">
         @csrf
 
         {{-- Botones de acción --}}
@@ -608,7 +608,7 @@ $oldItems = old('items', []);
         <div class="card itinerary-card">
             <div class="card-header">
                 <h3 class="card-title">
-                    <i class="fas fa-route"></i> {{ __('m_tours.tour.fields.itinerary') }}
+                    <i class="fas fa-route"></i> {{ __('m_tours.product.fields.itinerary') }}
                 </h3>
             </div>
 
@@ -619,14 +619,14 @@ $oldItems = old('items', []);
                         <div class="card inner-card">
                             <div class="card-header">
                                 <h3 class="card-title">
-                                    <i class="fas fa-route"></i> {{ __('m_tours.tour.fields.itinerary') }}
+                                    <i class="fas fa-route"></i> {{ __('m_tours.product.fields.itinerary') }}
                                 </h3>
                             </div>
 
                             <div class="card-body">
                                 {{-- SELECT ITINERARIO EXISTENTE / NUEVO --}}
                                 <div class="form-group">
-                                    <label for="select-itinerary">{{ __('m_tours.tour.fields.itinerary') }}</label>
+                                    <label for="select-itinerary">{{ __('m_tours.product.fields.itinerary') }}</label>
                                     <select name="itinerary_id"
                                         id="select-itinerary"
                                         class="form-control @error('itinerary_id') is-invalid @enderror">
@@ -751,7 +751,7 @@ $oldItems = old('items', []);
                                                             </div>
                                                             @empty
                                                             <p class="text-muted mb-0">
-                                                                {{ __('m_tours.tour.ui.none.itinerary_items') }}
+                                                                {{ __('m_tours.product.ui.none.itinerary_items') }}
                                                             </p>
                                                             @endforelse
                                                         </div>
@@ -850,7 +850,7 @@ $oldItems = old('items', []);
                         <div class="card card-info">
                             <div class="card-header">
                                 <h3 class="card-title">
-                                    <i class="fas fa-info-circle"></i> {{ __('m_tours.tour.ui.confirm_title') }}
+                                    <i class="fas fa-info-circle"></i> {{ __('m_tours.product.ui.confirm_title') }}
                                 </h3>
                             </div>
                             <div class="card-body">
@@ -887,7 +887,7 @@ $oldItems = old('items', []);
                         @if($product ?? false)
                         <div class="card card-secondary">
                             <div class="card-header">
-                                <h3 class="card-title">{{ __('m_tours.tour.fields.itinerary') }}</h3>
+                                <h3 class="card-title">{{ __('m_tours.product.fields.itinerary') }}</h3>
                             </div>
                             <div class="card-body">
                                 @if($product->itinerary)
@@ -916,7 +916,7 @@ $oldItems = old('items', []);
                                 @endif
                                 @else
                                 <p class="text-muted mb-0">
-                                    {{ __('m_tours.tour.ui.none.itinerary') }}
+                                    {{ __('m_tours.product.ui.none.itinerary') }}
                                 </p>
                                 @endif
                             </div>
@@ -939,14 +939,14 @@ $oldItems = old('items', []);
                         @if($product->is_draft)
                         <button type="button"
                             class="btn btn-danger"
-                            onclick="if (confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')) { document.getElementById('delete-draft-form').submit(); }">
+                            onclick="if (confirm('{{ __('m_tours.product.wizard.confirm_cancel') }}')) { document.getElementById('delete-draft-form').submit(); }">
                             <i class="fas fa-trash"></i>
                             <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
                         </button>
                         @endif
 
                         <button type="submit" class="btn btn-primary ml-2">
-                            {{ __('m_tours.tour.wizard.save_and_continue') }}
+                            {{ __('m_tours.product.wizard.save_and_continue') }}
                             <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
@@ -1162,7 +1162,7 @@ $oldItems = old('items', []);
                 `).join('');
                 } else {
                     listEl.innerHTML = '<li class="list-group-item text-muted">{{ __('
-                    m_tours.tour.ui.none.itinerary_items ') }}</li>';
+                    m_tours.product.ui.none.itinerary_items ') }}</li>';
                 }
             }
         }
@@ -1483,7 +1483,7 @@ $oldItems = old('items', []);
         }
 
         // VALIDACIÓN DEL FORMULARIO PRINCIPAL
-        const mainForm = document.getElementById('tour-itinerary-form');
+        const mainForm = document.getElementById('product-itinerary-form');
         const newItineraryNameInput = document.getElementById('new_itinerary_name');
 
         if (mainForm) {

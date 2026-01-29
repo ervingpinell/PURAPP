@@ -22,21 +22,21 @@
 
       <div class="modal-body">
         <div class="mb-3">
-          <label>{{ __('carts.fields.tour_date') }}</label>
+          <label>{{ __('carts.fields.product_date') }}</label>
           <input type="date"
-                 name="tour_date"
+                 name="product_date"
                  class="form-control"
                  required>
         </div>
 
         <div class="mb-3">
           <label>{{ __('carts.fields.language') }}</label>
-          <select name="tour_language_id"
+          <select name="product_language_id"
                   class="form-control"
                   required>
             <option value="">{{ __('carts.placeholders.select') }}</option>
             @foreach($product->languages as $lang)
-              <option value="{{ $lang->tour_language_id }}">{{ $lang->name }}</option>
+              <option value="{{ $lang->product_language_id }}">{{ $lang->name }}</option>
             @endforeach
           </select>
         </div>
@@ -148,30 +148,30 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      const tourIdEl    = form.querySelector('[name="product_id"]');
-      const dateEl      = form.querySelector('[name="tour_date"]');
+      const productIdEl    = form.querySelector('[name="product_id"]');
+      const dateEl      = form.querySelector('[name="product_date"]');
       const scheduleEl  = form.querySelector('[name="schedule_id"]');
       const adultsEl    = form.querySelector('[name="adults_quantity"]');
       const kidsEl      = form.querySelector('[name="kids_quantity"]');
 
-      const tourDate   = dateEl.value;
+      const productDate   = dateEl.value;
       const scheduleId = (scheduleEl && scheduleEl.value) || '';
       const adults     = parseInt(adultsEl.value, 10) || 0;
       const kids       = parseInt(kidsEl.value, 10)   || 0;
       const requested  = adults + kids;
 
-      if (!tourDate) {
+      if (!productDate) {
         return Swal.fire({
           icon: 'warning',
-          title: @json(__('carts.alerts.select_tour_date'))
+          title: @json(__('carts.alerts.select_product_date'))
         });
       }
 
       let reserved = 0;
       try {
         const params = new URLSearchParams({
-          product_id: tourIdEl.value,
-          tour_date: tourDate,
+          product_id: productIdEl.value,
+          product_date: productDate,
           ...(scheduleId ? { schedule_id: scheduleId } : {})
         });
 
@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return Swal.fire({
           icon: 'error',
           title: @json(__('carts.alerts.capacity_exceeded.title')),
-          text: textTmpl.replace('::date', tourDate).replace('::available', String(available))
+          text: textTmpl.replace('::date', productDate).replace('::available', String(available))
         });
       }
 

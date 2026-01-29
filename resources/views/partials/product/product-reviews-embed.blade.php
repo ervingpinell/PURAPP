@@ -1,15 +1,15 @@
-{{-- resources/views/partials/product/tour-reviews-embed.blade.php --}}
-<div class="tour-review-carousel-wrapper">
+{{-- resources/views/partials/product/product-reviews-embed.blade.php --}}
+<div class="product-review-carousel-wrapper">
   <button
     class="carousel-nav carousel-prev"
     type="button"
     aria-label="{{ __('reviews.previous_review') }}"
-    data-tour="{{ $product->product_id }}"
+    data-product="{{ $product->product_id }}"
   >❮</button>
 
   <div
-    class="tour-review-carousel"
-    id="review-carousel-tour-{{ $product->product_id }}">
+    class="product-review-carousel"
+    id="review-carousel-product-{{ $product->product_id }}">
     <p class="text-center text-muted">{{ __('reviews.loading') }}</p>
   </div>
 
@@ -17,7 +17,7 @@
     class="carousel-nav carousel-next"
     type="button"
     aria-label="{{ __('reviews.next_review') }}"
-    data-tour="{{ $product->product_id }}"
+    data-product="{{ $product->product_id }}"
   >❯</button>
 </div>
 

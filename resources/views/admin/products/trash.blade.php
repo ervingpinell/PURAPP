@@ -1,12 +1,12 @@
 {{-- resources/views/admin/tours/trash.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', 'Papelera de Tours')
+@section('title', 'Papelera de Products')
 
 @section('content_header')
 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <h1 class="m-0">
-        <i class="fas fa-trash me-2"></i>Papelera de Tours
+        <i class="fas fa-trash me-2"></i>Papelera de Products
     </h1>
     <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">
         <i class="fas fa-arrow-left me-1"></i> Volver
@@ -17,9 +17,9 @@
 @section('content')
 <div class="card shadow-sm">
     <div class="card-body">
-        @if($trashedTours->isEmpty())
+        @if($trashedProducts->isEmpty())
         <div class="alert alert-info mb-0">
-            <i class="fas fa-info-circle me-2"></i>No hay tours eliminados
+            <i class="fas fa-info-circle me-2"></i>No hay products eliminados
         </div>
         @else
         <div class="table-responsive">
@@ -34,7 +34,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($trashedTours as $product)
+                    @foreach($trashedProducts as $product)
                     @php
                     $daysLeft = max(0, 30 - now()->diffInDays($product->deleted_at));
                     $productName = $product->getTranslatedName() ?: $product->name ?: 'Sin nombre';
@@ -113,8 +113,8 @@
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 Swal.fire({
-                    title: '¿Restaurar tour?',
-                    text: 'El tour volverá a estar disponible',
+                    title: '¿Restaurar product?',
+                    text: 'El product volverá a estar disponible',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Sí, restaurar',
@@ -133,7 +133,7 @@
                 e.preventDefault();
                 Swal.fire({
                     title: '¿Eliminar permanentemente?',
-                    text: 'Esta acción no se puede deshacer. El tour será eliminado definitivamente.',
+                    text: 'Esta acción no se puede deshacer. El product será eliminado definitivamente.',
                     icon: 'error',
                     showCancelButton: true,
                     confirmButtonText: 'Sí, eliminar',

@@ -8,7 +8,7 @@
 @push('css')
 <style>
     /* Dark theme compatible styles */
-    .tour-info-header {
+    .product-info-header {
         color: white;
         padding: 1.5rem;
         border-radius: 0.5rem;
@@ -167,8 +167,8 @@
 
 @section('content')
 <div class="container-fluid">
-    {{-- Tour Info Header --}}
-    <div class="tour-info-header bg-secondary">
+    {{-- Product Info Header --}}
+    <div class="product-info-header bg-secondary">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="mb-2" style="font-size: 1.75rem; font-weight: 600;">
@@ -207,7 +207,7 @@
         <div class="d-flex gap-2">
             <button type="button" class="btn btn-add-period bg-success" id="add-period-btn">
                 <i class="fas fa-plus-circle mr-2"></i>
-                {{ __('m_tours.tour.pricing.add_period') ?? 'Agregar Periodo de Precios' }}
+                {{ __('m_tours.product.pricing.add_period') ?? 'Agregar Periodo de Precios' }}
             </button>
             <button type="button" class="btn btn-primary" id="bulk-save-all-btn" style="display: none;">
                 <i class="fas fa-save mr-2"></i>
@@ -233,7 +233,7 @@
                     @if(!$period['is_default'])
                     <div>
                         <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
-                            {{ __('m_tours.tour.pricing.valid_from') }}
+                            {{ __('m_tours.product.pricing.valid_from') }}
                         </label>
                         <input
                             type="date"
@@ -243,7 +243,7 @@
                     </div>
                     <div>
                         <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
-                            {{ __('m_tours.tour.pricing.valid_until') }}
+                            {{ __('m_tours.product.pricing.valid_until') }}
                         </label>
                         <input
                             type="date"
@@ -253,14 +253,14 @@
                     </div>
                     <div style="min-width: 200px;">
                         <label class="mb-1" style="font-size: 0.75rem; opacity: 0.9;">
-                            {{ __('m_tours.tour.pricing.period_name') ?? 'Nombre (Opcional)' }}
+                            {{ __('m_tours.product.pricing.period_name') ?? 'Nombre (Opcional)' }}
                         </label>
                         <input
                             type="text"
                             class="form-control form-control-sm period-date-input"
                             data-field="label"
                             value="{{ $period['label'] !== \App\Models\TourPrice::getPeriodLabel($period['valid_from'], $period['valid_until']) ? $period['label'] : '' }}"
-                            placeholder="{{ __('m_tours.tour.pricing.period_name_placeholder') ?? 'Ej. Temporada Alta' }}">
+                            placeholder="{{ __('m_tours.product.pricing.period_name_placeholder') ?? 'Ej. Temporada Alta' }}">
                     </div>
                     @else
                     <h5 class="mb-0">
@@ -285,12 +285,12 @@
                 <table class="table table-sm table-hover categories-table mb-0">
                     <thead>
                         <tr>
-                            <th style="width: 20%;">{{ __('m_tours.tour.pricing.category') }}</th>
-                            <th style="width: 12%;">{{ __('m_tours.tour.pricing.age_range') }}</th>
-                            <th style="width: 15%;">{{ __('m_tours.tour.pricing.price_usd') }}</th>
-                            <th style="width: 12%;">{{ __('m_tours.tour.pricing.min_quantity') }}</th>
-                            <th style="width: 12%;">{{ __('m_tours.tour.pricing.max_quantity') }}</th>
-                            <th style="width: 10%;" class="text-center">{{ __('m_tours.tour.pricing.active') }}</th>
+                            <th style="width: 20%;">{{ __('m_tours.product.pricing.category') }}</th>
+                            <th style="width: 12%;">{{ __('m_tours.product.pricing.age_range') }}</th>
+                            <th style="width: 15%;">{{ __('m_tours.product.pricing.price_usd') }}</th>
+                            <th style="width: 12%;">{{ __('m_tours.product.pricing.min_quantity') }}</th>
+                            <th style="width: 12%;">{{ __('m_tours.product.pricing.max_quantity') }}</th>
+                            <th style="width: 10%;" class="text-center">{{ __('m_tours.product.pricing.active') }}</th>
                             <th style="width: 19%;" class="text-center">{{ __('m_tours.prices.table.action') }}</th>
                         </tr>
                     </thead>
@@ -358,7 +358,7 @@
             <div class="add-category-section">
                 <select class="form-control form-control-sm add-category-select">
                     <option value="">
-                        {{ __('m_tours.tour.pricing.choose_category_placeholder') }}
+                        {{ __('m_tours.product.pricing.choose_category_placeholder') }}
                     </option>
                     @foreach($availableCategories as $category)
                     <option
@@ -371,7 +371,7 @@
                     @endforeach
                 </select>
                 <button type="button" class="btn btn-sm btn-primary add-category-btn">
-                    <i class="fas fa-plus mr-1"></i> {{ __('m_tours.tour.pricing.add_button') }}
+                    <i class="fas fa-plus mr-1"></i> {{ __('m_tours.product.pricing.add_button') }}
                 </button>
             </div>
         </div>
@@ -380,10 +380,10 @@
             <div class="card-body text-center py-5">
                 <i class="fas fa-calendar-times fa-3x mb-3" style="opacity: 0.5; color: #6c757d;"></i>
                 <h5 style="color: #6c757d;">
-                    {{ __('m_tours.tour.pricing.no_periods') ?? 'No hay periodos de precios definidos' }}
+                    {{ __('m_tours.product.pricing.no_periods') ?? 'No hay periodos de precios definidos' }}
                 </h5>
                 <p class="text-muted">
-                    {{ __('m_tours.tour.pricing.click_add_period') ?? 'Haz clic en "Agregar Periodo de Precios" para comenzar' }}
+                    {{ __('m_tours.product.pricing.click_add_period') ?? 'Haz clic en "Agregar Periodo de Precios" para comenzar' }}
                 </p>
             </div>
         </div>
@@ -455,7 +455,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(function() {
-        const tourId = {
+        const productId = {
             {
                 $product-> product_id
             }
@@ -520,7 +520,7 @@
             $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
             $.ajax({
-                url: `/admin/tours/${tourId}/prices/${priceId}`,
+                url: `/admin/tours/${productId}/prices/${priceId}`,
                 method: 'POST',
                 data: data,
                 success: function() {
@@ -574,7 +574,7 @@
                 };
 
                 $.ajax({
-                    url: `/admin/tours/${tourId}/prices/${priceId}`,
+                    url: `/admin/tours/${productId}/prices/${priceId}`,
                     method: 'POST',
                     data: data,
                     success: function() {
@@ -620,7 +620,7 @@
             const priceId = $row.data('price-id');
 
             $.ajax({
-                url: `/admin/tours/${tourId}/prices/${priceId}/toggle`,
+                url: `/admin/tours/${productId}/prices/${priceId}/toggle`,
                 method: 'POST',
                 data: {
                     _token: csrfToken
@@ -665,7 +665,7 @@
                 if (!result.isConfirmed) return;
 
                 $.ajax({
-                    url: `/admin/tours/${tourId}/prices/${priceId}`,
+                    url: `/admin/tours/${productId}/prices/${priceId}`,
                     method: 'POST',
                     data: {
                         _token: csrfToken,
@@ -726,7 +726,7 @@
             const label = $period.find('[data-field="label"]').val() || null;
 
             $.ajax({
-                url: `/admin/tours/${tourId}/prices`,
+                url: `/admin/tours/${productId}/prices`,
                 method: 'POST',
                 data: {
                     category_id: categoryId,
@@ -781,7 +781,7 @@
             }
 
             $.ajax({
-                url: `/admin/tours/${tourId}/prices/bulk-update`,
+                url: `/admin/tours/${productId}/prices/bulk-update`,
                 method: 'POST',
                 data: {
                     price_ids: priceIds,
@@ -843,7 +843,7 @@
                 let completed = 0;
                 priceIds.forEach(priceId => {
                     $.ajax({
-                        url: `/admin/tours/${tourId}/prices/${priceId}`,
+                        url: `/admin/tours/${productId}/prices/${priceId}`,
                         method: 'POST',
                         data: {
                             _token: csrfToken,
@@ -941,7 +941,7 @@
 
                     // Crear el primer precio del periodo
                     $.ajax({
-                        url: `/admin/tours/${tourId}/prices`,
+                        url: `/admin/tours/${productId}/prices`,
                         method: 'POST',
                         data: {
                             category_id: categoryId,

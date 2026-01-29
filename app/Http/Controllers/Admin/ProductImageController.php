@@ -33,11 +33,11 @@ class ProductImageController extends Controller
     {
         try {
             $product->load(['images']);
-            $maxImagesPerTour = (int) config('tours.max_images_per_tour', 20);
+            $maxImagesPerProduct = (int) config('products.max_images_per_product', 20);
 
             return view('admin.products.images', [
                 'product' => $product,
-                'max'  => $maxImagesPerTour,
+                'max'  => $maxImagesPerProduct,
             ]);
         } catch (Throwable $e) {
             Log::error('Image index failed', [
@@ -47,8 +47,8 @@ class ProductImageController extends Controller
 
             return back()->with('swal', [
                 'icon'  => 'error',
-                'title' => __('m_tours.image.ui.error_title'),
-                'text'  => __('m_tours.image.errors.load_list'),
+                'title' => __('m_products.image.ui.error_title'),
+                'text'  => __('m_products.image.errors.load_list'),
             ]);
         }
     }
@@ -57,9 +57,9 @@ class ProductImageController extends Controller
     public function store(Request $request, Product $product)
     {
         try {
-            $maxImageKb        = (int) config('tours.max_image_kb', 30720); // 30MB/file
-            $maxImagesPerTour  = (int) config('tours.max_images_per_tour', 20);
-            $webpCfg           = (array) config('tours.webp', []);
+            $maxImageKb        = (int) config('products.max_image_kb', 30720); // 30MB/file
+            $maxImagesPerProduct  = (int) config('products.max_images_per_product', 20);
+            $webpCfg           = (array) config('products.webp', []);
             $quality           = (int) ($webpCfg['quality'] ?? 82);
             $maxSide           = (int) ($webpCfg['max_side'] ?? 2560);
 
@@ -72,20 +72,20 @@ class ProductImageController extends Controller
             if (!is_array($uploadedFiles) || empty($uploadedFiles)) {
                 return back()->with('swal', [
                     'icon'  => 'info',
-                    'title' => __('m_tours.image.notice'),
-                    'text'  => __('m_tours.image.upload_none'),
+                    'title' => __('m_products.image.notice'),
+                    'text'  => __('m_products.image.upload_none'),
                 ]);
             }
 
             // 2. Verificar cupo global
             $currentCount = (int) $product->images()->count();
-            $remainingCap = max(0, $maxImagesPerTour - $currentCount);
+            $remainingCap = max(0, $maxImagesPerProduct - $currentCount);
 
             if ($remainingCap <= 0) {
                 return back()->with('swal', [
                     'icon'  => 'warning',
-                    'title' => __('m_tours.image.limit_reached_title'),
-                    'text'  => __('m_tours.image.limit_reached_text'),
+                    'title' => __('m_products.image.limit_reached_title'),
+                    'text'  => __('m_products.image.limit_reached_text'),
                 ]);
             }
 
@@ -135,7 +135,7 @@ class ProductImageController extends Controller
                 if (!$isValidType) {
                     $invalidFiles[] = [
                         'name'   => $file->getClientOriginalName(),
-                        'reason' => __('m_tours.image.errors.invalid_type'),
+                        'reason' => __('m_products.image.errors.invalid_type'),
                     ];
                     continue;
                 }
@@ -146,7 +146,7 @@ class ProductImageController extends Controller
                 if ($fileSizeKb > $maxImageKb) {
                     $invalidFiles[] = [
                         'name'   => $file->getClientOriginalName(),
-                        'reason' => __('m_tours.image.errors.too_large', ['max' => $maxImageKb]),
+                        'reason' => __('m_products.image.errors.too_large', ['max' => $maxImageKb]),
                     ];
                     continue;
                 }
@@ -159,14 +159,14 @@ class ProductImageController extends Controller
                         if (!$imageInfo) {
                             $invalidFiles[] = [
                                 'name'   => $file->getClientOriginalName(),
-                                'reason' => __('m_tours.image.errors.not_image'),
+                                'reason' => __('m_products.image.errors.not_image'),
                             ];
                             continue;
                         }
                     } catch (\Throwable $e) {
                         $invalidFiles[] = [
                             'name'   => $file->getClientOriginalName(),
-                            'reason' => __('m_tours.image.errors.not_image'),
+                            'reason' => __('m_products.image.errors.not_image'),
                         ];
                         continue;
                     }
@@ -333,8 +333,8 @@ class ProductImageController extends Controller
 
             return back()->with('swal', [
                 'icon'  => 'success',
-                'title' => __('m_tours.image.saved'),
-                'text'  => __('m_tours.image.caption_updated'),
+                'title' => __('m_products.image.saved'),
+                'text'  => __('m_products.image.caption_updated'),
             ]);
         } catch (ValidationException $e) {
             Log::warning('Image update validation failed', [
@@ -344,10 +344,10 @@ class ProductImageController extends Controller
                 'errors'   => $e->errors(),
             ]);
 
-            $firstMsg = collect($e->errors())->flatten()->first() ?? __('m_tours.image.errors.validation');
+            $firstMsg = collect($e->errors())->flatten()->first() ?? __('m_products.image.errors.validation');
             return back()->with('swal', [
                 'icon'  => 'warning',
-                'title' => __('m_tours.image.ui.warning_title'),
+                'title' => __('m_products.image.ui.warning_title'),
                 'text'  => $firstMsg,
             ])->withInput();
         } catch (Throwable $e) {
@@ -360,8 +360,8 @@ class ProductImageController extends Controller
 
             return back()->with('swal', [
                 'icon'  => 'error',
-                'title' => __('m_tours.image.ui.error_title'),
-                'text'  => __('m_tours.image.errors.update_caption'),
+                'title' => __('m_products.image.ui.error_title'),
+                'text'  => __('m_products.image.errors.update_caption'),
             ]);
         }
     }
@@ -391,8 +391,8 @@ class ProductImageController extends Controller
 
             return back()->with('swal', [
                 'icon'  => 'success',
-                'title' => __('m_tours.image.deleted'),
-                'text'  => __('m_tours.image.image_removed'),
+                'title' => __('m_products.image.deleted'),
+                'text'  => __('m_products.image.image_removed'),
             ]);
         } catch (Throwable $e) {
             Log::error('Image delete failed', [
@@ -404,8 +404,8 @@ class ProductImageController extends Controller
 
             return back()->with('swal', [
                 'icon'  => 'error',
-                'title' => __('m_tours.image.ui.error_title'),
-                'text'  => __('m_tours.image.errors.delete'),
+                'title' => __('m_products.image.ui.error_title'),
+                'text'  => __('m_products.image.errors.delete'),
             ]);
         }
     }
@@ -416,13 +416,13 @@ class ProductImageController extends Controller
         try {
             $orderIds = $request->input('order', []);
             if (!is_array($orderIds) || empty($orderIds)) {
-                return $this->reorderResponse($request, false, __('m_tours.image.invalid_order'));
+                return $this->reorderResponse($request, false, __('m_products.image.invalid_order'));
             }
 
             $validIds = $product->images()->pluck('id')->all();
             $newOrder = array_values(array_intersect($orderIds, $validIds));
             if (empty($newOrder)) {
-                return $this->reorderResponse($request, false, __('m_tours.image.nothing_to_reorder'));
+                return $this->reorderResponse($request, false, __('m_products.image.nothing_to_reorder'));
             }
 
             DB::transaction(function () use ($newOrder) {
@@ -433,7 +433,7 @@ class ProductImageController extends Controller
 
             LoggerHelper::mutated('ProductImageController', 'reorder', 'Product', $product->product_id);
 
-            return $this->reorderResponse($request, true, __('m_tours.image.order_saved'));
+            return $this->reorderResponse($request, true, __('m_products.image.order_saved'));
         } catch (Throwable $e) {
             Log::error('Image reorder failed', [
                 'product_id' => $product->product_id ?? null,
@@ -441,7 +441,7 @@ class ProductImageController extends Controller
                 'error'   => $e->getMessage(),
             ]);
 
-            return $this->reorderResponse($request, false, __('m_tours.image.errors.reorder'));
+            return $this->reorderResponse($request, false, __('m_products.image.errors.reorder'));
         }
     }
 
@@ -453,7 +453,7 @@ class ProductImageController extends Controller
 
         return back()->with('swal', [
             'icon'  => $ok ? 'success' : 'warning',
-            'title' => $ok ? __('m_tours.image.done') : __('m_tours.image.notice'),
+            'title' => $ok ? __('m_products.image.done') : __('m_products.image.notice'),
             'text'  => $message,
         ]);
     }
@@ -473,8 +473,8 @@ class ProductImageController extends Controller
 
             return back()->with('swal', [
                 'icon'  => 'success',
-                'title' => __('m_tours.image.cover_updated_title'),
-                'text'  => __('m_tours.image.cover_updated_text'),
+                'title' => __('m_products.image.cover_updated_title'),
+                'text'  => __('m_products.image.cover_updated_text'),
             ]);
         } catch (Throwable $e) {
             Log::error('Image setCover failed', [
@@ -486,8 +486,8 @@ class ProductImageController extends Controller
 
             return back()->with('swal', [
                 'icon'  => 'error',
-                'title' => __('m_tours.image.ui.error_title'),
-                'text'  => __('m_tours.image.errors.set_cover'),
+                'title' => __('m_products.image.ui.error_title'),
+                'text'  => __('m_products.image.errors.set_cover'),
             ]);
         }
     }
@@ -528,9 +528,9 @@ class ProductImageController extends Controller
                 'manageRoute'   => 'admin.products.images.index',
                 'requiredPermission' => 'view-product-images',
                 'i18n'          => [
-                    'title'   => __('m_tours.image.ui.page_title_pick'),
-                    'heading' => __('m_tours.image.ui.page_heading'),
-                    'choose'  => __('m_tours.image.ui.choose_product'),
+                    'title'   => __('m_products.image.ui.page_title_pick'),
+                    'heading' => __('m_products.image.ui.page_heading'),
+                    'choose'  => __('m_products.image.ui.choose_product'),
                 ],
             ]);
         } catch (Throwable $e) {
@@ -541,8 +541,8 @@ class ProductImageController extends Controller
 
             return back()->with('swal', [
                 'icon'  => 'error',
-                'title' => __('m_tours.image.ui.error_title'),
-                'text'  => __('m_tours.image.errors.load_list'),
+                'title' => __('m_products.image.ui.error_title'),
+                'text'  => __('m_products.image.errors.load_list'),
             ]);
         }
     }
@@ -589,7 +589,7 @@ class ProductImageController extends Controller
     }
 
     /**
-     * DELETE admin.tours.images.bulk-destroy
+     * DELETE admin.products.images.bulk-destroy
      * Recibe "ids" como string "1,2,3" o como array ["1","2","3"]
      */
     public function bulkDestroy(Request $request, Product $product)
@@ -606,7 +606,7 @@ class ProductImageController extends Controller
         if ($ids->isEmpty()) {
             return back()->with('swal', [
                 'icon'  => 'warning',
-                'title' => __('m_tours.image.notice'),
+                'title' => __('m_products.image.notice'),
                 'text'  => __('No hay imágenes seleccionadas.'),
             ]);
         }
@@ -620,7 +620,7 @@ class ProductImageController extends Controller
         if ($images->isEmpty()) {
             return back()->with('swal', [
                 'icon'  => 'info',
-                'title' => __('m_tours.image.notice'),
+                'title' => __('m_products.image.notice'),
                 'text'  => __('No se encontraron imágenes válidas para eliminar.'),
             ]);
         }
@@ -644,13 +644,13 @@ class ProductImageController extends Controller
 
         return back()->with('swal', [
             'icon'  => 'success',
-            'title' => __('m_tours.image.deleted'),
+            'title' => __('m_products.image.deleted'),
             'text'  => __('Se eliminaron :n imágenes seleccionadas.', ['n' => $images->count()]),
         ]);
     }
 
     /**
-     * DELETE admin.tours.images.destroyAll
+     * DELETE admin.products.images.destroyAll
      * Elimina TODAS las imágenes del producto.
      */
     public function destroyAll(Request $request, Product $product)
@@ -662,7 +662,7 @@ class ProductImageController extends Controller
         if ($images->isEmpty()) {
             return back()->with('swal', [
                 'icon'  => 'info',
-                'title' => __('m_tours.image.notice'),
+                'title' => __('m_products.image.notice'),
                 'text'  => __('Este producto no tiene imágenes para eliminar.'),
             ]);
         }
@@ -685,7 +685,7 @@ class ProductImageController extends Controller
 
         return back()->with('swal', [
             'icon'  => 'success',
-            'title' => __('m_tours.image.deleted'),
+            'title' => __('m_products.image.deleted'),
             'text'  => __('Se eliminaron todas las imágenes del producto.'),
         ]);
     }

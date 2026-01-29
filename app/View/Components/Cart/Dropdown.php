@@ -36,7 +36,7 @@ class Dropdown extends Component
             $cart = Cart::with([
                     // Solo ítems activos para que coincida con la API de count
                     'items' => fn ($q) => $q->where('is_active', true),
-                    'items.tour',
+                    'items.product',
                     'items.schedule',
                     'items.language',
                     'items.hotel',

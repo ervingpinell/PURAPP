@@ -2,7 +2,7 @@
 
 @extends('adminlte::page')
 
-@section('title', __('m_tours.tour.wizard.steps.summary'))
+@section('title', __('m_tours.product.wizard.steps.summary'))
 
 @push('css')
 <style>
@@ -313,10 +313,10 @@ $productOverview = $product->getTranslation('overview', $currentLocale) ?? $prod
 
 // Traducción del tipo de producto
 $productTypeName = null;
-if ($product->tourType) {
-    $productTypeName = method_exists($product->tourType, 'getTranslatedName') 
-        ? $product->tourType->getTranslatedName($currentLocale)
-        : ($product->tourType->getTranslation('name', $currentLocale) ?? $product->tourType->name ?? null);
+if ($product->productType) {
+    $productTypeName = method_exists($product->productType, 'getTranslatedName') 
+        ? $product->productType->getTranslatedName($currentLocale)
+        : ($product->productType->getTranslation('name', $currentLocale) ?? $product->productType->name ?? null);
 }
 
 // Traducción de itinerario (si existe)
@@ -349,7 +349,7 @@ $itineraryItems = $product->itineraryItems;
     <div class="summary-header">
         <h1>
             <i class="fas fa-eye"></i>
-            {{ __('m_tours.tour.wizard.steps.summary') }}
+            {{ __('m_tours.product.wizard.steps.summary') }}
         </h1>
         <p>{{ $productName }}</p>
     </div>
@@ -361,12 +361,12 @@ $itineraryItems = $product->itineraryItems;
             <div class="card summary-card">
                 <div class="card-header">
                     <i class="fas fa-info-circle text-primary"></i>
-                    {{ __('m_tours.tour.summary.basic_details_title') }}
+                    {{ __('m_tours.product.summary.basic_details_title') }}
                 </div>
                 <div class="card-body">
                     <div class="info-grid">
                         <div class="info-item">
-                            <div class="label">{{ __('m_tours.tour.fields.name') }}</div>
+                            <div class="label">{{ __('m_tours.product.fields.name') }}</div>
                             <div class="value">{{ $productName }}</div>
                         </div>
 
@@ -375,22 +375,22 @@ $itineraryItems = $product->itineraryItems;
                             <div class="value"><code>{{ $product->slug }}</code></div>
                         </div>
 
-                        @if($product->tourType && $productTypeName)
+                        @if($product->productType && $productTypeName)
                         <div class="info-item">
-                            <div class="label">{{ __('m_tours.tour.fields.type') }}</div>
+                            <div class="label">{{ __('m_tours.product.fields.type') }}</div>
                             <div class="value">{{ $productTypeName }}</div>
                         </div>
                         @endif
 
                         <div class="info-item">
-                            <div class="label">{{ __('m_tours.tour.fields.length_hours') }}</div>
+                            <div class="label">{{ __('m_tours.product.fields.length_hours') }}</div>
                             <div class="value">
                                 {{ $product->length ?? 'N/A' }} {{ __('m_tours.common.hours') }}
                             </div>
                         </div>
 
                         <div class="info-item">
-                            <div class="label">{{ __('m_tours.tour.fields.max_capacity') }}</div>
+                            <div class="label">{{ __('m_tours.product.fields.max_capacity') }}</div>
                             <div class="value">
                                 {{ $product->max_capacity }} {{ __('m_tours.common.people') }}
                             </div>
@@ -398,7 +398,7 @@ $itineraryItems = $product->itineraryItems;
 
                         @if($product->group_size)
                         <div class="info-item">
-                            <div class="label">{{ __('m_tours.tour.fields.group_size') }}</div>
+                            <div class="label">{{ __('m_tours.product.fields.group_size') }}</div>
                             <div class="value">
                                 {{ $product->group_size }} {{ __('m_tours.common.people') }}
                             </div>
@@ -409,7 +409,7 @@ $itineraryItems = $product->itineraryItems;
                     @if($productOverview)
                     <div class="mt-3 pt-3 border-top">
                         <div class="label mb-2" style="color: #a0aec0; font-size: 0.8rem; text-transform: uppercase;">
-                            {{ __('m_tours.tour.fields.overview') }}
+                            {{ __('m_tours.product.fields.overview') }}
                         </div>
                         <p class="mb-0 text-muted">
                             {!! nl2br(e($productOverview)) !!}
@@ -420,7 +420,7 @@ $itineraryItems = $product->itineraryItems;
                     @if(isset($product->recommendations) && $product->recommendations)
                     <div class="mt-3 pt-3 border-top">
                         <div class="label mb-2" style="color: #a0aec0; font-size: 0.8rem; text-transform: uppercase;">
-                            {{ __('m_tours.tour.fields.recommendations') ?? 'Recomendaciones' }}
+                            {{ __('m_tours.product.fields.recommendations') ?? 'Recomendaciones' }}
                         </div>
                         <p class="mb-0 text-muted">
                             {!! nl2br(e($product->recommendations)) !!}
@@ -437,7 +437,7 @@ $itineraryItems = $product->itineraryItems;
                         @if($product->itinerary && $itineraryItems->isNotEmpty())
                         <li class="nav-item">
                             <a class="nav-link active" data-toggle="tab" href="#itinerary-tab">
-                                <i class="fas fa-route"></i> {{ __('m_tours.tour.summary.itinerary_title') }}
+                                <i class="fas fa-route"></i> {{ __('m_tours.product.summary.itinerary_title') }}
                             </a>
                         </li>
                         @endif
@@ -446,7 +446,7 @@ $itineraryItems = $product->itineraryItems;
                         <li class="nav-item">
                             <a class="nav-link {{ (!$product->itinerary || $itineraryItems->isEmpty()) ? 'active' : '' }}"
                                 data-toggle="tab" href="#schedules-tab">
-                                <i class="fas fa-clock"></i> {{ __('m_tours.tour.summary.schedules_title') }}
+                                <i class="fas fa-clock"></i> {{ __('m_tours.product.summary.schedules_title') }}
                             </a>
                         </li>
                         @endif
@@ -455,7 +455,7 @@ $itineraryItems = $product->itineraryItems;
                         <li class="nav-item">
                             <a class="nav-link {{ (!$product->itinerary || $itineraryItems->isEmpty()) && $product->schedules->isEmpty() ? 'active' : '' }}"
                                 data-toggle="tab" href="#amenities-tab">
-                                <i class="fas fa-star"></i> {{ __('m_tours.tour.summary.amenities_title') ?? 'Amenidades' }}
+                                <i class="fas fa-star"></i> {{ __('m_tours.product.summary.amenities_title') ?? 'Amenidades' }}
                             </a>
                         </li>
                         @endif
@@ -463,7 +463,7 @@ $itineraryItems = $product->itineraryItems;
                         @if($product->languages->isNotEmpty())
                         <li class="nav-item">
                             <a class="nav-link" data-toggle="tab" href="#languages-tab">
-                                <i class="fas fa-language"></i> {{ __('m_tours.tour.summary.languages_title') }}
+                                <i class="fas fa-language"></i> {{ __('m_tours.product.summary.languages_title') }}
                             </a>
                         </li>
                         @endif
@@ -471,7 +471,7 @@ $itineraryItems = $product->itineraryItems;
                         @if($product->prices->isNotEmpty())
                         <li class="nav-item">
                             <a class="nav-link" data-toggle="tab" href="#prices-tab">
-                                <i class="fas fa-dollar-sign"></i> {{ __('m_tours.tour.summary.prices_title') }}
+                                <i class="fas fa-dollar-sign"></i> {{ __('m_tours.product.summary.prices_title') }}
                             </a>
                         </li>
                         @endif
@@ -544,7 +544,7 @@ $itineraryItems = $product->itineraryItems;
                                 <div class="col-md-6">
                                     <h6 class="text-success mb-3">
                                         <i class="fas fa-check-circle"></i>
-                                        {{ __('m_tours.tour.ui.amenities_included') }}
+                                        {{ __('m_tours.product.ui.amenities_included') }}
                                     </h6>
                                     <ul class="icon-list">
                                         @foreach($product->amenities as $amenity)
@@ -570,7 +570,7 @@ $itineraryItems = $product->itineraryItems;
                                 <div class="col-md-6">
                                     <h6 class="text-danger mb-3">
                                         <i class="fas fa-times-circle"></i>
-                                        {{ __('m_tours.tour.ui.amenities_excluded') }}
+                                        {{ __('m_tours.product.ui.amenities_excluded') }}
                                     </h6>
                                     <ul class="icon-list">
                                         @foreach($product->excludedAmenities as $amenity)
@@ -644,8 +644,8 @@ $itineraryItems = $product->itineraryItems;
                             return $from instanceof \Carbon\Carbon ? $from->format('d-M-Y') : ($from ?: '0000-01-01');
                             });
 
-                            $noPriceMsg = __('m_tours.tour.summary.no_price_rules');
-                            if ($noPriceMsg === 'm_tours.tour.summary.no_price_rules') {
+                            $noPriceMsg = __('m_tours.product.summary.no_price_rules');
+                            if ($noPriceMsg === 'm_tours.product.summary.no_price_rules') {
                             $noPriceMsg = 'No hay reglas de precio configuradas.';
                             }
                             @endphp
@@ -653,7 +653,7 @@ $itineraryItems = $product->itineraryItems;
                             @if($groupedPrices->isEmpty())
                             <p class="text-muted mb-0">{{ $noPriceMsg }}</p>
                             @else
-                            <h5 class="mb-3">{{ __('m_tours.tour.summary.prices_title') ?? 'Precios por categoría' }}</h5>
+                            <h5 class="mb-3">{{ __('m_tours.product.summary.prices_title') ?? 'Precios por categoría' }}</h5>
 
                             <div id="priceRulesAccordion" class="accordion">
                                 @foreach($groupedPrices as $key => $pricesGroup)
@@ -683,9 +683,9 @@ $itineraryItems = $product->itineraryItems;
                                                 <i class="fas fa-calendar-alt mr-2"></i>
 
                                                 @if($first->is_default)
-                                                {{ __('m_tours.tour.summary.default_price_rule') ?? 'Precio por defecto' }}
+                                                {{ __('m_tours.product.summary.default_price_rule') ?? 'Precio por defecto' }}
                                                 @else
-                                                {{ __('m_tours.tour.summary.date_range') ?? 'Rango de fechas' }}
+                                                {{ __('m_tours.product.summary.date_range') ?? 'Rango de fechas' }}
 
                                                 @if($fromStr)
                                                 <span class="badge badge-light custom-badge ml-2">
@@ -717,10 +717,10 @@ $itineraryItems = $product->itineraryItems;
                                                 <table class="table table-sm pricing-table mb-0">
                                                     <thead>
                                                         <tr>
-                                                            <th>{{ __('m_tours.tour.summary.table.category') }}</th>
-                                                            <th class="text-right">{{ __('m_tours.tour.summary.table.price') }}</th>
-                                                            <th class="text-center">{{ __('m_tours.tour.summary.table.min_max') }}</th>
-                                                            <th class="text-center">{{ __('m_tours.tour.summary.table.status') }}</th>
+                                                            <th>{{ __('m_tours.product.summary.table.category') }}</th>
+                                                            <th class="text-right">{{ __('m_tours.product.summary.table.price') }}</th>
+                                                            <th class="text-center">{{ __('m_tours.product.summary.table.min_max') }}</th>
+                                                            <th class="text-center">{{ __('m_tours.product.summary.table.status') }}</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -800,22 +800,22 @@ $itineraryItems = $product->itineraryItems;
                     <div class="card-header">
                         <h3 class="card-title mb-0">
                             <i class="fas fa-rocket"></i>
-                            {{ __('m_tours.tour.wizard.ready_to_publish') }}
+                            {{ __('m_tours.product.wizard.ready_to_publish') }}
                         </h3>
                     </div>
                     <div class="card-body">
-                        <p>{{ __('m_tours.tour.wizard.publish_explanation') }}</p>
+                        <p>{{ __('m_tours.product.wizard.publish_explanation') }}</p>
 
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i>
-                            <small>{{ __('m_tours.tour.wizard.can_edit_later') }}</small>
+                            <small>{{ __('m_tours.product.wizard.can_edit_later') }}</small>
                         </div>
 
                         <form method="POST" action="{{ route('admin.products.wizard.publish', $product) }}">
                             @csrf
                             <button type="submit" class="btn btn-light btn-block btn-lg font-weight-bold">
                                 <i class="fas fa-check-circle"></i>
-                                {{ __('m_tours.tour.wizard.publish_tour') }}
+                                {{ __('m_tours.product.wizard.publish_tour') }}
                             </button>
                         </form>
 
@@ -830,9 +830,9 @@ $itineraryItems = $product->itineraryItems;
                         @if($product->is_draft)
                         <button type="button"
                             class="btn btn-danger btn-block mt-2"
-                            onclick="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}') && document.getElementById('delete-draft-form').submit();">
+                            onclick="return confirm('{{ __('m_tours.product.wizard.confirm_cancel') }}') && document.getElementById('delete-draft-form').submit();">
                             <i class="fas fa-trash"></i>
-                            {{ __('m_tours.tour.wizard.delete_draft') }}
+                            {{ __('m_tours.product.wizard.delete_draft') }}
                         </button>
                         @endif
                     </div>
@@ -843,36 +843,36 @@ $itineraryItems = $product->itineraryItems;
                     <div class="card-header">
                         <h3 class="card-title mb-0">
                             <i class="fas fa-tasks"></i>
-                            {{ __('m_tours.tour.wizard.checklist') }}
+                            {{ __('m_tours.product.wizard.checklist') }}
                         </h3>
                     </div>
                     <div class="card-body">
                         <div class="checklist-item">
                             <i class="fas fa-check-circle text-success"></i>
-                            <span>{{ __('m_tours.tour.wizard.checklist_details') }}</span>
+                            <span>{{ __('m_tours.product.wizard.checklist_details') }}</span>
                         </div>
                         <div class="checklist-item">
                             <i class="fas fa-{{ $product->itinerary && $itineraryItems->isNotEmpty() ? 'check-circle text-success' : 'circle text-muted' }}"></i>
-                            <span>{{ __('m_tours.tour.wizard.checklist_itinerary') }}</span>
+                            <span>{{ __('m_tours.product.wizard.checklist_itinerary') }}</span>
                         </div>
                         <div class="checklist-item">
                             <i class="fas fa-{{ $product->schedules->isNotEmpty() ? 'check-circle text-success' : 'circle text-muted' }}"></i>
-                            <span>{{ __('m_tours.tour.wizard.checklist_schedules') }}</span>
+                            <span>{{ __('m_tours.product.wizard.checklist_schedules') }}</span>
                         </div>
                         <div class="checklist-item">
                             <i class="fas fa-{{ $product->amenities->isNotEmpty() ? 'check-circle text-success' : 'circle text-muted' }}"></i>
-                            <span>{{ __('m_tours.tour.wizard.checklist_amenities') }}</span>
+                            <span>{{ __('m_tours.product.wizard.checklist_amenities') }}</span>
                         </div>
                         <div class="checklist-item">
                             <i class="fas fa-{{ $product->prices->isNotEmpty() ? 'check-circle text-success' : 'circle text-muted' }}"></i>
-                            <span>{{ __('m_tours.tour.wizard.checklist_prices') }}</span>
+                            <span>{{ __('m_tours.product.wizard.checklist_prices') }}</span>
                         </div>
 
                         @if(!$product->itinerary || $itineraryItems->isEmpty() || $product->schedules->isEmpty() || $product->prices->isEmpty())
                         <div class="alert alert-warning mt-3 mb-0"
                             style="background: rgba(255, 193, 7, 0.2); border-color: #ffc107; color: #ffc107;">
                             <i class="fas fa-exclamation-triangle"></i>
-                            <small>{{ __('m_tours.tour.wizard.incomplete_warning') }}</small>
+                            <small>{{ __('m_tours.product.wizard.incomplete_warning') }}</small>
                         </div>
                         @endif
                     </div>

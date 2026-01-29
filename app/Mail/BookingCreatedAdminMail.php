@@ -45,7 +45,7 @@ class BookingCreatedAdminMail extends Mailable implements ShouldQueue
 
         $this->mailLocale    = $this->mailLocaleFromBooking($this->booking);
         $this->reference     = $this->bookingReference($this->booking);
-        $this->productLangLabel = $this->humanTourLanguage($this->mailLocale, $this->booking);
+        $this->productLangLabel = $this->humanProductLanguage($this->mailLocale, $this->booking);
         $this->statusText    = $this->statusLabel($this->mailLocale, $this->booking);
 
         $subject = __('adminlte::email.booking_created_subject', [

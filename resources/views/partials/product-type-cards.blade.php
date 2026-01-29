@@ -43,7 +43,7 @@ if ($len <= 0) return 1;
   $homeRowsLG = min(4, max(1, (int)ceil($typeTitles->map(fn($t)=>estimate_rows($t, 32))->max() ?? 1)));
   @endphp
 
-  <div class="tour-cards"
+  <div class="product-cards"
     style="--title-rows-xs:{{$homeRowsXS}};--title-rows-sm:{{$homeRowsSM}};--title-rows-md:{{$homeRowsMD}};--title-rows-lg:{{$homeRowsLG}};">
 
     @foreach ($typeMeta as $key => $meta)
@@ -71,7 +71,7 @@ if ($len <= 0) return 1;
     @endphp
 
     {{-- Tarjeta del tipo (HOME) --}}
-    <div class="tour-card" style="cursor:pointer"
+    <div class="product-card" style="cursor:pointer"
       data-bs-toggle="modal" data-bs-target="#modal-{{ $slugKey }}">
       @if($loop->first)
       {{-- Primera imagen: sin lazy, con high priority para LCP --}}
@@ -91,7 +91,7 @@ if ($len <= 0) return 1;
         <p class="card-text small mb-3 flex-grow-1">{!! nl2br(e($translatedDescription)) !!}</p>
         @endif
 
-        <a href="#tour-modal-{{ $slugKey }}" class="btn btn-tour-cta w-100 btn-ver-tour mt-auto"
+        <a href="#product-modal-{{ $slugKey }}" class="btn btn-product-cta w-100 btn-ver-product mt-auto"
           data-bs-toggle="modal" data-bs-target="#modal-{{ $slugKey }}">
           {{ __('adminlte::adminlte.see_tours') }}
         </a>
@@ -115,7 +115,7 @@ if ($len <= 0) return 1;
 
           <div class="modal-body">
             <div class="container-fluid px-2 px-sm-3">
-              <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 justify-content-center tour-grid">
+              <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 justify-content-center product-grid">
                 @foreach ($group as $product)
                 @php
                 $productCover = optional($product->coverImage)->url
@@ -158,9 +158,9 @@ if ($len <= 0) return 1;
                 @endphp
 
                 <div class="col d-flex">
-                  <div class="tour-modal-card-vertical h-100 w-100">
+                  <div class="product-modal-card-vertical h-100 w-100">
                     {{-- Badges arriba --}}
-                    <div class="tour-badges">
+                    <div class="product-badges">
                       @if(!empty($product->length))
                       <span class="badge-duration">⏱ {{ $product->length }} {{ $unitLabel }}</span>
                       @endif
@@ -188,30 +188,30 @@ if ($len <= 0) return 1;
                     : 0;
                     @endphp
 
-                    <div class="tour-header-row">
-                      <div class="tour-title-section">
-                        <h5 class="tour-title-main">{{ $mainTitle }}</h5>
+                    <div class="product-header-row">
+                      <div class="product-title-section">
+                        <h5 class="product-title-main">{{ $mainTitle }}</h5>
                         @if($subtitle)
-                        <p class="tour-subtitle">{{ $subtitle }}</p>
+                        <p class="product-subtitle">{{ $subtitle }}</p>
                         @endif
                         @php
                         $overview = $product->getTranslatedOverview();
                         @endphp
                         @if($overview)
-                        <p class="tour-description">{{ Str::limit(strip_tags($overview), 120) }}</p>
+                        <p class="product-description">{{ Str::limit(strip_tags($overview), 120) }}</p>
                         @endif
                       </div>
                       @if($mainPrice > 0)
-                      <div class="tour-price-main">${{ number_format($mainPrice, 0) }}</div>
+                      <div class="product-price-main">${{ number_format($mainPrice, 0) }}</div>
                       @endif
                     </div>
 
                     {{-- Separador --}}
-                    <hr class="tour-divider">
+                    <hr class="product-divider">
 
                     {{-- Categorías de precio --}}
                     @if($activeCategories->isNotEmpty())
-                    <div class="tour-categories">
+                    <div class="product-categories">
                       @foreach($activeCategories as $priceRecord)
                       @php
                       $category = $priceRecord->category;
@@ -246,7 +246,7 @@ if ($len <= 0) return 1;
                     @endif
 
                     {{-- Botón CTA --}}
-                    <a href="{{ localized_route('products.guided_tour.show', $product) }}" class="btn-product-cta">
+                    <a href="{{ localized_route('products.guided_product.show', $product) }}" class="btn-product-cta">
                       {{ __('adminlte::adminlte.see_tour_details') }} →
                     </a>
                   </div>

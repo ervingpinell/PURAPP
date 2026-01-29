@@ -56,9 +56,9 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
 $detail = $booking->detail;
 $product = $booking->product;
 
-// Nombre del tour (live o snapshot) con i18n
+// Nombre del product (live o snapshot) con i18n
 $liveName = optional($product)->name;
-$snapName = $detail->tour_name_snapshot ?? ($booking->product_name_snapshot ?? null);
+$snapName = $detail->product_name_snapshot ?? ($booking->product_name_snapshot ?? null);
 $productName = $liveName
 ?? ($snapName
 ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])
@@ -379,12 +379,12 @@ $productPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                     <table class="table table-bordered table-striped table-sm mb-0">
                         <tbody>
                             <tr>
-                                <td class="bg-light" style="width: 200px;"><strong>{{ __('m_bookings.bookings.fields.tour') }}</strong></td>
+                                <td class="bg-light" style="width: 200px;"><strong>{{ __('m_bookings.bookings.fields.product') }}</strong></td>
                                 <td>{{ $productName }}</td>
                             </tr>
                             <tr>
-                                <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.tour_date') }}</strong></td>
-                                <td>{{ optional($detail?->tour_date)?->format('Y-m-d') ?? '—' }}</td>
+                                <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.product_date') }}</strong></td>
+                                <td>{{ optional($detail?->product_date)?->format('Y-m-d') ?? '—' }}</td>
                             </tr>
                             <tr>
                                 <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.schedule') }}</strong></td>
@@ -401,7 +401,7 @@ $productPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                             </tr>
                             <tr>
                                 <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.language') }}</strong></td>
-                                <td>{{ optional($detail?->tourLanguage)->name ?? '—' }}</td>
+                                <td>{{ optional($detail?->productLanguage)->name ?? '—' }}</td>
                             </tr>
                             <tr>
                                 <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.customer') }}</strong></td>
@@ -812,14 +812,14 @@ $productPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
             togglePickupFields();
 
             @if($scheduleStart)
-            // Validate pickup time against tour schedule
+            // Validate pickup time against product schedule
             const pickupInput = document.getElementById('pickup_time');
             const warningDiv = document.getElementById('pickup_time_warning');
             const warningText = document.getElementById('pickup_time_warning_text');
             const confirmBtn = document.getElementById('confirm_btn');
 
             if (pickupInput) {
-                const tourPeriod = '{{ $productPeriod }}';
+                const productPeriod = '{{ $productPeriod }}';
 
                 pickupInput.addEventListener('change', function() {
                     if (!this.value) {
@@ -831,8 +831,8 @@ $productPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                     const [hours, minutes] = this.value.split(':').map(Number);
                     const pickupPeriod = hours < 12 ? 'AM' : 'PM';
 
-                    if (pickupPeriod !== tourPeriod) {
-                        if (warningText) warningText.textContent = `{{ __('m_bookings.bookings.ui.pickup_warning', ['pickup' => '${pickupPeriod}', 'tour' => '${tourPeriod}']) }}`;
+                    if (pickupPeriod !== productPeriod) {
+                        if (warningText) warningText.textContent = `{{ __('m_bookings.bookings.ui.pickup_warning', ['pickup' => '${pickupPeriod}', 'product' => '${productPeriod}']) }}`;
                         if (warningDiv) {
                             warningDiv.style.display = 'block';
                             warningDiv.classList.remove('alert-danger');

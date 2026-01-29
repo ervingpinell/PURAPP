@@ -5,8 +5,8 @@ $reference = $reference ?? ($booking->booking_reference ?? $booking->booking_id)
 // Logic reused from HTML view for consistency
 $d = collect($booking->details ?? [])->first();
 $productName = $d?->product_name;
-if (!$productName && $d?->relationLoaded('tour') && $d?->tour) {
-    $product = $d->tour;
+if (!$productName && $d?->relationLoaded('product') && $d?->product) {
+    $product = $d->product;
     if (isset($product->translated_name) && filled($product->translated_name)) {
         $productName = $product->translated_name;
     } elseif (method_exists($product, 'getTranslated')) {

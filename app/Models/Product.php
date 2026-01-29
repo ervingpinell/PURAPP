@@ -120,7 +120,7 @@ class Product extends Model implements HasMedia
             ProductLanguage::class,
             'product_language_product',
             'product_id',
-            'tour_language_id'
+            'product_language_id'
         )->withTimestamps();
     }
 
@@ -194,9 +194,9 @@ class Product extends Model implements HasMedia
         return $query->where('product_category', $category);
     }
 
-    public function scopeTours($query)
+    public function scopeProducts($query)
     {
-        return $query->where('product_category', 'guided_tour');
+        return $query->where('product_category', 'guided_product');
     }
 
     public function scopeTransfers($query)
@@ -239,7 +239,7 @@ class Product extends Model implements HasMedia
     public function getDisplayCategoryAttribute()
     {
         return match($this->product_category) {
-            'guided_tour' => __('Tour Guiado'),
+            'guided_product' => __('Product Guiado'),
             'private_transfer' => __('Transfer Privado'),
             'shuttle_service' => __('Servicio de Shuttle'),
             'adventure_activity' => __('Actividad de Aventura'),
@@ -255,9 +255,9 @@ class Product extends Model implements HasMedia
         return in_array($this->product_category, ['private_transfer', 'shuttle_service']);
     }
 
-    public function getIsTourAttribute()
+    public function getIsProductAttribute()
     {
-        return $this->product_category === 'guided_tour';
+        return $this->product_category === 'guided_product';
     }
 
     public function getAdultPriceAttribute()

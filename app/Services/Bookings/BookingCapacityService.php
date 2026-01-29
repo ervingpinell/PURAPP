@@ -72,7 +72,7 @@ class BookingCapacityService
             }
         }
 
-        // 3) Capacidad del pivote schedule_tour
+        // 3) Capacidad del pivote schedule_product
         if ($schedule) {
             $pivot = DB::table('schedule_product')
                 ->where('product_id', $product->product_id)
@@ -84,7 +84,7 @@ class BookingCapacityService
             }
         }
 
-        // 4) Capacidad global del tour
+        // 4) Capacidad global del product
         if (!is_null($product->max_capacity)) {
             return (int) $product->max_capacity;
         }
@@ -168,7 +168,7 @@ class BookingCapacityService
         })
             ->whereNotNull('booking_id')
             ->where('product_id', $productId)
-            ->whereDate('tour_date', $productDate)
+            ->whereDate('product_date', $productDate)
             ->where('schedule_id', $scheduleId)
             ->get(['categories']);
 
@@ -210,7 +210,7 @@ class BookingCapacityService
         })
             ->whereNotNull('booking_id')
             ->where('product_id', $productId)
-            ->whereDate('tour_date', $productDate)
+            ->whereDate('product_date', $productDate)
             ->where('schedule_id', $scheduleId)
             ->get(['categories']);
 
@@ -249,7 +249,7 @@ class BookingCapacityService
             ->where('carts.expires_at', '>', now())
             ->where('cart_items.is_active', true)
             ->where('cart_items.product_id', $productId)
-            ->whereDate('cart_items.tour_date', $productDate)
+            ->whereDate('cart_items.product_date', $productDate)
             ->where('cart_items.schedule_id', $scheduleId)
             ->when($excludeCartId, fn($q) => $q->where('carts.cart_id', '!=', $excludeCartId))
             ->select('cart_items.categories')
@@ -309,7 +309,7 @@ class BookingCapacityService
 
             $reserved = \App\Models\CartItem::where('product_id', $product->product_id)
                 ->where('schedule_id', $schedule->schedule_id)
-                ->where('tour_date', $productDate)
+                ->where('product_date', $productDate)
                 ->where('is_reserved', true)
                 ->where('reserved_at', '>', $cutoffTime)
                 ->when($excludeCartId, fn($q) => $q->whereNot('cart_id', $excludeCartId))

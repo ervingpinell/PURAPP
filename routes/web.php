@@ -273,12 +273,12 @@ Route::middleware([SetLocale::class])->group(function () {
             $subcategorySlugs = array_keys($config['subcategories'] ?? []);
             
             Route::prefix($urlPrefix)->group(function () use ($categoryKey, $subcategorySlugs) {
-                // Category listing: /tours
+                // Category listing: /products
                 Route::get('/', [HomeController::class, 'allProducts'])
                      ->defaults('category', $categoryKey)
                      ->name("products.{$categoryKey}.index");
                 
-                // Subcategory landing: /tours/full-day (only if subcategories exist)
+                // Subcategory landing: /products/full-day (only if subcategories exist)
                 if (!empty($subcategorySlugs)) {
                     $pattern = implode('|', $subcategorySlugs);
                     Route::get('/{subcategory}', [HomeController::class, 'bySubcategory'])
@@ -287,7 +287,7 @@ Route::middleware([SetLocale::class])->group(function () {
                          ->name("products.{$categoryKey}.subcategory");
                 }
                 
-                // Product detail: /tours/arenal-volcano-hiking
+                // Product detail: /products/arenal-volcano-hiking
                 Route::get('/{slug}', [HomeController::class, 'showProduct'])
                      ->defaults('category', $categoryKey)
                      ->name("products.{$categoryKey}.show");
@@ -298,7 +298,7 @@ Route::middleware([SetLocale::class])->group(function () {
         // Backward Compatibility (301 Redirects)
         // ============================
         Route::get('/products', function() {
-            return redirect('/tours', 301);
+            return redirect('/products', 301);
         });
         
         Route::get('/products/{slug}', function($slug) {
@@ -613,13 +613,13 @@ Route::middleware([SetLocale::class])->group(function () {
                     // Eager load ALL relationships needed by mail templates to avoid errors
                     $relations = [
                         'user',
-                        'tour',
-                        'tourLanguage',
+                        'product',
+                        'productLanguage',
                         'hotel',
-                        'details.tour',
+                        'details.product',
                         'details.hotel',
                         'details.schedule',
-                        'details.tourLanguage',
+                        'details.productLanguage',
                         'details.meetingPoint',
                         'details.meetingPoint.translations',
                         'redemption.promoCode',
@@ -832,14 +832,14 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // TOURS
                 // ============================
-                Route::middleware(['can:view-tours'])->prefix('products')->name('products.')->group(function () {
+                Route::middleware(['can:view-products'])->prefix('products')->name('products.')->group(function () {
 
                     // -------------------- CUTOFF --------------------
-                    // Moved here to avoid collision with /{tour} wildcard
+                    // Moved here to avoid collision with /{product} wildcard
                     Route::prefix('cutoff')->name('cutoff.')->group(function () {
                         Route::get('/', [CutOffController::class, 'edit'])->name('edit');
                         Route::match(['put', 'post'], '/', [CutOffController::class, 'update'])->name('update');
-                        Route::match(['put', 'post'], '/tour', [CutOffController::class, 'updateTourOverrides'])->name('tour.update');
+                        Route::match(['put', 'post'], '/product', [CutOffController::class, 'updateTourOverrides'])->name('product.update');
                         Route::match(['put', 'post'], '/schedule', [CutOffController::class, 'updateScheduleOverrides'])->name('schedule.update');
                     });
 
@@ -863,7 +863,7 @@ Route::middleware([SetLocale::class])->group(function () {
 
                     // Extras moved from bottom group
                     Route::post('/{product}/duplicate', [ProductController::class, 'duplicate'])
-                        ->middleware(['can:create-tours', 'throttle:sensitive'])
+                        ->middleware(['can:create-products', 'throttle:sensitive'])
                         ->name('duplicate');
                     Route::get('/export/excel', [ProductController::class, 'exportExcel'])->name('export.excel');
 
@@ -932,9 +932,9 @@ Route::middleware([SetLocale::class])->group(function () {
                             ->name('publish');
 
                         // Quick creates (AJAX)
-                        Route::post('/quick-tour-type', [ProductWizardController::class, 'quickStoreTourType'])
+                        Route::post('/quick-product-type', [ProductWizardController::class, 'quickStoreProductType'])
                             ->middleware('throttle:sensitive')
-                            ->name('quick.tour-type');
+                            ->name('quick.product-type');
                         Route::post('/quick-language', [ProductWizardController::class, 'quickStoreLanguage'])
                             ->middleware('throttle:sensitive')
                             ->name('quick.language');
@@ -961,9 +961,9 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::get('/log/{log}', [AuditController::class, 'show'])
                             ->name('show');
 
-                        // Historial completo de un tour
-                        Route::get('/tour/{product}/history', [AuditController::class, 'tourHistory'])
-                            ->name('tour-history');
+                        // Historial completo de un product
+                        Route::get('/product/{product}/history', [AuditController::class, 'productHistory'])
+                            ->name('product-history');
 
                         // Actividad de un usuario
                         Route::get('/user/{user}/activity', [AuditController::class, 'userActivity'])
@@ -994,8 +994,8 @@ Route::middleware([SetLocale::class])->group(function () {
                     });
 
                     // -------------------- TOUR ORDER --------------------
-                    Route::get('/order', [ProductOrderController::class, 'index'])->name('order.index')->middleware('can:reorder-tours');
-                    Route::post('/order/{tourType}/save', [ProductOrderController::class, 'save'])->name('order.save')->middleware('can:reorder-tours');
+                    Route::get('/order', [ProductOrderController::class, 'index'])->name('order.index')->middleware('can:reorder-products');
+                    Route::post('/order/{productType}/save', [ProductOrderController::class, 'save'])->name('order.save')->middleware('can:reorder-products');
 
                     // -------------------- PRICES (por categoría) --------------------
                     Route::prefix('{product}/prices')->name('prices.')->group(function () {
@@ -1033,21 +1033,21 @@ Route::middleware([SetLocale::class])->group(function () {
                         Route::delete('/{schedule}', [ProductScheduleController::class, 'destroy'])->name('destroy');
                         Route::put('/{schedule}/toggle', [ProductScheduleController::class, 'toggle'])->name('toggle');
 
-                        // Asignación a tours
+                        // Asignación a products
                         Route::post('/{product}/attach', [ProductScheduleController::class, 'attach'])
                             ->middleware('throttle:sensitive')
                             ->name('attach');
                         Route::delete('/{product}/{schedule}/detach', [ProductScheduleController::class, 'detach'])->name('detach');
                         Route::patch('/{product}/{schedule}/assignment-toggle', [ProductScheduleController::class, 'toggleAssignment'])->name('assignment.toggle');
 
-                        // 🆕 ACTUALIZAR CAPACIDAD DEL PIVOTE (tour+schedule)
+                        // 🆕 ACTUALIZAR CAPACIDAD DEL PIVOTE (product+schedule)
                         Route::patch('/{product}/{schedule}/pivot', [ProductScheduleController::class, 'updatePivotCapacity'])
                             ->middleware('throttle:sensitive')
                             ->name('update-pivot-capacity');
                     });
 
                     // -------------------- CAPACITY MANAGEMENT --------------------
-                    Route::group(['middleware' => ['can:view-tour-availability']], function () {
+                    Route::group(['middleware' => ['can:view-product-availability']], function () {
                         Route::prefix('capacity')->name('capacity.')->group(function () {
                             // Vista principal con tabs
                             Route::get('/', [ProductAvailabilityController::class, 'index'])->name('index');
@@ -1055,7 +1055,7 @@ Route::middleware([SetLocale::class])->group(function () {
                             // Capacidad GLOBAL del producto
                             Route::patch('/product/{product}', [ProductAvailabilityController::class, 'updateTourCapacity'])
                                 ->middleware('throttle:sensitive')
-                                ->name('update-tour');
+                                ->name('update-product');
 
                             // Capacidad BASE por horario (pivot)
                             Route::patch('/product/{product}/schedule/base-capacity', [ProductAvailabilityController::class, 'updateScheduleBaseCapacity'])
@@ -1132,7 +1132,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // TOUR AVAILABILITY (Excluded Dates)
                 // ============================
-                Route::group(['middleware' => ['can:view-tour-availability']], function () {
+                Route::group(['middleware' => ['can:view-product-availability']], function () {
                     Route::prefix('products')->name('products.')->group(function () {
                         Route::prefix('excluded_dates')->name('excluded_dates.')->group(function () {
                             Route::get('/', [ProductExcludedDateController::class, 'index'])->name('index');
@@ -1165,7 +1165,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // TOUR PRICING
                 // ============================
-                Route::group(['middleware' => ['can:view-tour-prices']], function () {
+                Route::group(['middleware' => ['can:view-product-prices']], function () {
                     Route::prefix('products')->name('products.')->group(function () {
                         Route::post('prices/check-overlap', [ProductPriceController::class, 'checkOverlap'])
                             ->name('prices.check-overlap');
@@ -1175,7 +1175,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // TOUR IMAGES (Unified Permission)
                 // ============================
-                Route::group(['middleware' => ['can:view-tour-images']], function () {
+                Route::group(['middleware' => ['can:view-product-images']], function () {
                     // Tour Images
                     Route::prefix('products')->name('products.')->group(function () {
                         Route::get('images', [ProductImageController::class, 'pick'])->name('images.pick');
@@ -1214,7 +1214,7 @@ Route::middleware([SetLocale::class])->group(function () {
                 // ============================
                 // TOUR TYPES
                 // ============================
-                Route::group(['middleware' => ['can:view-tour-types']], function () {
+                Route::group(['middleware' => ['can:view-product-types']], function () {
                     Route::resource('product-types', ProductTypeController::class, ['parameters' => ['product-types' => 'productType']])->except(['show']);
 
                     // Soft Delete Routes (Tour Types)
@@ -1455,8 +1455,8 @@ Route::middleware([SetLocale::class])->group(function () {
                     // Product Mapping
                     Route::get('review-providers/{provider}/product-map', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'index'])->name('review-providers.product-map.index');
                     Route::post('review-providers/{provider}/product-map', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'store'])->name('review-providers.product-map.store');
-                    Route::put('review-providers/{provider}/product-map/{tourId}', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'update'])->name('review-providers.product-map.update');
-                    Route::delete('review-providers/{provider}/product-map/{tourId}', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'destroy'])->name('review-providers.product-map.destroy');
+                    Route::put('review-providers/{provider}/product-map/{productId}', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'update'])->name('review-providers.product-map.update');
+                    Route::delete('review-providers/{provider}/product-map/{productId}', [\App\Http\Controllers\Admin\Reviews\ProductMappingController::class, 'destroy'])->name('review-providers.product-map.destroy');
                 });
 
 
@@ -1700,9 +1700,9 @@ if (config('app.debug')) {
     Route::get('/debug/email/booking-created/{bookingId}', function ($bookingId) {
         $booking = \App\Models\Booking::with([
             'user',
-            'detail.tour',
+            'detail.product',
             'detail.schedule',
-            'detail.tourLanguage',
+            'detail.productLanguage',
             'detail.meetingPoint',
             'redemption.promoCode'
         ])->findOrFail($bookingId);

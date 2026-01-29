@@ -15,7 +15,7 @@ class CleanOldDrafts extends Command
      *
      * @var string
      */
-    protected $signature = 'tours:clean-old-drafts
+    protected $signature = 'products:clean-old-drafts
                             {--days=30 : Eliminar drafts más antiguos que X días}
                             {--dry-run : Simular sin eliminar realmente}
                             {--force : Forzar eliminación sin confirmación}';
@@ -25,7 +25,7 @@ class CleanOldDrafts extends Command
      *
      * @var string
      */
-    protected $description = 'Delete tour drafts older than X days that have not been completed';
+    protected $description = 'Delete product drafts older than X days that have not been completed';
 
     /**
      * Execute the console command
@@ -45,7 +45,7 @@ class CleanOldDrafts extends Command
         // Buscar drafts antiguos
         $oldDrafts = Product::where('is_draft', true)
             ->where('updated_at', '<', $cutoffDate)
-            ->with(['tourType', 'languages', 'created_by_user'])
+            ->with(['productType', 'languages', 'created_by_user'])
             ->get();
 
         $count = $oldDrafts->count();
@@ -63,7 +63,7 @@ class CleanOldDrafts extends Command
             return [
                 $draft->product_id,
                 \Illuminate\Support\Str::limit($draft->name, 30),
-                $draft->tourType?->name ?? 'N/A',
+                $draft->productType?->name ?? 'N/A',
                 $draft->current_step ?? 1,
                 $draft->updated_at->format('d/m/Y'),
                 $draft->updated_at->diffForHumans(),
@@ -130,7 +130,7 @@ class CleanOldDrafts extends Command
                     // Registrar en auditoría
                     ProductAuditLog::logAction(
                         action: 'draft_deleted',
-                        tourId: $productId,
+                        productId: $productId,
                         userId: null, // Sistema
                         description: "Borrador '{$productName}' eliminado automáticamente por antigüedad ({$days}+ días)",
                         context: 'system',
@@ -190,7 +190,7 @@ class CleanOldDrafts extends Command
     /**
      * Definir el schedule en Kernel.php:
      *
-     * $schedule->command('tours:clean-old-drafts --days=30 --force')
+     * $schedule->command('products:clean-old-drafts --days=30 --force')
      *          ->weekly()
      *          ->sundays()
      *          ->at('02:00')

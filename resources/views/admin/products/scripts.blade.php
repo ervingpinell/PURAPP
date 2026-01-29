@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // ========= i18n (JS) =========
   const I18N = {
     noItems: @json(__('m_tours.itinerary.ui.no_items_assigned')),
-    addedTitle: @json(__('m_tours.tour.ui.added_to_cart')),
-    addedText:  @json(__('m_tours.tour.ui.added_to_cart_text')),
+    addedTitle: @json(__('m_tours.product.ui.added_to_cart')),
+    addedText:  @json(__('m_tours.product.ui.added_to_cart_text')),
     errorTitle: @json(__('m_tours.common.error')),
-    errorText:  @json(__('m_tours.tour.error.create')),
+    errorText:  @json(__('m_tours.product.error.create')),
   };
 
   // ========= 1. Itinerary JSON =========
@@ -47,11 +47,11 @@ document.addEventListener('DOMContentLoaded', function () {
   // ========= 2. Mostrar ítems de itinerario (editar) =========
   document.querySelectorAll('select[id^="edit-itinerary-"]').forEach(select => {
     select.addEventListener('change', function () {
-      const tourId        = this.id.replace('edit-itinerary-', '');
+      const productId        = this.id.replace('edit-itinerary-', '');
       const selectedId    = this.value;
-      const sectionView   = document.getElementById(`view-itinerary-items-${tourId}`);
-      const sectionNew    = document.getElementById(`new-itinerary-section-${tourId}`);
-      const descContainer = document.getElementById(`edit-itinerary-description-${tourId}`);
+      const sectionView   = document.getElementById(`view-itinerary-items-${productId}`);
+      const sectionNew    = document.getElementById(`new-itinerary-section-${productId}`);
+      const descContainer = document.getElementById(`edit-itinerary-description-${productId}`);
       const listContainer = sectionView?.querySelector('ul');
 
       if (selectedId === 'new') {

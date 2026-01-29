@@ -20,10 +20,10 @@ class ProductTypeSubcategoryController extends Controller
     public function __construct(DeepLTranslator $translator)
     {
         $this->translator = $translator;
-        $this->middleware(['can:view-tour-types'])->only(['index']);
-        $this->middleware(['can:create-tour-types'])->only(['store']);
-        $this->middleware(['can:edit-tour-types'])->only(['update', 'toggle']);
-        $this->middleware(['can:delete-tour-types'])->only(['destroy']);
+        $this->middleware(['can:view-product-types'])->only(['index']);
+        $this->middleware(['can:create-product-types'])->only(['store']);
+        $this->middleware(['can:edit-product-types'])->only(['update', 'toggle']);
+        $this->middleware(['can:delete-product-types'])->only(['destroy']);
     }
 
     /**

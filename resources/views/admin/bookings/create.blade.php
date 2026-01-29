@@ -40,16 +40,16 @@
                 <img id="product-cover" src="" alt="Product Cover" class="product-cover-img">
             </div>
 
-            {{-- Step 1: Tour & Date --}}
+            {{-- Step 1: Product & Date --}}
             <div class="step-card">
                 <div class="step-header">
                     <i class="fas fa-map-marked-alt mr-2"></i>
-                    <span>1. {{ __('m_bookings.bookings.steps.select_tour_date') ?? 'Select Tour & Date' }}</span>
+                    <span>1. {{ __('m_bookings.bookings.steps.select_product_date') ?? 'Select Product & Date' }}</span>
                 </div>
                 <div class="step-body">
                     <div class="row">
                         <div class="col-md-6 col-12 mb-3">
-                            <label for="product_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
+                            <label for="product_id">{{ __('m_bookings.bookings.fields.product') }} *</label>
                             <select name="product_id" id="product_id" class="form-control select2" required>
                                 <option value="">-- {{ __('m_bookings.bookings.ui.select_tour') }} --</option>
                                 @foreach($products as $product)
@@ -63,12 +63,12 @@
                             </select>
                         </div>
                         <div class="col-md-6 col-12 mb-3">
-                            <label for="tour_date">{{ __('m_bookings.bookings.fields.date') }} *</label>
+                            <label for="product_date">{{ __('m_bookings.bookings.fields.date') }} *</label>
                             <input type="date"
-                                name="tour_date"
-                                id="tour_date"
+                                name="product_date"
+                                id="product_date"
                                 class="form-control"
-                                value="{{ old('tour_date') }}"
+                                value="{{ old('product_date') }}"
                                 required>
                         </div>
                     </div>
@@ -90,8 +90,8 @@
                             </select>
                         </div>
                         <div class="col-md-6 col-12 mb-3">
-                            <label for="tour_language_id">{{ __('m_bookings.bookings.fields.language') }} *</label>
-                            <select name="tour_language_id" id="tour_language_id" class="form-control" required>
+                            <label for="product_language_id">{{ __('m_bookings.bookings.fields.language') }} *</label>
+                            <select name="product_language_id" id="product_language_id" class="form-control" required>
                                 <option value="">-- {{ __('m_bookings.bookings.ui.select_language') }} --</option>
                             </select>
                         </div>
@@ -595,9 +595,9 @@
         });
 
         const $productSelect = $('#product_id');
-        const $dateInput = $('#tour_date');
+        const $dateInput = $('#product_date');
         const $scheduleSelect = $('#schedule_id');
-        const $languageSelect = $('#tour_language_id');
+        const $languageSelect = $('#product_language_id');
         const $categoriesContainer = $('#categories-container');
         const $hotelSelect = $('#hotel_id');
         const $pickupType = $('input[name="pickup_type"]');
@@ -605,7 +605,7 @@
         // When product is selected
         $productSelect.on('change', function() {
             const selectedOption = $(this).find(':selected');
-            const productData = selectedOption.data('tour');
+            const productData = selectedOption.data('product');
             const coverImage = selectedOption.data('cover');
 
             // Show cover image
@@ -635,7 +635,7 @@
             $languageSelect.empty().append('<option value="">-- Select Language --</option>');
             if (productData.languages && productData.languages.length > 0) {
                 productData.languages.forEach(l => {
-                    $languageSelect.append(`<option value="${l.tour_language_id}">${l.name}</option>`);
+                    $languageSelect.append(`<option value="${l.product_language_id}">${l.name}</option>`);
                 });
             }
 
@@ -649,7 +649,7 @@
         // When date is selected
         $dateInput.on('change', function() {
             const selectedOption = $productSelect.find(':selected');
-            const productData = selectedOption.data('tour');
+            const productData = selectedOption.data('product');
 
             if (!productData || !$(this).val()) {
                 $('#step3, #step4, #submit-section').hide();
@@ -872,7 +872,7 @@
             });
 
             // 2. Get Tax Configuration
-            const productData = $('#product_id option:selected').data('tour');
+            const productData = $('#product_id option:selected').data('product');
             const taxes = productData && productData.taxes ? productData.taxes : [];
 
             // 3. Calculate Base Amount (Remove Inclusive Taxes)
@@ -981,10 +981,10 @@
             // 1. Validate all required fields
             const requiredFields = {
                 'user_id': '{{ __("m_bookings.bookings.fields.customer") }}',
-                'product_id': '{{ __("m_bookings.bookings.fields.tour") }}',
-                'tour_date': '{{ __("m_bookings.bookings.fields.tour_date") }}',
+                'product_id': '{{ __("m_bookings.bookings.fields.product") }}',
+                'product_date': '{{ __("m_bookings.bookings.fields.product_date") }}',
                 'schedule_id': '{{ __("m_bookings.bookings.fields.schedule") }}',
-                'tour_language_id': '{{ __("m_bookings.bookings.fields.language") }}'
+                'product_language_id': '{{ __("m_bookings.bookings.fields.language") }}'
             };
 
             let missingFields = [];
@@ -1098,9 +1098,9 @@
         function showReviewModal(warningMessage) {
             // Build summary HTML (same as before)
             const productName = $('#product_id option:selected').text();
-            const tourDate = $('#tour_date').val();
+            const productDate = $('#product_date').val();
             const schedule = $('#schedule_id option:selected').text();
-            const language = $('#tour_language_id option:selected').text();
+            const language = $('#product_language_id option:selected').text();
             const customer = $('#user_id option:selected').text();
             const notes = $('#notes').val();
             const pickupType = $('input[name="pickup_type"]:checked').val();
@@ -1156,8 +1156,8 @@
             const summary = `
             ${warningHtml}
             <table class="table table-bordered">
-                <tr><th>{{ __('m_bookings.bookings.fields.tour') }}</th><td>${productName}</td></tr>
-                <tr><th>{{ __('m_bookings.bookings.fields.date') }}</th><td>${tourDate}</td></tr>
+                <tr><th>{{ __('m_bookings.bookings.fields.product') }}</th><td>${productName}</td></tr>
+                <tr><th>{{ __('m_bookings.bookings.fields.date') }}</th><td>${productDate}</td></tr>
                 <tr><th>{{ __('m_bookings.bookings.fields.schedule') }}</th><td>${schedule}</td></tr>
                 <tr><th>{{ __('m_bookings.bookings.fields.language') }}</th><td>${language}</td></tr>
                 <tr><th>{{ __('m_bookings.bookings.fields.customer') }}</th><td>${customer}</td></tr>

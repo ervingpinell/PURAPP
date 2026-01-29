@@ -23,7 +23,7 @@
   @if(isset($rulesPayload))
   const rulesPayload = @json($rulesPayload);
 
-  const dateInput = document.getElementById('tourDateInput');
+  const dateInput = document.getElementById('productDateInput');
   const scheduleSelect = document.getElementById('scheduleSelect');
 
   if (dateInput && scheduleSelect && window.flatpickr) {
@@ -37,7 +37,7 @@
       const sid = this.value;
       if (!sid) return;
 
-      const rule = rulesPayload.schedules[sid] || rulesPayload.tour;
+      const rule = rulesPayload.schedules[sid] || rulesPayload.product;
       if (fp && rule.min) {
         fp.set('minDate', rule.min);
         fp.clear();

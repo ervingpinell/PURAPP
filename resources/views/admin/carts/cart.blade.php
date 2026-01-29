@@ -36,7 +36,7 @@
     <table class="table table-bordered table-hover shadow-sm">
         <thead class="table-dark text-center">
             <tr>
-                <th>{{ __('carts.items_modal.headers.tour') }}</th>
+                <th>{{ __('carts.items_modal.headers.product') }}</th>
                 <th>{{ __('carts.items_modal.headers.date') }}</th>
                 <th>{{ __('carts.items_modal.headers.language') }}</th>
                 <th>{{ __('adminlte::adminlte.hotel') }}</th>
@@ -51,8 +51,8 @@
         <tbody class="text-center align-middle">
             @foreach($cart->items as $item)
             <tr>
-                <td>{{ $item->tour->getTranslatedName(app()->getLocale()) ?? $item->tour->name }}</td>
-                <td>{{ \Carbon\Carbon::parse($item->tour_date)->format(__('carts.format.date')) }}</td>
+                <td>{{ $item->product->getTranslatedName(app()->getLocale()) ?? $item->product->name }}</td>
+                <td>{{ \Carbon\Carbon::parse($item->product_date)->format(__('carts.format.date')) }}</td>
                 <td>{{ $item->language->name }}</td>
                 <td>
                     @if($item->is_other_hotel)
@@ -76,8 +76,8 @@
                 <td>{{ $item->kids_quantity }}</td>
                 <td>
                     ${{ number_format(
-                                    ($item->tour->adult_price * $item->adults_quantity) +
-                                    ($item->tour->kid_price   * $item->kids_quantity),
+                                    ($item->product->adult_price * $item->adults_quantity) +
+                                    ($item->product->kid_price   * $item->kids_quantity),
                                     2
                                 ) }}
                 </td>
@@ -112,7 +112,7 @@
 
 @php
 $__subtotal = $cart->items->sum(fn($i) =>
-($i->tour->adult_price * $i->adults_quantity) + ($i->tour->kid_price * $i->kids_quantity)
+($i->product->adult_price * $i->adults_quantity) + ($i->product->kid_price * $i->kids_quantity)
 );
 
 $hasPromo = !empty($adminPromo ?? []);
@@ -220,7 +220,7 @@ $__adminTotal = $hasPromo
             <div class="modal-body">
                 <div class="mb-3">
                     <label>{{ __('carts.items_modal.headers.date') }}</label>
-                    <input type="date" name="tour_date" class="form-control" value="{{ $item->tour_date }}" required>
+                    <input type="date" name="product_date" class="form-control" value="{{ $item->product_date }}" required>
                 </div>
                 <div class="mb-3">
                     <label>{{ __('adminlte::adminlte.hotel') }}</label>
@@ -255,7 +255,7 @@ $__adminTotal = $hasPromo
                     <label>{{ __('carts.items_modal.headers.schedule') }}</label>
                     <select name="schedule_id" class="form-control">
                         <option value="">{{ __('carts.actions.select') ?? 'Select a schedule' }}</option>
-                        @foreach($item->tour->schedules as $sched)
+                        @foreach($item->product->schedules as $sched)
                         <option value="{{ $sched->schedule_id }}"
                             {{ $item->schedule && $item->schedule->schedule_id == $sched->schedule_id ? 'selected' : '' }}>
                             {{ \Carbon\Carbon::parse($sched->start_time)->format('g:i A') }} –

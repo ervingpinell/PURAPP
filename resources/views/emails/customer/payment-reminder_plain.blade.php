@@ -6,7 +6,7 @@ Booking Details
 ---------------
 Reference: {{ $booking->booking_reference }}
 {{ __('adminlte::email.service') }}: {{ optional($booking->product)->name ?? 'N/A' }}
-Date: {{ $booking->details->first()->tour_date ?? 'N/A' }}
+Date: {{ $booking->details->first()->product_date ?? 'N/A' }}
 Amount Due: ${{ number_format($booking->total, 2) }}
 
 Important: Your card will be automatically charged in {{ $daysUntilCharge }} days on {{ optional($booking->auto_charge_at)->format('F j, Y') ?? 'the scheduled date' }}.

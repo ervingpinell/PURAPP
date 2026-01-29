@@ -77,14 +77,14 @@ class RunDailyCleanups extends Command
             $this->error('x Error cleaning meeting points: ' . $e->getMessage());
         }
 
-        // 4. Tours
+        // 4. Products
         try {
             $this->newLine();
-            $this->info('Cleaning up tours...');
-            $this->call('tours:cleanup', ['--days' => 30]);
-            $this->info('✓ Tours cleaned.');
+            $this->info('Cleaning up products...');
+            $this->call('products:cleanup', ['--days' => 30]);
+            $this->info('✓ Products cleaned.');
         } catch (\Exception $e) {
-            $this->error('x Error cleaning tours: ' . $e->getMessage());
+            $this->error('x Error cleaning products: ' . $e->getMessage());
         }
 
         // 5. Customer Categories
@@ -97,14 +97,14 @@ class RunDailyCleanups extends Command
             $this->error('x Error cleaning customer categories: ' . $e->getMessage());
         }
 
-        // 6. Tour Types
+        // 6. Product Types
         try {
             $this->newLine();
-            $this->info('Cleaning up tour types...');
-            $this->call('tourtypes:cleanup', ['--days' => 30]);
-            $this->info('✓ Tour Types cleaned.');
+            $this->info('Cleaning up product types...');
+            $this->call('producttypes:cleanup', ['--days' => 30]);
+            $this->info('✓ Product Types cleaned.');
         } catch (\Exception $e) {
-            $this->error('x Error cleaning tour types: ' . $e->getMessage());
+            $this->error('x Error cleaning product types: ' . $e->getMessage());
         }
 
         // 7. Amenities

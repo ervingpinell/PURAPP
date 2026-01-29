@@ -48,8 +48,8 @@ class StoreMultipleExcludedDatesRequest extends FormRequest
             'items.required'            => 'Debes enviar al menos un elemento.',
             'items.array'               => 'El formato de ítems es inválido.',
             'items.min'                 => 'Debes enviar al menos un elemento.',
-            'items.*.product_id.required'  => 'El tour es obligatorio.',
-            'items.*.product_id.exists'    => 'Algún tour no existe.',
+            'items.*.product_id.required'  => 'El product es obligatorio.',
+            'items.*.product_id.exists'    => 'Algún product no existe.',
             'items.*.schedule_id.required' => 'El horario es obligatorio.',
             'items.*.schedule_id.exists'   => 'Algún horario no existe.',
             'items.*.date.required'     => 'La fecha es obligatoria.',
@@ -62,7 +62,7 @@ class StoreMultipleExcludedDatesRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'storeMultiple', $validator->errors()->toArray(), [
-            'entity'  => 'tour_excluded_date',
+            'entity'  => 'product_excluded_date',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
         parent::failedValidation($validator);

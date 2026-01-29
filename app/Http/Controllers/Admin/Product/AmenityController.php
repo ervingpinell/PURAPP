@@ -73,7 +73,7 @@ class AmenityController extends Controller
                     'user_id' => optional($request->user())->getAuthIdentifier(),
                 ]);
 
-                return back()->with('error', __('m_tours.amenity.error.create'));
+                return back()->with('error', __('m_products.amenity.error.create'));
             }
 
             // Log post-commit
@@ -84,13 +84,13 @@ class AmenityController extends Controller
 
             return redirect()
                 ->route('admin.products.amenities.index')
-                ->with('success', __('m_tours.amenity.success.created'));
+                ->with('success', __('m_products.amenity.success.created'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'amenity', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.amenity.error.create'));
+            return back()->with('error', __('m_products.amenity.error.create'));
         }
     }
 
@@ -109,13 +109,13 @@ class AmenityController extends Controller
 
             return redirect()
                 ->route('admin.products.amenities.index')
-                ->with('success', __('m_tours.amenity.success.updated'));
+                ->with('success', __('m_products.amenity.success.updated'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'amenity', $amenity->amenity_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.amenity.error.update'));
+            return back()->with('error', __('m_products.amenity.error.update'));
         }
     }
 
@@ -132,8 +132,8 @@ class AmenityController extends Controller
             ]);
 
             $msg = $amenity->is_active
-                ? __('m_tours.amenity.success.activated')
-                : __('m_tours.amenity.success.deactivated');
+                ? __('m_products.amenity.success.activated')
+                : __('m_products.amenity.success.deactivated');
 
             return redirect()
                 ->route('admin.products.amenities.index')
@@ -143,7 +143,7 @@ class AmenityController extends Controller
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.amenity.error.toggle'));
+            return back()->with('error', __('m_products.amenity.error.toggle'));
         }
     }
 
@@ -161,13 +161,13 @@ class AmenityController extends Controller
 
             return redirect()
                 ->route('admin.products.amenities.index')
-                ->with('success', __('m_tours.amenity.success.deleted'));
+                ->with('success', __('m_products.amenity.success.deleted'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'amenity', $amenity->amenity_id ?? null, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.amenity.error.delete'));
+            return back()->with('error', __('m_products.amenity.error.delete'));
         }
     }
 

@@ -27,7 +27,7 @@ class ConfirmedBookingsSheet implements FromCollection, WithHeadings, WithStyles
             return [
                 'pickup' => $detail?->pickup_time ?? '',
                 'ref' => $booking->booking_reference,
-                'tour' => $booking->tour->title ?? '',
+                'product' => $booking->product->title ?? '',
                 'pax' => $this->getTotalPax($detail),
                 'cliente' => $booking->user->name ?? '',
                 'hotel' => $this->getPickupLocation($detail),
@@ -41,7 +41,7 @@ class ConfirmedBookingsSheet implements FromCollection, WithHeadings, WithStyles
         return [
             'Pickup',
             'Ref',
-            'Tour',
+            'Product',
             'Pax',
             'Cliente',
             'Hotel/Meeting',

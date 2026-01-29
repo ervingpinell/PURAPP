@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title', __('adminlte::adminlte.tours'))
+@section('title', __('adminlte::adminlte.products'))
 
 @push('meta')
 <meta name="robots" content="index, follow">
 
-{{-- Tour Schema (TouristAttraction) --}}
+{{-- Product Schema (TouristAttraction) --}}
 @php
 use App\Helpers\SchemaHelper;
 $productSchema = SchemaHelper::generateProductSchema($product, $productReviews ?? null);
@@ -17,7 +17,7 @@ $productSchema = SchemaHelper::generateProductSchema($product, $productReviews ?
 @php
 $breadcrumbItems = [
 ['name' => __('adminlte::adminlte.home'), 'url' => url('/')],
-['name' => __('adminlte::adminlte.tours'), 'url' => url('/tours')],
+['name' => __('adminlte::adminlte.products'), 'url' => url('/tours')],
 ['name' => $product->getTranslatedName(), 'url' => Request::url()],
 ];
 $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
@@ -45,7 +45,7 @@ $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
           <a href="{{ url('/') }}">{{ __('adminlte::adminlte.home') }}</a>
         </li>
         <li class="breadcrumb-item">
-          <a href="{{ url('/tours') }}">{{ __('adminlte::adminlte.tours') }}</a>
+          <a href="{{ url('/tours') }}">{{ __('adminlte::adminlte.products') }}</a>
         </li>
         <li class="breadcrumb-item active" aria-current="page">
           {{ $product->getTranslatedName() }}
@@ -53,7 +53,7 @@ $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
       </ol>
     </nav>
     <div class="row g-4">
-      {{-- Left Column: Tour Content (60%) --}}
+      {{-- Left Column: Product Content (60%) --}}
       <div class="col-lg-8">
         @include('partials.product.feedback')
 

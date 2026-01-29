@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', __('m_config.tourtypes.title'))
+@section('title', __('m_config.producttypes.title'))
 
 @section('content_header')
-<h1><i class="fas fa-map-signs"></i> {{ __('m_config.tourtypes.title') }}</h1>
+<h1><i class="fas fa-map-signs"></i> {{ __('m_config.producttypes.title') }}</h1>
 @stop
 
 @section('content')
@@ -12,13 +12,13 @@
     <ul class="nav nav-tabs mb-3" role="tablist">
         <li class="nav-item" role="presentation">
             <a class="nav-link active" href="{{ route('admin.product-types.index') }}" role="tab">
-                {{ __('m_config.tourtypes.active_tab') ?? 'Activos' }}
+                {{ __('m_config.producttypes.active_tab') ?? 'Activos' }}
             </a>
         </li>
-        @can('restore-tour-types')
+        @can('restore-product-types')
         <li class="nav-item" role="presentation">
             <a class="nav-link" href="{{ route('admin.product-types.trash') }}" role="tab">
-                {{ __('m_config.tourtypes.trash_tab') ?? 'Papelera' }}
+                {{ __('m_config.producttypes.trash_tab') ?? 'Papelera' }}
                 @if(isset($trashedCount) && $trashedCount > 0)
                 <span class="badge badge-danger ml-1">{{ $trashedCount }}</span>
                 @endif
@@ -28,13 +28,13 @@
     </ul>
 
     <div class="d-flex flex-wrap gap-2 mb-3">
-        @can('create-tour-types')
+        @can('create-product-types')
         <a href="#" class="btn btn-success" data-toggle="modal" data-target="#modalRegistrar">
-            <i class="fas fa-plus"></i> {{ __('m_config.tourtypes.new') }}
+            <i class="fas fa-plus"></i> {{ __('m_config.producttypes.new') }}
         </a>
         @endcan
 
-        {{-- Botón global para ordenar tours --}}
+        {{-- Botón global para ordenar products --}}
         @can('edit-tours')
         <a href="{{ route('admin.products.order.index') }}" class="btn btn-primary">
             <i class="fas fa-sort-amount-down"></i> Ordenar tours
@@ -45,12 +45,12 @@
     <table class="table table-bordered table-striped table-hover">
         <thead class="bg-primary text-white">
             <tr>
-                <th>{{ __('m_config.tourtypes.id') }}</th>
-                <th>{{ __('m_config.tourtypes.name') }}</th>
-                <th>{{ __('m_config.tourtypes.description') }}</th>
-                <th>{{ __('m_config.tourtypes.duration') }}</th>
-                <th>{{ __('m_config.tourtypes.status') }}</th>
-                <th>{{ __('m_config.tourtypes.actions') }}</th>
+                <th>{{ __('m_config.producttypes.id') }}</th>
+                <th>{{ __('m_config.producttypes.name') }}</th>
+                <th>{{ __('m_config.producttypes.description') }}</th>
+                <th>{{ __('m_config.producttypes.duration') }}</th>
+                <th>{{ __('m_config.producttypes.status') }}</th>
+                <th>{{ __('m_config.producttypes.actions') }}</th>
             </tr>
         </thead>
         <tbody>
@@ -80,20 +80,20 @@
                 <td>{{ $productType->getTranslation('duration', $currentLocale) ?: $productType->duration }}</td>
                 <td>
                     @if ($productType->is_active)
-                    <span class="badge bg-success">{{ __('m_config.tourtypes.active') }}</span>
+                    <span class="badge bg-success">{{ __('m_config.producttypes.active') }}</span>
                     @else
-                    <span class="badge bg-secondary">{{ __('m_config.tourtypes.inactive') }}</span>
+                    <span class="badge bg-secondary">{{ __('m_config.producttypes.inactive') }}</span>
                     @endif
                 </td>
 
                 <td class="text-nowrap">
                     {{-- Editar --}}
-                    @can('edit-tour-types')
+                    @can('edit-product-types')
                     <a href="#"
                         class="btn btn-edit btn-sm me-1"
                         data-toggle="modal"
                         data-target="#modalEditar{{ $productType->product_type_id }}"
-                        title="{{ __('m_config.tourtypes.edit') }}">
+                        title="{{ __('m_config.producttypes.edit') }}">
                         <i class="fas fa-edit"></i>
                     </a>
 
@@ -109,14 +109,14 @@
                         @method('PUT')
                         <button type="submit"
                             class="btn btn-sm {{ $productType->is_active ? 'btn-toggle' : 'btn-secondary' }}"
-                            title="{{ $productType->is_active ? __('m_config.tourtypes.deactivate') : __('m_config.tourtypes.activate') }}">
+                            title="{{ $productType->is_active ? __('m_config.producttypes.deactivate') : __('m_config.producttypes.activate') }}">
                             <i class="fas fa-toggle-{{ $productType->is_active ? 'on' : 'off' }}"></i>
                         </button>
                     </form>
                     @endcan
 
                     {{-- Gestionar Subtipos --}}
-                    @can('edit-tour-types')
+                    @can('edit-product-types')
                     <a href="{{ route('admin.product-types.subtypes.index', $productType->product_type_id) }}"
                        class="btn btn-sm btn-info me-1"
                        title="Gestionar subtipos de «{{ $productType->name }}»">
@@ -124,25 +124,25 @@
                     </a>
                     @endcan
 
-                    {{-- Ordenar tours de esta categoría --}}
+                    {{-- Ordenar products de esta categoría --}}
                     @can('edit-tours')
-                    <a href="{{ route('admin.products.order.index', ['tour_type_id' => $productType->product_type_id]) }}"
+                    <a href="{{ route('admin.products.order.index', ['product_type_id' => $productType->product_type_id]) }}"
                         class="btn btn-sm btn-primary me-1"
-                        title="Ordenar tours de «{{ $productType->name }}»">
+                        title="Ordenar products de «{{ $productType->name }}»">
                         <i class="fas fa-sort-amount-down"></i>
                     </a>
                     @endcan
 
                     {{-- Eliminar --}}
                     @if(auth()->user() && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin')))
-                    @can('soft-delete-tour-types')
+                    @can('soft-delete-product-types')
                     <form action="{{ route('admin.product-types.destroy', $productType->product_type_id) }}"
                         method="POST"
                         class="d-inline js-confirm-delete"
                         data-name="{{ $productType->name }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="btn btn-delete btn-sm" title="{{ __('m_config.tourtypes.delete') }}">
+                        <button type="submit" class="btn btn-delete btn-sm" title="{{ __('m_config.producttypes.delete') }}">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
@@ -159,7 +159,7 @@
                         @method('PUT')
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">{{ __('m_config.tourtypes.edit_title') }}</h5>
+                                <h5 class="modal-title">{{ __('m_config.producttypes.edit_title') }}</h5>
                                 <button type="button" class="close" data-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
@@ -196,33 +196,33 @@
                                         
                                         {{-- Nombre --}}
                                         <div class="mb-3">
-                                            <label>{{ __('m_config.tourtypes.name') }} ({{ strtoupper($loc) }})</label>
+                                            <label>{{ __('m_config.producttypes.name') }} ({{ strtoupper($loc) }})</label>
                                             <input type="text"
                                                 name="translations[{{ $loc }}][name]"
                                                 class="form-control"
                                                 value="{{ old("translations.$loc.name", $t_name) }}"
-                                                placeholder="{{ __('m_config.tourtypes.examples_placeholder') }}">
+                                                placeholder="{{ __('m_config.producttypes.examples_placeholder') }}">
                                         </div>
 
                                         {{-- Descripción --}}
                                         <div class="mb-3">
-                                            <label>{{ __('m_config.tourtypes.description') }} ({{ strtoupper($loc) }})</label>
+                                            <label>{{ __('m_config.producttypes.description') }} ({{ strtoupper($loc) }})</label>
                                             <textarea
                                                 name="translations[{{ $loc }}][description]"
                                                 class="form-control"
                                                 rows="3"
-                                                placeholder="{{ __('m_config.tourtypes.description') }}">{{ old("translations.$loc.description", $t_desc) }}</textarea>
+                                                placeholder="{{ __('m_config.producttypes.description') }}">{{ old("translations.$loc.description", $t_desc) }}</textarea>
                                         </div>
 
                                         {{-- Duración --}}
                                         <div class="mb-3">
-                                            <label>{{ __('m_config.tourtypes.duration') }} ({{ strtoupper($loc) }})</label>
+                                            <label>{{ __('m_config.producttypes.duration') }} ({{ strtoupper($loc) }})</label>
                                             <input type="text"
                                                 name="translations[{{ $loc }}][duration]"
                                                 class="form-control"
                                                 list="durationOptions-{{ $productType->product_type_id }}-{{ $loc }}"
                                                 value="{{ old("translations.$loc.duration", $t_dur) }}"
-                                                placeholder="{{ __('m_config.tourtypes.duration_placeholder') }}">
+                                                placeholder="{{ __('m_config.producttypes.duration_placeholder') }}">
                                             <datalist id="durationOptions-{{ $productType->product_type_id }}-{{ $loc }}">
                                                 <option value="4 horas"></option>
                                                 <option value="6 horas"></option>
@@ -236,8 +236,8 @@
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="submit" class="btn btn-success">{{ __('m_config.tourtypes.update') }}</button>
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_config.tourtypes.cancel') }}</button>
+                                <button type="submit" class="btn btn-success">{{ __('m_config.producttypes.update') }}</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_config.producttypes.cancel') }}</button>
                             </div>
                         </div>
                     </form>
@@ -255,37 +255,37 @@
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">{{ __('m_config.tourtypes.create_title') }}</h5>
+                    <h5 class="modal-title">{{ __('m_config.producttypes.create_title') }}</h5>
                     <button type="button" class="close" data-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>{{ __('m_config.tourtypes.name') }}</label>
+                        <label>{{ __('m_config.producttypes.name') }}</label>
                         <input
                             type="text"
                             name="name"
                             class="form-control"
-                            placeholder="{{ __('m_config.tourtypes.examples_placeholder') }}"
+                            placeholder="{{ __('m_config.producttypes.examples_placeholder') }}"
                             value="{{ old('name') }}"
                             required>
                     </div>
                     <div class="mb-3">
-                        <label>{{ __('m_config.tourtypes.description') }}</label>
+                        <label>{{ __('m_config.producttypes.description') }}</label>
                         <textarea
                             name="description"
                             class="form-control"
                             rows="3"
-                            placeholder="{{ __('m_config.tourtypes.description') }} ({{ __('m_config.tourtypes.optional') ?? 'opcional' }})">{{ old('description') }}</textarea>
+                            placeholder="{{ __('m_config.producttypes.description') }} ({{ __('m_config.producttypes.optional') ?? 'opcional' }})">{{ old('description') }}</textarea>
                     </div>
                     <div class="mb-3">
-                        <label>{{ __('m_config.tourtypes.duration') }}</label>
+                        <label>{{ __('m_config.producttypes.duration') }}</label>
                         <input
                             type="text"
                             name="duration"
                             class="form-control"
                             list="durationOptionsCreate"
-                            placeholder="{{ __('m_config.tourtypes.duration_placeholder') }}"
-                            title="{{ __('m_config.tourtypes.suggested_duration_hint') }}"
+                            placeholder="{{ __('m_config.producttypes.duration_placeholder') }}"
+                            title="{{ __('m_config.producttypes.suggested_duration_hint') }}"
                             value="{{ old('duration', '4 horas') }}">
                         <datalist id="durationOptionsCreate">
                             <option value="4 horas"></option>
@@ -293,12 +293,12 @@
                             <option value="8 horas"></option>
                             <option value="10 horas"></option>
                         </datalist>
-                        <small class="text-muted">{{ __('m_config.tourtypes.keep_default_hint') }}</small>
+                        <small class="text-muted">{{ __('m_config.producttypes.keep_default_hint') }}</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-primary">{{ __('m_config.tourtypes.register') }}</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_config.tourtypes.cancel') }}</button>
+                    <button class="btn btn-primary">{{ __('m_config.producttypes.register') }}</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ __('m_config.producttypes.cancel') }}</button>
                 </div>
             </div>
         </form>
@@ -326,7 +326,7 @@
 <script>
     Swal.fire({
         icon: 'error',
-        title: @json(__('m_config.tourtypes.error_title')),
+        title: @json(__('m_config.producttypes.error_title')),
         text: @json(__(session('error')))
     });
 </script>
@@ -352,18 +352,18 @@
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 const name = this.dataset.name || '';
-                const tmpl = @json(__('m_config.tourtypes.confirm_delete', ['name' => ':name']));
+                const tmpl = @json(__('m_config.producttypes.confirm_delete', ['name' => ':name']));
                 const text = tmpl.replace(':name', name);
 
                 Swal.fire({
-                    title: @json(__('m_config.tourtypes.delete')),
+                    title: @json(__('m_config.producttypes.delete')),
                     text,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#dc3545',
                     cancelButtonColor: '#6c757d',
-                    confirmButtonText: @json(__('m_config.tourtypes.delete')),
-                    cancelButtonText: @json(__('m_config.tourtypes.cancel'))
+                    confirmButtonText: @json(__('m_config.producttypes.delete')),
+                    cancelButtonText: @json(__('m_config.producttypes.cancel'))
                 }).then(res => {
                     if (res.isConfirmed) this.submit();
                 });
@@ -377,10 +377,10 @@
                 const name = this.dataset.name || '';
                 const active = Number(this.dataset.active) === 1;
 
-                const title = active ? @json(__('m_config.tourtypes.deactivate')) : @json(__('m_config.tourtypes.activate'));
+                const title = active ? @json(__('m_config.producttypes.deactivate')) : @json(__('m_config.producttypes.activate'));
                 const tmpl = active ?
-                    @json(__('m_config.tourtypes.confirm_deactivate', ['name' => ':name'])) :
-                    @json(__('m_config.tourtypes.confirm_activate', ['name' => ':name']));
+                    @json(__('m_config.producttypes.confirm_deactivate', ['name' => ':name'])) :
+                    @json(__('m_config.producttypes.confirm_activate', ['name' => ':name']));
                 const text = tmpl.replace(':name', name);
 
                 Swal.fire({
@@ -390,8 +390,8 @@
                     showCancelButton: true,
                     confirmButtonColor: '#fd7e14',
                     cancelButtonColor: '#6c757d',
-                    confirmButtonText: active ? @json(__('m_config.tourtypes.deactivate')) : @json(__('m_config.tourtypes.activate')),
-                    cancelButtonText: @json(__('m_config.tourtypes.cancel'))
+                    confirmButtonText: active ? @json(__('m_config.producttypes.deactivate')) : @json(__('m_config.producttypes.activate')),
+                    cancelButtonText: @json(__('m_config.producttypes.cancel'))
                 }).then(res => {
                     if (res.isConfirmed) this.submit();
                 });
@@ -403,7 +403,7 @@
         const firstError = @json($errors -> first());
         Swal.fire({
             icon: 'warning',
-            title: @json(__('m_config.tourtypes.validation_errors')),
+            title: @json(__('m_config.producttypes.validation_errors')),
             text: firstError || '',
             confirmButtonColor: '#d33'
         });

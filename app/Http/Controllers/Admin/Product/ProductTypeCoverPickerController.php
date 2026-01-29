@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 class ProductTypeCoverPickerController extends Controller
 {
     /**
-     * Listado de categorías (Half/Full/…) reutilizando el MISMO blade genérico (admin.tours.images.pick).
+     * Listado de categorías (Half/Full/…) reutilizando el MISMO blade genérico (admin.products.images.pick).
      * Enviamos $items, $idField, $nameField, $coverAccessor y $manageRoute.
      */
     public function pick(Request $request)
@@ -113,7 +113,7 @@ class ProductTypeCoverPickerController extends Controller
      */
     public function updateCover(Request $request, ProductType $productType)
     {
-        $maxSizeKb = (int) config('tours.max_image_kb', 30720); // 30MB por defecto
+        $maxSizeKb = (int) config('products.max_image_kb', 30720); // 30MB por defecto
 
         $request->validate([
             'cover' => ['required', 'image', 'mimes:jpeg,jpg,png,webp', "max:{$maxSizeKb}"],
@@ -140,7 +140,7 @@ class ProductTypeCoverPickerController extends Controller
             \App\Services\LoggerHelper::mutated(
                 'ProductTypeCoverPickerController', // updated controller name in text
                 'updateCover',
-                'product_type', // updated from tour_type
+                'product_type', // updated from product_type
                 $productType->product_type_id,
                 [
                     'media_action' => 'check_spatie_media_table',

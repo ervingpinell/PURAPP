@@ -32,18 +32,18 @@ class RouteServiceProvider extends ServiceProvider
         };
 
         // ===== Valores por ENV (con defaults) =====
-        $rpmToursAdmin   = (int) env('RATE_TOURS_ADMIN_RPM', 120);
+        $rpmProductsAdmin   = (int) env('RATE_PRODUCTS_ADMIN_RPM', 120);
         $rpmAdminLight   = (int) env('RATE_ADMIN_LIGHT_RPM', 120);
         $rpmCapAdmin     = (int) env('RATE_CAPACITY_ADMIN_RPM', 120);
         $rpmCapDetails   = (int) env('RATE_CAPACITY_DETAILS_RPM', 240);
 
-        // ===== tours-admin =====
-        RateLimiter::for('tours-admin', function (Request $request) use ($byUserOrIp, $rpmToursAdmin) {
+        // ===== products-admin =====
+        RateLimiter::for('products-admin', function (Request $request) use ($byUserOrIp, $rpmProductsAdmin) {
             $key = $byUserOrIp($request);
-            return [Limit::perMinute($rpmToursAdmin)->by($key)];
+            return [Limit::perMinute($rpmProductsAdmin)->by($key)];
         });
-        RateLimiter::for(User::class . '::tours-admin', function (Request $request, User $user) use ($rpmToursAdmin) {
-            return [Limit::perMinute($rpmToursAdmin)->by('u:' . $user->user_id)];
+        RateLimiter::for(User::class . '::products-admin', function (Request $request, User $user) use ($rpmProductsAdmin) {
+            return [Limit::perMinute($rpmProductsAdmin)->by('u:' . $user->user_id)];
         });
 
         // ===== admin-light =====

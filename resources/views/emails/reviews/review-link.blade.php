@@ -5,7 +5,7 @@
     use Illuminate\Support\Str;
 
     /**
-     * === 1) Detectar idioma del tour (spanish vs. other) ===
+     * === 1) Detectar idioma del product (spanish vs. other) ===
      * Priorizamos:
      *  - $productLanguageCode (ej. 'es', 'en')
      *  - $productLanguageName  (ej. 'Español', 'English')
@@ -47,9 +47,9 @@
         'phone' => env('COMPANY_PHONE', '+506 2479 1471'),
     ];
 
-    // === 4) Nombre del tour usando traducciones ===
+    // === 4) Nombre del product usando traducciones ===
     if (!empty($product) && method_exists($product, 'getTranslatedName')) {
-        // si el tour tiene traducciones, respeta el mailLocale (es/en)
+        // si el product tiene traducciones, respeta el mailLocale (es/en)
         $productNameResolved = $product->getTranslatedName($mailLocale);
     } else {
         // fallback a lo que venga por variable
@@ -80,7 +80,7 @@
 
         $fallbackLabel = "If the button does not work, copy and paste this link in your browser:";
         $expiresLabel  = "This link will be active until: :date.";
-        $footerText    = "Thanks for supporting local tourism. We hope to see you again soon! 🌿";
+        $footerText    = "Thanks for supporting local productism. We hope to see you again soon! 🌿";
     }
 
     // Preheader (puedes ajustar si quieres algo más descriptivo)

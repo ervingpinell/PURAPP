@@ -42,7 +42,7 @@ class ItinerariesSeeder extends Seeder
             }
         }
 
-        DB::table('tours')
+        DB::table('products')
             ->where('name', 'Nature Lover Combo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo + Caminata al Volcán Arenal)')
             ->update(['itinerary_id' => $nature->itinerary_id]);
 
@@ -74,7 +74,7 @@ class ItinerariesSeeder extends Seeder
             }
         }
 
-        DB::table('tours')
+        DB::table('products')
             ->where('name', 'Minicombo 1 (Puentes Colgantes + Catarata de La Fortuna + Almuerzo)')
             ->update(['itinerary_id' => $mini1->itinerary_id]);
 
@@ -106,7 +106,7 @@ class ItinerariesSeeder extends Seeder
             }
         }
 
-        DB::table('tours')
+        DB::table('products')
             ->where('name', 'Minicombo 2 (Caminata al Volcán Arenal + Catarata de La Fortuna + Almuerzo)')
             ->update(['itinerary_id' => $mini2->itinerary_id]);
 
@@ -138,7 +138,7 @@ class ItinerariesSeeder extends Seeder
             }
         }
 
-        DB::table('tours')
+        DB::table('products')
             ->where('name', 'Minicombo 3 (Safari Flotante + Catarata de La Fortuna + Almuerzo)')
             ->update(['itinerary_id' => $mini3->itinerary_id]);
 
@@ -171,7 +171,7 @@ El viaje en bote por el río Peñas Blancas ofrece una forma relajante de disfru
             }
         }
 
-        DB::table('tours')
+        DB::table('products')
             ->where('name', 'Safari Flotante')
             ->update(['itinerary_id' => $safari->itinerary_id]);
 
@@ -200,7 +200,7 @@ El viaje en bote por el río Peñas Blancas ofrece una forma relajante de disfru
             ]);
         }
 
-        DB::table('tours')
+        DB::table('products')
             ->where('name', 'Caminata al Volcán Arenal')
             ->update(['itinerary_id' => $volcano->itinerary_id]);
 
@@ -229,7 +229,7 @@ El viaje en bote por el río Peñas Blancas ofrece una forma relajante de disfru
             ]);
         }
 
-        DB::table('tours')
+        DB::table('products')
             ->where('name', 'Puentes Colgantes')
             ->update(['itinerary_id' => $hanging->itinerary_id]);
 

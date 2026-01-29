@@ -27,18 +27,18 @@ class RunMonthlyCleanups extends Command
     {
         $this->info('🚀 Starting monthly system cleanup...');
 
-        // 1. Limpiar logs de auditoría de tours (>365 días)
+        // 1. Limpiar logs de auditoría de products (>365 días)
         try {
-            $this->info('Cleaning old tour audit logs (>365 days)...');
-            // Assuming tours:audit:cleanup is a valid command registered in console
-            // Note: The user provided snippet showed `tours:audit:cleanup`. 
+            $this->info('Cleaning old product audit logs (>365 days)...');
+            // Assuming products:audit:cleanup is a valid command registered in console
+            // Note: The user provided snippet showed `products:audit:cleanup`. 
             // If it doesn't exist as a command class but as a closure, we should have checked.
             // But usually this looks like a command. 
-            // Checking snippet: "$schedule->command('tours:audit:cleanup --days=365')"
+            // Checking snippet: "$schedule->command('products:audit:cleanup --days=365')"
             // implies it IS a registered command.
 
-            $this->call('tours:audit:cleanup', ['--days' => 365]);
-            $this->info('✓ Tour audit logs cleaned.');
+            $this->call('products:audit:cleanup', ['--days' => 365]);
+            $this->info('✓ Product audit logs cleaned.');
         } catch (\Exception $e) {
             $this->error('x Error cleaning audit logs: ' . $e->getMessage());
         }

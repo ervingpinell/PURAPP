@@ -1,5 +1,5 @@
 <div class="languages-schedules-box p-3 shadow-sm rounded bg-white border">
-  <h3 class="section-subtitle mb-3">{{ __('adminlte::adminlte.tour_information') }}</h3>
+  <h3 class="section-subtitle mb-3">{{ __('adminlte::adminlte.product_information') }}</h3>
 
   <h4 class="mt-3">{{ __('adminlte::adminlte.duration') }}</h4>
   <p>{{ $product->length }} {{ __('adminlte::adminlte.hours') }}</p>

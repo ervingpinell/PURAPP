@@ -27,7 +27,7 @@ class StoreScheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id'       => ['nullable', 'exists:tours,product_id'],
+            'product_id'       => ['nullable', 'exists:products,product_id'],
             'start_time'    => [
                 'required',
                 'date_format:H:i',
@@ -45,7 +45,7 @@ class StoreScheduleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'product_id.exists'          => 'El tour seleccionado no existe.',
+            'product_id.exists'          => 'El product seleccionado no existe.',
             'start_time.required'     => 'El campo "Inicio" es obligatorio.',
             'start_time.date_format'  => 'El campo "Inicio" debe tener el formato HH:MM (24h).',
             'end_time.required'       => 'El campo "Fin" es obligatorio.',

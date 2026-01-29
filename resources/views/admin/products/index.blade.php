@@ -34,7 +34,7 @@
 {{-- Tabs: Activos / Papelera --}}
 <ul class="nav nav-tabs mb-3" role="tablist">
   <li class="nav-item" role="presentation">
-    <a class="nav-link {{ !request()->routeIs('admin.tours.trash') ? 'active' : '' }}"
+    <a class="nav-link {{ !request()->routeIs('admin.products.trash') ? 'active' : '' }}"
       href="{{ route('admin.products.index') }}"
       role="tab">
       Activos
@@ -42,7 +42,7 @@
   </li>
   @can('restore-tours')
   <li class="nav-item" role="presentation">
-    <a class="nav-link {{ request()->routeIs('admin.tours.trash') ? 'active' : '' }}"
+    <a class="nav-link {{ request()->routeIs('admin.products.trash') ? 'active' : '' }}"
       href="{{ route('admin.products.trash') }}"
       role="tab">
       Papelera
@@ -60,7 +60,7 @@
 {{-- Tabla de productos --}}
 <div class="card">
   <div class="card-body p-0">
-    @include('admin.products.tourlist')
+    @include('admin.products.productlist')
   </div>
 </div>
 @stop

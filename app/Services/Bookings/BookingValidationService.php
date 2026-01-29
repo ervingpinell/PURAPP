@@ -110,7 +110,7 @@ class BookingValidationService
     protected function getActiveCategoriesForProduct(Product $product): Collection
     {
         return $product->prices()
-            ->where('tour_prices.is_active', true)
+            ->where('product_prices.is_active', true)
             ->whereHas('category', fn($q) => $q->where('is_active', true))
             ->with('category')
             ->orderBy('category_id')
@@ -162,7 +162,7 @@ class BookingValidationService
      * 1) Si el modelo tiene getTranslatedName($locale), úsalo.
      * 2) Si hay slug, intenta con claves de lang:
      *    - 'customer_categories.labels.{slug}'
-     *    - 'm_tours.customer_categories.labels.{slug}'
+     *    - 'm_products.customer_categories.labels.{slug}'
      * 3) Fallback al nombre crudo.
      */
     protected function resolveCategoryLabel($categoryModel): string
@@ -181,7 +181,7 @@ class BookingValidationService
             foreach (
                 [
                     "customer_categories.labels.$slug",
-                    "m_tours.customer_categories.labels.$slug",
+                    "m_products.customer_categories.labels.$slug",
                 ] as $key
             ) {
                 $tr = __($key);

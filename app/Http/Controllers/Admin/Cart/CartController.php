@@ -53,7 +53,7 @@ class CartController extends Controller
             ]);
         }
 
-        $itemsQuery = CartItem::with(['tour.prices.category', 'schedule', 'language', 'hotel', 'meetingPoint'])
+        $itemsQuery = CartItem::with(['product.prices.category', 'schedule', 'language', 'hotel', 'meetingPoint'])
             ->where('cart_id', $cart->cart_id);
 
         if ($request->filled('status')) {
@@ -94,10 +94,10 @@ class CartController extends Controller
         $request->replace($in);
 
         $request->validate([
-            'product_id'          => 'required|exists:tours,product_id',
+            'product_id'          => 'required|exists:products,product_id',
             'product_date'        => 'required|date|after_or_equal:today',
             'schedule_id'      => 'required|exists:schedules,schedule_id',
-            'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
+            'product_language_id' => 'required|exists:product_languages,product_language_id',
             'categories'       => 'required|array|min:1',
             'categories.*'     => 'required|integer|min:0',
             'hotel_id'         => 'bail|nullable|integer|exists:hotels_list,hotel_id|exclude_if:is_other_hotel,1',
@@ -176,7 +176,7 @@ class CartController extends Controller
             'product_id'          => (int)$request->product_id,
             'product_date'        => $request->product_date,
             'schedule_id'      => (int)$request->schedule_id,
-            'tour_language_id' => (int)$request->tour_language_id,
+            'product_language_id' => (int)$request->product_language_id,
             'categories'       => $categoriesSnapshot,
 
             // Legacy
@@ -237,7 +237,7 @@ class CartController extends Controller
             'categories'       => ['required', 'array', 'min:1'],
             'categories.*'     => ['required', 'integer', 'min:0'],
             'schedule_id'      => ['nullable', 'exists:schedules,schedule_id'],
-            'tour_language_id' => ['required', 'exists:tour_languages,tour_language_id'],
+            'product_language_id' => ['required', 'exists:product_languages,product_language_id'],
             'is_active'        => ['nullable', 'boolean'],
             'hotel_id'         => ['bail', 'nullable', 'integer', 'exists:hotels_list,hotel_id', 'exclude_if:is_other_hotel,1'],
             'is_other_hotel'   => ['boolean'],
@@ -259,7 +259,7 @@ class CartController extends Controller
             ]);
         }
 
-        $product = $item->tour->load('prices.category');
+        $product = $item->product->load('prices.category');
 
         // Validación por categorías
         $validationResult = $this->validation->validateQuantities($product, $data['categories']);
@@ -316,7 +316,7 @@ class CartController extends Controller
             'adult_price'      => $adultCategory ? (float)$adultCategory['price'] : 0,
             'kid_price'        => $kidCategory ? (float)$kidCategory['price'] : 0,
             'schedule_id'      => $data['schedule_id'] ?? $item->schedule_id,
-            'tour_language_id' => (int)$data['tour_language_id'],
+            'product_language_id' => (int)$data['product_language_id'],
             'is_active'        => $request->boolean('is_active'),
         ]);
 
@@ -382,7 +382,7 @@ class CartController extends Controller
         $status = $request->query('status');
 
         $query = Cart::query()
-            ->with(['user', 'items.tour.prices.category', 'items.language', 'items.schedule', 'items.meetingPoint'])
+            ->with(['user', 'items.product.prices.category', 'items.language', 'items.schedule', 'items.meetingPoint'])
             ->withCount('items')
             ->whereHas('user', function ($q) use ($request) {
                 if ($request->filled('email')) {
@@ -440,7 +440,7 @@ class CartController extends Controller
         // Cargar carrito activo con items y precios por categoría
         $cart = $user->cart()
             ->where('is_active', true)
-            ->with('items.tour.prices.category')
+            ->with('items.product.prices.category')
             ->first();
 
         if (!$cart || !$cart->items->count()) {

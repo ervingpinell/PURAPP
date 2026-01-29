@@ -26,7 +26,7 @@ class DestroySelectedExcludedDatesRequest extends FormRequest
     {
         return [
             'ids'   => ['required', 'array', 'min:1'],
-            'ids.*' => ['integer', 'exists:tour_excluded_dates,tour_excluded_date_id'],
+            'ids.*' => ['integer', 'exists:product_excluded_dates,product_excluded_date_id'],
         ];
     }
 
@@ -43,7 +43,7 @@ class DestroySelectedExcludedDatesRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'destroySelected', $validator->errors()->toArray(), [
-            'entity'  => 'tour_excluded_date',
+            'entity'  => 'product_excluded_date',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
         parent::failedValidation($validator);

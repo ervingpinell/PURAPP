@@ -62,7 +62,7 @@ class ProductPriceController extends Controller
         if ($request->has('price_ids')) {
             $validated = $request->validate([
                 'price_ids'    => 'required|array',
-                'price_ids.*'  => 'exists:tour_prices,tour_price_id',
+                'price_ids.*'  => 'exists:product_prices,product_price_id',
                 'valid_from'   => 'nullable|date',
                 'valid_until'  => 'nullable|date|after_or_equal:valid_from',
                 'label'        => 'nullable|string|max:255',
@@ -70,7 +70,7 @@ class ProductPriceController extends Controller
 
             try {
                 DB::transaction(function () use ($validated, $product, $request) {
-                    ProductPrice::whereIn('tour_price_id', $validated['price_ids'])
+                    ProductPrice::whereIn('product_price_id', $validated['price_ids'])
                         ->where('product_id', $product->product_id)
                         ->update([
                             'valid_from'  => $validated['valid_from'] ?? null,
@@ -78,7 +78,7 @@ class ProductPriceController extends Controller
                             'label'       => $validated['label'] ?? null,
                         ]);
 
-                    LoggerHelper::mutated($this->controller, 'bulkUpdate', 'tour_prices', $product->product_id, [
+                    LoggerHelper::mutated($this->controller, 'bulkUpdate', 'product_prices', $product->product_id, [
                         'product_id'    => $product->product_id,
                         'price_ids'  => $validated['price_ids'],
                         'valid_from' => $validated['valid_from'] ?? null,
@@ -93,7 +93,7 @@ class ProductPriceController extends Controller
 
                 return back()->with('success', 'Fechas del periodo actualizadas exitosamente.');
             } catch (Exception $e) {
-                LoggerHelper::exception($this->controller, 'bulkUpdate', 'tour_prices', $product->product_id, $e, [
+                LoggerHelper::exception($this->controller, 'bulkUpdate', 'product_prices', $product->product_id, $e, [
                     'user_id' => optional($request->user())->getAuthIdentifier(),
                 ]);
 
@@ -129,7 +129,7 @@ class ProductPriceController extends Controller
                     // Validar fechas
                     if (isset($priceData['valid_from']) && isset($priceData['valid_until'])) {
                         if ($priceData['valid_from'] > $priceData['valid_until']) {
-                            throw new Exception(__("m_tours.tour.pricing.invalid_date_range"));
+                            throw new Exception(__("m_products.product.pricing.invalid_date_range"));
                         }
                     }
 
@@ -155,7 +155,7 @@ class ProductPriceController extends Controller
                     );
                 }
 
-                LoggerHelper::mutated($this->controller, 'bulkUpdate', 'tour_prices', $product->product_id, [
+                LoggerHelper::mutated($this->controller, 'bulkUpdate', 'product_prices', $product->product_id, [
                     'product_id' => $product->product_id,
                     'count'   => count($validated['prices']),
                     'user_id' => optional($request->user())->getAuthIdentifier(),
@@ -164,7 +164,7 @@ class ProductPriceController extends Controller
 
             return back()->with('success', 'Precios actualizados exitosamente.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'bulkUpdate', 'tour_prices', $product->product_id, $e, [
+            LoggerHelper::exception($this->controller, 'bulkUpdate', 'product_prices', $product->product_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -193,7 +193,7 @@ class ProductPriceController extends Controller
                 if ($validated['valid_from'] > $validated['valid_until']) {
                     return back()
                         ->withInput()
-                        ->with('error', __('m_tours.tour.pricing.invalid_date_range'));
+                        ->with('error', __('m_products.product.pricing.invalid_date_range'));
                 }
             }
 
@@ -208,7 +208,7 @@ class ProductPriceController extends Controller
             if ($overlap) {
                 return back()
                     ->withInput()
-                    ->with('error', __('m_tours.tour.pricing.date_overlap_warning'));
+                    ->with('error', __('m_products.product.pricing.date_overlap_warning'));
             }
 
             // Validar que no exista ya (solo si no tiene fechas)
@@ -248,7 +248,7 @@ class ProductPriceController extends Controller
                 'label'        => $validated['label'] ?? null,
             ]);
 
-            LoggerHelper::mutated($this->controller, 'store', 'tour_prices', $productPrice->tour_price_id, [
+            LoggerHelper::mutated($this->controller, 'store', 'product_prices', $productPrice->product_price_id, [
                 'product_id'     => $product->product_id,
                 'category_id' => $validated['category_id'],
                 'user_id'     => optional($request->user())->getAuthIdentifier(),
@@ -256,7 +256,7 @@ class ProductPriceController extends Controller
 
             return back()->with('success', 'Categoría agregada exitosamente.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'store', 'tour_prices', null, $e, [
+            LoggerHelper::exception($this->controller, 'store', 'product_prices', null, $e, [
                 'product_id' => $product->product_id,
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
@@ -293,7 +293,7 @@ class ProductPriceController extends Controller
                 if ($validated['valid_from'] > $validated['valid_until']) {
                     return back()
                         ->withInput()
-                        ->with('error', __('m_tours.tour.pricing.invalid_date_range'));
+                        ->with('error', __('m_products.product.pricing.invalid_date_range'));
                 }
             }
 
@@ -303,13 +303,13 @@ class ProductPriceController extends Controller
                 $price->category_id,
                 $validated['valid_from'] ?? null,
                 $validated['valid_until'] ?? null,
-                $price->tour_price_id
+                $price->product_price_id
             );
 
             if ($overlap) {
                 return back()
                     ->withInput()
-                    ->with('error', __('m_tours.tour.pricing.date_overlap_warning'));
+                    ->with('error', __('m_products.product.pricing.date_overlap_warning'));
             }
 
             // Si el precio es 0, desactivar automáticamente
@@ -319,14 +319,14 @@ class ProductPriceController extends Controller
 
             $price->update($validated);
 
-            LoggerHelper::mutated($this->controller, 'update', 'tour_prices', $price->tour_price_id, [
+            LoggerHelper::mutated($this->controller, 'update', 'product_prices', $price->product_price_id, [
                 'product_id' => $product->product_id,
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return back()->with('success', 'Precio actualizado exitosamente.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'update', 'tour_prices', $price->tour_price_id, $e, [
+            LoggerHelper::exception($this->controller, 'update', 'product_prices', $price->product_price_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -342,14 +342,14 @@ class ProductPriceController extends Controller
         try {
             $price->update(['is_active' => !$price->is_active]);
 
-            LoggerHelper::mutated($this->controller, 'toggle', 'tour_prices', $price->tour_price_id, [
+            LoggerHelper::mutated($this->controller, 'toggle', 'product_prices', $price->product_price_id, [
                 'is_active' => $price->is_active,
                 'user_id'   => optional(request()->user())->getAuthIdentifier(),
             ]);
 
             return back()->with('success', 'Estado actualizado exitosamente.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'toggle', 'tour_prices', $price->tour_price_id, $e, [
+            LoggerHelper::exception($this->controller, 'toggle', 'product_prices', $price->product_price_id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
@@ -366,14 +366,14 @@ class ProductPriceController extends Controller
             $categoryName = $price->category->name;
             $price->delete();
 
-            LoggerHelper::mutated($this->controller, 'destroy', 'tour_prices', $price->tour_price_id, [
+            LoggerHelper::mutated($this->controller, 'destroy', 'product_prices', $price->product_price_id, [
                 'product_id' => $product->product_id,
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
             return back()->with('success', "Categoría '{$categoryName}' eliminada del producto.");
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'destroy', 'tour_prices', $price->tour_price_id, $e, [
+            LoggerHelper::exception($this->controller, 'destroy', 'product_prices', $price->product_price_id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
@@ -394,14 +394,14 @@ class ProductPriceController extends Controller
         try {
             $product->taxes()->sync($validated['taxes'] ?? []);
 
-            LoggerHelper::mutated($this->controller, 'updateTaxes', 'tours', $product->product_id, [
+            LoggerHelper::mutated($this->controller, 'updateTaxes', 'products', $product->product_id, [
                 'taxes' => $validated['taxes'] ?? [],
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return back()->with('success', 'Impuestos actualizados exitosamente.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'updateTaxes', 'tours', $product->product_id, $e, [
+            LoggerHelper::exception($this->controller, 'updateTaxes', 'products', $product->product_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -436,7 +436,7 @@ class ProductPriceController extends Controller
             ->where('category_id', $categoryId);
 
         if ($excludePriceId) {
-            $query->where('tour_price_id', '!=', $excludePriceId);
+            $query->where('product_price_id', '!=', $excludePriceId);
         }
 
         // Buscar precios que se solapen

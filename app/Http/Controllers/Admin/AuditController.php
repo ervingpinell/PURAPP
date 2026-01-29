@@ -26,7 +26,7 @@ class AuditController extends Controller
 
         // FILTROS
 
-        // Por tour específico
+        // Por producto específico
         if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
         }

@@ -48,7 +48,7 @@
       }
   }
 
-$productUrl = request('turl') ?: ($productId ? localized_route('products.guided_tour.show', ['product'=>$productId]) : '');
+$productUrl = request('turl') ?: ($productId ? localized_route('products.guided_product.show', ['product'=>$productId]) : '');
 
   $rating = max(0, min(5, (int) data_get($r, 'rating', 5)));
   $title  = trim((string) data_get($r, 'title', ''));
@@ -109,7 +109,7 @@ $productUrl = request('turl') ?: ($productId ? localized_route('products.guided_
     <div class="wrap">
       <article class="hero-card">
         @if($productName || $productUrl)
-          <h3 class="tour-title-abs">
+          <h3 class="product-title-abs">
             @if($productUrl)
               <a href="{{ $productUrl }}" class="open-parent-modal" data-name="{{ $productName }}" rel="nofollow noopener">
                 {{ $productName }}

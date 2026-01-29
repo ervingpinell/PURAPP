@@ -21,8 +21,8 @@ class CartItem extends Model
         'cart_id',
         'product_id', // Renamed from product_id
         'schedule_id',
-        'tour_date', // Kept legacy column name
-        'tour_language_id',
+        'product_date', // Kept legacy column name
+        'product_language_id',
         'hotel_id',
         'is_other_hotel',
         'other_hotel_name',
@@ -72,7 +72,7 @@ class CartItem extends Model
 
     public function language()
     {
-        return $this->belongsTo(ProductLanguage::class, 'tour_language_id');
+        return $this->belongsTo(ProductLanguage::class, 'product_language_id');
     }
 
     public function meetingPoint()

@@ -353,76 +353,76 @@ return [
                 [
                     'header' => 'menu.availability',
                     'trans' => true,
-                    'can'   => 'view-tour-availability',
+                    'can'   => 'view-product-availability',
                 ],
 
                 [
                     'text'  => 'menu.blocked_dates',
                     'route' => 'admin.products.excluded_dates.index',
                     'icon'  => 'fas fa-ban',
-                    'can'   => 'view-tour-availability',
+                    'can'   => 'view-product-availability',
                     'trans' => true,
                 ],
                 // [
                 //     'text'  => 'menu.capacity',
                 //     'route' => 'admin.tours.capacity.index',
                 //     'icon'  => 'fas fa-calendar-alt',
-                //     'can'   => 'view-tour-availability',
+                //     'can'   => 'view-product-availability',
                 //     'trans' => true,
                 // ],
                 [
                     'text'  => 'menu.cutoff',
                     'route' => 'admin.products.cutoff.edit',
                     'icon'  => 'fas fa-clock',
-                    'can'   => 'view-tour-availability',
+                    'can'   => 'view-product-availability',
                     'trans' => true,
                 ],
             ],
         ],
 
-        // ✅ TOURS (gestión principal de tours)
+        // ✅ PRODUCTS (gestión principal de products)
         [
-            'text'    => 'menu.tours',
+            'text'    => 'menu.products',
             'icon'    => 'fas fa-map-marked-alt',
             'trans'   => true,
             'submenu' => [
                 [
                     'header' => 'menu.general',
                     'trans' => true,
-                    'can'   => 'view-tours',
+                    'can'   => 'view-products',
                 ],
                 [
-                    'text'  => 'menu.all_tours',
+                    'text'  => 'menu.all_products',
                     'route' => 'admin.products.index',
                     'icon'  => 'fas fa-map-marked-alt',
-                    'can'   => 'view-tours', // Visibility via view
+                    'can'   => 'view-products', // Visibility via view
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.order_tours',
                     'route' => 'admin.products.order.index', // Already validated
                     'icon'  => 'fas fa-sort-amount-down',
-                    'can'   => 'view-tours', // Visibility via view, access protected by route
+                    'can'   => 'view-products', // Visibility via view, access protected by route
                     'trans' => true,
                 ],
                 [
                     'header' => 'menu.images',
                     'trans' => true,
-                    'can'   => 'view-tour-images',
+                    'can'   => 'view-product-images',
                 ],
 
                 [
                     'text'  => 'menu.tour_images',
                     'route' => 'admin.products.images.pick', // FIXED ROUTE
                     'icon'  => 'fas fa-images',
-                    'can'   => 'view-tour-images', // Updated permission
+                    'can'   => 'view-product-images', // Updated permission
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.category_covers',
                     'route' => 'admin.types.images.pick', // Already validated
                     'icon'  => 'fas fa-image',
-                    'can'   => 'view-tour-images', // Changed from view-tour-types to unified permission
+                    'can'   => 'view-product-images', // Changed from view-product-types to unified permission
                     'trans' => true,
                 ],
 
@@ -442,7 +442,7 @@ return [
                     'text'  => 'menu.tour_types',
                     'route' => 'admin.product-types.index', // Fixed lowercase
                     'icon'  => 'fas fa-tags',
-                    'can'   => 'view-tour-types', // Added permission
+                    'can'   => 'view-product-types', // Added permission
                     'trans' => true,
                 ],
                 [
@@ -456,7 +456,7 @@ return [
                     'text'  => 'menu.schedules',
                     'route' => 'admin.products.schedule.index',
                     'icon'  => 'fas fa-calendar-alt',
-                    'can'   => 'view-tour-availability',
+                    'can'   => 'view-product-availability',
                     'trans' => true,
                 ],
                 [
@@ -470,14 +470,14 @@ return [
                     'text'  => 'menu.itineraries',
                     'route' => 'admin.products.itinerary.index',
                     'icon'  => 'fas fa-route',
-                    'can'   => 'view-tours',
+                    'can'   => 'view-products',
                     'trans' => true,
                 ],
                 [
                     'text'  => 'menu.itinerary_items',
                     'route' => 'admin.products.itinerary_items.index',
                     'icon'  => 'fas fa-list-ul',
-                    'can'   => 'view-tours',
+                    'can'   => 'view-products',
                     'trans' => true,
                 ],
                 [
@@ -586,7 +586,7 @@ return [
                     'text'  => 'menu.taxes',
                     'route' => 'admin.taxes.index',
                     'icon'  => 'fas fa-info-circle',
-                    'can'   => 'view-tours', // Visibility via view
+                    'can'   => 'view-products', // Visibility via view
                     'trans' => true,
                 ],
                 [

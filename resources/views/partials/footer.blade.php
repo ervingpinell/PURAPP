@@ -251,10 +251,10 @@
 @push('scripts')
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.open-tour-modal').forEach(link => {
+    document.querySelectorAll('.open-product-modal').forEach(link => {
       link.addEventListener('click', function(e) {
         e.preventDefault();
-        const modalId = this.getAttribute('data-tour-modal');
+        const modalId = this.getAttribute('data-product-modal');
         const shouldScroll = this.getAttribute('data-scroll-first') === 'true';
 
         if (!document.getElementById(modalId)) {
@@ -264,7 +264,7 @@
 
         if (shouldScroll) {
           const toursSection = document.getElementById('tours');
-          if (toursSection) toursSection.scrollIntoView({
+          if (productsSection) toursSection.scrollIntoView({
             behavior: 'smooth',
             block: 'start'
           });
@@ -286,7 +286,7 @@
 
       if (modal) {
         const toursSection = document.getElementById('tours');
-        if (toursSection) toursSection.scrollIntoView({
+        if (productsSection) toursSection.scrollIntoView({
           behavior: 'smooth',
           block: 'start'
         });

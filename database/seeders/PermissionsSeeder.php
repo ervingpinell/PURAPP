@@ -27,15 +27,15 @@ class PermissionsSeeder extends Seeder
             'manage-policies',
             'manage-customer-categories',
             'manage-payments',
-            'manage-tour-types',
+            'manage-product-types',
             'manage-amenities',
-            'manage-tour-pricing',
-            'manage-tour-availability',
-            'manage-tour-images',
-            'assign-tour-schedules', // Unified with publish assignments,
-            'publish-tour-schedule-assignments', // Renamed
-            'edit-tour-type-covers', // Renamed
-            'tours.manage',
+            'manage-product-pricing',
+            'manage-product-availability',
+            'manage-product-images',
+            'assign-product-schedules', // Unified with publish assignments,
+            'publish-product-schedule-assignments', // Renamed
+            'edit-product-type-covers', // Renamed
+            'products.manage',
             
             // Old delete permissions consolidated into soft/hard delete
             'delete-bookings',
@@ -44,9 +44,9 @@ class PermissionsSeeder extends Seeder
             'delete-taxes',
             'delete-faqs',
             'delete-customer_categories',
-            'delete-tour_languages',
+            'delete-product_languages',
             'delete-amenities',
-            'delete-tour_types',
+            'delete-product_types',
             'delete-itineraries',
             'delete-schedules',
             'delete-meeting_points',
@@ -78,22 +78,22 @@ class PermissionsSeeder extends Seeder
             'assign-roles' => 'Asignar roles a usuarios',
 
             // Tours
-            'view-tours' => 'Ver tours',
-            'create-tours' => 'Crear tours',
-            'edit-tours' => 'Editar tours',
-            'soft-delete-tours' => 'Eliminar tours (papelera)',
-            'restore-tours' => 'Restaurar tours eliminados',
-            'hard-delete-tours' => 'Eliminar tours permanentemente',
-            'publish-tours' => 'Publicar/despublicar tours',
-            'reorder-tours' => 'Ordenar tours',
-            'view-tour-pricing' => 'Ver precios de tours',
-            'edit-tour-pricing' => 'Editar precios de tours',
-            'view-tour-availability' => 'Ver disponibilidad de tours',
-            'edit-tour-availability' => 'Editar disponibilidad de tours',
-            'view-tour-images' => 'Ver imágenes de tours',
-            'create-tour-images' => 'Subir imágenes de tours',
-            'delete-tour-images' => 'Eliminar imágenes de tours',
-            'edit_cover-tour-images' => 'Editar covers de tipos de tour',
+            'view-products' => 'Ver products',
+            'create-products' => 'Crear products',
+            'edit-products' => 'Editar products',
+            'soft-delete-products' => 'Eliminar products (papelera)',
+            'restore-products' => 'Restaurar products eliminados',
+            'hard-delete-products' => 'Eliminar products permanentemente',
+            'publish-products' => 'Publicar/despublicar products',
+            'reorder-products' => 'Ordenar products',
+            'view-product-pricing' => 'Ver precios de products',
+            'edit-product-pricing' => 'Editar precios de products',
+            'view-product-availability' => 'Ver disponibilidad de products',
+            'edit-product-availability' => 'Editar disponibilidad de products',
+            'view-product-images' => 'Ver imágenes de products',
+            'create-product-images' => 'Subir imágenes de products',
+            'delete-product-images' => 'Eliminar imágenes de products',
+            'edit_cover-product-images' => 'Editar covers de tipos de product',
 
             // Reservas (Bookings)
             'view-bookings' => 'Ver reservas',
@@ -192,14 +192,14 @@ class PermissionsSeeder extends Seeder
             'view-payments' => 'Ver pagos',
             'edit-payments' => 'Gestionar pagos',
 
-            // Tipos de tour
-            'view-tour-types' => 'Ver tipos de tour',
-            'create-tour-types' => 'Crear tipos de tour',
-            'edit-tour-types' => 'Editar tipos de tour',
-            'publish-tour-types' => 'Publicar/Ocultar tipos de tour',
-            'soft-delete-tour-types' => 'Eliminar tipos de tour (papelera)',
-            'restore-tour-types' => 'Restaurar tipos de tour',
-            'hard-delete-tour-types' => 'Eliminar tipos de tour permanentemente',
+            // Tipos de product
+            'view-product-types' => 'Ver tipos de product',
+            'create-product-types' => 'Crear tipos de product',
+            'edit-product-types' => 'Editar tipos de product',
+            'publish-product-types' => 'Publicar/Ocultar tipos de product',
+            'soft-delete-product-types' => 'Eliminar tipos de product (papelera)',
+            'restore-product-types' => 'Restaurar tipos de product',
+            'hard-delete-product-types' => 'Eliminar tipos de product permanentemente',
 
             // Amenidades
             'view-amenities' => 'Ver amenidades',
@@ -227,13 +227,13 @@ class PermissionsSeeder extends Seeder
             'hard-delete-meeting-points' => 'Eliminar puntos de encuentro permanentemente',
 
             // Idiomas de Tours
-            'view-tour-languages' => 'Ver idiomas de tours',
-            'create-tour-languages' => 'Crear idiomas de tours',
-            'edit-tour-languages' => 'Editar idiomas de tours',
-            'publish-tour-languages' => 'Publicar idiomas de tours',
-            'soft-delete-tour-languages' => 'Eliminar idiomas de tours (papelera)',
-            'restore-tour-languages' => 'Restaurar idiomas de tours',
-            'hard-delete-tour-languages' => 'Eliminar idiomas de tours permanentemente',
+            'view-product-languages' => 'Ver idiomas de products',
+            'create-product-languages' => 'Crear idiomas de products',
+            'edit-product-languages' => 'Editar idiomas de products',
+            'publish-product-languages' => 'Publicar idiomas de products',
+            'soft-delete-product-languages' => 'Eliminar idiomas de products (papelera)',
+            'restore-product-languages' => 'Restaurar idiomas de products',
+            'hard-delete-product-languages' => 'Eliminar idiomas de products permanentemente',
 
             // Itinerarios
             'view-itineraries' => 'Ver itinerarios',
@@ -252,33 +252,33 @@ class PermissionsSeeder extends Seeder
             'delete-itinerary-items' => 'Eliminar items de itinerario',
 
             // Horarios de Tours (Schedules)
-            'view-tour-schedules' => 'Ver horarios de tours',
-            'create-tour-schedules' => 'Crear horarios de tours',
-            'edit-tour-schedules' => 'Editar horarios de tours',
-            'publish-tour-schedules' => 'Publicar horarios de tours',
-            'publish-assignments-tour-schedules' => 'Publicar asignaciones de horarios',
-            'soft-delete-tour-schedules' => 'Eliminar horarios de tours (papelera)',
-            'restore-tour-schedules' => 'Restaurar horarios de tours',
-            'hard-delete-tour-schedules' => 'Eliminar horarios de tours permanentemente',
+            'view-product-schedules' => 'Ver horarios de products',
+            'create-product-schedules' => 'Crear horarios de products',
+            'edit-product-schedules' => 'Editar horarios de products',
+            'publish-product-schedules' => 'Publicar horarios de products',
+            'publish-assignments-product-schedules' => 'Publicar asignaciones de horarios',
+            'soft-delete-product-schedules' => 'Eliminar horarios de products (papelera)',
+            'restore-product-schedules' => 'Restaurar horarios de products',
+            'hard-delete-product-schedules' => 'Eliminar horarios de products permanentemente',
 
             // Disponibilidad de Tours (Extension)
-            'create-tour-availability' => 'Crear disponibilidad de tours',
-            'publish-tour-availability' => 'Publicar disponibilidad de tours',
-            'delete-tour-availability' => 'Eliminar disponibilidad de tours',
+            'create-product-availability' => 'Crear disponibilidad de products',
+            'publish-product-availability' => 'Publicar disponibilidad de products',
+            'delete-product-availability' => 'Eliminar disponibilidad de products',
 
             // Fechas Excluidas
-            'view-tour-excluded-dates' => 'Ver fechas excluidas',
-            'create-tour-excluded-dates' => 'Crear fechas excluidas',
-            'edit-tour-excluded-dates' => 'Editar fechas excluidas',
-            'publish-tour-excluded-dates' => 'Publicar fechas excluidas',
-            'delete-tour-excluded-dates' => 'Eliminar fechas excluidas',
+            'view-product-excluded-dates' => 'Ver fechas excluidas',
+            'create-product-excluded-dates' => 'Crear fechas excluidas',
+            'edit-product-excluded-dates' => 'Editar fechas excluidas',
+            'publish-product-excluded-dates' => 'Publicar fechas excluidas',
+            'delete-product-excluded-dates' => 'Eliminar fechas excluidas',
 
             // Precios de Tours (Granular)
-            'view-tour-prices' => 'Ver precios de tours',
-            'create-tour-prices' => 'Crear precios de tours',
-            'edit-tour-prices' => 'Editar precios de tours',
-            'publish-tour-prices' => 'Publicar precios de tours',
-            'delete-tour-prices' => 'Eliminar precios de tours',
+            'view-product-prices' => 'Ver precios de products',
+            'create-product-prices' => 'Crear precios de products',
+            'edit-product-prices' => 'Editar precios de products',
+            'publish-product-prices' => 'Publicar precios de products',
+            'delete-product-prices' => 'Eliminar precios de products',
 
             // Email Templates
             'view-email-templates' => 'Ver plantillas de email',

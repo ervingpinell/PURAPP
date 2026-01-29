@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * Represents a language offered for a product.
  *
- * @property int $tour_language_id Primary key (DB column name)
+ * @property int $product_language_id Primary key (DB column name)
  * @property string $name
  * @property bool $is_active
  * @property \Carbon\Carbon|null $created_at
@@ -25,10 +25,10 @@ class ProductLanguage extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $primaryKey = 'tour_language_id';
+    protected $primaryKey = 'product_language_id';
 
 
-    protected $table = 'tour_languages';
+    protected $table = 'product_languages';
 
     protected $fillable = [
         'name',
@@ -43,7 +43,7 @@ class ProductLanguage extends Model
     public $timestamps = true;
     public function getRouteKeyName()
     {
-        return 'tour_language_id';
+        return 'product_language_id';
     }
 
     public function deletedBy()

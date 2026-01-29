@@ -42,7 +42,7 @@ class AttachScheduleToProductRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'attach', $validator->errors()->toArray(), [
-            'entity'  => 'tour_schedule_pivot',
+            'entity'  => 'product_schedule_pivot',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
         parent::failedValidation($validator);

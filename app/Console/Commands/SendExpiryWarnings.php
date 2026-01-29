@@ -38,7 +38,7 @@ class SendExpiryWarnings extends Command
             ->where('pending_expires_at', '>', now())
             ->where('pending_expires_at', '<=', $warningTime)
             ->whereNull('expiry_warning_sent_at')
-            ->with(['user', 'tour', 'details.schedule'])
+            ->with(['user', 'product', 'details.schedule'])
             ->get();
 
         if ($expiringBookings->isEmpty()) {

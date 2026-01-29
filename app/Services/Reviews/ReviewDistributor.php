@@ -6,8 +6,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Responsable ÚNICA de distribuir reviews entre tours respetando:
- * - No repetir reviews entre tours
+ * Responsable ÚNICA de distribuir reviews entre products respetando:
+ * - No repetir reviews entre products
  * - Distribuir entre proveedores disponibles
  * - Completar con otros proveedores si uno no tiene suficientes
  */
@@ -41,7 +41,7 @@ class ReviewDistributor
     }
 
     /**
-     * Para INDEX: ~5-6 reviews por tour
+     * Para INDEX: ~5-6 reviews por product
      */
     public function forIndex(Collection $products, int $perProduct = 5): Collection
     {
@@ -71,7 +71,7 @@ class ReviewDistributor
     {
         $seen = [];
 
-        // 1) Reviews del tour
+        // 1) Reviews del product
         $own = $this->aggregator->aggregate([
             'product_id' => $productId,
             'limit' => $min * 2
@@ -79,7 +79,7 @@ class ReviewDistributor
 
         $needed = $min - $own->count();
 
-        // 2) Si faltan, traer de otros tours
+        // 2) Si faltan, traer de otros products
         if ($needed > 0) {
             $others = $this->aggregator->aggregate([
                 'limit' => $needed * 3

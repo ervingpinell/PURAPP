@@ -113,7 +113,7 @@
   $totalProducts = $products->total();
   @endphp
 
-  {{-- LAYOUT DE TOURS (Grid mode only for subcategories) --}}
+  {{-- LAYOUT DE PRODUCTS (Grid mode only for subcategories) --}}
   <div
     id="tours-layout"
     class="tours-layout mode-grid"
@@ -153,13 +153,13 @@
       @endphp
 
       <article
-        class="tours-index-card-wrapper tour-card-clickable"
+        class="tours-index-card-wrapper product-card-clickable"
         data-url="{{ $productUrl }}"
         tabindex="0"
         aria-label="{{ $displayName }}">
         <div class="card tours-index-card h-100">
           {{-- Imagen con badge de duración --}}
-          <div class="tour-image-container">
+          <div class="product-image-container">
             <img
               src="{{ $cover }}"
               class="card-img-top"
@@ -167,7 +167,7 @@
               loading="lazy">
 
             @if(!empty($product->length))
-            <div class="tour-duration-badge">
+            <div class="product-duration-badge">
               <span class="duration-number">{{ $product->length }}</span>
               <span class="duration-unit">hrs</span>
             </div>
@@ -176,21 +176,21 @@
 
           <div class="card-body tours-card-body">
             {{-- HEADER: título --}}
-            <div class="tour-card-header">
-              <div class="tour-title-pill">
-                <div class="tour-title-text">
+            <div class="product-card-header">
+              <div class="product-title-pill">
+                <div class="product-title-text">
                   {{ $displayName }}
                 </div>
               </div>
             </div>
 
             {{-- MAIN: tags de itinerario --}}
-            <div class="tour-card-main">
-              <div class="tour-tags-container">
+            <div class="product-card-main">
+              <div class="product-tags-container">
                 @if($itineraryTags->isNotEmpty())
-                <div class="tour-tags">
+                <div class="product-tags">
                   @foreach($itineraryTags as $tag)
-                  <div class="tour-tag">{{ $tag }}</div>
+                  <div class="product-tag">{{ $tag }}</div>
                   @endforeach
                 </div>
                 @endif
@@ -198,8 +198,8 @@
             </div>
 
             {{-- FOOTER: precios + botón --}}
-            <div class="tour-card-footer">
-              <div class="tour-prices-container">
+            <div class="product-card-footer">
+              <div class="product-prices-container">
                 @if($activeCategories->isNotEmpty())
                 <div class="tours-index-prices mb-2">
                   @foreach($activeCategories as $priceRecord)
@@ -240,7 +240,7 @@
 
               <a
                 href="{{ $productUrl }}"
-                class="btn btn-tour-cta w-100 mt-2">
+                class="btn btn-product-cta w-100 mt-2">
                 {{ __('adminlte::adminlte.see_tour') }}
               </a>
             </div>
@@ -272,13 +272,13 @@
 
     // Igualar secciones de las cards
     function equalizeTourSections() {
-      const wrappers = Array.from(document.querySelectorAll('.tours-index-card-wrapper'));
+      const wrappers = Array.from(document.querySelectorAll('.products-index-card-wrapper'));
       if (!wrappers.length) return;
 
       const selectors = [
-        '.tour-card-header',
-        '.tour-tags-container',
-        '.tour-prices-container'
+        '.product-card-header',
+        '.product-tags-container',
+        '.product-prices-container'
       ];
 
       // Reset heights
@@ -341,7 +341,7 @@
 
     // Card click handlers
     function initCardClickHandlers() {
-      const wrappers = Array.from(document.querySelectorAll('.tours-index-card-wrapper[data-url]'));
+      const wrappers = Array.from(document.querySelectorAll('.products-index-card-wrapper[data-url]'));
       if (!wrappers.length) return;
 
       const DRAG_THRESHOLD = 10;
@@ -407,7 +407,7 @@
       initCardClickHandlers();
     });
 
-    const images = Array.from(document.querySelectorAll('.tours-index-card img.card-img-top'));
+    const images = Array.from(document.querySelectorAll('.products-index-card img.card-img-top'));
     let imagesLoaded = 0;
     const totalImages = images.length;
 

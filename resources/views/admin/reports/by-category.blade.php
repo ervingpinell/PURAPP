@@ -291,7 +291,7 @@
                     @php $gb = $groupBy ?? 'booking_date'; @endphp
                     <select name="group_by" class="form-control">
                         <option value="booking_date" @selected($gb==='booking_date' )>{{ __('reports.filters.group_booking_date') }}</option>
-                        <option value="tour_date" @selected($gb==='tour_date' )>{{ __('reports.filters.group_product_date') }}</option>
+                        <option value="product_date" @selected($gb==='product_date' )>{{ __('reports.filters.group_product_date') }}</option>
                     </select>
                 </div>
 

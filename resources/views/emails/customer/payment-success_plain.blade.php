@@ -6,11 +6,11 @@ Booking Details
 ---------------
 Reference: {{ $booking->booking_reference }}
 {{ __('adminlte::email.service') }}: {{ optional($booking->product)->name ?? 'N/A' }}
-Date: {{ $booking->details->first()->tour_date ?? 'N/A' }}
+Date: {{ $booking->details->first()->product_date ?? 'N/A' }}
 Amount Paid: ${{ number_format($booking->paid_amount ?? $booking->total, 2) }}
 Payment Date: {{ optional($booking->paid_at)->format('F j, Y') ?? now()->format('F j, Y') }}
 
-Your booking is now confirmed. We'll send you more details closer to your tour date.
+Your booking is now confirmed. We'll send you more details closer to your product date.
 
 @if(!empty($passwordSetupUrl))
 Create Account & View Booking:

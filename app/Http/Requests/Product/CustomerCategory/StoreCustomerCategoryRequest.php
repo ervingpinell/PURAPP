@@ -1,5 +1,4 @@
 <?php
-// app/Http/Requests/Tour/CustomerCategory/StoreCustomerCategoryRequest.php
 namespace App\Http\Requests\Product\CustomerCategory;
 
 use Illuminate\Foundation\Http\FormRequest;

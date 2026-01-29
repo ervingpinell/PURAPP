@@ -133,7 +133,7 @@
 $activeFilters = request()->hasAny([
 'reference', 'status',
 'booking_date_from', 'booking_date_to',
-'tour_date_from', 'tour_date_to',
+'product_date_from', 'product_date_to',
 'product_id', 'schedule_id'
 ]);
 @endphp

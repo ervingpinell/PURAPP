@@ -16,7 +16,7 @@ class PDFController extends Controller
 {
     public function generateReceipt($id)
     {
-        $booking = Booking::with(['user', 'tour'])->findOrFail($id);
+        $booking = Booking::with(['user', 'product'])->findOrFail($id);
 
         $pdf = Pdf::loadView('admin.pdf.receipt', compact('booking'));
 

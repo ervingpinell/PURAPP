@@ -59,7 +59,7 @@ $seqByProvider = [];
     $productName = trim((string)($r['product_name'] ?? ''));
     $productId = !empty($r['product_id']) ? (int)$r['product_id'] : null;
     $productSlug = trim((string)($r['product_slug'] ?? ''));
-    $productUrl = ($productId && $productSlug) ? localized_route('products.guided_tour.show', ['slug' => $productSlug]) : '#';
+    $productUrl = ($productId && $productSlug) ? localized_route('products.guided_product.show', ['slug' => $productSlug]) : '#';
 
     $avatarUrl = $r['avatar_url'] ?? null;
 
@@ -72,7 +72,7 @@ $seqByProvider = [];
       @if($isIndexable)
       <article class="hero-card">
         @if($productName !== '')
-        <h3 class="tour-title-abs">
+        <h3 class="product-title-abs">
           <a href="{{ $productUrl ?? '#' }}" class="product-link" data-id="{{ $productId ?? '' }}" data-name="{{ $productName }}">{{ $productName }}</a>
         </h3>
         @endif

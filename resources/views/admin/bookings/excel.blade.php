@@ -27,7 +27,7 @@
 
     foreach ($bookingsIter as $b) {
     $detail = $b->detail ?? null;
-    $product = $b->tour ?? null;
+    $product = $b->product ?? null;
 
     $catsRaw = [];
     if (!empty($detail?->categories)) {
@@ -100,8 +100,8 @@
                 <th>{{ __('m_bookings.bookings.fields.customer') }}</th>
                 <th>{{ __('m_bookings.bookings.fields.email') }}</th>
                 <th>{{ __('m_bookings.bookings.fields.phone') }}</th>
-                <th>{{ __('m_bookings.bookings.fields.tour') }}</th>
-                <th>{{ __('m_bookings.bookings.fields.tour_date') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.product') }}</th>
+                <th>{{ __('m_bookings.bookings.fields.product_date') }}</th>
                 <th>{{ __('m_bookings.bookings.fields.hotel') }}</th>
                 <th>{{ __('m_bookings.bookings.fields.meeting_point') }}</th>
                 <th>{{ __('m_bookings.bookings.fields.schedule') }}</th>
@@ -254,9 +254,9 @@
 
             $productName = $product ? preg_replace('/\s*\([^)]*\)/', '', (string)($product->name ?? '')) : $EM;
 
-            $productDateStr = $detail?->tour_date instanceof \Carbon\Carbon
-            ? $detail->tour_date->toDateString()
-            : ((string)($detail->tour_date ?? $EM));
+            $productDateStr = $detail?->product_date instanceof \Carbon\Carbon
+            ? $detail->product_date->toDateString()
+            : ((string)($detail->product_date ?? $EM));
 
             $scheduleStr = ($schedule?->start_time && $schedule?->end_time)
             ? ($schedule->start_time . ' - ' . $schedule->end_time)

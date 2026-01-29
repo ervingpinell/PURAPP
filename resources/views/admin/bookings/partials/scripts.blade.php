@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const emailInput     = document.getElementById('customerEmailSearch');
   const btnValidate    = document.getElementById('btnValidateEmail');
 
-  const dateInput      = form?.querySelector('#tourDate');
+  const dateInput      = form?.querySelector('#productDate');
   const productSel        = form?.querySelector('#selectTour');
   const schedSel       = form?.querySelector('#selectSchedule');
 
@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================================
-  // Build schedules al cambiar tour
+  // Build schedules al cambiar product
   // =========================================================================
   const rebuildSchedules = () => {
     if (!productSel || !schedSel) return;

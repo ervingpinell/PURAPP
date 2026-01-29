@@ -25,7 +25,7 @@ class PaymentReminderMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        $locale = $this->booking->tour->lang ?? config('app.locale');
+        $locale = $this->booking->product->lang ?? config('app.locale');
         $subject = __('reviews.emails.booking.payment_reminder_subject', ['ref' => $this->booking->booking_reference], $locale);
 
         return new Envelope(

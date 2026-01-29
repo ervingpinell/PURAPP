@@ -158,12 +158,12 @@
 
     // Debug: Check what we have
     $debugInfo[] = "Detail exists: " . ($booking->detail ? 'YES' : 'NO');
-    $debugInfo[] = "tour_language_id: " . ($booking->detail->tour_language_id ?? 'NULL');
-    $debugInfo[] = "tourLanguage loaded: " . ($booking->detail && $booking->relationLoaded('detail') && $booking->detail->relationLoaded('tourLanguage') ? 'YES' : 'NO');
+    $debugInfo[] = "product_language_id: " . ($booking->detail->product_language_id ?? 'NULL');
+    $debugInfo[] = "productLanguage loaded: " . ($booking->detail && $booking->relationLoaded('detail') && $booking->detail->relationLoaded('productLanguage') ? 'YES' : 'NO');
 
     // Try to get language - MAP BY NAME since table doesn't have 'code' field
-    if ($booking->detail && $booking->detail->tourLanguage) {
-    $productLang = $booking->detail->tourLanguage;
+    if ($booking->detail && $booking->detail->productLanguage) {
+    $productLang = $booking->detail->productLanguage;
     $langName = mb_strtolower(trim($productLang->name ?? ''));
     $debugInfo[] = "ProductLanguage found: {$productLang->name}";
 
@@ -298,7 +298,7 @@
     }
 
     // Dates
-    $productDate = $detail->tour_date ? Carbon::parse($detail->tour_date)->isoFormat('DD/MMM/YYYY') : '—';
+    $productDate = $detail->product_date ? Carbon::parse($detail->product_date)->isoFormat('DD/MMM/YYYY') : '—';
 
     // Promo
     $redemption = $booking->redemption;
@@ -338,7 +338,7 @@
     {{-- Main Info --}}
     <div class="info-block">
         <div class="info-line highlight">
-            <span class="label">{{ __('m_bookings.receipt.tour_date', [], $receiptLocale) }}</span>
+            <span class="label">{{ __('m_bookings.receipt.product_date', [], $receiptLocale) }}</span>
             <span class="value">{{ $productDate }}</span>
         </div>
 
@@ -348,7 +348,7 @@
         </div>
 
         <div class="info-line">
-            <span class="label">{{ __('m_bookings.receipt.tour', [], $receiptLocale) }}</span>
+            <span class="label">{{ __('m_bookings.receipt.product', [], $receiptLocale) }}</span>
             <span class="value">{{ $productName }}</span>
         </div>
 

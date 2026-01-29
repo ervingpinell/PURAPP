@@ -24,7 +24,7 @@
   </div>
   <div class="card-body">
     <div class="p-3 table-responsive">
-      @can('create-tour-languages')
+      @can('create-product-languages')
       <a href="#" class="btn btn-success mb-3" data-toggle="modal" data-target="#modalRegistrar">
         <i class="fas fa-plus"></i> {{ __('m_tours.language.ui.add') }}
       </a>
@@ -42,7 +42,7 @@
         <tbody>
           @foreach ($languages as $language)
           <tr>
-            <td>{{ $language->tour_language_id }}</td>
+            <td>{{ $language->product_language_id }}</td>
             <td>{{ $language->name }}</td>
             <td class="text-center">
               @if ($language->is_active)
@@ -53,18 +53,18 @@
             </td>
             <td class="text-center">
               {{-- Editar --}}
-              @can('edit-tour-languages')
+              @can('edit-product-languages')
               <a href="#" class="btn btn-edit btn-sm"
                 data-toggle="modal"
-                data-target="#modalEditar{{ $language->tour_language_id }}"
+                data-target="#modalEditar{{ $language->product_language_id }}"
                 title="{{ __('m_tours.language.ui.edit_title') }}">
                 <i class="fas fa-edit"></i>
               </a>
               @endcan
 
               {{-- Alternar activar/desactivar (PATCH) --}}
-              @can('publish-tour-languages')
-              <form action="{{ route('admin.languages.toggle', $language->tour_language_id) }}"
+              @can('publish-product-languages')
+              <form action="{{ route('admin.languages.toggle', $language->product_language_id) }}"
                 method="POST"
                 class="d-inline form-toggle-language"
                 data-name="{{ $language->name }}"
@@ -80,8 +80,8 @@
               @endcan
 
               {{-- Delete Button (Soft Delete) --}}
-              @can('soft-delete-tour-languages')
-              <form action="{{ route('admin.languages.destroy', $language->tour_language_id) }}"
+              @can('soft-delete-product-languages')
+              <form action="{{ route('admin.languages.destroy', $language->product_language_id) }}"
                 method="POST"
                 class="d-inline form-delete-language"
                 data-name="{{ $language->name }}">
@@ -97,9 +97,9 @@
           </tr>
 
           {{-- Modal Editar --}}
-          <div class="modal fade" id="modalEditar{{ $language->tour_language_id }}" tabindex="-1" aria-hidden="true">
+          <div class="modal fade" id="modalEditar{{ $language->product_language_id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog">
-              <form action="{{ route('admin.languages.update', $language->tour_language_id) }}"
+              <form action="{{ route('admin.languages.update', $language->product_language_id) }}"
                 method="POST"
                 class="form-edit-language">
                 @csrf

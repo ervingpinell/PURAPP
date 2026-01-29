@@ -1,12 +1,12 @@
-{{-- resources/views/admin/tourtypes/trash.blade.php --}}
+{{-- resources/views/admin/producttypes/trash.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('m_config.tourtypes.trash_title') ?? 'Papelera de Tipos de Tour')
+@section('title', __('m_config.producttypes.trash_title') ?? 'Papelera de Tipos de Tour')
 
 @section('content_header')
 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
     <h1 class="m-0">
-        <i class="fas fa-trash me-2"></i>{{ __('m_config.tourtypes.trash_header') ?? 'Papelera de Tipos de Tour' }}
+        <i class="fas fa-trash me-2"></i>{{ __('m_config.producttypes.trash_header') ?? 'Papelera de Tipos de Tour' }}
     </h1>
     <a href="{{ route('admin.product-types.index') }}" class="btn btn-secondary">
         <i class="fas fa-arrow-left me-1"></i> {{ __('m_config.buttons.back') ?? 'Volver' }}
@@ -19,7 +19,7 @@
     <div class="card-body">
         @if($productTypes->isEmpty())
         <div class="alert alert-info mb-0">
-            <i class="fas fa-info-circle me-2"></i>{{ __('m_config.tourtypes.trash_empty') ?? 'No hay tipos de tour eliminados' }}
+            <i class="fas fa-info-circle me-2"></i>{{ __('m_config.producttypes.trash_empty') ?? 'No hay tipos de product eliminados' }}
         </div>
         @else
         <div class="table-responsive">
@@ -63,7 +63,7 @@
                         </td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
-                                @can('restore-tour-types')
+                                @can('restore-product-types')
                                 <form action="{{ route('admin.product-types.restore', $productType->product_type_id) }}" method="POST" class="d-inline restore-form">
                                     @csrf
                                     @method('PATCH')
@@ -73,7 +73,7 @@
                                 </form>
                                 @endcan
 
-                                @can('hard-delete-tour-types')
+                                @can('hard-delete-product-types')
                                 <form action="{{ route('admin.product-types.forceDelete', $productType->product_type_id) }}" method="POST" class="d-inline force-delete-form">
                                     @csrf
                                     @method('DELETE')
@@ -110,7 +110,7 @@
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 Swal.fire({
-                    title: '¿Restaurar tipo de tour?',
+                    title: '¿Restaurar tipo de product?',
                     text: 'Volverá a estar disponible',
                     icon: 'question',
                     showCancelButton: true,

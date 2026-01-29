@@ -8,7 +8,7 @@ use App\Models\HotelList;
 use App\Models\MeetingPoint;
 use App\Models\Product;
 use App\Models\ProductExcludedDate;
-use App\Models\TourType;
+use App\Models\ProductType;
 use App\Models\CustomerCategory;
 use App\Services\Bookings\BookingCapacityService;
 use App\Services\Reviews\ReviewDistributor;
@@ -27,7 +27,7 @@ use Throwable;
 /**
  * HomeController
  *
- * Handles homepage display and public tour listings.
+ * Handles homepage display and public product listings.
  */
 class HomeController extends Controller
 {
@@ -41,7 +41,7 @@ class HomeController extends Controller
             $typeMeta = $this->loadTypeMeta($currentLocale, $fallbackLocale);
 
             // 2) Cargar productos activos con traducciones y precios (categorías) + translations de categoría
-            $products = $this->loadActiveToursWithTranslations($currentLocale, $fallbackLocale)
+            $products = $this->loadActiveProductsWithTranslations($currentLocale, $fallbackLocale)
                 ->map(function ($product) use ($currentLocale, $fallbackLocale) {
                     $tr = $this->pickTranslation($product->translations, $currentLocale, $fallbackLocale);
                     $product->translated_name = $tr->name ?? $product->name;
@@ -49,12 +49,12 @@ class HomeController extends Controller
                 });
 
             // Agrupa conservando el orden
-            $productsByType = $products->groupBy(fn($product) => $product->tour_type_id_group);
+            $productsByType = $products->groupBy(fn($product) => $product->product_type_id_group);
 
             // 3) Reviews para HOME usando ReviewDistributor
             $cacheKey = 'home_reviews:' . $currentLocale . ':' . $cacheManager->getRevision();
             $homeReviews = Cache::remember($cacheKey, 86400, function () use ($distributor, $products) {
-                return $distributor->forHome($products, perTour: 3, maxTotal: 24);
+                return $distributor->forHome($products, perProduct: 3, maxTotal: 24);
             });
 
             // 4) Asegurar nombre traducido y slug en cada review
@@ -67,8 +67,8 @@ class HomeController extends Controller
                             $tr = $this->pickTranslation($product->translations, $currentLocale, $fallbackLocale);
                             $product->translated_name = $tr->name ?? $product->name;
                         }
-                        $review['tour_name'] = $product->translated_name ?? $product->name;
-                        $review['tour_slug'] = $product->slug;
+                        $review['product_name'] = $product->translated_name ?? $product->name;
+                        $review['product_slug'] = $product->slug;
                     }
                 }
                 return $review;
@@ -120,13 +120,13 @@ class HomeController extends Controller
 
         try {
             $product->load([
-                'tourType.translations',
+                'productType.translations',
                 'images',
                 'schedules' => fn($q) => $q->where('schedules.is_active', true)
                     ->wherePivot('is_active', true)
                     ->orderBy('schedules.start_time'),
                 'languages' => fn($q) => $q->wherePivot('is_active', true)
-                    ->where('tour_languages.is_active', true)
+                    ->where('product_languages.is_active', true)
                     ->orderBy('name'),
                 // 👇 Aquí cargamos translations de la categoría
                 'prices' => fn($q) => $q->where('is_active', true)
@@ -139,7 +139,7 @@ class HomeController extends Controller
                 'excludedAmenities.translations',
             ]);
 
-            // Traducciones del tour
+            // Traducciones del product
             $tr = $this->pickTranslation($product->translations, $loc, $fb);
             $product->translated_name     = $tr->name ?? $product->name;
             $product->translated_overview = $tr->overview ?? $product->overview;
@@ -169,7 +169,7 @@ class HomeController extends Controller
             }
 
             // [1] Fechas bloqueadas
-            [$blockedGeneral, $blockedBySchedule, $fullyBlockedDates] = $this->computeTourBlocks($product);
+            [$blockedGeneral, $blockedBySchedule, $fullyBlockedDates] = $this->computeProductBlocks($product);
 
             // [2] Fechas llenas por capacidad usando el servicio
             $capacityDisabled = [];
@@ -205,7 +205,7 @@ class HomeController extends Controller
             // [3] Reviews con caché
             $productName = $product->translated_name;
             $productId   = $product->product_id;
-            $cacheKey = "product_reviews_pool:{$productId}:" . $cacheManager->getRevision("tour.{$productId}");
+            $cacheKey = "product_reviews_pool:{$productId}:" . $cacheManager->getRevision("product.{$productId}");
 
             $productReviews = Cache::remember($cacheKey, 86400, function () use ($agg, $productId, $productName) {
                 return $agg->aggregate(['product_id' => $productId, 'limit' => 100])
@@ -221,7 +221,7 @@ class HomeController extends Controller
                                 trim($r['date'] ?? '')
                         );
                     })
-                    ->map(fn($r) => array_merge($r, ['tour_name' => $productName, 'product_id' => $productId]))
+                    ->map(fn($r) => array_merge($r, ['product_name' => $productName, 'product_id' => $productId]))
                     ->values();
             });
 
@@ -229,7 +229,7 @@ class HomeController extends Controller
             $reservationData = $this->prepareReservationData($product);
 
             return view('public.product-show', array_merge([
-                'tour'               => $product, // Keep 'tour' key for view compatibility for now, or rename in view
+                'product'           => $product, // Keep 'product' key for view compatibility for now, or rename in view
                 'blockedGeneral'     => $blockedGeneral,
                 'blockedBySchedule'  => $blockedBySchedule,
                 'fullyBlockedDates'  => $fullyBlockedDates,
@@ -241,7 +241,7 @@ class HomeController extends Controller
                 'meetingPoints'      => $this->loadMeetingPoints(true),
             ], $reservationData));
         } catch (Throwable $e) {
-            Log::error('tour.show.failed', [
+            Log::error('product.show.failed', [
                 'product_id' => $product->product_id ?? 'unknown',
                 'error'   => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
@@ -256,7 +256,7 @@ class HomeController extends Controller
         $fb  = config('app.fallback_locale', 'es');
 
         // =========================
-        // QUERY DE TOURS
+        // QUERY DE PRODUCTS
         // =========================
         $query = Product::query()
             ->active() // scopeActive: is_active = true & is_draft = false
@@ -264,7 +264,7 @@ class HomeController extends Controller
                 'coverImage',
                 'prices.category.translations',
                 'itinerary.items.translations',
-                'tourType.translations',
+                'productType.translations',
             ]);
 
         // Filtro por texto
@@ -277,20 +277,20 @@ class HomeController extends Controller
             });
         }
 
-        // 🟢 Filtro por categoría de TOUR (tour_type_id)
+        // 🟢 Filtro por categoría de PRODUCT (product_type_id)
         if ($typeId = $request->input('category')) {
-            $query->where('tour_type_id', (int) $typeId);
+            $query->where('product_type_id', (int) $typeId);
         }
 
         $products = $query
-            ->leftJoin('tour_type_tour_order as o', function ($join) {
-                $join->on('o.product_id', '=', 'tours.product_id')
-                    ->on('o.tour_type_id', '=', 'tours.tour_type_id');
+            ->leftJoin('product_type_product_order as o', function ($join) {
+                $join->on('o.product_id', '=', 'products.product_id')
+                    ->on('o.product_type_id', '=', 'products.product_type_id');
             })
-            ->orderBy('tours.tour_type_id')
+            ->orderBy('products.product_type_id')
             ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
             ->orderBy('o.position')
-            ->orderByRaw("tours.name->>'$loc' ASC")
+            ->orderByRaw("products.name->>'$loc' ASC")
             ->paginate(12)
             ->withQueryString()
             ->through(function ($product) use ($loc, $fb) {
@@ -302,10 +302,10 @@ class HomeController extends Controller
         // =========================
         // CATEGORÍAS PARA EL SELECT
         // =========================
-        $categories = TourType::query()
+        $categories = ProductType::query()
             ->where('is_active', true)
             ->get()
-            ->map(function (TourType $type) use ($loc, $fb) {
+            ->map(function (ProductType $type) use ($loc, $fb) {
                 $tr = $type->translations
                     ->firstWhere('locale', $loc)
                     ?? $type->translations->firstWhere('locale', $fb);
@@ -323,7 +323,7 @@ class HomeController extends Controller
     }
 
     /**
-     * Display products by subcategory (e.g., /tours/full-day)
+     * Display products by subcategory (e.g., /products/full-day)
      */
     public function bySubcategory(Request $request, string $category, string $subcategory)
     {
@@ -342,18 +342,18 @@ class HomeController extends Controller
                 'coverImage',
                 'prices.category.translations',
                 'itinerary.items.translations',
-                'tourType.translations',
+                'productType.translations',
             ])
             ->where('product_category', $category)
             ->where('subcategory', $subcategory);
 
         // Apply ordering
         $products = $query
-            ->leftJoin('tour_type_tour_order as o', function ($join) {
+            ->leftJoin('product_type_product_order as o', function ($join) {
                 $join->on('o.product_id', '=', 'product2.product_id')
-                     ->on('o.tour_type_id', '=', 'product2.tour_type_id');
+                     ->on('o.product_type_id', '=', 'product2.product_type_id');
             })
-            ->orderBy('product2.tour_type_id')
+            ->orderBy('product2.product_type_id')
             ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
             ->orderBy('o.position')
             ->orderByRaw("product2.name->>'$loc' ASC")
@@ -392,13 +392,13 @@ class HomeController extends Controller
     {
         $cacheKey = "home_type_meta:{$loc}";
         return Cache::remember($cacheKey, 3600, function () use ($loc, $fb) {
-            return TourType::active()
+            return ProductType::active()
                 ->withTranslation()
                 ->get()
                 ->map(function ($type) use ($loc, $fb) {
                     $tr = $this->pickTranslation($type->translations, $loc, $fb);
                     return [
-                        'id'          => $type->tour_type_id,
+                        'id'          => $type->product_type_id,
                         'title'       => $tr->name ?? '',
                         'duration'    => $tr->duration ?? '',
                         'description' => $tr->description ?? '',
@@ -410,14 +410,14 @@ class HomeController extends Controller
         });
     }
 
-    private function loadActiveToursWithTranslations(string $loc, string $fb): Collection
+    private function loadActiveProductsWithTranslations(string $loc, string $fb): Collection
     {
-        $cacheKey = "home_active_tours:{$loc}";
+        $cacheKey = "home_active_products:{$loc}";
         return Cache::remember($cacheKey, 3600, function () use ($loc, $fb) {
             return Product::query()
                 ->with([
-                    'tourType:tour_type_id',
-                    'tourType.translations',
+                    'productType:product_type_id',
+                    'productType.translations',
                     'coverImage',
                     // 👇 Aquí también cargamos translations de la categoría
                     'prices' => function ($q) {
@@ -427,29 +427,29 @@ class HomeController extends Controller
                             ->orderBy('category_id');
                     }
                 ])
-                ->leftJoin('tour_type_tour_order as o', function ($join) {
-                    $join->on('o.product_id', '=', 'tours.product_id')
-                        ->on('o.tour_type_id', '=', 'tours.tour_type_id');
+                ->leftJoin('product_type_product_order as o', function ($join) {
+                    $join->on('o.product_id', '=', 'products.product_id')
+                        ->on('o.product_type_id', '=', 'products.product_type_id');
                 })
-                ->where('tours.is_active', true)
-                ->orderBy('tours.tour_type_id')
+                ->where('products.is_active', true)
+                ->orderBy('products.product_type_id')
                 ->orderByRaw('CASE WHEN o.position IS NULL THEN 1 ELSE 0 END')
                 ->orderBy('o.position')
-                ->orderByRaw("tours.name->>'$loc' ASC")
+                ->orderByRaw("products.name->>'$loc' ASC")
                 ->get([
-                    'tours.product_id',
-                    'tours.name',
-                    'tours.slug',
-                    'tours.tour_type_id',
-                    'tours.length',
-                    'tours.max_capacity',
-                    'tours.overview', // Needed for optimization
+                    'products.product_id',
+                    'products.name',
+                    'products.slug',
+                    'products.product_type_id',
+                    'products.length',
+                    'products.max_capacity',
+                    'products.overview', // Needed for optimization
                 ])
                 ->map(function ($product) use ($loc, $fb) {
                     $tr = $this->pickTranslation($product->translations, $loc, $fb);
                     $product->translated_name     = $tr->name ?? $product->name;
                     $product->translated_overview = $tr->overview ?? $product->overview;
-                    $product->tour_type_id_group  = optional($product->tourType)->tour_type_id ?? 'uncategorized';
+                    $product->product_type_id_group  = optional($product->productType)->product_type_id ?? 'uncategorized';
 
                     // Filtrar precios activos con categorías activas
                     $activePrices = $product->prices->filter(function ($price) {
@@ -480,7 +480,7 @@ class HomeController extends Controller
         });
     }
 
-    private function computeTourBlocks(Product $product): array
+    private function computeProductBlocks(Product $product): array
     {
         $visibleScheduleIds = $product->schedules->pluck('schedule_id')->map(fn($sid) => (int)$sid)->all();
 
@@ -750,17 +750,17 @@ class HomeController extends Controller
 
         $rulesPayload = [
             'tz' => $tz,
-            'tour' => $productRule,
+            product' => $productRule,
             'schedules' => $scheduleRules,
             'initialMin' => $initialMin,
         ];
 
         // 6. Traducciones para el calendario
         $calendarTranslations = [
-            'price_lower' => __('m_tours.tour.pricing.price_lower'),
-            'price_higher' => __('m_tours.tour.pricing.price_higher'),
-            'price_normal' => __('m_tours.tour.pricing.price_normal'),
-            'price_legend' => __('m_tours.tour.pricing.price_legend'),
+            'price_lower' => __('m_products.product.pricing.price_lower'),
+            'price_higher' => __('m_products.product.pricing.price_higher'),
+            'price_normal' => __('m_products.product.pricing.price_normal'),
+            'price_legend' => __('m_products.product.pricing.price_legend'),
         ];
 
         // 7. Textos i18n para viajeros
@@ -771,7 +771,7 @@ class HomeController extends Controller
             'max_persons_reached' => __('m_bookings.travelers.max_persons_reached'),
             'max_category_reached' => __('m_bookings.travelers.max_category_reached'),
             'invalid_quantity' => __('m_bookings.travelers.invalid_quantity'),
-            'price_not_available' => __('m_tours.tour.pricing.not_available_for_date') ?? 'No disponible para esta fecha',
+            'price_not_available' => __('m_products.product.pricing.not_available_for_date') ?? 'No disponible para esta fecha',
             // Validaciones submit
             'min_category_required' => __('adminlte::adminlte.min_category_required'),
             'max_category_exceeded' => __('adminlte::adminlte.max_category_exceeded'),

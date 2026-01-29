@@ -336,12 +336,12 @@ $schemaOrg = [
         @endphp
         
         @if(branding('text_shadow_headings', '1') == '1')
-        h1:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
-        h2:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
-        h3:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
-        h4:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
-        h5:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title), 
-        h6:not(.tour-title-abs):not(.card-title):not(.tour-title-main):not(.review-title) {
+        h1:not(.product-title-abs):not(.card-title):not(.product-title-main):not(.review-title), 
+        h2:not(.product-title-abs):not(.card-title):not(.product-title-main):not(.review-title), 
+        h3:not(.product-title-abs):not(.card-title):not(.product-title-main):not(.review-title), 
+        h4:not(.product-title-abs):not(.card-title):not(.product-title-main):not(.review-title), 
+        h5:not(.product-title-abs):not(.card-title):not(.product-title-main):not(.review-title), 
+        h6:not(.product-title-abs):not(.card-title):not(.product-title-main):not(.review-title) {
             text-shadow: {!! $textShadow !!};
         }
         @endif

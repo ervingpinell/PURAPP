@@ -39,9 +39,9 @@ class PendingDraftsReminder extends Notification
         $count = $this->drafts->count();
 
         $message = (new MailMessage)
-            ->subject("Tienes {$count} tour(es) en borrador sin completar")
+            ->subject("Tienes {$count} product(s) en borrador sin completar")
             ->greeting("¡Hola {$notifiable->name}!")
-            ->line("Tienes **{$count} tour(es) en borrador** que no has completado.");
+            ->line("Tienes **{$count} product(s) en borrador** que no has completado.");
 
         // Si hay solo un draft
         if ($count === 1) {
@@ -92,7 +92,7 @@ class PendingDraftsReminder extends Notification
                     'url' => route('admin.products.wizard.continue', $draft),
                 ];
             })->toArray(),
-            'message' => "Tienes {$count} tour(es) en borrador sin completar",
+            'message' => "Tienes {$count} product(s) en borrador sin completar",
             'action_url' => route('admin.products.wizard.create'),
             'action_text' => 'Ver Borradores',
         ];

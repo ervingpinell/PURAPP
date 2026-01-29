@@ -32,7 +32,7 @@ class ReviewsController extends Controller
     }
 
     /**
-     * Índice de reviews agrupadas por tour
+     * Índice de reviews agrupadas por product
      */
 public function index(Request $request)
 {
@@ -42,7 +42,7 @@ public function index(Request $request)
 
     // 1) Productos activos CON SLUG
     $q = Product::where('is_active', true);
-    if (Schema::hasColumn('tours', 'sort_order')) {
+    if (Schema::hasColumn('products', 'sort_order')) {
         $q->orderByRaw('sort_order IS NULL, sort_order ASC');
     }
     $q->orderBy('name');
@@ -128,7 +128,7 @@ public function product(
         $locale = app()->getLocale();
         $fallback = config('app.fallback_locale', 'es');
 
-        // Ya no necesitas find(), Laravel resolvió el tour
+        // Ya no necesitas find(), Laravel resolvió el product
         $product->load('translations');
 
         $tr = ($product->translations ?? collect())->firstWhere('locale', $locale)
@@ -159,7 +159,7 @@ public function product(
             );
         })->values();
 
-        // 2) Si no hay suficientes, traer de otros tours
+        // 2) Si no hay suficientes, traer de otros products
         if ($ownReviews->count() < $target) {
             $needed = $target - $ownReviews->count();
 

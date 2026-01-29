@@ -25,8 +25,8 @@ if($c->isNotEmpty()){
 foreach($c as $x){ $s+=(int)($x['quantity']??0)*(float)($x['price']??0); }
 return (float)$s;
 }
-$s+=(int)($it->adults_quantity??0)*(float)($it->tour->adult_price??0);
-$s+=(int)($it->kids_quantity??0)*(float)($it->tour->kid_price??0);
+$s+=(int)($it->adults_quantity??0)*(float)($it->product->adult_price??0);
+$s+=(int)($it->kids_quantity??0)*(float)($it->product->kid_price??0);
 return (float)$s;
 };
 
@@ -414,15 +414,15 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
         $hotel = data_get($it,'hotel');
         $pickupAt = data_get($it,'pickup_time');
         $addons = collect(data_get($it,'addons',[]));
-        $duration = data_get($it,'tour.length') ?? data_get($it,'duration');
+        $duration = data_get($it,'product.length') ?? data_get($it,'duration');
         $guide = data_get($it,'guide.name');
         $notes = data_get($it,'notes') ?? data_get($it,'special_requests');
         $tz = config('app.timezone','America/Costa_Rica');
         @endphp
 
-        <div class="tour-item">
-          <div class="tour-name">
-            {{ $it->tour->getTranslatedName() ?? $it->tour->name }}
+        <div class="product-item">
+          <div class="product-name">
+            {{ $it->product->getTranslatedName() ?? $it->product->name }}
           </div>
 
           @if($ref || $line)
@@ -442,10 +442,10 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
           </div>
           @endif
 
-          <div class="tour-details">
+          <div class="product-details">
             <span>
               <i class="far fa-calendar-alt"></i>
-              {{ \Carbon\Carbon::parse($it->tour_date)->format('l, F d, Y') }}
+              {{ \Carbon\Carbon::parse($it->product_date)->format('l, F d, Y') }}
             </span>
 
             @if($it->schedule)
@@ -621,7 +621,7 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
             @if((int)($it->adults_quantity ?? 0) > 0)
             @php
             $q = (int) $it->adults_quantity;
-            $u = (float) ($it->tour->adult_price ?? 0);
+            $u = (float) ($it->product->adult_price ?? 0);
             @endphp
             <div class="category-line">
               <div class="category-left">
@@ -639,7 +639,7 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
             @if((int)($it->kids_quantity ?? 0) > 0)
             @php
             $q = (int) $it->kids_quantity;
-            $u = (float) ($it->tour->kid_price ?? 0);
+            $u = (float) ($it->product->kid_price ?? 0);
             @endphp
             <div class="category-line">
               <div class="category-left">
@@ -657,7 +657,7 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
           </div>
           @endif
 
-          <div class="tour-price">${{ $fmt($s) }}</div>
+          <div class="product-price">${{ $fmt($s) }}</div>
         </div>
         @endforeach
       </div>
@@ -769,14 +769,14 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
         @php $s = $itemSub($it); @endphp
         <div class="item-detail">
           <div class="item-header d-flex justify-content-between align-items-center">
-            <strong>{{ $it->tour->getTranslatedName() ?? $it->tour->name }}</strong>
+            <strong>{{ $it->product->getTranslatedName() ?? $it->product->name }}</strong>
             <span class="price">${{ $fmt($s) }}</span>
           </div>
 
           <div class="item-meta d-flex flex-wrap gap-3">
             <span>
               <i class="far fa-calendar-alt"></i>
-              {{ \Carbon\Carbon::parse($it->tour_date)->format('l, F d, Y') }}
+              {{ \Carbon\Carbon::parse($it->product_date)->format('l, F d, Y') }}
             </span>
             @if($it->schedule)
             <span>
@@ -802,7 +802,7 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
           $hotel = data_get($it,'hotel');
           $pickupAt= data_get($it,'pickup_time');
           $addons = collect(data_get($it,'addons',[]));
-          $duration= data_get($it,'tour.length') ?? data_get($it,'duration');
+          $duration= data_get($it,'product.length') ?? data_get($it,'duration');
           $guide = data_get($it,'guide.name');
           $notes = data_get($it,'notes') ?? data_get($it,'special_requests');
           $tz = config('app.timezone','America/Costa_Rica');
@@ -956,7 +956,7 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
             @if((int)($it->adults_quantity ?? 0) > 0)
             @php
             $q = (int) $it->adults_quantity;
-            $u = (float) ($it->tour->adult_price ?? 0);
+            $u = (float) ($it->product->adult_price ?? 0);
             @endphp
             <div class="category-line">
               <div class="category-left">
@@ -973,7 +973,7 @@ $freeCancelText = __('m_checkout.summary.free_cancellation') . ' — ' . $cutTim
             @if((int)($it->kids_quantity ?? 0) > 0)
             @php
             $q = (int) $it->kids_quantity;
-            $u = (float) ($it->tour->kid_price ?? 0);
+            $u = (float) ($it->product->kid_price ?? 0);
             @endphp
             <div class="category-line">
               <div class="category-left">

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\Product;
-use App\Models\TourLanguage;
+use App\Models\ProductLanguage;
 use App\Models\CustomerCategory;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -24,7 +24,7 @@ class ReportsController extends Controller
         // ====== Inputs & defaults ======
         $groupBy = $request->string('group_by')->isNotEmpty()
             ? $request->string('group_by')->toString()
-            : 'booking_date'; // booking_date | tour_date
+            : 'booking_date'; // booking_date | product_date
 
         $period  = $request->string('period')->isNotEmpty()
             ? $request->string('period')->toString()
@@ -42,11 +42,11 @@ class ReportsController extends Controller
 
         // Multiple filters
         $productIds = collect((array) $request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $langIds = collect((array) $request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $langIds = collect((array) $request->input('product_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         // ====== Catalogs for selects ======
         $productsMap = Product::pluck('name', 'product_id');
-        $langsMap = TourLanguage::pluck('name', 'tour_language_id');
+        $langsMap = ProductLanguage::pluck('name', 'product_language_id');
 
         // ====== Base Query ======
         $baseQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, $productIds, $langIds);
@@ -114,7 +114,7 @@ class ReportsController extends Controller
             ->selectRaw('
                 bookings.booking_id,
                 bookings.booking_reference,
-                MIN(booking_details.tour_date) as tour_date,
+                MIN(booking_details.product_date) as product_date,
                 bookings.created_at as booking_date,
                 bookings.total,
                 users.email as customer_email,
@@ -167,13 +167,13 @@ class ReportsController extends Controller
         $status  = $request->input('status');
 
         $productIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $langIds = collect((array)$request->input('product_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         // === base ===
         $baseQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, $productIds, $langIds);
 
         // === Determine date column and format ===
-        $dateColumn = $groupBy === 'tour_date' ? 'bookings.tour_date' : 'bookings.created_at';
+        $dateColumn = $groupBy === 'product_date' ? 'bookings.product_date' : 'bookings.created_at';
 
         if ($period === 'day') {
             $dateFormat = 'Y-m-d';
@@ -234,24 +234,24 @@ class ReportsController extends Controller
         $status  = $request->input('status');
 
         $productIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $langIds = collect((array)$request->input('product_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         $baseQuery = $this->buildBaseQuery($from, $to, $groupBy, $status, $productIds, $langIds);
 
         $rows = (clone $baseQuery)
             ->selectRaw('
-                booking_details.tour_language_id,
-                tour_languages.name as language_name,
+                booking_details.product_language_id,
+                product_languages.name as language_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
-            ->leftJoin('tour_languages', 'tour_languages.tour_language_id', '=', 'booking_details.tour_language_id')
-            ->groupBy('booking_details.tour_language_id', 'tour_languages.name')
+            ->leftJoin('product_languages', 'product_languages.product_language_id', '=', 'booking_details.product_language_id')
+            ->groupBy('booking_details.product_language_id', 'product_languages.name')
             ->orderByDesc('revenue')
             ->get();
 
         return response()->json([
-            'keys'   => $rows->pluck('tour_language_id'),
+            'keys'   => $rows->pluck('product_language_id'),
             'labels' => $rows->pluck('language_name')->map(fn($name) => $name ?? 'N/A'),
             'series' => [
                 'revenue'  => $rows->pluck('revenue')->map(fn($v) => round((float)$v, 2)),
@@ -265,7 +265,7 @@ class ReportsController extends Controller
      */
     private function buildBaseQuery(Carbon $from, Carbon $to, string $groupBy, ?string $status, array $productIds, array $langIds)
     {
-        $dateColumn = $groupBy === 'tour_date' ? 'bookings.tour_date' : 'bookings.created_at';
+        $dateColumn = $groupBy === 'product_date' ? 'bookings.product_date' : 'bookings.created_at';
 
         $query = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
@@ -281,7 +281,7 @@ class ReportsController extends Controller
         }
 
         if (!empty($langIds)) {
-            $query->whereIn('booking_details.tour_language_id', $langIds);
+            $query->whereIn('booking_details.product_language_id', $langIds);
         }
 
         return $query;
@@ -321,11 +321,11 @@ class ReportsController extends Controller
 
         $status = $request->input('status');
         $productIds = array_filter((array) $request->input('product_id', []));
-        $langIds = array_filter((array) $request->input('tour_language_id', []));
+        $langIds = array_filter((array) $request->input('product_language_id', []));
         $categoryIds = array_filter((array) $request->input('category_id', []));
 
         $groupBy = $request->input('group_by', 'booking_date');
-        $dateColumn = $groupBy === 'tour_date' ? 'booking_details.tour_date' : 'bookings.created_at';
+        $dateColumn = $groupBy === 'product_date' ? 'booking_details.product_date' : 'bookings.created_at';
 
         // Get all customer categories for mapping
         $categoriesMap = CustomerCategory::pluck('name', 'category_id')->toArray();
@@ -337,7 +337,7 @@ class ReportsController extends Controller
             ->whereBetween($dateColumn, [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->when(!empty($productIds), fn($q) => $q->whereIn('booking_details.product_id', $productIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('booking_details.tour_language_id', $langIds))
+            ->when(!empty($langIds), fn($q) => $q->whereIn('booking_details.product_language_id', $langIds))
             ->select(
                 'booking_details.booking_detail_id',
                 'booking_details.categories',
@@ -447,9 +447,9 @@ class ReportsController extends Controller
         $status = $request->input('status');
 
         $productIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $langIds = collect((array)$request->input('product_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
-        $dateColumn = $groupBy === 'tour_date' ? 'bookings.tour_date' : 'bookings.created_at';
+        $dateColumn = $groupBy === 'product_date' ? 'bookings.product_date' : 'bookings.created_at';
 
         $query = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
@@ -466,7 +466,7 @@ class ReportsController extends Controller
         }
 
         if (!empty($langIds)) {
-            $query->whereIn('booking_details.tour_language_id', $langIds);
+            $query->whereIn('booking_details.product_language_id', $langIds);
         }
 
         // Get category names with translations

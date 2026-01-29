@@ -1,13 +1,13 @@
 {{-- resources/views/admin/tours/create.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('m_tours.tour.ui.create_title'))
+@section('title', __('m_tours.product.ui.create_title'))
 
 @section('content_header')
   <div class="d-flex justify-content-between align-items-center">
-    <h1 class="mb-0">{{ __('m_tours.tour.ui.create_title') }}</h1>
+    <h1 class="mb-0">{{ __('m_tours.product.ui.create_title') }}</h1>
     <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">
-      <i class="fas fa-arrow-left"></i> {{ __('m_tours.tour.ui.cancel') }}
+      <i class="fas fa-arrow-left"></i> {{ __('m_tours.product.ui.cancel') }}
     </a>
   </div>
 @stop
@@ -31,7 +31,7 @@
       'product'        => null,
   ])
 
-  {{-- Paso 1: Detalles del tour (crea draft vía wizard) --}}
+  {{-- Paso 1: Detalles del product (crea draft vía wizard) --}}
   <form action="{{ route('admin.products.wizard.store.details') }}"
         method="POST"
         id="tourWizardForm"
@@ -42,7 +42,7 @@
       <div class="card-header">
         <h3 class="card-title">
           <i class="fas fa-info-circle"></i>
-          {{ __('m_tours.tour.fields.details') }}
+          {{ __('m_tours.product.fields.details') }}
         </h3>
       </div>
 
@@ -53,12 +53,12 @@
 
       <div class="card-footer d-flex gap-2 justify-content-between">
         <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">
-          <i class="fas fa-times"></i> {{ __('m_tours.tour.ui.cancel') }}
+          <i class="fas fa-times"></i> {{ __('m_tours.product.ui.cancel') }}
         </a>
 
         <button type="submit" class="btn btn-success">
           <i class="fas fa-arrow-right"></i>
-          {{ __('m_tours.tour.wizard.next_step') }}
+          {{ __('m_tours.product.wizard.next_step') }}
         </button>
       </div>
     </div>
@@ -79,22 +79,22 @@
           <div class="modal-header" style="background: #facc15; color:#111827;">
             <h5 class="modal-title" id="draftsModalLabel">
               <i class="fas fa-exclamation-triangle"></i>
-              {{ __('m_tours.tour.wizard.existing_drafts_title') }}
+              {{ __('m_tours.product.wizard.existing_drafts_title') }}
             </h5>
           </div>
 
           <div class="modal-body" style="background:#111827; color:#e5e7eb;">
             <p class="lead mb-3">
-              {{ __('m_tours.tour.wizard.existing_drafts_message', ['count' => $existingDrafts->count()]) }}
+              {{ __('m_tours.product.wizard.existing_drafts_message', ['count' => $existingDrafts->count()]) }}
             </p>
 
             <div class="table-responsive">
               <table class="table table-hover table-sm mb-0" style="color:#e5e7eb;">
                 <thead style="background:#1f2937; color:#e5e7eb;">
                   <tr>
-                    <th>{{ __('m_tours.tour.fields.name') }}</th>
-                    <th>{{ __('m_tours.tour.fields.type') }}</th>
-                    <th class="text-center">{{ __('m_tours.tour.wizard.current_step') }}</th>
+                    <th>{{ __('m_tours.product.fields.name') }}</th>
+                    <th>{{ __('m_tours.product.fields.type') }}</th>
+                    <th class="text-center">{{ __('m_tours.product.wizard.current_step') }}</th>
                     <th>{{ __('m_tours.common.updated_at') }}</th>
                   </tr>
                 </thead>
@@ -106,15 +106,15 @@
                         <small class="text-muted">{{ $draft->slug }}</small>
                       </td>
                       <td>
-                        @if($draft->tourType)
-                          <span class="badge bg-info">{{ $draft->tourType->name }}</span>
+                        @if($draft->productType)
+                          <span class="badge bg-info">{{ $draft->productType->name }}</span>
                         @else
                           <span class="text-muted">{{ __('m_tours.common.not_set') }}</span>
                         @endif
                       </td>
                       <td class="text-center">
                         <span class="badge bg-primary">
-                          {{ __('m_tours.tour.wizard.step') }} {{ $draft->current_step ?? 1 }}/6
+                          {{ __('m_tours.product.wizard.step') }} {{ $draft->current_step ?? 1 }}/6
                         </span>
                       </td>
                       <td>
@@ -129,7 +129,7 @@
 
             <div class="alert alert-info mt-3 mb-0" style="background:#1d2433; border-color:#374151; color:#e5e7eb;">
               <i class="fas fa-info-circle"></i>
-              {{ __('m_tours.tour.wizard.drafts_info') }}
+              {{ __('m_tours.product.wizard.drafts_info') }}
             </div>
           </div>
 
@@ -137,7 +137,7 @@
   {{-- Botón Regresar al Index --}}
   <a href="{{ route('admin.products.index') }}" class="btn btn-secondary flex-fill mx-2">
     <i class="fas fa-arrow-left"></i>
-    {{ __('m_tours.tour.ui.back_to_list') }}
+    {{ __('m_tours.product.ui.back_to_list') }}
   </a>
 
   {{-- Botón Eliminar Borrador --}}
@@ -148,7 +148,7 @@
             data-draft-id="{{ $mainDraft->product_id }}"
             data-draft-name="{{ $mainDraft->name }}">
       <i class="fas fa-trash-alt"></i>
-      {{ __('m_tours.tour.wizard.delete_draft') }}
+      {{ __('m_tours.product.wizard.delete_draft') }}
     </button>
   @endif
 
@@ -157,7 +157,7 @@
     <a href="{{ route('admin.products.wizard.continue', $mainDraft) }}"
        class="btn btn-success flex-fill mx-2">
       <i class="fas fa-play"></i>
-      {{ __('m_tours.tour.wizard.continue_draft') }}
+      {{ __('m_tours.product.wizard.continue_draft') }}
     </a>
   @endif
 </div>
@@ -187,7 +187,7 @@
   @endif
 
   {{-- Modales reutilizables, si siguen siendo útiles en el wizard --}}
-  @includeWhen(View::exists('admin.tours.partials.inline-modals'), 'admin.tours.partials.inline-modals')
+  @includeWhen(View::exists('admin.products.partials.inline-modals'), 'admin.products.partials.inline-modals')
 @stop
 
 @push('js')
@@ -195,9 +195,9 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  {{-- Scripts propios del módulo de tours (validaciones, toasts, etc.) --}}
-  @includeIf('admin.tours.partials.scripts')
-  @includeIf('admin.tours.partials.inline-scripts')
+  {{-- Scripts propios del módulo de products (validaciones, toasts, etc.) --}}
+  @includeIf('admin.products.partials.scripts')
+  @includeIf('admin.products.partials.inline-scripts')
 
   {{-- ================================================
        SCRIPT PARA MANEJAR DRAFTS EXISTENTES
@@ -220,8 +220,8 @@
             const draftName = this.dataset.draftName;
 
             Swal.fire({
-              title: '{{ __("m_tours.tour.wizard.confirm_delete_title") }}',
-              html: '<p>{{ __("m_tours.tour.wizard.confirm_delete_message") }}</p><p class="font-weight-bold">' + draftName + '</p>',
+              title: '{{ __("m_tours.product.wizard.confirm_delete_title") }}',
+              html: '<p>{{ __("m_tours.product.wizard.confirm_delete_message") }}</p><p class="font-weight-bold">' + draftName + '</p>',
               icon: 'warning',
               showCancelButton: true,
               confirmButtonColor: '#dc2626',

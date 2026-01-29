@@ -188,7 +188,7 @@ class ReviewAggregator
     }
 
     /**
-     * Adjunta tour_name a reviews que tienen product_id pero no tour_name
+     * Adjunta product_name a reviews que tienen product_id pero no product_name
      */
     private function attachProductNames(Collection $reviews): Collection
     {
@@ -205,14 +205,14 @@ class ReviewAggregator
             return $reviews;
         }
 
-        // Cargar tours con traducciones
-        $products = DB::table('tours')
+        // Cargar products con traducciones
+        $products = DB::table('products')
             ->select('product_id', 'name')
             ->whereIn('product_id', $needNames->all())
             ->get()
             ->keyBy('product_id');
 
-        $translations = DB::table('tour_translations')
+        $translations = DB::table('product_translations')
             ->select('product_id', 'locale', 'name')
             ->whereIn('product_id', $needNames->all())
             ->whereIn('locale', [$locale, $fallback])

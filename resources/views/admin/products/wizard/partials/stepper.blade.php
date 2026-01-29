@@ -2,12 +2,12 @@
 
 @php
 $stepNames = [
-1 => __('m_tours.tour.wizard.steps.details'),
-2 => __('m_tours.tour.wizard.steps.itinerary'),
-3 => __('m_tours.tour.wizard.steps.schedules'),
-4 => __('m_tours.tour.wizard.steps.amenities'),
-5 => __('m_tours.tour.wizard.steps.prices'),
-6 => __('m_tours.tour.wizard.steps.summary'),
+1 => __('m_tours.product.wizard.steps.details'),
+2 => __('m_tours.product.wizard.steps.itinerary'),
+3 => __('m_tours.product.wizard.steps.schedules'),
+4 => __('m_tours.product.wizard.steps.amenities'),
+5 => __('m_tours.product.wizard.steps.prices'),
+6 => __('m_tours.product.wizard.steps.summary'),
 ];
 
 $stepIcons = [
@@ -23,7 +23,7 @@ $currentStep = $step ?? ($product->current_step ?? 1);
 $isDraft = isset($product) ? (bool) $product->is_draft : true;
 @endphp
 
-<div class="tour-wizard-stepper">
+<div class="product-wizard-stepper">
     <div class="stepper-container">
         @foreach($stepNames as $stepNum => $stepName)
         @php
@@ -62,7 +62,7 @@ $isDraft = isset($product) ? (bool) $product->is_draft : true;
 
                     <div class="step-label">
                         <span class="step-number">
-                            {{ __('m_tours.tour.wizard.step_number', ['number' => $stepNum]) }}
+                            {{ __('m_tours.product.wizard.step_number', ['number' => $stepNum]) }}
                         </span>
                         <span class="step-name">{{ $stepName }}</span>
                     </div>
@@ -71,7 +71,7 @@ $isDraft = isset($product) ? (bool) $product->is_draft : true;
                 @if(isset($product) && $isAccessible && !$isCurrent)
                 <a href="{{ route('admin.products.product-wizard.step', ['product' => $product, 'step' => $stepNum]) }}"
                     class="step-link">
-                    {{ __('m_tours.tour.wizard.edit_step') }}
+                    {{ __('m_tours.product.wizard.edit_step') }}
                 </a>
                 @endif
     </div>
@@ -80,7 +80,7 @@ $isDraft = isset($product) ? (bool) $product->is_draft : true;
 </div>
 
 <style>
-    .tour-wizard-stepper {
+    .product-wizard-stepper {
         background: #1f2933;
         padding: 2rem;
         margin-top: 1.5rem;
@@ -213,7 +213,7 @@ $isDraft = isset($product) ? (bool) $product->is_draft : true;
 
     /* ==================== TABLET / MOBILE ==================== */
     @media (max-width: 992px) {
-        .tour-wizard-stepper {
+        .product-wizard-stepper {
             padding: 1.1rem .75rem;
             margin-top: .75rem;
             margin-bottom: 1rem;
@@ -281,7 +281,7 @@ $isDraft = isset($product) ? (bool) $product->is_draft : true;
     }
 
     @media (max-width: 576px) {
-        .tour-wizard-stepper {
+        .product-wizard-stepper {
             padding: .9rem .55rem;
         }
 

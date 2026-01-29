@@ -2,7 +2,7 @@
 
 @extends('adminlte::page')
 
-@section('title', __('m_tours.tour.wizard.steps.details'))
+@section('title', __('m_tours.product.wizard.steps.details'))
 
 @push('css')
 <style>
@@ -172,12 +172,12 @@ $currentStep = $step ?? 1;
         <h1>
             <i class="fas fa-info-circle"></i>
             @if($isEditing)
-            {{ __('m_tours.tour.wizard.edit_tour') }}
+            {{ __('m_tours.product.wizard.edit_tour') }}
             @else
-            {{ __('m_tours.tour.wizard.create_new_tour') }}
+            {{ __('m_tours.product.wizard.create_new_tour') }}
             @endif
         </h1>
-        <p>{{ __('m_tours.tour.wizard.steps.details') }}</p>
+        <p>{{ __('m_tours.product.wizard.steps.details') }}</p>
     </div>
 
     {{-- Stepper superior --}}
@@ -225,7 +225,7 @@ $currentStep = $step ?? 1;
 
     {{-- FORM DETALLES --}}
     <form
-        id="tour-details-form"
+        id="product-details-form"
         method="POST"
         action="{{ $isEditing
             ? route('admin.products.wizard.update.details', $product)
@@ -237,7 +237,7 @@ $currentStep = $step ?? 1;
             <div class="card-header">
                 <h3 class="card-title mb-0">
                     <i class="fas fa-info-circle"></i>
-                    {{ __('m_tours.tour.wizard.basic_info') }}
+                    {{ __('m_tours.product.wizard.basic_info') }}
                 </h3>
             </div>
 
@@ -248,7 +248,7 @@ $currentStep = $step ?? 1;
                         {{-- Nombre --}}
                         <div class="form-group">
                             <label for="name">
-                                {{ __('m_tours.tour.fields.name') }}
+                                {{ __('m_tours.product.fields.name') }}
                                 <span class="text-danger">*</span>
                             </label>
                             <input
@@ -280,13 +280,13 @@ $currentStep = $step ?? 1;
                                 id="slug"
                                 class="form-control @error('slug') is-invalid @enderror"
                                 value="{{ old('slug', $product->slug ?? '') }}"
-                                placeholder="{{ __('m_tours.tour.ui.generate_auto') }}"
+                                placeholder="{{ __('m_tours.product.ui.generate_auto') }}"
                                 maxlength="255"
                                 pattern="[a-z0-9-]+"
                                 required
                                 data-validate="required|slug|max:255">
                             <small class="form-text text-muted">
-                                {{ __('m_tours.tour.ui.slug_help') }}
+                                {{ __('m_tours.product.ui.slug_help') }}
                             </small>
                             <div class="invalid-feedback" id="slug-error"></div>
                             @error('slug')
@@ -297,7 +297,7 @@ $currentStep = $step ?? 1;
                         {{-- Overview --}}
                         <div class="form-group">
                             <label for="overview">
-                                {{ __('m_tours.tour.fields.overview') }}
+                                {{ __('m_tours.product.fields.overview') }}
                                 <span class="text-danger">*</span>
                             </label>
                             <textarea
@@ -318,7 +318,7 @@ $currentStep = $step ?? 1;
                         {{-- Recommendations --}}
                         <div class="form-group">
                             <label for="recommendations">
-                                {{ __('m_tours.tour.fields.recommendations') ?? 'Recomendaciones' }}
+                                {{ __('m_tours.product.fields.recommendations') ?? 'Recomendaciones' }}
                             </label>
                             <textarea
                                 name="recommendations"
@@ -339,7 +339,7 @@ $currentStep = $step ?? 1;
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="length">
-                                        {{ __('m_tours.tour.fields.length_hours') }}
+                                        {{ __('m_tours.product.fields.length_hours') }}
                                         <span class="text-danger">*</span>
                                     </label>
                                     <input
@@ -354,7 +354,7 @@ $currentStep = $step ?? 1;
                                         required
                                         data-validate="required|number|min:0.5|max:240">
                                     <small class="form-text text-muted">
-                                        {{ __('m_tours.tour.validation.length_in_hours') }}
+                                        {{ __('m_tours.product.validation.length_in_hours') }}
                                     </small>
                                     <div class="invalid-feedback" id="length-error"></div>
                                     @error('length')
@@ -367,7 +367,7 @@ $currentStep = $step ?? 1;
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="max_capacity">
-                                        {{ __('m_tours.tour.fields.max_capacity') }}
+                                        {{ __('m_tours.product.fields.max_capacity') }}
                                         <span class="text-danger">*</span>
                                     </label>
                                     <input
@@ -381,7 +381,7 @@ $currentStep = $step ?? 1;
                                         required
                                         data-validate="required|number|min:1|max:500">
                                     <small class="form-text text-muted">
-                                        {{ __('m_tours.tour.validation.max_capacity_help') }}
+                                        {{ __('m_tours.product.validation.max_capacity_help') }}
                                     </small>
                                     <div class="invalid-feedback" id="max_capacity-error"></div>
                                     @error('max_capacity')
@@ -394,7 +394,7 @@ $currentStep = $step ?? 1;
                         {{-- Tamaño de grupo --}}
                         <div class="form-group">
                             <label for="group_size">
-                                {{ __('m_tours.tour.fields.group_size') }}
+                                {{ __('m_tours.product.fields.group_size') }}
                                 <span class="text-danger">*</span>
                             </label>
                             <input
@@ -408,7 +408,7 @@ $currentStep = $step ?? 1;
                                 required
                                 data-validate="required|number|min:1|max:500">
                             <small class="form-text text-muted">
-                                {{ __('m_tours.tour.hints.group_size') }}
+                                {{ __('m_tours.product.hints.group_size') }}
                             </small>
                             <div class="invalid-feedback" id="group_size-error"></div>
                             @error('group_size')
@@ -420,7 +420,7 @@ $currentStep = $step ?? 1;
                         <div class="form-group">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label class="mb-0">
-                                    {{ __('m_tours.tour.ui.available_languages') }}
+                                    {{ __('m_tours.product.ui.available_languages') }}
                                     <span class="text-danger">*</span>
                                 </label>
 
@@ -435,7 +435,7 @@ $currentStep = $step ?? 1;
                                     <a href="{{ route('admin.languages.index') }}"
                                         target="_blank"
                                         class="btn btn-info"
-                                        title="{{ __('m_tours.tour.ui.manage_languages') }}">
+                                        title="{{ __('m_tours.product.ui.manage_languages') }}">
                                         <i class="fas fa-external-link-alt"></i>
                                     </a>
                                 </div>
@@ -444,7 +444,7 @@ $currentStep = $step ?? 1;
                             <div class="border rounded p-3" id="languages-container">
                                 @php
                                 $oldLanguages = old('languages', $isEditing
-                                ? $product->languages->pluck('tour_language_id')->toArray()
+                                ? $product->languages->pluck('product_language_id')->toArray()
                                 : []);
                                 @endphp
 
@@ -453,23 +453,23 @@ $currentStep = $step ?? 1;
                                     <input
                                         type="checkbox"
                                         class="custom-control-input"
-                                        id="language_{{ $language->tour_language_id }}"
+                                        id="language_{{ $language->product_language_id }}"
                                         name="languages[]"
-                                        value="{{ $language->tour_language_id }}"
-                                        {{ in_array($language->tour_language_id, $oldLanguages, true) ? 'checked' : '' }}>
-                                    <label class="custom-control-label" for="language_{{ $language->tour_language_id }}">
+                                        value="{{ $language->product_language_id }}"
+                                        {{ in_array($language->product_language_id, $oldLanguages, true) ? 'checked' : '' }}>
+                                    <label class="custom-control-label" for="language_{{ $language->product_language_id }}">
                                         <i class="fas fa-language"></i> {{ $language->name }}
                                     </label>
                                 </div>
                                 @empty
                                 <p class="text-muted mb-0" id="languages-empty-state">
-                                    {{ __('m_tours.tour.ui.no_languages_defined') }}
+                                    {{ __('m_tours.product.ui.no_languages_defined') }}
                                 </p>
                                 @endforelse
                             </div>
 
                             <small class="form-text text-muted">
-                                {{ __('m_tours.tour.validation.languages_hint') ?? 'Selecciona al menos un idioma disponible para este tour' }}
+                                {{ __('m_tours.product.validation.languages_hint') ?? 'Selecciona al menos un idioma disponible para este product' }}
                             </small>
                             <div class="invalid-feedback" id="languages-error" style="display: none;"></div>
                             @error('languages')
@@ -486,7 +486,7 @@ $currentStep = $step ?? 1;
                         {{-- Color --}}
                         <div class="form-group">
                             <label for="color">
-                                {{ __('m_tours.tour.ui.color') }}
+                                {{ __('m_tours.product.ui.color') }}
                                 <span class="text-danger">*</span>
                             </label>
                             <input
@@ -503,7 +503,7 @@ $currentStep = $step ?? 1;
                             @enderror
                         </div>
 
-                        {{-- Tipo de tour --}}
+                        {{-- Tipo de product --}}
                         <div class="form-group">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <label for="product_type_id" class="mb-0">
@@ -573,8 +573,8 @@ $currentStep = $step ?? 1;
                         {{-- Info modo borrador --}}
                         <div class="alert alert-draft-info mt-3">
                             <i class="fas fa-info-circle"></i>
-                            <strong>{{ __('m_tours.tour.wizard.draft_mode') }}</strong>
-                            <p class="mb-0 small">{{ __('m_tours.tour.wizard.draft_explanation') }}</p>
+                            <strong>{{ __('m_tours.product.wizard.draft_mode') }}</strong>
+                            <p class="mb-0 small">{{ __('m_tours.product.wizard.draft_explanation') }}</p>
                         </div>
                     </div>
                 </div>
@@ -589,7 +589,7 @@ $currentStep = $step ?? 1;
                         </a>
 
                         <button type="submit" class="btn btn-primary ml-2" id="submit-btn">
-                            {{ __('m_tours.tour.wizard.save_and_continue') }}
+                            {{ __('m_tours.product.wizard.save_and_continue') }}
                             <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
@@ -599,11 +599,11 @@ $currentStep = $step ?? 1;
     </form>
 </div>
 
-{{-- Modal: quick create tipo de tour --}}
+{{-- Modal: quick create tipo de product --}}
 <div class="modal fade" id="modalCreateTourType" tabindex="-1" aria-labelledby="modalCreateTourTypeLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form method="POST"
-            action="{{ route('admin.products.wizard.quick.tour-type') }}"
+            action="{{ route('admin.products.wizard.quick.product-type') }}"
             class="modal-content"
             id="formCreateTourType">
             @csrf
@@ -616,11 +616,11 @@ $currentStep = $step ?? 1;
                 </button>
             </div>
             <div class="modal-body">
-                <div id="tourTypeModalErrors" class="alert alert-danger d-none"></div>
+                <div id="productTypeModalErrors" class="alert alert-danger d-none"></div>
 
                 <div class="form-group">
                     <label for="new_tour_type_name">
-                        {{ __('m_tours.tour_type.fields.name') ?? 'Nombre' }}
+                        {{ __('m_tours.product_type.fields.name') ?? 'Nombre' }}
                         <span class="text-danger">*</span>
                     </label>
                     <input type="text" name="name" id="new_tour_type_name" class="form-control" required>
@@ -628,7 +628,7 @@ $currentStep = $step ?? 1;
 
                 <div class="form-group">
                     <label for="new_tour_type_description">
-                        {{ __('m_tours.tour_type.fields.description') ?? 'Descripción' }}
+                        {{ __('m_tours.product_type.fields.description') ?? 'Descripción' }}
                     </label>
                     <textarea name="description" id="new_tour_type_description" class="form-control" rows="3"></textarea>
                 </div>
@@ -636,7 +636,7 @@ $currentStep = $step ?? 1;
                 {{-- Duración sugerida (simple, sin $locale / $translation) --}}
                 <div class="form-group">
                     <label for="new_tour_type_duration">
-                        {{ __('m_tours.tour_type.fields.duration') ?? 'Duración' }}
+                        {{ __('m_tours.product_type.fields.duration') ?? 'Duración' }}
                     </label>
                     <input
                         type="text"
@@ -645,7 +645,7 @@ $currentStep = $step ?? 1;
                         name="duration"
                         list="durationOptions"
                         value="{{ old('duration') }}"
-                        placeholder="{{ __('m_tours.tour_type.fields.duration_placeholder') ?? 'Ej: 4 horas, 6 horas, etc.' }}">
+                        placeholder="{{ __('m_tours.product_type.fields.duration_placeholder') ?? 'Ej: 4 horas, 6 horas, etc.' }}">
                     <datalist id="durationOptions">
                         <option value="4 horas"></option>
                         <option value="6 horas"></option>
@@ -653,7 +653,7 @@ $currentStep = $step ?? 1;
                         <option value="10 horas"></option>
                     </datalist>
                     <small class="form-text text-muted">
-                        {{ __('m_tours.tour_type.fields.duration_hint') ?? 'Duración sugerida del tour (opcional)' }}
+                        {{ __('m_tours.product_type.fields.duration_hint') ?? 'Duración sugerida del product (opcional)' }}
                     </small>
                 </div>
 
@@ -666,7 +666,7 @@ $currentStep = $step ?? 1;
                         value="1"
                         checked>
                     <label class="custom-control-label" for="new_tour_type_is_active">
-                        {{ __('m_tours.tour_type.fields.status') ?? 'Activo' }}
+                        {{ __('m_tours.product_type.fields.status') ?? 'Activo' }}
                     </label>
                 </div>
 
@@ -696,7 +696,7 @@ $currentStep = $step ?? 1;
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title" id="modalCreateLanguageLabel">
-                    <i class="fas fa-language"></i> {{ __('m_tours.tour.ui.add_language') }}
+                    <i class="fas fa-language"></i> {{ __('m_tours.product.ui.add_language') }}
                 </h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="{{ __('m_tours.common.close') }}">
                     <span aria-hidden="true">&times;</span>
@@ -714,7 +714,7 @@ $currentStep = $step ?? 1;
                 </div>
 
                 <small class="form-text text-muted mt-2">
-                    {{ __('m_tours.tour.ui.quick_create_language_hint') ?? 'Creación rápida. Para configuraciones avanzadas usa el módulo de idiomas.' }}
+                    {{ __('m_tours.product.ui.quick_create_language_hint') ?? 'Creación rápida. Para configuraciones avanzadas usa el módulo de idiomas.' }}
                 </small>
             </div>
             <div class="modal-footer">
@@ -741,22 +741,22 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
             <div class="modal-header">
                 <h5 class="modal-title" id="draftsModalLabel">
                     <i class="fas fa-exclamation-triangle"></i>
-                    {{ __('m_tours.tour.wizard.existing_drafts_title') }}
+                    {{ __('m_tours.product.wizard.existing_drafts_title') }}
                 </h5>
             </div>
 
             <div class="modal-body">
                 <p class="lead mb-3">
-                    {{ __('m_tours.tour.wizard.existing_drafts_message', ['count' => $existingDrafts->count()]) }}
+                    {{ __('m_tours.product.wizard.existing_drafts_message', ['count' => $existingDrafts->count()]) }}
                 </p>
 
                 <div class="table-responsive">
                     <table class="table table-hover table-sm mb-0">
                         <thead>
                             <tr>
-                                <th>{{ __('m_tours.tour.fields.name') }}</th>
-                                <th>{{ __('m_tours.tour.fields.type') }}</th>
-                                <th class="text-center">{{ __('m_tours.tour.wizard.current_step') }}</th>
+                                <th>{{ __('m_tours.product.fields.name') }}</th>
+                                <th>{{ __('m_tours.product.fields.type') }}</th>
+                                <th class="text-center">{{ __('m_tours.product.wizard.current_step') }}</th>
                                 <th>{{ __('m_tours.common.updated_at') }}</th>
                             </tr>
                         </thead>
@@ -764,19 +764,19 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
                             @foreach($existingDrafts as $draft)
                             <tr>
                                 <td>
-                                    <strong>{{ $draft->name ?: __('m_tours.tour.wizard.unnamed_draft') }}</strong><br>
+                                    <strong>{{ $draft->name ?: __('m_tours.product.wizard.unnamed_draft') }}</strong><br>
                                     <small class="text-muted">{{ $draft->slug }}</small>
                                 </td>
                                 <td>
-                                    @if($draft->tourType)
-                                    <span class="badge bg-info">{{ $draft->tourType->name }}</span>
+                                    @if($draft->productType)
+                                    <span class="badge bg-info">{{ $draft->productType->name }}</span>
                                     @else
                                     <span class="text-muted">{{ __('m_tours.common.not_set') }}</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
                                     <span class="badge bg-primary">
-                                        {{ __('m_tours.tour.wizard.step') }} {{ $draft->current_step ?? 1 }}/6
+                                        {{ __('m_tours.product.wizard.step') }} {{ $draft->current_step ?? 1 }}/6
                                     </span>
                                 </td>
                                 <td>
@@ -791,14 +791,14 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
 
                 <div class="alert alert-info mt-3 mb-0">
                     <i class="fas fa-info-circle"></i>
-                    {{ __('m_tours.tour.wizard.drafts_info') }}
+                    {{ __('m_tours.product.wizard.drafts_info') }}
                 </div>
             </div>
 
             <div class="modal-footer d-flex justify-content-around">
                 <a href="{{ route('admin.products.index') }}" class="btn btn-secondary flex-fill mx-2">
                     <i class="fas fa-arrow-left"></i>
-                    {{ __('m_tours.tour.ui.back') }}
+                    {{ __('m_tours.product.ui.back') }}
                 </a>
 
                 @if($mainDraft)
@@ -808,13 +808,13 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
                     data-delete-url="{{ route('admin.products.wizard.delete-draft', $mainDraft) }}"
                     data-draft-name="{{ $mainDraft->name }}">
                     <i class="fas fa-trash-alt"></i>
-                    {{ __('m_tours.tour.wizard.delete_draft') }}
+                    {{ __('m_tours.product.wizard.delete_draft') }}
                 </button>
 
                 <a href="{{ route('admin.products.wizard.continue', $mainDraft) }}"
                     class="btn btn-success flex-fill mx-2">
                     <i class="fas fa-play"></i>
-                    {{ __('m_tours.tour.wizard.continue_draft') }}
+                    {{ __('m_tours.product.wizard.continue_draft') }}
                 </a>
                 @endif
             </div>
@@ -832,16 +832,16 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
         const IS_EDITING = @json($isEditing);
 
         const validationMessages = {
-            required: @json(__('m_tours.tour.validation.required')),
-            min: @json(__('m_tours.tour.validation.min')),
-            max: @json(__('m_tours.tour.validation.max')),
-            number: @json(__('m_tours.tour.validation.number')),
-            slug: @json(__('m_tours.tour.validation.slug')),
-            color: @json(__('m_tours.tour.validation.color')),
-            select: @json(__('m_tours.tour.validation.select')),
+            required: @json(__('m_tours.product.validation.required')),
+            min: @json(__('m_tours.product.validation.min')),
+            max: @json(__('m_tours.product.validation.max')),
+            number: @json(__('m_tours.product.validation.number')),
+            slug: @json(__('m_tours.product.validation.slug')),
+            color: @json(__('m_tours.product.validation.color')),
+            select: @json(__('m_tours.product.validation.select')),
         };
 
-        const LANGUAGES_REQUIRED_MESSAGE = @json(__('m_tours.tour.validation.languages_required'));
+        const LANGUAGES_REQUIRED_MESSAGE = @json(__('m_tours.product.validation.languages_required'));
 
         // ============================================================
         // VALIDACIÓN DEL FORMULARIO PRINCIPAL
@@ -1031,7 +1031,7 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
         });
 
         // Submit del formulario principal
-        const form = document.getElementById('tour-details-form');
+        const form = document.getElementById('product-details-form');
         const submitBtn = document.getElementById('submit-btn');
 
         if (form) {
@@ -1062,8 +1062,8 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
 
                     Swal.fire({
                         icon: 'error',
-                        title: @json(__('m_tours.tour.validation.form_error_title')),
-                        text: @json(__('m_tours.tour.validation.form_error_message')),
+                        title: @json(__('m_tours.product.validation.form_error_title')),
+                        text: @json(__('m_tours.product.validation.form_error_message')),
                         confirmButtonColor: '#6366f1',
                     });
 
@@ -1072,7 +1072,7 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
 
                 if (submitBtn) {
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + @json(__('m_tours.tour.validation.saving'));
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + @json(__('m_tours.product.validation.saving'));
                 }
 
                 form.submit();
@@ -1195,56 +1195,56 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
         // ============================================================
         // MODAL TIPO DE TOUR - CON VALIDACIONES
         // ============================================================
-        const tourTypeForm = document.getElementById('formCreateTourType');
-        const tourTypeSelect = document.getElementById('product_type_id');
-        const tourTypeErrors = document.getElementById('tourTypeModalErrors');
-        const tourTypeNameField = document.getElementById('new_tour_type_name');
+        const productTypeForm = document.getElementById('formCreateTourType');
+        const productTypeSelect = document.getElementById('product_type_id');
+        const productTypeErrors = document.getElementById('productTypeModalErrors');
+        const productTypeNameField = document.getElementById('new_tour_type_name');
 
-        if (tourTypeNameField) {
-            let tourTypeNameError = tourTypeNameField.nextElementSibling;
-            if (!tourTypeNameError || !tourTypeNameError.classList.contains('invalid-feedback')) {
-                tourTypeNameError = document.createElement('div');
-                tourTypeNameError.className = 'invalid-feedback';
-                tourTypeNameField.parentNode.insertBefore(tourTypeNameError, tourTypeNameField.nextSibling);
+        if (productTypeNameField) {
+            let productTypeNameError = productTypeNameField.nextElementSibling;
+            if (!productTypeNameError || !productTypeNameError.classList.contains('invalid-feedback')) {
+                productTypeNameError = document.createElement('div');
+                productTypeNameError.className = 'invalid-feedback';
+                productTypeNameField.parentNode.insertBefore(productTypeNameError, productTypeNameField.nextSibling);
             }
 
-            tourTypeNameField.addEventListener('input', function() {
-                validateRequired(this, tourTypeNameError, @json(__('m_tours.tour_type.fields.name') ?? 'Nombre'));
+            productTypeNameField.addEventListener('input', function() {
+                validateRequired(this, productTypeNameError, @json(__('m_tours.product_type.fields.name') ?? 'Nombre'));
             });
 
-            tourTypeNameField.addEventListener('blur', function() {
-                validateRequired(this, tourTypeNameError, @json(__('m_tours.tour_type.fields.name') ?? 'Nombre'));
+            productTypeNameField.addEventListener('blur', function() {
+                validateRequired(this, productTypeNameError, @json(__('m_tours.product_type.fields.name') ?? 'Nombre'));
             });
         }
 
-        if (tourTypeForm) {
-            tourTypeForm.addEventListener('submit', function(e) {
+        if (productTypeForm) {
+            productTypeForm.addEventListener('submit', function(e) {
                 e.preventDefault();
 
-                if (tourTypeErrors) {
-                    clearModalErrors(tourTypeErrors);
+                if (productTypeErrors) {
+                    clearModalErrors(productTypeErrors);
                 }
 
                 const isNameValid = validateRequired(
-                    tourTypeNameField,
-                    tourTypeNameField.nextElementSibling,
-                    @json(__('m_tours.tour_type.fields.name') ?? 'Nombre')
+                    productTypeNameField,
+                    productTypeNameField.nextElementSibling,
+                    @json(__('m_tours.product_type.fields.name') ?? 'Nombre')
                 );
 
                 if (!isNameValid) {
-                    tourTypeNameField.focus();
+                    productTypeNameField.focus();
                     return false;
                 }
 
-                const submitBtn = tourTypeForm.querySelector('button[type="submit"]');
+                const submitBtn = productTypeForm.querySelector('button[type="submit"]');
                 const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
                 if (submitBtn) {
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + @json(__('m_tours.tour.validation.saving') ?? 'Guardando...');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + @json(__('m_tours.product.validation.saving') ?? 'Guardando...');
                 }
 
-                const url = tourTypeForm.action;
-                const formData = new FormData(tourTypeForm);
+                const url = productTypeForm.action;
+                const formData = new FormData(productTypeForm);
 
                 fetch(url, {
                         method: 'POST',
@@ -1266,33 +1266,33 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
 
                         if (response.status === 422) {
                             const data = await response.json();
-                            showModalErrors(tourTypeErrors, data.errors || data.message);
+                            showModalErrors(productTypeErrors, data.errors || data.message);
                             return null;
                         }
 
                         const text = await response.text();
-                        showModalErrors(tourTypeErrors, text || 'Error al guardar');
+                        showModalErrors(productTypeErrors, text || 'Error al guardar');
                         return null;
                     })
                     .then(data => {
                         if (!data) return;
 
-                        if (tourTypeSelect && data.id && data.name) {
+                        if (productTypeSelect && data.id && data.name) {
                             const option = document.createElement('option');
                             option.value = data.id;
                             option.textContent = data.name;
                             option.selected = true;
-                            tourTypeSelect.appendChild(option);
+                            productTypeSelect.appendChild(option);
                         }
 
-                        tourTypeForm.reset();
-                        tourTypeNameField.classList.remove('is-valid', 'is-invalid');
+                        productTypeForm.reset();
+                        productTypeNameField.classList.remove('is-valid', 'is-invalid');
                         closeModalAndCleanup('modalCreateTourType');
 
                         Swal.fire({
                             icon: 'success',
-                            title: @json(__('m_tours.tour.validation.success')),
-                            text: @json(__('m_tours.tour.validation.tour_type_created')),
+                            title: @json(__('m_tours.product.validation.success')),
+                            text: @json(__('m_tours.product.validation.product_type_created')),
                             timer: 2000,
                             showConfirmButton: false,
                         });
@@ -1303,7 +1303,7 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
                             submitBtn.innerHTML = originalBtnHtml;
                         }
 
-                        showModalErrors(tourTypeErrors, err.message || 'Error de red');
+                        showModalErrors(productTypeErrors, err.message || 'Error de red');
                     });
             });
         }
@@ -1357,7 +1357,7 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
                 const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
                 if (submitBtn) {
                     submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + @json(__('m_tours.tour.validation.saving') ?? 'Guardando...');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + @json(__('m_tours.product.validation.saving') ?? 'Guardando...');
                 }
 
                 const url = languageForm.action;
@@ -1427,8 +1427,8 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
 
                         Swal.fire({
                             icon: 'success',
-                            title: @json(__('m_tours.tour.validation.success')),
-                            text: @json(__('m_tours.tour.validation.language_created')),
+                            title: @json(__('m_tours.product.validation.success')),
+                            text: @json(__('m_tours.product.validation.language_created')),
                             timer: 2000,
                             showConfirmButton: false,
                         });
@@ -1450,10 +1450,10 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
         const modalCreateTourType = document.getElementById('modalCreateTourType');
         if (modalCreateTourType) {
             modalCreateTourType.addEventListener('show.bs.modal', function() {
-                if (tourTypeErrors) clearModalErrors(tourTypeErrors);
-                if (tourTypeNameField) {
-                    tourTypeNameField.classList.remove('is-valid', 'is-invalid');
-                    const errorDiv = tourTypeNameField.nextElementSibling;
+                if (productTypeErrors) clearModalErrors(productTypeErrors);
+                if (productTypeNameField) {
+                    productTypeNameField.classList.remove('is-valid', 'is-invalid');
+                    const errorDiv = productTypeNameField.nextElementSibling;
                     if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
                         errorDiv.textContent = '';
                         errorDiv.style.display = 'none';
@@ -1494,8 +1494,8 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
                 const draftName = this.dataset.draftName || '';
 
                 Swal.fire({
-                    title: @json(__('m_tours.tour.wizard.confirm_delete_title')),
-                    html: '<p>{{ __("m_tours.tour.wizard.confirm_delete_message") }}</p>' +
+                    title: @json(__('m_tours.product.wizard.confirm_delete_title')),
+                    html: '<p>{{ __("m_tours.product.wizard.confirm_delete_message") }}</p>' +
                         (draftName ? '<p class="font-weight-bold">' + draftName + '</p>' : ''),
                     icon: 'warning',
                     showCancelButton: true,

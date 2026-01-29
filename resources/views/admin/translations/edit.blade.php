@@ -131,7 +131,7 @@ $availableEditLocales = ['es' => 'Español', 'en' => 'English', 'fr' => 'França
   </div>
 
   {{-- Itinerario / Ítems (solo tours) --}}
-  @includeWhen($type === 'tours', 'admin.translations.partials.edit-tour-translations', [
+  @includeWhen($type === 'tours', 'admin.translations.partials.edit-product-translations', [
   'item' => $item,
   'locale' => $targetLocale,
   ])

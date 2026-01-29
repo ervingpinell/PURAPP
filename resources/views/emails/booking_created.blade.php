@@ -2,7 +2,7 @@
 
 @section('content')
 @php
-// Use the mailLocale passed from the Mailable (already determined by tour language)
+// Use the mailLocale passed from the Mailable (already determined by product language)
 // DO NOT recalculate it here - it's already set correctly in BookingCreatedMail
 $mailLocale = $mailLocale ?? 'en'; // Fallback only if not provided
 
@@ -64,14 +64,14 @@ $tTotal = $mailLocale === 'es' ? 'Total' : 'Total';
 
 $d = collect($details ?? $booking->details ?? [])->first();
 
-// Use mailLocale for tour name translation (already set from tour language)
+// Use mailLocale for product name translation (already set from product language)
 $preferredLoc = $mailLocale;
 
 // 1) Snapshot
 $productName = $d?->product_name;
 
-// 2) Relación Tour traducida
-if (!$productName && $d?->relationLoaded('tour') && $d?->tour) {
+// 2) Relación Product traducida
+if (!$productName && $d?->relationLoaded('product') && $d?->product) {
 $product = $d->product;
 
 if (isset($product->translated_name) && filled($product->translated_name)) {

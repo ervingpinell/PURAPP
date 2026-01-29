@@ -106,8 +106,8 @@ class GenerateSitemap extends Command
         $this->info("Found {$products->count()} active products");
 
         foreach ($products as $product) {
-            // Determinar URL prefix por categoría (por ahora todos usan 'tours')
-            $urlPrefix = 'tours'; // TODO: mapear product_type_id a category
+            // Determinar URL prefix por categoría (por ahora todos usan 'products')
+            $urlPrefix = 'products'; // TODO: mapear product_type_id a category
             
             foreach ($locales as $locale) {
                 try {

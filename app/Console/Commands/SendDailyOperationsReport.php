@@ -31,9 +31,9 @@ class SendDailyOperationsReport extends Command
         $today = now()->format('Y-m-d');
 
         // Query all bookings for today
-        $bookings = Booking::with(['user', 'tour', 'details.schedule', 'details.hotel', 'details.meetingPoint'])
+        $bookings = Booking::with(['user', 'product', 'details.schedule', 'details.hotel', 'details.meetingPoint'])
             ->whereHas('details', function ($query) use ($today) {
-                $query->whereDate('tour_date', $today);
+                $query->whereDate('product_date', $today);
             })
             ->get();
 

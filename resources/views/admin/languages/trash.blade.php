@@ -36,7 +36,7 @@
             <tbody>
                 @foreach($trashedLanguages as $item)
                 <tr>
-                    <td>{{ $item->tour_language_id }}</td>
+                    <td>{{ $item->product_language_id }}</td>
                     <td>{{ $item->name }}</td>
                     <td>
                         <small>
@@ -55,7 +55,7 @@
                     </td>
                     <td class="text-center">
                         <div class="btn-group">
-                            @can('restore-tour-languages')
+                            @can('restore-product-languages')
                             <form action="{{ route('admin.languages.restore', $item->getKey()) }}" method="POST"
                                 class="d-inline restore-form">
                                 @csrf
@@ -67,7 +67,7 @@
                             </form>
                             @endcan
 
-                            @can('force-delete-tour-languages')
+                            @can('force-delete-product-languages')
                             <form action="{{ route('admin.languages.forceDelete', $item->getKey()) }}" method="POST"
                                 class="d-inline force-delete-form ms-1">
                                 @csrf

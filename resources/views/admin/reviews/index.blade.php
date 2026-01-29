@@ -105,7 +105,7 @@
             @endif
             <th>{{ __('reviews.common.id') }}</th>
             <th>{{ __('reviews.common.provider') }}</th>
-            <th>{{ __('reviews.common.tour') }}</th>
+            <th>{{ __('reviews.common.product') }}</th>
             @if(($selectedProvider ?? 'local') === 'local')
             <th>{{ __('reviews.requests.table.reference') }}</th>
             @endif

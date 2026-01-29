@@ -40,9 +40,9 @@ class StoreProductAvailabilityRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'product_id.required'           => 'El tour es obligatorio.',
-            'product_id.integer'            => 'El tour debe ser un número válido.',
-            'product_id.exists'             => 'El tour seleccionado no existe.',
+            'product_id.required'           => 'El product es obligatorio.',
+            'product_id.integer'            => 'El product debe ser un número válido.',
+            'product_id.exists'             => 'El product seleccionado no existe.',
             'schedule_id.required'       => 'El horario es obligatorio.',
             'schedule_id.integer'        => 'El horario debe ser un número válido.',
             'schedule_id.exists'         => 'El horario seleccionado no existe.',
@@ -59,7 +59,7 @@ class StoreProductAvailabilityRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'product_id'      => 'Tour',
+            'product_id'      => 'Product',
             'schedule_id'  => 'Horario',
             'date'         => 'Fecha',
             'max_capacity' => 'Capacidad',
@@ -70,7 +70,7 @@ class StoreProductAvailabilityRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'store', $validator->errors()->toArray(), [
-            'entity'  => 'tour_availability',
+            'entity'  => 'product_availability',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
         parent::failedValidation($validator);

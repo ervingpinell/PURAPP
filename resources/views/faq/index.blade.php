@@ -63,7 +63,7 @@
 
         <div class="text-center mt-5">
             <p>{{ __('adminlte::adminlte.faq_more_questions') ?? '¿Tiene más preguntas?' }}</p>
-            <a href="{{ route(app()->getLocale() . '.contact') }}" class="btn btn-tour-cta">{{ __('adminlte::adminlte.contact_us') ?? 'Contáctenos' }}</a>
+            <a href="{{ route(app()->getLocale() . '.contact') }}" class="btn btn-product-cta">{{ __('adminlte::adminlte.contact_us') ?? 'Contáctenos' }}</a>
         </div>
     </div>
 </section>

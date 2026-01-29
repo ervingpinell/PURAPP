@@ -56,7 +56,7 @@ class StoreProductRequest extends FormRequest
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                'unique:tours,slug'
+                'unique:products,slug'
             ],
             'overview'                     => ['nullable','string'],
 
@@ -70,10 +70,10 @@ class StoreProductRequest extends FormRequest
 
             'max_capacity'                 => ['required','integer','min:1'],
             'length'                       => ['required','numeric','min:1'],
-            'product_type_id'                 => ['required','exists:tour_types,product_type_id'],
+            'product_type_id'                 => ['required','exists:product_types,product_type_id'],
 
             'languages'                    => ['required','array','min:1'],
-            'languages.*'                  => ['integer','exists:tour_languages,tour_language_id'],
+            'languages.*'                  => ['integer','exists:product_languages,product_language_id'],
 
             'amenities'                    => ['nullable','array'],
             'amenities.*'                  => ['integer','exists:amenities,amenity_id'],
@@ -101,7 +101,7 @@ class StoreProductRequest extends FormRequest
     {
         return [
             'slug.regex' => 'El slug solo puede contener letras minúsculas, números y guiones.',
-            'slug.unique' => 'Este slug ya está en uso por otro tour.',
+            'slug.unique' => 'Este slug ya está en uso por otro product.',
             'languages.required' => 'Debes seleccionar al menos un idioma.',
             'languages.min'      => 'Debes seleccionar al menos un idioma.',
             'prices.*.category_id.required' => 'Debes seleccionar una categoría para cada precio.',
@@ -124,7 +124,7 @@ class StoreProductRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'store', $validator->errors()->toArray(), [
-            'entity'  => 'tour',
+            'entity'  => 'product',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
 

@@ -21,7 +21,7 @@
             Gestiona los subtipos para clasificar productos de tipo "{{ $productType->getTranslatedName() }}"
         </p>
         
-        @can('create-tour-types')
+        @can('create-product-types')
         <button class="btn btn-success" data-toggle="modal" data-target="#modalCreate">
             <i class="fas fa-plus"></i> Nuevo Subtipo
         </button>
@@ -90,7 +90,7 @@
                     </td>
                     <td class="text-nowrap">
                         {{-- Editar --}}
-                        @can('edit-tour-types')
+                        @can('edit-product-types')
                         <button class="btn btn-edit btn-sm me-1"
                                 data-toggle="modal"
                                 data-target="#modalEdit{{ $subtype->subtype_id }}"
@@ -115,7 +115,7 @@
                         @endcan
 
                         {{-- Eliminar --}}
-                        @can('delete-tour-types')
+                        @can('delete-product-types')
                         <form action="{{ route('admin.product-types.subtypes.destroy', $subtype->subtype_id) }}"
                               method="POST"
                               class="d-inline js-confirm-delete"

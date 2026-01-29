@@ -24,11 +24,11 @@
     <input type="date" id="filter-to" class="form-control">
   </div>
   <div class="col-sm-3">
-    <label for="filter-tour" class="form-label">Tour</label>
-    <select id="filter-tour" class="form-select">
+    <label for="filter-product" class="form-label">Product</label>
+    <select id="filter-product" class="form-select">
       <option value="">All</option>
-      @foreach ($tours as $tour)
-      <option value="{{ $tour->product_id }}">{{ Str::limit($tour->name, 30) }}</option>
+      @foreach ($tours as $product)
+      <option value="{{ $product->product_id }}">{{ Str::limit($product->name, 30) }}</option>
       @endforeach
     </select>
   </div>
@@ -75,7 +75,7 @@
     const calendarEl = document.getElementById('calendar');
     const filterFrom = document.getElementById('filter-from');
     const filterTo = document.getElementById('filter-to');
-    const filterTour = document.getElementById('filter-tour');
+    const filterProduct = document.getElementById('filter-product');
     const btnApply = document.getElementById('btn-apply');
     const btnClear = document.getElementById('btn-clear');
 
@@ -150,7 +150,7 @@
 
       eventContent(arg) {
         const paxText = arg.event.extendedProps.pax || '—';
-        const tourName = arg.event.extendedProps.short_tour_name || '';
+        const productName = arg.event.extendedProps.short_tour_name || '';
         const bookingRef = arg.event.extendedProps.booking_ref || '';
         const hotel = arg.event.extendedProps.hotel_name || '';
         const status = arg.event.extendedProps.status || 'pending';
@@ -169,7 +169,7 @@
               <div><strong>${paxText}</strong></div>
               <div><strong>${statusText}</strong></div>
             </div>
-            <div>${tourName}</div>
+            <div>${productName}</div>
             <div>${hotel}</div>
             <div style="font-size: 0.85em">${bookingRef}</div>
           `;

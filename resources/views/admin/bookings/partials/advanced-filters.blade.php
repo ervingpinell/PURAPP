@@ -41,16 +41,16 @@
         {{-- 🗓 Product Dates Section --}}
         <div class="mb-4">
           <h6 class="text-uppercase fw-bold mb-3" style="color: #6c757d; font-size: 0.85rem; letter-spacing: 0.5px;">
-            <i class="fas fa-calendar-alt me-2"></i>{{ __('m_bookings.filters.tour_dates', [], 'Fechas del Producto') }}
+            <i class="fas fa-calendar-alt me-2"></i>{{ __('m_bookings.filters.product_dates', [], 'Fechas del Producto') }}
           </h6>
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label text-light" style="font-weight: 500; font-size: 0.9rem;">{{ __('m_bookings.filters.tour_from') }}</label>
-              <input type="date" name="tour_date_from" class="form-control bg-dark text-light border-secondary" value="{{ request('tour_date_from') }}" style="border-radius: 6px;">
+              <label class="form-label text-light" style="font-weight: 500; font-size: 0.9rem;">{{ __('m_bookings.filters.product_from') }}</label>
+              <input type="date" name="product_date_from" class="form-control bg-dark text-light border-secondary" value="{{ request('product_date_from') }}" style="border-radius: 6px;">
             </div>
             <div class="col-md-6">
-              <label class="form-label text-light" style="font-weight: 500; font-size: 0.9rem;">{{ __('m_bookings.filters.tour_until') }}</label>
-              <input type="date" name="tour_date_to" class="form-control bg-dark text-light border-secondary" value="{{ request('tour_date_to') }}" style="border-radius: 6px;">
+              <label class="form-label text-light" style="font-weight: 500; font-size: 0.9rem;">{{ __('m_bookings.filters.product_until') }}</label>
+              <input type="date" name="product_date_to" class="form-control bg-dark text-light border-secondary" value="{{ request('product_date_to') }}" style="border-radius: 6px;">
             </div>
           </div>
         </div>
@@ -58,11 +58,11 @@
         {{-- 🎯 Product & Schedule Section --}}
         <div class="mb-4">
           <h6 class="text-uppercase fw-bold mb-3" style="color: #6c757d; font-size: 0.85rem; letter-spacing: 0.5px;">
-            <i class="fas fa-map-marked-alt me-2"></i>{{ __('m_bookings.filters.tour_schedule', [], 'Producto y Horario') }}
+            <i class="fas fa-map-marked-alt me-2"></i>{{ __('m_bookings.filters.product_schedule', [], 'Producto y Horario') }}
           </h6>
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="form-label text-light" style="font-weight: 500; font-size: 0.9rem;">{{ __('m_bookings.bookings.fields.tour') }}</label>
+              <label class="form-label text-light" style="font-weight: 500; font-size: 0.9rem;">{{ __('m_bookings.bookings.fields.product') }}</label>
               <select name="product_id" class="form-select bg-dark text-light border-secondary" style="border-radius: 6px;">
                 <option value="">{{ __('m_bookings.filters.all') }}</option>
                 @foreach($products as $t)

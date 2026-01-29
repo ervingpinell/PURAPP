@@ -28,26 +28,26 @@ class CancelUnpaidBeforeProduct extends Command
      */
     public function handle()
     {
-        $hoursBeforeProduct = (int) setting('booking.pay_later.cancel_hours_before_tour', 24);
+        $hoursBeforeProduct = (int) setting('booking.pay_later.cancel_hours_before_product', 24);
 
         // Calculate the cutoff time (product date - X hours)
         $cutoffTime = now()->addHours($hoursBeforeProduct);
 
-        // Find unpaid pay-later bookings with tour date approaching
+        // Find unpaid pay-later bookings with product date approaching
         $bookingsToCancel = Booking::where('status', 'pending')
             ->where('is_paid', false)
             ->where('is_pay_later', true)
             ->whereHas('details', function ($q) use ($cutoffTime) {
                 // Product date/time is within the cancellation window
-                $q->where('tour_date', '<=', $cutoffTime->format('Y-m-d'));
+                $q->where('product_date', '<=', $cutoffTime->format('Y-m-d'));
             })
-            ->with(['user', 'tour', 'details'])
+            ->with(['user', 'product', 'details'])
             ->get();
 
         if ($bookingsToCancel->isEmpty()) {
             $this->info('No unpaid bookings to cancel.');
             if (config('app.debug')) {
-                Log::info('[CancelBeforeTour] No bookings to cancel');
+                Log::info('[CancelBeforeProduct] No bookings to cancel');
             }
             return 0;
         }
@@ -56,7 +56,7 @@ class CancelUnpaidBeforeProduct extends Command
 
         foreach ($bookingsToCancel as $booking) {
             try {
-                $productDate = $booking->details->first()?->tour_date;
+                $productDate = $booking->details->first()?->product_date;
 
                 // Double-check timing
                 if (!$productDate || now()->diffInHours($productDate, false) > $hoursBeforeProduct) {
@@ -74,7 +74,7 @@ class CancelUnpaidBeforeProduct extends Command
                     Mail::to($booking->user->email)
                         ->send(new \App\Mail\BookingCancelledExpiry($booking));
                 } catch (\Exception $e) {
-                    Log::warning("[CancelBeforeTour] Email failed for booking #{$booking->booking_id}: {$e->getMessage()}");
+                    Log::warning("[CancelBeforeProduct] Email failed for booking #{$booking->booking_id}: {$e->getMessage()}");
                 }
 
                 $cancelledCount++;
@@ -89,13 +89,13 @@ class CancelUnpaidBeforeProduct extends Command
                     ]);
                 }
             } catch (\Exception $e) {
-                Log::error("[CancelBeforeTour] Failed to cancel booking #{$booking->booking_id}: {$e->getMessage()}");
+                Log::error("[CancelBeforeProduct] Failed to cancel booking #{$booking->booking_id}: {$e->getMessage()}");
             }
         }
 
         $this->info("Cancelled {$cancelledCount} unpaid bookings.");
         if (config('app.debug')) {
-            Log::info("[CancelBeforeTour] Completed: {$cancelledCount} bookings cancelled");
+            Log::info("[CancelBeforeProduct] Completed: {$cancelledCount} bookings cancelled");
         }
 
         return 0;

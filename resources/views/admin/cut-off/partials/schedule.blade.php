@@ -20,9 +20,9 @@
       @method('PUT')
 
       <div class="mb-3">
-        <label class="form-label">{{ __('m_config.cut-off.fields.tour') }}</label>
+        <label class="form-label">{{ __('m_config.cut-off.fields.product') }}</label>
         <select class="form-select" id="tourForSchedule">
-          <option value="">{{ __('m_config.cut-off.selects.tour') }}</option>
+          <option value="">{{ __('m_config.cut-off.selects.product') }}</option>
           @foreach($products as $t)
           <option value="{{ $t->product_id }}">{{ $t->name }}</option>
           @endforeach
@@ -40,7 +40,7 @@
 
       <hr>
 
-      <input type="hidden" name="product_id" id="tourIdHidden" value="">
+      <input type="hidden" name="product_id" id="productIdHidden" value="">
 
       <div class="row g-3">
         <div class="col-md-3">
@@ -54,7 +54,7 @@
           <div class="form-hint mt-1">{{ __('m_config.cut-off.hints.lead_days_detail') }}</div>
         </div>
         <div class="col-md-6 d-flex gap-2 align-items-end">
-          @can('edit-tour-availability')
+          @can('edit-product-availability')
           <button class="btn btn-primary"><i class="fas fa-save me-1"></i> {{ __('m_config.cut-off.actions.save_schedule') }}</button>
           <button type="button" class="btn btn-outline-secondary" id="clearScheduleOverride">{{ __('m_config.cut-off.actions.clear') }}</button>
           @endcan
@@ -74,7 +74,7 @@
     const schLead = document.getElementById('schLead');
     const schBadge = document.getElementById('schBadge');
     const clearSchBtn = document.getElementById('clearScheduleOverride');
-    const tourIdHidden = document.getElementById('tourIdHidden');
+    const productIdHidden = document.getElementById('productIdHidden');
 
     const setSch = (text, cls) => {
       if (!schBadge) return;
@@ -84,16 +84,16 @@
     };
 
     function rebuild() {
-      const tourId = tourForSchedule.value;
-      tourIdHidden.value = tourId || '';
+      const productId = tourForSchedule.value;
+      productIdHidden.value = productId || '';
       scheduleSelect.innerHTML = `<option value="">${@json(__('m_config.cut-off.selects.time'))}</option>`;
-      scheduleSelect.disabled = !tourId;
+      scheduleSelect.disabled = !productId;
       schCutoff.value = '';
       schLead.value = '';
       setSch(@json(__('m_config.cut-off.badges.inherit_tour_global')), 'badge-global');
 
-      if (!tourId) return;
-      const t = productsData.find(x => String(x.id) === String(tourId));
+      if (!productId) return;
+      const t = productsData.find(x => String(x.id) === String(productId));
       if (!t) return;
       t.schedules.forEach(s => {
         const opt = document.createElement('option');

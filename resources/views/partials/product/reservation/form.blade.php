@@ -22,7 +22,7 @@
       <label class="form-check-label" for="is_pay_later">
         <strong>{{ __('Reserve ahora, paga después') }}</strong>
         <small class="text-muted d-block">
-          Paga manualmente antes de {{ setting('booking.pay_later.cancel_hours_before_tour', 24) }} horas del tour o se cancelará automáticamente.
+          Paga manualmente antes de {{ setting('booking.pay_later.cancel_hours_before_tour', 24) }} horas del product o se cancelará automáticamente.
         </small>
       </label>
     </div>

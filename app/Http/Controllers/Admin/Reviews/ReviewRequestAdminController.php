@@ -69,7 +69,7 @@ class ReviewRequestAdminController extends Controller
                 'product:product_id,name',
                 'product.translations',
                 'user:user_id,first_name,last_name,email',
-                'detail.productLanguage:tour_language_id,name',
+                'detail.productLanguage:product_language_id,name',
             ]);
 
         // (opcional) selección explícita de columna de referencia si existe
@@ -125,7 +125,7 @@ class ReviewRequestAdminController extends Controller
             // Strict Filter: Product Date must be in the past (or today)
             // Helps prevent future products from showing up even if filtered by creation date.
             ->whereHas('detail', function ($sub) {
-                $sub->where('tour_date', '<=', now());
+                $sub->where('product_date', '<=', now());
             })
 
             ->when($request->filled('product_id'), fn($sub) => $sub->where('product_id', (int) $request->product_id))
@@ -351,7 +351,7 @@ class ReviewRequestAdminController extends Controller
         return [
             'booking_date',
             'start_date',
-            'tour_date',
+            'product_date',
             'service_date',
             'activity_date',
             'travel_date',

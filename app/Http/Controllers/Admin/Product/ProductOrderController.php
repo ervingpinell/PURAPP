@@ -28,7 +28,7 @@ class ProductOrderController extends Controller
             ->sortBy('name');
 
         // Allow both parameters for compatibility
-        $selectedId = $request->get('product_type_id') ?? $request->get('tour_type_id');
+        $selectedId = $request->get('product_type_id') ?? $request->get('product_type_id');
 
         $selected = null;
         $products = collect();
@@ -42,7 +42,7 @@ class ProductOrderController extends Controller
                     'product2.product_id', 
                     'product2.name',
                     'product2.is_active',
-                    'tour_type_tour_order.position'
+                    'product_type_product_order.position'
                 )
                 ->get();
 
@@ -88,11 +88,11 @@ class ProductOrderController extends Controller
                         continue;
                     }
 
-                    // Use correct column names: tour_type_id and tour_id
-                    DB::table('tour_type_tour_order')->updateOrInsert(
+                    // Use correct column names: product_type_id and product_id
+                    DB::table('product_type_product_order')->updateOrInsert(
                         [
-                            'tour_type_id' => $productType->product_type_id,
-                            'tour_id'      => $productId,
+                            'product_type_id' => $productType->product_type_id,
+                            'product_id'      => $productId,
                         ],
                         [
                             'position'   => $idx + 1,
@@ -103,9 +103,9 @@ class ProductOrderController extends Controller
                 }
 
                 // (Opcional) Limpiar filas de products que ya no están en esta categoría
-                DB::table('tour_type_tour_order')
-                    ->where('tour_type_id', $productType->product_type_id)
-                    ->whereNotIn('tour_id', $validIds)
+                DB::table('product_type_product_order')
+                    ->where('product_type_id', $productType->product_type_id)
+                    ->whereNotIn('product_id', $validIds)
                     ->delete();
             });
 

@@ -62,7 +62,7 @@
                         <tr>
                             <th>Ref</th>
                             <th>Customer</th>
-                            <th>Tour</th>
+                            <th>Product</th>
                             <th>Date</th>
                             <th>Amount</th>
                             <th>Type</th>
@@ -93,7 +93,7 @@
                                     <small class="text-muted">{{ $booking->user->email }}</small>
                                 </td>
                                 <td>{{ $booking->product->title ?? 'N/A' }}</td>
-                                <td>{{ $booking->details->first()->tour_date ?? 'N/A' }}</td>
+                                <td>{{ $booking->details->first()->product_date ?? 'N/A' }}</td>
                                 <td class="font-weight-bold">${{ number_format($booking->total, 2) }}</td>
                                 <td>
                                     @if($booking->is_pay_later)

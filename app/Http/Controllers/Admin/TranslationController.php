@@ -15,7 +15,7 @@ use App\Models\Itinerary;
 use App\Models\ItineraryItem;
 use App\Models\Amenity;
 use App\Models\Faq;
-use App\Models\ProductType; // Was TourType
+use App\Models\ProductType; // Was ProductType
 use App\Models\Policy;
 
 // Translation models removed - we use Spatie logic on base models directly.
@@ -40,8 +40,8 @@ class TranslationController extends Controller
 
     public function chooseLocale(string $type)
     {
-        // Legacy 'tours' key mapping to Product
-        $key = ($type === 'tours') ? 'tours' : $type;
+        // Legacy 'products' key mapping to Product
+        $key = ($type === 'products') ? 'products' : $type;
         $entitySingular = __('m_config.translations.entities_singular.' . $key);
 
         return view('admin.translations.choose-locale', [
@@ -60,13 +60,13 @@ class TranslationController extends Controller
         }
 
         $items = match ($type) {
-            'tours'           => Product::orderBy('product_id')->get(), // Was Tour
+            'products'         => Product::orderBy('product_id')->get(), // Was Product
             'itineraries'     => Itinerary::orderBy('itinerary_id')->get(),
             'itinerary_items' => ItineraryItem::orderBy('item_id')->get(),
             'amenities'       => Amenity::orderBy('amenity_id')->get(),
             'faqs'            => Faq::orderBy('faq_id')->get(),
             'policies'        => Policy::orderBy('policy_id')->get(),
-            'tour_types'      => ProductType::orderBy('product_type_id')->get(), // Was TourType
+            'product_types'      => ProductType::orderBy('product_type_id')->get(), // Was ProductType
             default           => collect(),
         };
 
@@ -118,7 +118,7 @@ class TranslationController extends Controller
         $translatableFields = [];
 
         switch ($type) {
-            case 'tours':
+            case 'products':
                 $entity             = Product::with(['itinerary.items'])->findOrFail($id);
                 $translatableFields = ['name', 'overview']; // Check Product model translatables
                 break;
@@ -149,7 +149,7 @@ class TranslationController extends Controller
                 $translatableFields = ['name', 'content'];
                 break;
 
-            case 'tour_types':
+            case 'product_types':
                 $entity             = ProductType::findOrFail($id);
                 // ProductType: translatable = ['name']
                 // Legacy controller had description/duration. ProductType model ONLY lists 'name'.
@@ -219,7 +219,7 @@ class TranslationController extends Controller
             $entity = null;
 
             switch ($type) {
-                case 'tours':
+                case 'products':
                     $entity = Product::with(['itinerary.items'])->findOrFail($id);
                     break;
                 case 'itineraries':
@@ -237,7 +237,7 @@ class TranslationController extends Controller
                 case 'policies':
                     $entity = Policy::with('sections')->findOrFail($id);
                     break;
-                case 'tour_types':
+                case 'product_types':
                     $entity = ProductType::findOrFail($id);
                     break;
                 default:
@@ -265,8 +265,8 @@ class TranslationController extends Controller
                 $entity->save();
 
                 // 2. Nested Logic
-                // Itinerario + Items (sólo para tours)
-                if ($type === 'tours' && $entity->itinerary) {
+                // Itinerario + Items (sólo para products)
+                if ($type === 'products' && $entity->itinerary) {
                     $itin = $entity->itinerary;
                     foreach ($itineraryFieldValues as $f => $v) {
                         if (in_array($f, $itin->getTranslatableAttributes())) {

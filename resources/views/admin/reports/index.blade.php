@@ -530,7 +530,7 @@
           @php $gb = request('group_by', $groupBy ?? 'booking_date'); @endphp
           <select name="group_by" class="form-control">
             <option value="booking_date" @selected($gb==='booking_date' )>{{ __('reports.filters.group_booking_date') }}</option>
-            <option value="tour_date" @selected($gb==='tour_date' )>{{ __('reports.filters.group_tour_date') }}</option>
+            <option value="product_date" @selected($gb==='product_date' )>{{ __('reports.filters.group_product_date') }}</option>
           </select>
         </div>
 
@@ -581,8 +581,8 @@
 
           <div class="col-12 col-md-12 col-lg-5">
             <label class="filter-label">{{ __('reports.filters.languages_multi') }}</label>
-            @php $lSel = collect((array)request('tour_language_id', []))->map(fn($v)=>(int)$v)->all(); @endphp
-            <select name="tour_language_id[]" class="form-control" multiple size="4">
+            @php $lSel = collect((array)request('product_language_id', []))->map(fn($v)=>(int)$v)->all(); @endphp
+            <select name="product_language_id[]" class="form-control" multiple size="4">
               @foreach($langsMap as $lid => $lname)
               <option value="{{ $lid }}" @selected(in_array((int)$lid, $lSel))>{{ $lname }}</option>
               @endforeach
@@ -795,7 +795,7 @@
               <thead>
                 <tr>
                   <th style="width:60px">{{ __('reports.table.hash') }}</th>
-                  <th>{{ __('reports.table.tour') }}</th>
+                  <th>{{ __('reports.table.product') }}</th>
                   <th style="width:140px">{{ __('reports.table.bookings') }}</th>
                   <th style="width:120px">{{ __('reports.table.pax') }}</th>
                   <th class="text-end" style="width:180px">{{ __('reports.table.revenue') }}</th>
@@ -847,9 +847,9 @@
               <tr>
                 <th>{{ __('reports.table.ref') }}</th>
                 <th>{{ __('reports.table.customer') }}</th>
-                <th>{{ __('reports.table.tour') }}</th>
+                <th>{{ __('reports.table.product') }}</th>
                 <th>
-                  {{ ($gb==='tour_date') ? __('reports.table.tour_date') : __('reports.table.booking_date') }}
+                  {{ ($gb==='product_date') ? __('reports.table.product_date') : __('reports.table.booking_date') }}
                 </th>
                 <th class="text-end">{{ __('reports.table.total') }}</th>
               </tr>
@@ -861,8 +861,8 @@
                 <td>{{ $p->customer_email ?? '—' }}</td>
                 <td>{{ $p->tour_name ?? '—' }}</td>
                 <td>
-                  @if($gb==='tour_date')
-                  {{ $p->tour_date ? \Carbon\Carbon::parse($p->tour_date)->toDateString() : '—' }}
+                  @if($gb==='product_date')
+                  {{ $p->product_date ? \Carbon\Carbon::parse($p->product_date)->toDateString() : '—' }}
                   @else
                   {{ $p->booking_date ? \Carbon\Carbon::parse($p->booking_date)->toDateString() : '—' }}
                   @endif
@@ -969,14 +969,14 @@
     });
     @php $tSel = collect((array) request('product_id', [])) -> map(fn($v) => (int) $v) -> all();
     @endphp
-    @php $lSel = collect((array) request('tour_language_id', [])) -> map(fn($v) => (int) $v) -> all();
+    @php $lSel = collect((array) request('product_language_id', [])) -> map(fn($v) => (int) $v) -> all();
     @endphp
       ({
         !!json_encode($tSel) !!
       }).forEach(v => p.append('product_id[]', v));
     ({
       !!json_encode($lSel) !!
-    }).forEach(v => p.append('tour_language_id[]', v));
+    }).forEach(v => p.append('product_language_id[]', v));
 
     // Textos traducidos usados en JS
     const i18n = {

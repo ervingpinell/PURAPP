@@ -3,7 +3,7 @@ $mailLocale = $mailLocale ?? 'en';
 $reference = $reference ?? ($booking->booking_reference ?? $booking->booking_id);
 
 $d = collect($booking->details ?? [])->first();
-$productName = $d?->relationLoaded('tour') ? ($d->product->title ?? 'Product') : ($booking->product->title ?? 'Product');
+$productName = $d?->relationLoaded('product') ? ($d->product->title ?? 'Product') : ($booking->product->title ?? 'Product');
 @endphp
 
 {{ $mailLocale === 'es' ? 'Reserva Actualizada' : 'Booking Updated' }}

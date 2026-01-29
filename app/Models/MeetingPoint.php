@@ -11,7 +11,7 @@ use Spatie\Translatable\HasTranslations;
 /**
  * MeetingPoint Model
  *
- * Represents a tour meeting point location.
+ * Represents a product meeting point location.
  */
 class MeetingPoint extends Model
 {

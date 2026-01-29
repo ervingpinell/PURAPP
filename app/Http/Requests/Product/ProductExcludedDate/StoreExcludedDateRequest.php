@@ -37,8 +37,8 @@ class StoreExcludedDateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'product_id.required'    => 'El tour es obligatorio.',
-            'product_id.exists'      => 'El tour seleccionado no existe.',
+            'product_id.required'    => 'El product es obligatorio.',
+            'product_id.exists'      => 'El product seleccionado no existe.',
             'schedule_id.exists'  => 'El horario seleccionado no existe.',
             'start_date.required' => 'La fecha inicial es obligatoria.',
             'start_date.date'     => 'La fecha inicial no es válida.',
@@ -52,7 +52,7 @@ class StoreExcludedDateRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'store', $validator->errors()->toArray(), [
-            'entity'  => 'tour_excluded_date',
+            'entity'  => 'product_excluded_date',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
         parent::failedValidation($validator);

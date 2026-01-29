@@ -60,13 +60,13 @@ class AuthServiceProvider extends ServiceProvider
             return $user->hasPermissionTo('access-admin');
         });
 
-        // Define view-tours gate explicitly
-        Gate::define('view-tours', function (User $user) {
+        // Define view-products gate explicitly
+        Gate::define('view-products', function (User $user) {
             $isSuperOrAdmin = $user->hasRole(['super-admin', 'admin']);
             if ($isSuperOrAdmin) {
                 return true;
             }
-            return $user->hasPermissionTo('view-tours');
+            return $user->hasPermissionTo('view-products');
         });
     }
 }

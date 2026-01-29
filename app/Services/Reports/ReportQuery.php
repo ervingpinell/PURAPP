@@ -25,7 +25,7 @@ class ReportQuery
         return $q->get();
     }
 
-    public function topTours(Carbon $from, Carbon $to, ?string $status = null, int $limit = 10): Collection
+    public function topProducts(Carbon $from, Carbon $to, ?string $status = null, int $limit = 10): Collection
     {
         $q = BookingFact::query()
             ->selectRaw('product_id, SUM(detail_total) AS revenue, COUNT(DISTINCT booking_id) AS bookings, SUM(adults_qty + kids_qty) AS pax')
@@ -41,9 +41,9 @@ class ReportQuery
     public function byLanguage(Carbon $from, Carbon $to, ?string $status = null): Collection
     {
         $q = BookingFact::query()
-            ->selectRaw('tour_language_id, SUM(detail_total) AS revenue, COUNT(DISTINCT booking_id) AS bookings, SUM(adults_qty + kids_qty) AS pax')
+            ->selectRaw('product_language_id, SUM(detail_total) AS revenue, COUNT(DISTINCT booking_id) AS bookings, SUM(adults_qty + kids_qty) AS pax')
             ->whereBetween('booking_date', [$from, $to])
-            ->groupBy('tour_language_id')
+            ->groupBy('product_language_id')
             ->orderByDesc('revenue');
 
         if ($status) $q->where('status', $status);

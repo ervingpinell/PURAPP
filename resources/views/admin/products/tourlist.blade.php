@@ -177,7 +177,7 @@
     display: block;
   }
 
-  .tour-mobile-list {
+  .product-mobile-list {
     display: none;
   }
 
@@ -187,7 +187,7 @@
       display: none;
     }
 
-    .tour-mobile-list {
+    .product-mobile-list {
       display: flex;
       flex-direction: column;
       gap: .75rem;
@@ -200,7 +200,7 @@
     }
   }
 
-  .tour-mobile-card {
+  .product-mobile-card {
     background: #111827;
     border-radius: 16px;
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.7);
@@ -208,7 +208,7 @@
     border: 1px solid #1f2937;
   }
 
-  .tour-mobile-main {
+  .product-mobile-main {
     display: flex;
     align-items: center;
     padding: .75rem .9rem;
@@ -216,11 +216,11 @@
     cursor: pointer;
   }
 
-  .tour-mobile-main:active {
+  .product-mobile-main:active {
     background: #020617;
   }
 
-  .tour-mobile-thumb {
+  .product-mobile-thumb {
     width: 56px;
     height: 56px;
     border-radius: 14px;
@@ -236,18 +236,18 @@
     text-transform: uppercase;
   }
 
-  .tour-mobile-thumb img {
+  .product-mobile-thumb img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
-  .tour-mobile-info {
+  .product-mobile-info {
     flex: 1;
     min-width: 0;
   }
 
-  .tour-mobile-title {
+  .product-mobile-title {
     font-weight: 600;
     font-size: .98rem;
     color: #f9fafb;
@@ -256,12 +256,12 @@
     text-overflow: ellipsis;
   }
 
-  .tour-mobile-type {
+  .product-mobile-type {
     font-size: .75rem;
     color: #9ca3af;
   }
 
-  .tour-mobile-slug {
+  .product-mobile-slug {
     font-size: .75rem;
     color: #6b7280;
     white-space: nowrap;
@@ -269,7 +269,7 @@
     text-overflow: ellipsis;
   }
 
-  .tour-mobile-meta {
+  .product-mobile-meta {
     display: flex;
     align-items: center;
     margin-top: .25rem;
@@ -277,30 +277,30 @@
     flex-wrap: wrap;
   }
 
-  .tour-mobile-status-badge {
+  .product-mobile-status-badge {
     font-size: .7rem;
     padding: .15rem .45rem;
     border-radius: 999px;
   }
 
-  .tour-mobile-chevron {
+  .product-mobile-chevron {
     flex-shrink: 0;
     color: #9ca3af;
     transition: transform .2s ease;
   }
 
-  .tour-mobile-chevron.rotated {
+  .product-mobile-chevron.rotated {
     transform: rotate(180deg);
   }
 
-  .tour-mobile-body {
+  .product-mobile-body {
     padding: .65rem .9rem .85rem;
     border-top: 1px solid #1f2937;
     background: #020617;
     color: #e5e7eb;
   }
 
-  .tour-mobile-body .section-label {
+  .product-mobile-body .section-label {
     font-size: .75rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -309,18 +309,18 @@
     margin-bottom: .25rem;
   }
 
-  .tour-mobile-body .badge {
+  .product-mobile-body .badge {
     font-size: .75rem;
   }
 
-  .tour-mobile-meta-row {
+  .product-mobile-meta-row {
     display: flex;
     gap: .35rem;
     flex-wrap: wrap;
     margin-bottom: .35rem;
   }
 
-  .tour-mobile-meta-chip {
+  .product-mobile-meta-chip {
     font-size: .75rem;
     padding: .1rem .45rem;
     border-radius: 999px;
@@ -328,14 +328,14 @@
     color: #e5e7eb;
   }
 
-  .tour-mobile-actions {
+  .product-mobile-actions {
     display: flex;
     flex-wrap: wrap;
     gap: .4rem;
     margin-top: .5rem;
   }
 
-  .tour-mobile-actions .btn-sm {
+  .product-mobile-actions .btn-sm {
     border-radius: 999px;
     padding: .35rem .6rem;
     display: inline-flex;
@@ -344,7 +344,7 @@
     font-size: .78rem;
   }
 
-  .tour-mobile-actions .btn-sm i {
+  .product-mobile-actions .btn-sm i {
     font-size: .9em;
   }
 </style>
@@ -356,7 +356,7 @@
 use Illuminate\Support\Facades\Storage;
 
 /**
-* Portada del tour (igual que índice público)
+* Portada del product (igual que índice público)
 */
 $coverFromFolder = function (?int $productId): string {
 if (!$productId) {
@@ -400,7 +400,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 {{-- Indicador de scroll (solo desktop) --}}
 <div class="scroll-hint">
   <i class="fas fa-arrows-alt-h me-1"></i>
-  {{ __('m_tours.tour.ui.scroll_hint') }}
+  {{ __('m_tours.product.ui.scroll_hint') }}
 </div>
 
 {{-- ================= DESKTOP TABLE ================= --}}
@@ -409,14 +409,14 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
     <table class="table table-sm table-bordered table-striped table-hover" id="toursTable">
       <thead class="bg-primary text-white">
         <tr>
-          <th style="min-width:60px;">{{ __('m_tours.tour.table.id') }}</th>
-          <th style="min-width:180px;">{{ __('m_tours.tour.table.name') }}</th>
-          <th style="min-width:150px;">{{ __('m_tours.tour.table.schedules') }}</th>
-          <th style="min-width:180px;">{{ __('m_tours.tour.table.prices') }}</th>
-          <th style="min-width:100px;">{{ __('m_tours.tour.table.capacity') }}</th>
-          <th style="min-width:100px;">{{ __('m_tours.tour.table.group_size') }}</th>
-          <th style="min-width:90px;">{{ __('m_tours.tour.table.status') }}</th>
-          <th style="min-width:280px;">{{ __('m_tours.tour.table.actions') }}</th>
+          <th style="min-width:60px;">{{ __('m_tours.product.table.id') }}</th>
+          <th style="min-width:180px;">{{ __('m_tours.product.table.name') }}</th>
+          <th style="min-width:150px;">{{ __('m_tours.product.table.schedules') }}</th>
+          <th style="min-width:180px;">{{ __('m_tours.product.table.prices') }}</th>
+          <th style="min-width:100px;">{{ __('m_tours.product.table.capacity') }}</th>
+          <th style="min-width:100px;">{{ __('m_tours.product.table.group_size') }}</th>
+          <th style="min-width:90px;">{{ __('m_tours.product.table.status') }}</th>
+          <th style="min-width:280px;">{{ __('m_tours.product.table.actions') }}</th>
         </tr>
       </thead>
       <tbody id="toursTbody">
@@ -470,9 +470,9 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             <strong>
               {{ method_exists($product, 'getTranslatedName') ? $product->getTranslatedName($locale) : $product->name }}
             </strong>
-            @if($product->tourType)
+            @if($product->productType)
             <br>
-            <small class="text-muted">{{ $product->tourType->name }}</small>
+            <small class="text-muted">{{ $product->productType->name }}</small>
             @endif
           </td>
 
@@ -482,7 +482,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               {{ date('g:i A', strtotime($schedule->start_time)) }}
             </span>
             @empty
-            <span class="text-muted">{{ __('m_tours.tour.ui.no_schedules') }}</span>
+            <span class="text-muted">{{ __('m_tours.product.ui.no_schedules') }}</span>
             @endforelse
           </td>
 
@@ -513,8 +513,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             if (!empty($first->label)) {
             $label = $first->label;
             } elseif ($first->is_default) {
-            $label = __('m_tours.tour.summary.default_price_rule') !== 'm_tours.tour.summary.default_price_rule'
-            ? __('m_tours.tour.summary.default_price_rule')
+            $label = __('m_tours.product.summary.default_price_rule') !== 'm_tours.product.summary.default_price_rule'
+            ? __('m_tours.product.summary.default_price_rule')
             : 'Precio por defecto';
             } else {
             $label = $dateRangeStr ?: 'Rango sin fechas';
@@ -567,7 +567,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             </span>
             @endforeach
             @else
-            <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
+            <span class="text-muted">{{ __('m_tours.product.ui.no_prices') }}</span>
             @endif
           </td>
 
@@ -596,8 +596,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               @can('edit-tours')
               <a href="{{ route('admin.products.edit', $product) }}"
                 class="btn btn-edit btn-sm"
-                title="{{ __('m_tours.tour.ui.edit') }}"
-                aria-label="{{ __('m_tours.tour.ui.edit') }}">
+                title="{{ __('m_tours.product.ui.edit') }}"
+                aria-label="{{ __('m_tours.product.ui.edit') }}">
                 <i class="fas fa-edit"></i>
               </a>
 
@@ -616,24 +616,24 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               <form action="{{ route('admin.products.toggle', $product) }}"
                 method="POST"
                 class="d-inline js-toggle-form"
-                data-question="{{ $product->is_active ? __('m_tours.tour.alerts.toggle_question_active') : __('m_tours.tour.alerts.toggle_question_inactive') }}">
+                data-question="{{ $product->is_active ? __('m_tours.product.alerts.toggle_question_active') : __('m_tours.product.alerts.toggle_question_inactive') }}">
                 @csrf
                 @method('PATCH')
                 <button type="submit"
                   class="btn btn-sm btn-{{ $product->is_active ? 'toggle' : 'secondary' }}"
-                  title="{{ $product->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}"
-                  aria-label="{{ $product->is_active ? __('m_tours.tour.ui.deactivate') : __('m_tours.tour.ui.activate') }}">
+                  title="{{ $product->is_active ? __('m_tours.product.ui.deactivate') : __('m_tours.product.ui.activate') }}"
+                  aria-label="{{ $product->is_active ? __('m_tours.product.ui.deactivate') : __('m_tours.product.ui.activate') }}">
                   <i class="fas fa-toggle-{{ $product->is_active ? 'on' : 'off' }}"></i>
                 </button>
               </form>
               @endcan
               @endunless
 
-              @can('view-tour-prices')
+              @can('view-product-prices')
               <a href="{{ route('admin.products.prices.index', $product) }}"
                 class="btn btn-info btn-sm"
-                title="{{ __('m_tours.tour.ui.manage_prices') }}"
-                aria-label="{{ __('m_tours.tour.ui.manage_prices') }}">
+                title="{{ __('m_tours.product.ui.manage_prices') }}"
+                aria-label="{{ __('m_tours.product.ui.manage_prices') }}">
                 <i class="fas fa-dollar-sign"></i>
               </a>
               @endcan
@@ -641,8 +641,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               @can('edit-tours')
               <a href="{{ route('admin.products.images.index', $product) }}"
                 class="btn btn-secondary btn-sm"
-                title="{{ __('m_tours.tour.ui.manage_images') }}"
-                aria-label="{{ __('m_tours.tour.ui.manage_images') }}">
+                title="{{ __('m_tours.product.ui.manage_images') }}"
+                aria-label="{{ __('m_tours.product.ui.manage_images') }}">
                 <i class="fas fa-images"></i>
               </a>
               @endcan
@@ -658,8 +658,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                 @method('DELETE')
                 <button type="button"
                   class="btn btn-danger btn-sm"
-                  title="{{ __('m_tours.tour.ui.delete') }}"
-                  aria-label="{{ __('m_tours.tour.ui.delete') }}"
+                  title="{{ __('m_tours.product.ui.delete') }}"
+                  aria-label="{{ __('m_tours.product.ui.delete') }}"
                   onclick="confirmDelete({{ $product->product_id }})">
                   <i class="fas fa-trash-alt"></i>
                 </button>
@@ -676,8 +676,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                 @csrf
                 <button type="submit"
                   class="btn btn-success btn-sm"
-                  title="{{ __('m_tours.tour.ui.restore') }}"
-                  aria-label="{{ __('m_tours.tour.ui.restore') }}">
+                  title="{{ __('m_tours.product.ui.restore') }}"
+                  aria-label="{{ __('m_tours.product.ui.restore') }}">
                   <i class="fas fa-undo"></i>
                 </button>
               </form>
@@ -690,8 +690,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                 @method('DELETE')
                 <button type="button"
                   class="btn btn-outline-danger btn-sm"
-                  title="{{ __('m_tours.tour.ui.purge') }}"
-                  aria-label="{{ __('m_tours.tour.ui.purge') }}"
+                  title="{{ __('m_tours.product.ui.purge') }}"
+                  aria-label="{{ __('m_tours.product.ui.purge') }}"
                   onclick="confirmPurge({{ $product->product_id }}, {{ $hasBookings }})">
                   <i class="fas fa-times"></i>
                 </button>
@@ -789,7 +789,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 </div>
 
 {{-- ================= MOBILE/TABLET LIST (CARDS) ================= --}}
-<div class="tour-mobile-list">
+<div class="product-mobile-list">
   @foreach($products as $product)
   @php
   $isArchived = !is_null($product->deleted_at ?? null);
@@ -837,14 +837,14 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
   $initials = mb_substr($title ?: 'T', 0, 2);
   @endphp
 
-  <div class="tour-mobile-card">
+  <div class="product-mobile-card">
     {{-- HEADER / MAIN --}}
-    <div class="tour-mobile-main"
+    <div class="product-mobile-main"
       data-toggle="collapse"
       data-target="#tourMobileDetails{{ $product->product_id }}"
       aria-expanded="false"
       aria-controls="tourMobileDetails{{ $product->product_id }}">
-      <div class="tour-mobile-thumb">
+      <div class="product-mobile-thumb">
         @if($thumb)
         <img src="{{ $thumb }}" alt="{{ $title }}">
         @else
@@ -852,16 +852,16 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
         @endif
       </div>
 
-      <div class="tour-mobile-info">
-        <div class="tour-mobile-title">{{ $title }}</div>
-        @if($product->tourType)
-        <div class="tour-mobile-type">{{ $product->tourType->name }}</div>
+      <div class="product-mobile-info">
+        <div class="product-mobile-title">{{ $title }}</div>
+        @if($product->productType)
+        <div class="product-mobile-type">{{ $product->productType->name }}</div>
         @endif
         @if($slug)
-        <div class="tour-mobile-slug">{{ $slug }}</div>
+        <div class="product-mobile-slug">{{ $slug }}</div>
         @endif
-        <div class="tour-mobile-meta">
-          <span class="tour-mobile-status-badge badge
+        <div class="product-mobile-meta">
+          <span class="product-mobile-status-badge badge
                 {{ $product->is_active ? 'bg-success' : 'bg-secondary' }}">
             {{ $product->is_active ? __('m_tours.common.active') : __('m_tours.common.inactive') }}
           </span>
@@ -870,35 +870,35 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
                  Si no hay precios, mostramos sólo el mensaje --}}
           @if($groupedPriceRulesMobile->isEmpty())
           <span class="text-muted" style="font-size:.7rem;">
-            {{ __('m_tours.tour.ui.no_prices') }}
+            {{ __('m_tours.product.ui.no_prices') }}
           </span>
           @endif
         </div>
       </div>
 
-      <div class="tour-mobile-chevron" id="chevron-{{ $product->product_id }}">
+      <div class="product-mobile-chevron" id="chevron-{{ $product->product_id }}">
         <i class="fas fa-chevron-down"></i>
       </div>
     </div>
 
     {{-- BODY / DETAILS --}}
     <div id="tourMobileDetails{{ $product->product_id }}" class="collapse">
-      <div class="tour-mobile-body">
+      <div class="product-mobile-body">
         {{-- Horarios --}}
         <div class="mb-2">
-          <div class="section-label">{{ __('m_tours.tour.table.schedules') }}</div>
+          <div class="section-label">{{ __('m_tours.product.table.schedules') }}</div>
           @forelse($product->schedules->sortBy('start_time') as $schedule)
           <span class="badge bg-success me-1 mb-1">
             {{ date('g:i A', strtotime($schedule->start_time)) }}
           </span>
           @empty
-          <span class="text-muted">{{ __('m_tours.tour.ui.no_schedules') }}</span>
+          <span class="text-muted">{{ __('m_tours.product.ui.no_schedules') }}</span>
           @endforelse
         </div>
 
         {{-- Precios detallados agrupados por regla/fechas (como desktop) --}}
         <div class="mb-2">
-          <div class="section-label">{{ __('m_tours.tour.table.prices') }}</div>
+          <div class="section-label">{{ __('m_tours.product.table.prices') }}</div>
           @if($groupedPriceRulesMobile->isNotEmpty())
           @foreach($groupedPriceRulesMobile as $key => $pricesGroup)
           @php
@@ -925,8 +925,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
           $ruleLabel .= " ({$dateRangeStr})";
           }
           } elseif ($first->is_default) {
-          $ruleLabel = __('m_tours.tour.summary.default_price_rule') !== 'm_tours.tour.summary.default_price_rule'
-          ? __('m_tours.tour.summary.default_price_rule')
+          $ruleLabel = __('m_tours.product.summary.default_price_rule') !== 'm_tours.product.summary.default_price_rule'
+          ? __('m_tours.product.summary.default_price_rule')
           : 'Precio por defecto';
           } else {
           $ruleLabel = $dateRangeStr ?: 'Rango sin fechas';
@@ -936,7 +936,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             <span class="badge badge-primary mb-1">
               <i class="fas fa-calendar-alt mr-1"></i>{{ $ruleLabel }}
             </span>
-            <div class="tour-mobile-meta-row">
+            <div class="product-mobile-meta-row">
               @foreach($pricesGroup as $p)
               @php
               $cat = $p->category;
@@ -959,7 +959,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
               $amount = $currency . number_format($p->price, 2);
               @endphp
-              <span class="tour-mobile-meta-chip mb-1">
+              <span class="product-mobile-meta-chip mb-1">
                 {{ $label }}: {{ $amount }}
                 ({{ $p->min_quantity }}-{{ $p->max_quantity }})
               </span>
@@ -968,31 +968,31 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
           </div>
           @endforeach
           @else
-          <span class="text-muted">{{ __('m_tours.tour.ui.no_prices') }}</span>
+          <span class="text-muted">{{ __('m_tours.product.ui.no_prices') }}</span>
           @endif
         </div>
 
         {{-- Capacidades --}}
-        <div class="tour-mobile-meta-row">
-          <span class="tour-mobile-meta-chip bg-success">
-            {{ __('m_tours.tour.table.capacity') }}:
+        <div class="product-mobile-meta-row">
+          <span class="product-mobile-meta-chip bg-success">
+            {{ __('m_tours.product.table.capacity') }}:
             {{ $product->max_capacity }} {{ __('m_tours.common.people') }}
           </span>
-          <span class="tour-mobile-meta-chip bg-success">
-            {{ __('m_tours.tour.table.group_size') }}:
+          <span class="product-mobile-meta-chip bg-success">
+            {{ __('m_tours.product.table.group_size') }}:
             {{ $product->group_size ? $product->group_size.' '. __('m_tours.common.people') : __('m_tours.common.na') }}
           </span>
         </div>
 
         {{-- Acciones --}}
-        <div class="tour-mobile-actions border-top pt-2 pb-2">
+        <div class="product-mobile-actions border-top pt-2 pb-2">
 
 
           @can('edit-tours')
           <a href="{{ route('admin.products.edit', $product) }}"
             class="btn btn-warning btn-sm">
             <i class="fas fa-edit"></i>
-            {{ __('m_tours.tour.ui.edit') }}
+            {{ __('m_tours.product.ui.edit') }}
           </a>
           @endcan
 
@@ -1001,31 +1001,31 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
           <form action="{{ route('admin.products.toggle', $product) }}"
             method="POST"
             class="d-inline js-toggle-form"
-            data-question="{{ $product->is_active ? __('m_tours.tour.alerts.toggle_question_active') : __('m_tours.tour.alerts.toggle_question_inactive') }}">
+            data-question="{{ $product->is_active ? __('m_tours.product.alerts.toggle_question_active') : __('m_tours.product.alerts.toggle_question_inactive') }}">
             @csrf
             @method('PATCH')
             <button type="submit"
               class="btn btn-sm btn-{{ $product->is_active ? 'success' : 'secondary' }}">
               <i class="fas fa-toggle-{{ $product->is_active ? 'on' : 'off' }}"></i>
-              {{ __('m_tours.tour.ui.deactivate') }}
+              {{ __('m_tours.product.ui.deactivate') }}
             </button>
           </form>
           @endcan
           @endunless
 
-          @can('view-tour-prices')
+          @can('view-product-prices')
           <a href="{{ route('admin.products.prices.index', $product) }}"
             class="btn btn-info btn-sm">
             <i class="fas fa-dollar-sign"></i>
-            {{ __('m_tours.tour.ui.manage_prices') }}
+            {{ __('m_tours.product.ui.manage_prices') }}
           </a>
           @endcan
 
-          @can('manage-tour-images')
+          @can('manage-product-images')
           <a href="{{ route('admin.products.images.index', $product) }}"
             class="btn btn-warning btn-sm">
             <i class="fas fa-images"></i>
-            {{ __('m_tours.tour.ui.gallery') }}
+            {{ __('m_tours.product.ui.gallery') }}
           </a>
           @endcan
 
@@ -1042,7 +1042,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               class="btn btn-danger btn-sm"
               onclick="confirmDelete({{ $product->product_id }})">
               <i class="fas fa-trash-alt"></i>
-              {{ __('m_tours.tour.ui.delete') }}
+              {{ __('m_tours.product.ui.delete') }}
             </button>
           </form>
           @endif
@@ -1058,7 +1058,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
             <button type="submit"
               class="btn btn-success btn-sm">
               <i class="fas fa-undo"></i>
-              {{ __('m_tours.tour.ui.restore') }}
+              {{ __('m_tours.product.ui.restore') }}
             </button>
           </form>
 
@@ -1072,7 +1072,7 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
               class="btn btn-outline-danger btn-sm"
               onclick="confirmPurge({{ $product->product_id }}, {{ $hasBookings }})">
               <i class="fas fa-times"></i>
-              {{ __('m_tours.tour.ui.purge') }}
+              {{ __('m_tours.product.ui.purge') }}
             </button>
           </form>
           @endcan
@@ -1101,8 +1101,8 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
 
     const run = () => {
       Swal.fire({
-        title: @json(__('m_tours.tour.alerts.delete_title')),
-        text: @json(__('m_tours.tour.alerts.delete_text')),
+        title: @json(__('m_tours.product.alerts.delete_title')),
+        text: @json(__('m_tours.product.alerts.delete_text')),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: @json(__('m_tours.common.confirm_delete')),
@@ -1129,14 +1129,14 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
     const extra = hasBookings > 0 ?
       `<div class="mt-2 text-start">
            <strong>{{ __('m_tours.common.warning') }}:</strong>
-           {{ __('m_tours.tour.alerts.purge_text_with_bookings', ['count' => '___COUNT___']) }}
+           {{ __('m_tours.product.alerts.purge_text_with_bookings', ['count' => '___COUNT___']) }}
          </div>`.replace('___COUNT___', hasBookings) :
       '';
 
     const run = () => {
       Swal.fire({
-        title: @json(__('m_tours.tour.alerts.purge_title')),
-        html: @json(__('m_tours.tour.alerts.purge_text')) + extra,
+        title: @json(__('m_tours.product.alerts.purge_title')),
+        html: @json(__('m_tours.product.alerts.purge_text')) + extra,
         icon: 'error',
         showCancelButton: true,
         confirmButtonText: @json(__('m_tours.common.confirm_delete')),
@@ -1208,10 +1208,10 @@ return $first ? asset('storage/' . $first) : asset('images/volcano.png');
     });
 
     // Rotar chevron de los acordeones mobile (Bootstrap 4: data-target)
-    document.querySelectorAll('.tour-mobile-main').forEach(el => {
+    document.querySelectorAll('.product-mobile-main').forEach(el => {
       const targetSel = el.getAttribute('data-target') || el.getAttribute('data-target');
       const tgt = targetSel ? document.querySelector(targetSel) : null;
-      const chevron = el.querySelector('.tour-mobile-chevron');
+      const chevron = el.querySelector('.product-mobile-chevron');
 
       if (!tgt || !chevron) return;
 

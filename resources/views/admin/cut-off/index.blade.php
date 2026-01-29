@@ -64,7 +64,7 @@
       if ($hasProductOverride) {
           $productOverrides[] = [
             'product_id' => (int)$t->product_id,
-            'tour'    => $t->name,
+            'product'    => $t->name,
             'cutoff'  => $t->cutoff_hour ?: '—',
             'lead'    => is_null($t->lead_days) ? '—' : $t->lead_days,
           ];
@@ -76,7 +76,7 @@
               $scheduleOverrides[] = [
                 'product_id'     => (int)$t->product_id,
                 'schedule_id' => (int)$s->schedule_id,
-                'tour'        => $t->name,
+                'product'        => $t->name,
                 'schedule'    => Carbon::parse($s->start_time)->format('g:i A').' - '.Carbon::parse($s->end_time)->format('g:i A'),
                 'cutoff'      => $pCut ?: '—',
                 'lead'        => is_null($pLd) ? '—' : $pLd,
@@ -103,8 +103,8 @@
       </button>
     </li>
     <li class="nav-item">
-      <button class="nav-link" data-toggle="pill" data-target="#pane-tour" type="button">
-        <i class="fas fa-route me-1"></i> {{ __('m_config.cut-off.tabs.tour') }}
+      <button class="nav-link" data-toggle="pill" data-target="#pane-product" type="button">
+        <i class="fas fa-route me-1"></i> {{ __('m_config.cut-off.tabs.product') }}
       </button>
     </li>
     <li class="nav-item">
@@ -128,8 +128,8 @@
     <div id="pane-global" class="tab-pane fade show active">
       @include('admin.cut-off.partials.global', ['cutoff'=>$cutoff,'lead'=>$lead,'tz'=>$tz])
     </div>
-    <div id="pane-tour" class="tab-pane fade">
-      @include('admin.cut-off.partials.tour', ['products'=>$products])
+    <div id="pane-product" class="tab-pane fade">
+      @include('admin.cut-off.partials.product', ['products'=>$products])
     </div>
     <div id="pane-schedule" class="tab-pane fade">
       @include('admin.cut-off.partials.schedule', ['products'=>$products,'toursPayload'=>$productsPayload])
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // === Persistencia de pestañas (query param + hash + localStorage) ===
   const KEY = 'cutoffActiveTab';
   const url = new URL(window.location.href);
-  const qsTab = url.searchParams.get('tab'); // 'global'|'tour'|'schedule'|'summary'|'help'
+  const qsTab = url.searchParams.get('tab'); // 'global'|'product'|'schedule'|'summary'|'help'
   const hash  = url.hash;                    // '#pane-...'
   const list  = document.querySelectorAll('#settingsTabs [data-toggle="pill"]');
 

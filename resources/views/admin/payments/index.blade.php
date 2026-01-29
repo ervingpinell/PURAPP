@@ -161,7 +161,7 @@
                             <th class="text-nowrap">{{ __('payment.fields.payment_id') }}</th>
                             <th class="text-nowrap">{{ __('payment.fields.booking_ref') }}</th>
                             <th class="text-nowrap d-none d-lg-table-cell">{{ __('payment.fields.customer') }}</th>
-                            <th class="text-nowrap d-none d-xl-table-cell">{{ __('payment.fields.tour') }}</th>
+                            <th class="text-nowrap d-none d-xl-table-cell">{{ __('payment.fields.product') }}</th>
                             <th class="text-nowrap">{{ __('payment.fields.amount') }}</th>
                             <th class="text-nowrap d-none d-md-table-cell">{{ __('payment.fields.gateway') }}</th>
                             <th class="text-nowrap">{{ __('payment.fields.status') }}</th>
@@ -224,7 +224,7 @@
                                     title="{{ $payment->booking->product->name }}">
                                     {{ $payment->booking->product->name }}
                                 </span>
-                                @elseif(isset($payment->metadata['deleted_booking_snapshot']['tour']))
+                                @elseif(isset($payment->metadata['deleted_booking_snapshot']['product']))
                                 @php $product = $payment->metadata['deleted_booking_snapshot']['product']; @endphp
                                 <span class="text-danger text-truncate d-inline-block" style="max-width: 200px;"
                                     title="{{ $product['name'] ?? 'N/A' }} - {{ __('payment.messages.booking_deleted') }}">

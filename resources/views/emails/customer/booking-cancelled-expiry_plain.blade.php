@@ -6,9 +6,9 @@ Booking Details
 ---------------
 Reference: {{ $booking->booking_reference }}
 {{ __('adminlte::email.service') }}: {{ optional($booking->product)->name ?? 'N/A' }}
-Date: {{ $booking->details->first()->tour_date ?? 'N/A' }}
+Date: {{ $booking->details->first()->product_date ?? 'N/A' }}
 
-If you would like to proceed with this tour, please create a new booking using the link below:
+If you would like to proceed with this product, please create a new booking using the link below:
 {{ localized_route('products.show', $booking->product) }}
 
 Thanks,

@@ -60,7 +60,7 @@
       <label>{{ __('reviews.requests.date_column') }}</label>
       <select name="date_col" class="form-control">
         <option value="created_at" {{ ($dateCol ?? 'created_at') === 'created_at' ? 'selected' : '' }}>{{ __('reviews.requests.date_options.created_at') }}</option>
-        <option value="start_date" {{ ($dateCol ?? '') === 'start_date' ? 'selected' : '' }}>{{ __('reviews.requests.date_options.tour_date') }}</option>
+        <option value="start_date" {{ ($dateCol ?? '') === 'start_date' ? 'selected' : '' }}>{{ __('reviews.requests.date_options.product_date') }}</option>
       </select>
     </div>
     @else
@@ -104,7 +104,7 @@
           <th style="width:110px;">{{ __('reviews.admin.table.date') }}</th>
           <th style="width:160px;">{{ __('reviews.requests.table.reference') }}</th>
           <th>{{ __('reviews.admin.table.client') }}</th>
-          <th>{{ __('reviews.admin.table.tour') }}</th>
+          <th>{{ __('reviews.admin.table.product') }}</th>
           <th class="text-center" style="width:120px;">{{ __('reviews.requests.table.expires_days') }}</th>
           <th class="text-right" style="width:140px;">{{ __('reviews.common.actions') }}</th>
         </tr>
@@ -129,7 +129,7 @@
             <small class="text-muted d-block">{{ optional($b->user)->email ?? $b->customer_email }}</small>
           </td>
           <td>
-            {{ optional($b->tour)->name }}
+            {{ optional($b->product)->name }}
             <small class="text-muted d-block">ID: {{ $b->product_id }}</small>
           </td>
           <td class="text-center align-middle">
@@ -172,7 +172,7 @@
         <tr>
           <th style="width:110px;">{{ __('reviews.requests.table.sent_at') }}</th>
           <th>{{ __('reviews.admin.table.client') }}</th>
-          <th>{{ __('reviews.admin.table.tour') }}</th>
+          <th>{{ __('reviews.admin.table.product') }}</th>
           <th style="width:160px;">{{ __('reviews.requests.table.reference') }}</th>
           <th style="width:220px;">{{ __('reviews.requests.table.states') }}</th>
           <th class="text-right" style="width:210px;">{{ __('reviews.common.actions') }}</th>
@@ -209,7 +209,7 @@
             <small class="text-muted d-block">{{ $r->email }}</small>
           </td>
           <td>
-            {{ optional($r->tour)->name }}
+            {{ optional($r->product)->name }}
             <small class="text-muted d-block">ID: {{ $r->product_id }}</small>
           </td>
           <td>
@@ -280,7 +280,7 @@
         <tr>
           <th style="width:110px;">{{ __('reviews.requests.table.sent_at') }}</th>
           <th>{{ __('reviews.admin.table.client') }}</th>
-          <th>{{ __('reviews.admin.table.tour') }}</th>
+          <th>{{ __('reviews.admin.table.product') }}</th>
           <th style="width:160px;">{{ __('reviews.requests.table.reference') }}</th>
           <th class="text-right" style="width:210px;">{{ __('reviews.common.actions') }}</th>
         </tr>
@@ -297,7 +297,7 @@
              <small class="text-muted d-block">{{ $r->email }}</small>
           </td>
           <td>
-             {{ optional($r->tour)->name }}
+             {{ optional($r->product)->name }}
              <small class="text-muted d-block">ID: {{ $r->product_id }}</small>
           </td>
           <td>

@@ -7,8 +7,8 @@ use App\Models\{
     Booking,
     BookingDetail,
     Schedule,
-    Tour,
-    TourLanguage,
+    Product,
+    ProductLanguage,
     User,
     HotelList,
     PromoCode,
@@ -50,11 +50,11 @@ class BookingController extends Controller
     {
         $query = Booking::with([
             'user',
-            'tour',
+            'product',
             'payments',
             'detail.schedule',
             'detail.hotel',
-            'detail.tourLanguage',
+            'detail.productLanguage',
             'detail.meetingPoint',
             'redemption.promoCode',
             'promoCodeLegacy',
@@ -102,7 +102,7 @@ class BookingController extends Controller
 
         if ($request->filled('product_id'))           $query->where('product_id', $request->product_id);
         if ($request->filled('schedule_id'))       $query->whereHas('detail', fn($q) => $q->where('schedule_id', $request->schedule_id));
-        if ($request->filled('tour_language_id'))  $query->where('tour_language_id', $request->tour_language_id);
+        if ($request->filled('product_language_id'))  $query->where('product_language_id', $request->product_language_id);
 
         $bookings = $query->orderBy('booking_date', 'desc')->paginate(15);
 
@@ -122,14 +122,14 @@ class BookingController extends Controller
         // Cargamos todas las relaciones necesarias para mostrar detalles completos
         $booking->loadMissing([
             'user',
-            'tour',
-            'tourLanguage',
+            'product',
+            'productLanguage',
             'hotel',
             'payments',
-            'detail.tour',
+            'detail.product',
             'detail.hotel',
             'detail.schedule',
-            'detail.tourLanguage',
+            'detail.productLanguage',
             'detail.meetingPoint',
             'detail.meetingPoint.translations',
             'redemption.promoCode',
@@ -170,15 +170,15 @@ class BookingController extends Controller
     {
         $booking->load([
             'detail.schedule',
-            'detail.tourLanguage',
+            'detail.productLanguage',
             'detail.hotel',
             'detail.meetingPoint',
             'user',
-            'tour',
+            'product',
             'redemption.promoCode',
         ]);
 
-        // Load tours with all relationships like create-simple
+        // Load products with all relationships like create-simple
         $products = Product::with([
             'schedules' => fn($q) => $q->orderBy('start_time'),
             'languages' => fn($q) => $q->orderBy('name'),
@@ -224,11 +224,11 @@ class BookingController extends Controller
         }
 
         $bookingLimits = $this->buildBookingLimits();
-        $limitsPerProduct = app(BookingValidationService::class)->getLimitsForTour($booking->tour);
+        $limitsPerProduct = app(BookingValidationService::class)->getLimitsForProduct($booking->product);
 
         return view('admin.bookings.edit', compact(
             'booking',
-            'tours',
+            'products',
             'users',
             'hotels',
             'meetingPoints',
@@ -267,9 +267,9 @@ class BookingController extends Controller
         try {
             $validated = $request->validate([
                 'user_id'           => 'required|exists:users,user_id',
-                'product_id'           => 'required|exists:tours,product_id',
+                'product_id'           => 'required|exists:products,product_id',
                 'schedule_id'       => 'required|exists:schedules,schedule_id',
-                'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
+                'product_language_id'  => 'required|exists:product_languages,product_language_id',
                 'product_date'         => 'required|date|after_or_equal:today',
                 'booking_date'      => 'nullable|date',
                 'categories'        => 'required|array|min:1',
@@ -321,7 +321,7 @@ class BookingController extends Controller
         // CREACIÓN DE LA RESERVA
         // =======================
         try {
-            // Cargar tour + precios
+            // Cargar product + precios
             $product = Product::with('prices.category')->findOrFail((int)$validated['product_id']);
 
             // Verificar horario activo
@@ -376,7 +376,7 @@ class BookingController extends Controller
 
                 if ($totalPax > $remaining) {
                     $friendly = __('m_bookings.bookings.errors.insufficient_capacity', [
-                        'tour'      => $product->name,
+                        'product'    => $product->name,
                         'date'      => \Carbon\Carbon::parse($validated['product_date'])->translatedFormat('M d, Y'),
                         'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
                         'requested' => $totalPax,
@@ -401,7 +401,7 @@ class BookingController extends Controller
                 'user_id'           => (int)$validated['user_id'],
                 'product_id'           => (int)$validated['product_id'],
                 'schedule_id'       => (int)$validated['schedule_id'],
-                'tour_language_id'  => (int)$validated['tour_language_id'],
+                'product_language_id'  => (int)$validated['product_language_id'],
                 'product_date'         => $validated['product_date'],
                 'booking_date'      => $validated['booking_date'] ?? now(),
                 'categories'        => $validated['categories'],
@@ -498,7 +498,7 @@ class BookingController extends Controller
         $cart = $user->cart()
             ->where('is_active', true)
             ->with(['items' => function ($q) {
-                $q->with(['tour.prices.category', 'schedule', 'language', 'hotel', 'meetingPoint']);
+                $q->with(['product.prices.category', 'schedule', 'language', 'hotel', 'meetingPoint']);
             }])
             ->first();
 
@@ -513,12 +513,12 @@ class BookingController extends Controller
             return back()->with('error', __('carts.messages.cart_expired'));
         }
 
-        // Prevalidación por grupo (tour+fecha+horario)
+        // Prevalidación por grupo (product+fecha+horario)
         $groups = $cart->items->groupBy(fn($i) => $i->product_id . '_' . $i->product_date . '_' . $i->schedule_id);
 
         foreach ($groups as $items) {
             $first      = $items->first();
-            $product       = $first->tour;
+            $product       = $first->product;
             $productDate   = $first->product_date;
             $scheduleId = (int)$first->schedule_id;
 
@@ -546,7 +546,7 @@ class BookingController extends Controller
             if ($totalPax > $remaining) {
                 return back()->with('error', __('m_bookings.messages.limited_seats_available', [
                     'available' => $remaining,
-                    'tour'      => $product->name,
+                    'product'    => $product->name,
                     'date'      => \Carbon\Carbon::parse($productDate)->format('d/M/Y'),
                 ]));
             }
@@ -583,7 +583,7 @@ class BookingController extends Controller
                 'user_id'           => (int)$cart->user_id,
                 'product_id'           => (int)$item->product_id,
                 'schedule_id'       => (int)$item->schedule_id,
-                'tour_language_id'  => (int)$item->tour_language_id,
+                'product_language_id'  => (int)$item->product_language_id,
                 'product_date'         => $item->product_date,
                 'booking_date'      => now(),
                 'categories'        => $quantities,
@@ -672,9 +672,9 @@ class BookingController extends Controller
 
         $validated = $request->validate([
             'user_id'           => 'required|exists:users,user_id',
-            'product_id'           => 'required|exists:tours,product_id',
+            'product_id'           => 'required|exists:products,product_id',
             'schedule_id'       => 'required|exists:schedules,schedule_id',
-            'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
+            'product_language_id'  => 'required|exists:product_languages,product_language_id',
             'product_date'         => 'required|date',
             'booking_date'      => 'nullable|date',
             'categories'        => 'required|array|min:1',
@@ -748,7 +748,7 @@ class BookingController extends Controller
                     ->with('showEditModal', $booking->booking_id)
                     ->withErrors([
                         'capacity' => __('m_bookings.bookings.errors.insufficient_capacity', [
-                            'tour'      => $newProduct->name,
+                            'product'    => $newProduct->name,
                             'date'      => $productDate->translatedFormat('M d, Y'),
                             'time'      => Carbon::parse($newSchedule->start_time)->format('g:i A'),
                             'requested' => $totalPax,
@@ -788,7 +788,7 @@ class BookingController extends Controller
             $booking->update([
                 'user_id'          => (int)$validated['user_id'],
                 'product_id'          => (int)$validated['product_id'],
-                'tour_language_id' => (int)$validated['tour_language_id'],
+                'product_language_id' => (int)$validated['product_language_id'],
                 'booking_date'     => $validated['booking_date'] ?? $booking->booking_date,
                 'status'           => $validated['status'],
                 'total'            => $total,
@@ -806,7 +806,7 @@ class BookingController extends Controller
                 'product_id'           => (int)$validated['product_id'],
                 'schedule_id'       => (int)$validated['schedule_id'],
                 'product_date'         => $validated['product_date'],
-                'tour_language_id'  => (int)$validated['tour_language_id'],
+                'product_language_id'  => (int)$validated['product_language_id'],
                 'categories'        => $categoriesSnapshot,
                 'total'             => $detailSubtotal,
                 'taxes_breakdown'   => $taxesBreakdown,
@@ -928,7 +928,7 @@ class BookingController extends Controller
                     return back()->with('error', __('m_bookings.bookings.errors.detail_not_found'));
                 }
 
-                $product     = $booking->tour;
+                $product     = $booking->product;
                 $schedule = Schedule::find((int)$detail->schedule_id);
                 if (!$schedule) {
                     return back()->with('error', __('m_bookings.bookings.errors.schedule_not_found'));
@@ -946,7 +946,7 @@ class BookingController extends Controller
 
                 if ($requested > $snap['available']) {
                     return back()->with('error', __('m_bookings.bookings.errors.insufficient_capacity', [
-                        'tour'      => optional($product)->name ?? 'Unknown Product',
+                        'product'    => optional($product)->name ?? 'Unknown Product',
                         'date'      => \Carbon\Carbon::parse($detail->product_date)->format('M d, Y'),
                         'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
                         'requested' => $requested,
@@ -1089,9 +1089,9 @@ class BookingController extends Controller
                         'name' => $booking->user?->name,
                         'email' => $booking->user?->email,
                     ],
-                    'tour' => [
-                        'product_id' => $booking->tour?->product_id,
-                        'name' => $booking->tour?->name,
+                    'product' => [
+                        'product_id' => $booking->product?->product_id,
+                        'name' => $booking->product?->name,
                     ],
                     'detail' => $booking->detail ? [
                         'product_date' => $booking->detail->product_date?->format('Y-m-d'),
@@ -1140,18 +1140,18 @@ class BookingController extends Controller
     {
         $booking->load([
             'user',
-            'tour',
+            'product',
             'detail.schedule',
             'detail.hotel',
-            'detail.tourLanguage',
+            'detail.productLanguage',
             'detail.meetingPoint',
             'redemption.promoCode',
             'promoCodeLegacy',
-            'tour.prices.category',
+            'product.prices.category',
         ]);
 
-        $categoryNamesById = $booking->tour?->prices
-            ? $booking->tour->prices->mapWithKeys(function ($p) {
+        $categoryNamesById = $booking->product?->prices
+            ? $booking->product->prices->mapWithKeys(function ($p) {
                 $locale = app()->getLocale();
                 $name = method_exists($p->category, 'getTranslatedName')
                     ? ($p->category->getTranslatedName($locale) ?: $p->category->name)
@@ -1170,10 +1170,10 @@ class BookingController extends Controller
     {
         $query = Booking::with([
             'user',
-            'tour',
+            'product',
             'detail.schedule',
             'detail.hotel',
-            'detail.tourLanguage',
+            'detail.productLanguage',
             'redemption.promoCode',
             'promoCodeLegacy',
         ]);
@@ -1246,7 +1246,7 @@ class BookingController extends Controller
         ]);
     }
 
-    /** API: schedules por tour (AJAX) */
+    /** API: schedules por product (AJAX) */
     public function getSchedules(Product $product)
     {
         return response()->json(
@@ -1258,15 +1258,15 @@ class BookingController extends Controller
         );
     }
 
-    /** API: languages por tour (AJAX) */
+    /** API: languages por product (AJAX) */
     public function getLanguages(Product $product)
     {
         return response()->json(
-            $product->languages()->get(['tour_language_id', 'name'])
+            $product->languages()->get(['product_language_id', 'name'])
         );
     }
 
-    /** API: categorías/precios por tour (AJAX) */
+    /** API: categorías/precios por product (AJAX) */
     public function getCategories(Request $request, Product $product)
     {
         $locale = app()->getLocale();
@@ -1278,7 +1278,7 @@ class BookingController extends Controller
         ]);
 
         $query = $product->prices()
-            ->where('tour_prices.is_active', true)
+            ->where('product_prices.is_active', true)
             ->with('category')
             ->orderBy('category_id');
 
@@ -1327,7 +1327,7 @@ class BookingController extends Controller
                     foreach (
                         [
                             "customer_categories.labels.$slug",
-                            "m_tours.customer_categories.labels.$slug",
+                            "m_products.customer_categories.labels.$slug",
                         ] as $key
                     ) {
                         $tr = __($key);
@@ -1543,7 +1543,7 @@ class BookingController extends Controller
         try {
             // Basic validation of inputs needed for capacity check
             $validated = $request->validate([
-                'product_id' => 'required|integer|exists:tours,product_id',
+                'product_id' => 'required|integer|exists:products,product_id',
                 'product_date' => 'required|date',
                 'schedule_id' => 'required|integer|exists:schedules,schedule_id',
                 'categories' => 'required|array',
@@ -1582,7 +1582,7 @@ class BookingController extends Controller
             if ($totalPax > $remaining) {
                 return response()->json([
                     'success' => false,
-                    'type' => 'tour_capacity',
+                    'type' => 'product_capacity',
                     'available' => $remaining,
                     'requested' => $totalPax,
                     'message' => __('m_bookings.bookings.validation.capacity_exceeded_confirm', [
@@ -1607,7 +1607,7 @@ class BookingController extends Controller
      */
     public function unpaidIndex(Request $request)
     {
-        $query = Booking::with(['user', 'tour', 'details'])
+        $query = Booking::with(['user', 'product', 'details'])
             ->where('is_paid', false)
             ->where('status', 'pending')
             ->whereNotNull('pending_expires_at');

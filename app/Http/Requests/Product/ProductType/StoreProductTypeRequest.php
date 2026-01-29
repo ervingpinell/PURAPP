@@ -48,7 +48,7 @@ class StoreProductTypeRequest extends FormRequest
             'name.required'   => 'El nombre es obligatorio.',
             'name.string'     => 'El nombre debe ser texto.',
             'name.max'        => 'El nombre no puede superar 255 caracteres.',
-            'name.unique'     => 'Ya existe un tipo de tour con ese nombre.',
+            'name.unique'     => 'Ya existe un tipo de product con ese nombre.',
             'description.max' => 'La descripción no puede superar 1000 caracteres.',
             'duration.max'    => 'La duración no puede superar 255 caracteres.',
         ];
@@ -57,7 +57,7 @@ class StoreProductTypeRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'store', $validator->errors()->toArray(), [
-            'entity'  => 'tour_type',
+            'entity'  => 'product_type',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
 

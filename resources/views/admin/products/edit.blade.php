@@ -1,7 +1,7 @@
 {{-- resources/views/admin/tours/edit.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('m_tours.tour.ui.edit_title', ['name' => $product->name]))
+@section('title', __('m_tours.product.ui.edit_title', ['name' => $product->name]))
 
 @push('css')
 <style>
@@ -11,7 +11,7 @@
     }
 
     /* Header tipo wizard */
-    .tour-edit-header {
+    .product-edit-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 2rem;
@@ -19,24 +19,24 @@
         margin-bottom: 2rem;
     }
 
-    .tour-edit-header h1 {
+    .product-edit-header h1 {
         margin: 0;
         font-size: 1.75rem;
         font-weight: 600;
     }
 
-    .tour-edit-header p {
+    .product-edit-header p {
         margin: 0.5rem 0 0 0;
         opacity: 0.9;
     }
 
-    .tour-edit-header .btn-secondary {
+    .product-edit-header .btn-secondary {
         border-color: rgba(255,255,255,0.5);
         background: rgba(74, 85, 104, 0.9);
         color: #edf2f7;
     }
 
-    .tour-edit-header .btn-secondary:hover {
+    .product-edit-header .btn-secondary:hover {
         background: rgba(90, 103, 120, 1);
         border-color: white;
     }
@@ -46,20 +46,20 @@
 @section('content')
 <div class="container-fluid">
     {{-- Header tipo wizard --}}
-    <div class="tour-edit-header">
+    <div class="product-edit-header">
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <h1>
                     <i class="fas fa-route"></i>
-                    {{ __('m_tours.tour.ui.edit_title') }}: {{ $product->name }}
+                    {{ __('m_tours.product.ui.edit_title') }}: {{ $product->name }}
                 </h1>
                 <p>
-                    {{ __('m_tours.tour.wizard.edit_intro') ?? 'Edita tu tour usando el mismo flujo por pasos del asistente.' }}
+                    {{ __('m_tours.product.wizard.edit_intro') ?? 'Edita tu product usando el mismo flujo por pasos del asistente.' }}
                 </p>
             </div>
             <div class="d-flex gap-2">
                 <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> {{ __('m_tours.tour.ui.back') }}
+                    <i class="fas fa-arrow-left"></i> {{ __('m_tours.product.ui.back') }}
                 </a>
             </div>
         </div>

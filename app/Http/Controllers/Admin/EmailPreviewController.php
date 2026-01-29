@@ -189,8 +189,8 @@ class EmailPreviewController extends Controller
             'contact-message' => new ContactMessage([
                 'name' => 'John Doe',
                 'email' => 'john@example.com',
-                'subject' => 'Question about tours',
-                'message' => 'I would like to know more about your volcano tours. Do you offer private tours?',
+                'subject' => 'Question about products',
+                'message' => 'I would like to know more about your volcano products. Do you offer private products?',
                 'locale' => 'en',
             ]),
 
@@ -206,14 +206,14 @@ class EmailPreviewController extends Controller
         // Try to get a real booking first
         $booking = Booking::with([
             'user',
-            'tour',
-            'tourLanguage',
+            'product',
+            'productLanguage',
             'hotel',
             'payments',
-            'details.tour',
+            'details.product',
             'details.hotel',
             'details.schedule',
-            'details.tourLanguage',
+            'details.productLanguage',
             'details.meetingPoint',
             'details.meetingPoint.translations',
             'redemption.promoCode',
@@ -237,13 +237,13 @@ class EmailPreviewController extends Controller
             'booking_reference' => 'PREVIEW-' . strtoupper(substr(md5(time()), 0, 8)),
             'booking_id' => 99999,
             'status' => 'pending',
-            'tour_date' => now()->addDays(7),
+            'product_date' => now()->addDays(7),
             'subtotal' => 150.00,
             'taxes' => 19.50,
             'total' => 169.50,
             'paid_amount' => 169.50, // Added for paid booking preview
             'notes' => 'Sample booking for email preview',
-            'tour_language_id' => 1, // Required field
+            'product_language_id' => 1, // Required field
             'checkout_token' => 'preview-token-' . time(),
             'checkout_token_expires_at' => now()->addHours(48),
             'pending_expires_at' => now()->addHours(12), // Added for expiring preview
@@ -279,7 +279,7 @@ class EmailPreviewController extends Controller
      */
     protected function getSampleReviewRequest(): ReviewRequest
     {
-        $reviewRequest = ReviewRequest::with(['booking', 'booking.user', 'booking.tour'])
+        $reviewRequest = ReviewRequest::with(['booking', 'booking.user', 'booking.product'])
             ->latest()
             ->first();
 
@@ -303,7 +303,7 @@ class EmailPreviewController extends Controller
      */
     protected function getSampleReview(): Review
     {
-        $review = Review::with(['booking', 'booking.user', 'booking.tour'])
+        $review = Review::with(['booking', 'booking.user', 'booking.product'])
             ->latest()
             ->first();
 
@@ -313,7 +313,7 @@ class EmailPreviewController extends Controller
                 'customer_name' => 'John Doe',
                 'customer_email' => 'preview@example.com',
                 'rating' => 5,
-                'comment' => 'Amazing experience! The tour was well organized and our guide was very knowledgeable.',
+                'comment' => 'Amazing experience! The product was well organized and our guide was very knowledgeable.',
                 'status' => 'approved',
             ]);
 
@@ -332,12 +332,12 @@ class EmailPreviewController extends Controller
 
         // Create a mock ReviewReply
         $reply = new \App\Models\ReviewReply([
-            'reply_text' => 'Thank you so much for your wonderful feedback! We are thrilled to hear you enjoyed the tour. We look forward to welcoming you again soon!',
+            'reply_text' => 'Thank you so much for your wonderful feedback! We are thrilled to hear you enjoyed the product. We look forward to welcoming you again soon!',
             'admin_name' => 'Admin Team',
         ]);
 
         $reply->setRelation('review', $review);
 
-        return new ReviewReplyNotification($reply, $reply->admin_name ?? 'Admin', $review->booking->tour->name ?? 'Tour Name', $review->customer_name);
+        return new ReviewReplyNotification($reply, $reply->admin_name ?? 'Admin', $review->booking->product->name ?? 'Product Name', $review->customer_name);
     }
 }

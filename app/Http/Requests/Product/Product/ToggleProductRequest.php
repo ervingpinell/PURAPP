@@ -30,7 +30,7 @@ class ToggleProductRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'toggle', $validator->errors()->toArray(), [
-            'entity'  => 'tour',
+            'entity'  => 'product',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
 

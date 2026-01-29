@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Cart Model
  *
- * Represents a shopping cart for tour bookings.
+ * Represents a shopping cart for product bookings.
  * Handles cart expiration, pricing calculations, and guest/user carts.
  *
  * @property int $cart_id Primary key
@@ -117,7 +117,7 @@ class Cart extends Model
     /**
      * Calculate the total price from the cart's stored snapshot.
      * This uses the prices that were saved when items were added to the cart,
-     * which were calculated with the correct tour_date.
+     * which were calculated with the correct product_date.
      * 
      * @return float Total price including taxes
      */
@@ -148,7 +148,7 @@ class Cart extends Model
                 $kidQty = (int)($item->kids_quantity ?? 0);
 
                 if ($adultQty > 0) {
-                    $adultPrice = $item->tour->prices->where('category.slug', 'adult')->first();
+                    $adultPrice = $item->product->prices->where('category.slug', 'adult')->first();
                     if ($adultPrice) {
                         $breakdown = $adultPrice->calculateTaxBreakdown($adultQty);
                         $total += $breakdown['total'];
@@ -156,7 +156,7 @@ class Cart extends Model
                 }
 
                 if ($kidQty > 0) {
-                    $kidPrice = $item->tour->prices->whereIn('category.slug', ['kid', 'child'])->first();
+                    $kidPrice = $item->product->prices->whereIn('category.slug', ['kid', 'child'])->first();
                     if ($kidPrice) {
                         $breakdown = $kidPrice->calculateTaxBreakdown($kidQty);
                         $total += $breakdown['total'];

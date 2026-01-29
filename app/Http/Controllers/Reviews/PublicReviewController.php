@@ -92,7 +92,7 @@ class PublicReviewController extends Controller
         'language'     => 'nullable|string|max:8',
     ]);
 
-    // Anti-duplicados: misma reserva o mismo user+tour
+    // Anti-duplicados: misma reserva o mismo user
     $already = Review::query()
         ->where('provider', 'local')
         ->where('product_id', $rr->product_id)

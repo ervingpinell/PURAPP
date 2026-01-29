@@ -59,7 +59,7 @@ class UpdateProductRequest extends FormRequest
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('tours', 'slug')->ignore($productId, 'product_id')
+                Rule::unique('products', 'slug')->ignore($productId, 'product_id')
             ],
             'overview'                     => ['nullable','string'],
 
@@ -73,10 +73,10 @@ class UpdateProductRequest extends FormRequest
 
             'max_capacity'                 => ['required','integer','min:1'],
             'length'                       => ['required','numeric','min:1'],
-            'product_type_id'                 => ['required','exists:tour_types,product_type_id'],
+            'product_type_id'                 => ['required','exists:product_types,product_type_id'],
 
             'languages'                    => ['required','array','min:1'],
-            'languages.*'                  => ['integer','exists:tour_languages,tour_language_id'],
+            'languages.*'                  => ['integer','exists:product_languages,product_language_id'],
 
             'amenities'                    => ['nullable','array'],
             'amenities.*'                  => ['integer','exists:amenities,amenity_id'],

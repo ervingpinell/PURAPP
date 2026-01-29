@@ -100,7 +100,7 @@
     background: #dc3545 !important;
   }
 
-  .row-item .capacity-badge.capacity-level-tour,
+  .row-item .capacity-badge.capacity-level-product,
   .row-item .capacity-badge.capacity-level-none {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
@@ -313,7 +313,7 @@
   {{-- Acciones --}}
   <div class="ms-auto d-flex align-items-end gap-2">
     <div class="bulk-dd">
-      @can('edit-tour-excluded-dates')
+      @can('edit-product-excluded-dates')
       <div class="btn-group">
         <button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-toggle="dropdown">
           {{ __('m_bookings.excluded_dates.filters.bulk_actions') }}
@@ -361,11 +361,11 @@
       <div class="fw-bold">
         {{ ucfirst($fmt($day)) }}
         <span class="ms-2 text-success opacity-75">
-          ({{ count($buckets['am']) + count($buckets['pm']) }} {{ __('m_bookings.excluded_dates.ui.tours_count') }})
+          ({{ count($buckets['am']) + count($buckets['pm']) }} {{ __('m_bookings.excluded_dates.ui.products_count') }})
         </span>
       </div>
       <div class="ms-auto btn-gap">
-        @can('edit-tour-excluded-dates')
+        @can('edit-product-excluded-dates')
         <button class="btn btn-primary btn-sm js-mark-day"
           type="button"
           data-day="{{ $day }}"
@@ -386,7 +386,7 @@
     <div class="al-title bg-dark al-block-title">
       <span class="fw-bold small mb-0">{{ __('m_bookings.excluded_dates.blocks.am') }}</span>
       <div class="ms-auto btn-gap">
-        @can('edit-tour-excluded-dates')
+        @can('edit-product-excluded-dates')
         <button type="button"
           class="btn btn-primary btn-sm js-mark-block"
           data-day="{{ $day }}" data-bucket="am"
@@ -419,9 +419,9 @@
 
           {{-- Badge de capacidad --}}
           <span class="capacity-badge capacity-level-{{ $it['override_level'] ?? 'none' }} {{ !$it['is_available'] ? 'blocked' : '' }}"
-            @can('edit-tour-excluded-dates') onclick="openCapacityModal('{{ $day }}', {{ $it['product_id'] }}, {{ $it['schedule_id'] }}, '{{ $it['tour_name'] }} ({{ $it['time'] }})', {{ $it['current_capacity'] ?? 15 }})" @endcan
+            @can('edit-product-excluded-dates') onclick="openCapacityModal('{{ $day }}', {{ $it['product_id'] }}, {{ $it['schedule_id'] }}, '{{ $it['tour_name'] }} ({{ $it['time'] }})', {{ $it['current_capacity'] ?? 15 }})" @endcan
             title="{{ __('m_bookings.excluded_dates.badges.tooltip_prefix') }} {{ ucfirst(str_replace(['-', '_'], ' ', $it['override_level'] ?? 'base')) }}"
-            style="{{ auth()->user()->cannot('edit-tour-excluded-dates') ? 'cursor: default;' : '' }}">
+            style="{{ auth()->user()->cannot('edit-product-excluded-dates') ? 'cursor: default;' : '' }}">
             @if(!$it['is_available'])
             <i class="fas fa-ban me-1"></i> 0/0
             @else
@@ -430,7 +430,7 @@
           </span>
 
           <div class="btn-gap">
-            @can('edit-tour-excluded-dates')
+            @can('edit-product-excluded-dates')
             <button type="button" class="btn btn-danger btn-sm btn-block"
               onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['product_id'] }}, {{ $it['schedule_id'] }}, 'block')"
               {{ !$it['is_available'] ? 'disabled' : '' }}>
@@ -454,7 +454,7 @@
     <div class="al-title bg-dark al-block-title mt-3">
       <span class="fw-bold small mb-0">{{ __('m_bookings.excluded_dates.blocks.pm') }}</span>
       <div class="ms-auto btn-gap">
-        @can('edit-tour-excluded-dates')
+        @can('edit-product-excluded-dates')
         <button type="button"
           class="btn btn-primary btn-sm js-mark-block"
           data-day="{{ $day }}" data-bucket="pm"
@@ -486,9 +486,9 @@
           </div>
 
           <span class="capacity-badge capacity-level-{{ $it['override_level'] ?? 'none' }} {{ !$it['is_available'] ? 'blocked' : '' }}"
-            @can('edit-tour-excluded-dates') onclick="openCapacityModal('{{ $day }}', {{ $it['product_id'] }}, {{ $it['schedule_id'] }}, '{{ $it['tour_name'] }} ({{ $it['time'] }})', {{ $it['current_capacity'] ?? 15 }})" @endcan
+            @can('edit-product-excluded-dates') onclick="openCapacityModal('{{ $day }}', {{ $it['product_id'] }}, {{ $it['schedule_id'] }}, '{{ $it['tour_name'] }} ({{ $it['time'] }})', {{ $it['current_capacity'] ?? 15 }})" @endcan
             title="{{ __('m_bookings.excluded_dates.badges.tooltip_prefix') }} {{ ucfirst(str_replace(['-', '_'], ' ', $it['override_level'] ?? 'base')) }}"
-            style="{{ auth()->user()->cannot('edit-tour-excluded-dates') ? 'cursor: default;' : '' }}">
+            style="{{ auth()->user()->cannot('edit-product-excluded-dates') ? 'cursor: default;' : '' }}">
             @if(!$it['is_available'])
             <i class="fas fa-ban me-1"></i> 0/0
             @else
@@ -497,7 +497,7 @@
           </span>
 
           <div class="btn-gap">
-            @can('edit-tour-excluded-dates')
+            @can('edit-product-excluded-dates')
             <button type="button" class="btn btn-danger btn-sm btn-block"
               onclick="confirmToggleOne(this, '{{ $day }}', {{ $it['product_id'] }}, {{ $it['schedule_id'] }}, 'block')"
               {{ !$it['is_available'] ? 'disabled' : '' }}>
@@ -806,7 +806,7 @@ $I18N = [
   }
 
   /* ===== Toggle individual ===== */
-  async function toggleOne(el, day, tourId, scheduleId, want) {
+  async function toggleOne(el, day, productId, scheduleId, want) {
     const row = el.closest('.row-item');
     const btnBlock = row.querySelector('.btn-block');
     const btnUnblock = row.querySelector('.btn-unblock');
@@ -822,7 +822,7 @@ $I18N = [
           'X-CSRF-TOKEN': CSRF
         },
         body: JSON.stringify({
-          product_id: tourId,
+          product_id: productId,
           schedule_id: scheduleId,
           date: day,
           want
@@ -866,7 +866,7 @@ $I18N = [
     }
   }
 
-  async function confirmToggleOne(el, day, tourId, scheduleId, want) {
+  async function confirmToggleOne(el, day, productId, scheduleId, want) {
     const row = el.closest('.row-item');
     const label = row?.dataset.title || '—';
     const isBlock = want === 'block';
@@ -882,18 +882,18 @@ $I18N = [
     });
 
     if (res.isConfirmed) {
-      await toggleOne(el, day, tourId, scheduleId, want);
+      await toggleOne(el, day, productId, scheduleId, want);
     }
   }
 
   /* ===== Gestión de capacidad ===== */
   let capacityModalInstance;
 
-  function openCapacityModal(day, tourId, scheduleId, label, currentCapacity) {
+  function openCapacityModal(day, productId, scheduleId, label, currentCapacity) {
     document.getElementById('capacityModalLabel').textContent = label;
     document.getElementById('capacityModalDate').textContent = day;
     document.getElementById('capacityInput').value = currentCapacity;
-    document.getElementById('capacityModalTourId').value = tourId;
+    document.getElementById('capacityModalTourId').value = productId;
     document.getElementById('capacityModalScheduleId').value = scheduleId;
     document.getElementById('capacityModalDay').value = day;
 
@@ -904,7 +904,7 @@ $I18N = [
   }
 
   async function saveCapacity() {
-    const tourId = document.getElementById('capacityModalTourId').value;
+    const productId = document.getElementById('capacityModalTourId').value;
     const scheduleId = document.getElementById('capacityModalScheduleId').value;
     const day = document.getElementById('capacityModalDay').value;
     const capacity = parseInt(document.getElementById('capacityInput').value);
@@ -917,7 +917,7 @@ $I18N = [
           'X-CSRF-TOKEN': CSRF
         },
         body: JSON.stringify({
-          product_id: tourId,
+          product_id: productId,
           schedule_id: scheduleId,
           date: day,
           max_capacity: capacity > 0 ? capacity : null,
@@ -927,7 +927,7 @@ $I18N = [
 
       if (!res.ok) throw new Error('Failed to save capacity');
 
-      const row = document.querySelector(`.row-item[data-day="${day}"][data-tid="${tourId}"][data-sid="${scheduleId}"]`);
+      const row = document.querySelector(`.row-item[data-day="${day}"][data-tid="${productId}"][data-sid="${scheduleId}"]`);
       if (row) {
         row.dataset.capacity = capacity;
         const badge = row.querySelector('.capacity-badge');
@@ -945,7 +945,7 @@ $I18N = [
           row.querySelector('.btn-unblock').disabled = false;
         } else {
           badge.classList.remove('blocked');
-          badge.classList.remove('capacity-level-tour', 'capacity-level-pivot', 'capacity-level-day', 'capacity-level-none');
+          badge.classList.remove('capacity-level-product', 'capacity-level-pivot', 'capacity-level-day', 'capacity-level-none');
           badge.classList.add('capacity-level-day-schedule');
           badge.innerHTML = `<i class="fas fa-users me-1"></i> 0/${capacity}`;
         }
@@ -991,7 +991,7 @@ $I18N = [
 
         let updated = 0;
         for (const row of rows) {
-          const tourId = row.dataset.tid;
+          const productId = row.dataset.tid;
           const scheduleId = row.dataset.sid;
 
           try {
@@ -1002,7 +1002,7 @@ $I18N = [
                 'X-CSRF-TOKEN': CSRF
               },
               body: JSON.stringify({
-                product_id: tourId,
+                product_id: productId,
                 schedule_id: scheduleId,
                 date: day,
                 max_capacity: capacity > 0 ? capacity : null,

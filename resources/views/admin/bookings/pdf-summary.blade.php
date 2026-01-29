@@ -378,7 +378,7 @@
     $customerEm = optional($booking->user)->email ?: $EM;
     $productName = $product ? (string)$product->name : $EM;
     $bkDate = $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('m/d/Y') : $EM;
-    $trDate = $detail->tour_date ? \Carbon\Carbon::parse($detail->tour_date)->format('m/d/Y') : $EM;
+    $trDate = $detail->product_date ? \Carbon\Carbon::parse($detail->product_date)->format('m/d/Y') : $EM;
 
     $statusKey = 'm_bookings.bookings.statuses.' . ($booking->status ?? 'pending');
     $statusTr = __($statusKey);
@@ -401,7 +401,7 @@
         </div>
 
         <div class="data-item">
-          <strong>{{ __('m_bookings.bookings.fields.tour') }}</strong>
+          <strong>{{ __('m_bookings.bookings.fields.product') }}</strong>
           <span>{{ $productName }}</span>
         </div>
 
@@ -411,7 +411,7 @@
         </div>
 
         <div class="data-item">
-          <strong>{{ __('m_bookings.bookings.fields.tour_date') }}</strong>
+          <strong>{{ __('m_bookings.bookings.fields.product_date') }}</strong>
           <span>{{ $trDate }}</span>
         </div>
 

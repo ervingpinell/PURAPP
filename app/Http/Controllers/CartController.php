@@ -74,9 +74,9 @@ class CartController extends Controller
                 'items' => collect($sessionCartItems)->map(function ($item, $index) {
                     return (object) array_merge($item, [
                         'item_id' => $index, // Use array index as unique ID for guests
-                        'tour' => \App\Models\Product::find($item['product_id']),
+                        'product' => \App\Models\Product::find($item['product_id']),
                         'schedule' => \App\Models\Schedule::find($item['schedule_id']),
-                        'language' => \App\Models\ProductLanguage::find($item['tour_language_id']),
+                        'language' => \App\Models\ProductLanguage::find($item['product_language_id']),
                         'hotel' => isset($item['hotel_id']) ? \App\Models\HotelList::find($item['hotel_id']) : null,
                         'meetingPoint' => isset($item['meeting_point_id']) ? \App\Models\MeetingPoint::find($item['meeting_point_id']) : null,
                     ]);
@@ -109,9 +109,9 @@ class CartController extends Controller
             ->where('is_active', true)
             ->orderByDesc('cart_id')
             ->with([
-                'items.tour.schedules',
-                'items.tour.languages',
-                'items.tour.prices.category',
+                'items.product.schedules',
+                'items.product.languages',
+                'items.product.prices'.category',
                 'items.schedule',
                 'items.language',
                 'items.hotel',
@@ -167,10 +167,10 @@ class CartController extends Controller
 
         // Validar estructura básica
         $request->validate([
-            'product_id' => 'required|exists:tours,product_id',
+            'product_id' => 'required|exists:products,product_id',
             'product_date' => 'required|date|after_or_equal:today',
             'schedule_id' => 'required|exists:schedules,schedule_id',
-            'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
+            'product_language_id' => 'required|exists:product_languages,product_language_id',
             'categories' => 'required|array|min:1',
             'categories.*' => 'required|integer|min:0',
             'hotel_id' => 'nullable|integer|exists:hotels_list,hotel_id',
@@ -216,7 +216,7 @@ class CartController extends Controller
                     ? __('carts.messages.capacity_full')
                     : __('carts.messages.limited_seats_available', [
                         'available' => $snap['available'],
-                        'tour' => $product->getTranslatedName(),
+                        'product' => $product->getTranslatedName(),
                         'date' => $productDate,
                     ]);
                 return $this->backOrJsonError($request, $msg);
@@ -237,7 +237,7 @@ class CartController extends Controller
                 'product_id' => (int) $request->product_id,
                 'product_date' => $request->product_date,
                 'schedule_id' => (int) $request->schedule_id,
-                'tour_language_id' => (int) $request->tour_language_id,
+                'product_language_id' => (int) $request->product_language_id,
                 'categories' => $categoriesSnapshot, // NOW includes prices!
                 'hotel_id' => $request->hotel_id,
                 'is_other_hotel' => $request->is_other_hotel,
@@ -274,7 +274,7 @@ class CartController extends Controller
 
         // WRAP IN TRANSACTION WITH PESSIMISTIC LOCKS
         return DB::transaction(function () use ($request, $user) {
-            // LOCK tour and schedule to prevent race conditions
+            // LOCK product and schedule to prevent race conditions
             $product = Product::with(['schedules', 'prices.category'])
                 ->lockForUpdate()
                 ->findOrFail((int) $request->product_id);
@@ -310,7 +310,7 @@ class CartController extends Controller
                     ? __('carts.messages.capacity_full')
                     : __('carts.messages.limited_seats_available', [
                         'available' => $snap['available'],
-                        'tour' => $product->getTranslatedName(),
+                        'product' => $product->getTranslatedName(),
                         'date' => $this->fmtDateEn($productDate),
                     ]);
                 return $this->backOrJsonError($request, $msg);
@@ -363,7 +363,7 @@ class CartController extends Controller
                 'product_id' => (int) $product->product_id,
                 'product_date' => $productDate,
                 'schedule_id' => (int) $request->schedule_id,
-                'tour_language_id' => (int) $request->tour_language_id,
+                'product_language_id' => (int) $request->product_language_id,
                 'categories' => $categoriesSnapshot,
                 'hotel_id' => $hotelId,
                 'is_other_hotel' => $isOther,
@@ -409,7 +409,7 @@ class CartController extends Controller
         $request->validate([
             'product_date' => 'required|date|after_or_equal:today',
             'schedule_id' => 'required|exists:schedules,schedule_id',
-            'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
+            'product_language_id' => 'required|exists:product_languages,product_language_id',
             'categories' => 'nullable|array',
             'categories.*' => 'nullable|integer|min:0',
             'hotel_id' => 'nullable|integer|exists:hotels_list,hotel_id',
@@ -419,7 +419,7 @@ class CartController extends Controller
         ]);
 
         // 2) Cart activo
-        $cart = $this->activeCartOf($request->user(), withTourSchedules: true);
+        $cart = $this->activeCartOf($request->user(), withProductSchedules: true);
         if (!$cart || $cart->isExpired()) {
             return redirect()->route(app()->getLocale() . '.home')->with('cart_expired', true);
         }
@@ -431,7 +431,7 @@ class CartController extends Controller
         }
 
         // 4) Entidades base
-        $product = $item->tour->load('prices.category');
+        $product = $item->product->load('prices.category');
         $schedule = $this->findValidScheduleOrFail($product, (int) $request->schedule_id);
         $productDate = $request->product_date;
 
@@ -479,7 +479,7 @@ class CartController extends Controller
                 ? __('carts.messages.slot_full')
                 : __('carts.messages.limited_seats_available', [
                     'available' => $remaining,
-                    'tour' => $product->getTranslatedName(),
+                    'product' => $product->getTranslatedName(),
                     'date' => $this->fmtDateEn($productDate),
                 ]);
             return back()->with('error', $msg);
@@ -499,7 +499,7 @@ class CartController extends Controller
         $item->fill([
             'product_date' => $productDate,
             'schedule_id' => (int) $schedule->schedule_id,
-            'tour_language_id' => (int) $request->tour_language_id,
+            'product_language_id' => (int) $request->product_language_id,
             'categories' => $categoriesSnapshot,
             'meeting_point_id' => $mpId,
             'is_other_hotel' => $isOther,
@@ -567,7 +567,7 @@ class CartController extends Controller
         $request->validate([
             'product_date' => 'required|date|after_or_equal:today',
             'schedule_id' => 'required|exists:schedules,schedule_id',
-            'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
+            'product_language_id' => 'required|exists:product_languages,product_language_id',
             'categories' => 'nullable|array',
             'categories.*' => 'nullable|integer|min:0',
             'hotel_id' => 'nullable|integer|exists:hotels_list,hotel_id',
@@ -586,7 +586,7 @@ class CartController extends Controller
 
         $item = $sessionCart[$index];
 
-        // 3) Load tour and schedule
+        // 3) Load product and schedule
         $product = Product::with('prices.category')->findOrFail($item['product_id']);
         $schedule = $this->findValidScheduleOrFail($product, (int) $request->schedule_id);
         $productDate = $request->product_date;
@@ -635,7 +635,7 @@ class CartController extends Controller
                 ? __('carts.messages.slot_full')
                 : __('carts.messages.limited_seats_available', [
                     'available' => $remaining,
-                    'tour' => $product->getTranslatedName(),
+                    'product' => $product->getTranslatedName(),
                     'date' => $this->fmtDateEn($productDate),
                 ]);
             return back()->with('error', $msg);
@@ -656,7 +656,7 @@ class CartController extends Controller
             'product_id' => $item['product_id'],
             'product_date' => $productDate,
             'schedule_id' => (int) $schedule->schedule_id,
-            'tour_language_id' => (int) $request->tour_language_id,
+            'product_language_id' => (int) $request->product_language_id,
             'categories' => $categoriesSnapshot,
             'meeting_point_id' => $mpId,
             'is_other_hotel' => $isOther,
@@ -792,7 +792,7 @@ class CartController extends Controller
             $user = $request->user();
             $cart = $user->cart()
                 ->where('is_active', true)
-                ->with('items.tour.prices.category')
+                ->with('items.product.prices'.category')
                 ->first();
 
             if (!$cart || !$cart->items->count()) {
@@ -910,13 +910,13 @@ class CartController extends Controller
         ]);
     }
 
-    /* ====================== API: Get Categories por Tour (AJAX) ====================== */
+    /* ====================== API: Get Categories por Product (AJAX) ====================== */
     public function getCategories(Product $product)
     {
         $locale = app()->getLocale();
 
         $categories = $product->prices()
-            ->where('tour_prices.is_active', true)
+            ->where('product_prices.is_active', true)
             ->with('category')
             ->orderBy('category_id')
             ->get()
@@ -932,7 +932,7 @@ class CartController extends Controller
                     foreach (
                         [
                             "customer_categories.labels.$slug",
-                            "m_tours.customer_categories.labels.$slug",
+                            "m_products.customer_categories.labels.$slug",
                         ] as $key
                     ) {
                         $tr = __($key);
@@ -1027,10 +1027,10 @@ class CartController extends Controller
         return $schedule;
     }
 
-    private function activeCartOf($user, bool $withTourSchedules = false): ?Cart
+    private function activeCartOf($user, bool $withProductSchedules = false): ?Cart
     {
         $q = $user->cart()->where('is_active', true)->orderByDesc('cart_id');
-        if ($withTourSchedules) $q->with(['items.tour.schedules', 'items.tour.prices.category']);
+        if ($withProductSchedules) $q->with(['items.product.schedules', 'items.product.prices'.category']);
         return $q->first();
     }
 

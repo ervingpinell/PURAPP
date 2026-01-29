@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 use App\Models\Amenity;
 use App\Models\ItineraryItem;
-use App\Models\TourLanguage;
+use App\Models\ProductLanguage;
 use App\Models\ProductType;
 
 class InitialSetupSeeder extends Seeder
@@ -68,7 +68,7 @@ class InitialSetupSeeder extends Seeder
         ];
 
         foreach ($languages as $lang) {
-            TourLanguage::updateOrCreate(
+            ProductLanguage::updateOrCreate(
                 ['name' => $lang['name']],
                 array_merge($lang, ['created_at' => $now, 'updated_at' => $now])
             );
@@ -101,7 +101,7 @@ class InitialSetupSeeder extends Seeder
                     ],
                     'en' => [
                         'name' => 'Half Day',
-                        'description' => 'Ideal tours for a quick adventure for those with little time or who want to do other activities in the afternoon.',
+                        'description' => 'Ideal products for a quick adventure for those with little time or who want to do other activities in the afternoon.',
                         'duration' => '4 Hours',
                     ],
                 ],
@@ -117,8 +117,8 @@ class InitialSetupSeeder extends Seeder
 
             // Create translations
             foreach ($translations as $locale => $trans) {
-                DB::table('tour_type_translations')->insert([
-                    'tour_type_id' => $type->tour_type_id,
+                DB::table('product_type_translations')->insert([
+                    'product_type_id' => $type->product_type_id,
                     'locale' => $locale,
                     'name' => $trans['name'],
                     'description' => $trans['description'],

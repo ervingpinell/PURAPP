@@ -131,9 +131,9 @@ class PaymentService
                 'booking_reference' => $booking->booking_reference,
                 'user_id'           => $booking->user_id,
                 'user_email'        => $booking->user->email ?? null,
-                'tour_name'         => $booking->tour->getTranslatedName() ?? 'Tour',
-                'tour_date'         => $booking->detail?->tour_date
-                    ? $booking->detail->tour_date->format('Y-m-d')
+                'product_name'         => $booking->product->getTranslatedName() ?? 'Product',
+                'product_date'         => $booking->detail?->product_date
+                    ? $booking->detail->product_date->format('Y-m-d')
                     : null,
                 'description'       => "Booking #{$booking->booking_reference}",
                 'receipt_email'     => $booking->user->email ?? null,
@@ -546,9 +546,9 @@ class PaymentService
                 'user_id'          => $cartSnapshot['user_id'],
                 'product_id'          => $item['product_id'],
                 'schedule_id'      => $item['schedule_id'],
-                // Handle both 'tour_language_id' (cart) and 'language_id' (booking payment)
-                'tour_language_id' => $item['tour_language_id'] ?? $item['language_id'] ?? null,
-                'tour_date'        => $item['tour_date'],
+                // Handle both 'product_language_id' (cart) and 'language_id' (booking payment)
+                'product_language_id' => $item['product_language_id'] ?? $item['language_id'] ?? null,
+                'product_date'        => $item['product_date'],
                 'booking_date'     => now(),
                 'categories'       => $quantities,
                 'hotel_id'         => $item['hotel_id'] ?? null,
@@ -737,7 +737,7 @@ class PaymentService
      */
     protected function sendConfirmationEmail(Booking $booking, Payment $payment): void
     {
-        $booking->load(['detail', 'user', 'tour']);
+        $booking->load(['detail', 'user', 'product']);
 
         $notify    = $this->getNotifyEmails();
         $userEmail = $booking->user->email ?? null;

@@ -21,7 +21,7 @@ class StoreReviewRequestRequest extends FormRequest
         return [
             'booking_id' => ['required', 'integer', 'exists:bookings,booking_id'],
             'user_id'    => ['nullable', 'integer', 'exists:users,user_id'],
-            'product_id'    => ['required', 'integer', 'exists:tours,product_id'],
+            'product_id'    => ['required', 'integer', 'exists:products,product_id'],
             'email'      => ['required', 'email', 'max:150'],
 
             'expires_at' => ['nullable', 'date'],

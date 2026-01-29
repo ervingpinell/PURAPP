@@ -357,11 +357,11 @@
                 $tz = config('app.timezone','America/Costa_Rica');
                 @endphp
 
-                <div class="tour-item">
-                    <div class="tour-name">
+                <div class="product-item">
+                    <div class="product-name">
                         @php
                         $productName = $product->name ?? '';
-                        // Try to get translated name from tour data
+                        // Try to get translated name from product data
                         if (is_object($product) && method_exists($product, 'translations')) {
                         $productName = optional($product->translations->where('locale', app()->getLocale())->first())->name ?? $product->name;
                         } elseif (is_array($item) && isset($item['product_name_' . app()->getLocale()])) {
@@ -373,7 +373,7 @@
                         {{ $productName }}
                     </div>
 
-                    <div class="tour-details">
+                    <div class="product-details">
                         <span>
                             <i class="far fa-calendar-alt"></i>
                             {{ ucfirst(\Carbon\Carbon::parse($productDate)->locale(app()->getLocale())->translatedFormat('l, d F, Y')) }}
@@ -544,7 +544,7 @@
                     @endif
 
                     @if($itemTotal > 0)
-                    <div class="tour-price">${{ $fmt($itemTotal) }}</div>
+                    <div class="product-price">${{ $fmt($itemTotal) }}</div>
                     @endif
                 </div>
                 @endforeach

@@ -357,7 +357,7 @@ return asset('images/volcano.png');
 
             <div class="mini-cart-meta">
               <i class="far fa-calendar-alt"></i>
-              <span>{{ \Carbon\Carbon::parse($guestItem['tour_date'])->format('d/M/Y') }}</span>
+              <span>{{ \Carbon\Carbon::parse($guestItem['product_date'])->format('d/M/Y') }}</span>
               @php
               $schedule = isset($guestItem['schedule_id']) ? \App\Models\Schedule::find($guestItem['schedule_id']) : null;
               @endphp

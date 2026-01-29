@@ -33,7 +33,7 @@ class ProcessAutoCharges extends Command
     }
 
     /**
-     * Send payment reminders X days before tour date.
+     * Send payment reminders X days before product date.
      * No auto-charge - user must pay manually via payment link.
      *
      * @return void
@@ -42,18 +42,18 @@ class ProcessAutoCharges extends Command
     {
         $reminderDays = (int) setting('booking.pay_later.reminder_days_before', 3);
 
-        // Calculate the tour date that is X days from now
-        $targetTourDate = now()->addDays($reminderDays)->format('Y-m-d');
+        // Calculate the product date that is X days from now
+        $targetProductDate = now()->addDays($reminderDays)->format('Y-m-d');
 
-        // Find unpaid pay-later bookings with tour on target date
+        // Find unpaid pay-later bookings with product on target date
         $bookingsNeedingReminder = Booking::where('status', 'pending')
             ->where('is_paid', false)
             ->where('is_pay_later', true)
-            ->whereHas('details', function ($q) use ($targetTourDate) {
-                $q->whereDate('tour_date', $targetTourDate);
+            ->whereHas('details', function ($q) use ($targetProductDate) {
+                $q->whereDate('product_date', $targetProductDate);
             })
             ->whereNull('payment_reminder_sent_at')
-            ->with(['user', 'tour', 'details'])
+            ->with(['user', 'product', 'details'])
             ->get();
 
         if ($bookingsNeedingReminder->isEmpty()) {
@@ -87,8 +87,8 @@ class ProcessAutoCharges extends Command
                     Log::info("[PaymentReminders] Sent reminder", [
                         'booking_id' => $booking->booking_id,
                         'reference' => $booking->booking_reference,
-                        'tour_date' => $booking->details->first()->tour_date ?? 'N/A',
-                        'days_until_tour' => $reminderDays
+                        'product_date' => $booking->details->first()->product_date ?? 'N/A',
+                        'days_until_product' => $reminderDays
                     ]);
                 }
             } catch (\Exception $e) {

@@ -76,7 +76,7 @@ class ReviewReplyController extends Controller
         $shouldNotify = array_key_exists('notify', $data) ? (bool)$data['notify'] : true;
 
         if ($shouldNotify && $to) {
-            // Resolver idioma desde la reserva (Booking -> TourLanguage)
+            // Resolver idioma desde la reserva (Booking -> ProductLanguage)
             $locale = null;
             if ($review->booking_id) {
                 // Asegurar que la reserva y su idioma estén cargados
@@ -217,7 +217,7 @@ class ReviewReplyController extends Controller
             }
         }
 
-        // 4) Última ReviewRequest del mismo user/tour
+        // 4) Última ReviewRequest del mismo user/product
         if (!$email) {
             $rr = ReviewRequest::query()
                 ->when($review->user_id, fn($q) => $q->where('user_id', $review->user_id))

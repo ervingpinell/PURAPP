@@ -28,7 +28,7 @@ class CapacityApiController extends Controller
         $rid = (string) Str::uuid();
 
         $data = $request->validate([
-            'product_id' => ['required','exists:tours,product_id'],
+            'product_id' => ['required','exists:products,product_id'],
             'date'    => ['required','date'],
             'amount'  => ['required','integer','min:1','max:9999'],
         ]);
@@ -111,7 +111,7 @@ class CapacityApiController extends Controller
         $rid = (string) Str::uuid();
 
         $data = $request->validate([
-            'product_id' => ['required','exists:tours,product_id'],
+            'product_id' => ['required','exists:products,product_id'],
             'date'    => ['required','date'],
             'reason'  => ['nullable','string','max:255'],
         ]);
@@ -197,7 +197,7 @@ class CapacityApiController extends Controller
         $rid = (string) Str::uuid();
 
         $data = $request->validate([
-            'product_id' => ['required','exists:tours,product_id'],
+            'product_id' => ['required','exists:products,product_id'],
             'days'    => ['nullable','integer','min:1','max:90'],
             'start'   => ['nullable','date'],
         ]);
@@ -282,7 +282,7 @@ class CapacityApiController extends Controller
     private function resolveBaseCapacity(int $productId, int $scheduleId): ?int
     {
         try {
-            $base = DB::table('schedule_tour')
+            $base = DB::table('schedule_product')
                 ->where('product_id', $productId)
                 ->where('schedule_id', $scheduleId)
                 ->value('base_capacity');
@@ -305,13 +305,13 @@ class CapacityApiController extends Controller
     private function countUsed(int $productId, int $scheduleId, string $date): int
     {
         try {
-            // Asumimos tabla booking_details con: booking_id, product_id, schedule_id, tour_date (DATE), deleted_at (soft deletes)
+            // Asumimos tabla booking_details con: booking_id, product_id, schedule_id, product_date (DATE), deleted_at (soft deletes)
             // y tabla bookings con: booking_id, deleted_at (soft deletes), status (opcional)
             $q = DB::table('booking_details as bd')
                 ->join('bookings as b', 'b.booking_id', '=', 'bd.booking_id')
                 ->where('bd.product_id', $productId)
                 ->where('bd.schedule_id', $scheduleId)
-                ->whereDate('bd.tour_date', $date)
+                ->whereDate('bd.product_date', $date)
                 ->whereNull('bd.deleted_at')
                 ->whereNull('b.deleted_at');
 

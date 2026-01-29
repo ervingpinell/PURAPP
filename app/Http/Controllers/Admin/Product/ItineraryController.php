@@ -94,7 +94,7 @@ class ItineraryController extends Controller
                     'entity'  => 'itinerary',
                     'user_id' => optional($request->user())->getAuthIdentifier(),
                 ]);
-                return back()->with('error', __('m_tours.itinerary.error.create'));
+                return back()->with('error', __('m_products.itinerary.error.create'));
             }
 
             LoggerHelper::mutated($this->controller, 'store', 'itinerary', $itinerary->itinerary_id, [
@@ -102,13 +102,13 @@ class ItineraryController extends Controller
                 'user_id'       => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', __('m_tours.itinerary.success.created'));
+            return back()->with('success', __('m_products.itinerary.success.created'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'store', 'itinerary', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.itinerary.error.create'));
+            return back()->with('error', __('m_products.itinerary.error.create'));
         }
     }
 
@@ -146,13 +146,13 @@ class ItineraryController extends Controller
 
             return redirect()
                 ->route('admin.products.itinerary.index')
-                ->with('success', __('m_tours.itinerary.success.updated'));
+                ->with('success', __('m_products.itinerary.success.updated'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'update', 'itinerary', $itinerary->itinerary_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.itinerary.error.update'));
+            return back()->with('error', __('m_products.itinerary.error.update'));
         }
     }
 
@@ -186,13 +186,13 @@ class ItineraryController extends Controller
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', __('m_tours.itinerary.success.restored'));
+            return back()->with('success', __('m_products.itinerary.success.restored'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'restore', 'itinerary', $id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.itinerary.error.restore'));
+            return back()->with('error', __('m_products.itinerary.error.restore'));
         }
     }
 
@@ -215,13 +215,13 @@ class ItineraryController extends Controller
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', __('m_tours.itinerary.success.force_deleted'));
+            return back()->with('success', __('m_products.itinerary.success.force_deleted'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'forceDelete', 'itinerary', $id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.itinerary.error.force_delete'));
+            return back()->with('error', __('m_products.itinerary.error.force_delete'));
         }
     }
 
@@ -241,8 +241,8 @@ class ItineraryController extends Controller
             ]);
 
             $msg = $itinerary->is_active
-                ? __('m_tours.itinerary.success.activated')
-                : __('m_tours.itinerary.success.deactivated');
+                ? __('m_products.itinerary.success.activated')
+                : __('m_products.itinerary.success.deactivated');
 
             return back()->with('success', $msg);
         } catch (Exception $e) {
@@ -250,7 +250,7 @@ class ItineraryController extends Controller
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.itinerary.error.toggle'));
+            return back()->with('error', __('m_products.itinerary.error.toggle'));
         }
     }
 
@@ -273,13 +273,13 @@ class ItineraryController extends Controller
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', __('m_tours.itinerary.success.deleted'));
+            return back()->with('success', __('m_products.itinerary.success.deleted'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'itinerary', $itinerary->itinerary_id ?? null, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', __('m_tours.itinerary.error.delete'));
+            return back()->with('error', __('m_products.itinerary.error.delete'));
         }
     }
 
@@ -309,15 +309,15 @@ class ItineraryController extends Controller
 
             return redirect()
                 ->route('admin.products.itinerary.index')
-                ->with('success', __('m_tours.itinerary.success.items_assigned'));
+                ->with('success', __('m_products.itinerary.success.items_assigned'));
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'assignItems', 'itinerary', $itinerary->itinerary_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return back()
-                ->withErrors(['items' => __('m_tours.itinerary.error.assign')])
-                ->with('error', __('m_tours.itinerary.error.assign'))
+                ->withErrors(['items' => __('m_products.itinerary.error.assign')])
+                ->with('error', __('m_products.itinerary.error.assign'))
                 ->with('showAssignModal', $itinerary->itinerary_id);
         }
     }

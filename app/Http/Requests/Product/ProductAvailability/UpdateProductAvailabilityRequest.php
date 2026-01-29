@@ -56,7 +56,7 @@ class UpdateProductAvailabilityRequest extends FormRequest
         $availability = $this->route('availability');
 
         LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [
-            'entity'    => 'tour_availability',
+            'entity'    => 'product_availability',
             'entity_id' => $availability?->getKey(),
             'user_id'   => optional($this->user())->getAuthIdentifier(),
         ]);

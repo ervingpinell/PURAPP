@@ -33,9 +33,9 @@ class ProductDataController extends Controller
     {
         $data = $product->languages()
             ->orderBy('name')
-            ->get(['tour_languages.tour_language_id', 'tour_languages.name'])
+            ->get(['product_languages.product_language_id', 'product_languages.name'])
             ->map(fn($l) => [
-                'tour_language_id' => (int)$l->tour_language_id,
+                'product_language_id' => (int)$l->product_language_id,
                 'name'             => (string)$l->name,
             ]);
 
@@ -45,7 +45,7 @@ class ProductDataController extends Controller
     public function categories(Request $request, Product $product)
     {
         $locale = app()->getLocale();
-        $serviceDate = $request->input('tour_date');
+        $serviceDate = $request->input('product_date');
 
         // Base query
         $query = $product->prices()

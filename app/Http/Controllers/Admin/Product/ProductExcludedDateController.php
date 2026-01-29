@@ -148,7 +148,7 @@ class ProductExcludedDateController extends Controller
                 ProductExcludedDate::create($request->validated());
             }
 
-            LoggerHelper::mutated($this->controller, 'store', 'tour_excluded_date', null, [
+            LoggerHelper::mutated($this->controller, 'store', 'product_excluded_date', null, [
                 'product_id'     => $request->product_id,
                 'schedule_id' => $request->schedule_id,
                 'start_date'  => $request->start_date,
@@ -157,7 +157,7 @@ class ProductExcludedDateController extends Controller
 
             return back()->with('success', 'Fecha bloqueada creada correctamente.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'store', 'tour_excluded_date', null, $e, [
+            LoggerHelper::exception($this->controller, 'store', 'product_excluded_date', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -170,7 +170,7 @@ class ProductExcludedDateController extends Controller
         try {
             $excludedDate->update($request->validated());
 
-            LoggerHelper::mutated($this->controller, 'update', 'tour_excluded_date', $excludedDate->tour_excluded_date_id, [
+            LoggerHelper::mutated($this->controller, 'update', 'product_excluded_date', $excludedDate->product_excluded_date_id, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -178,7 +178,7 @@ class ProductExcludedDateController extends Controller
                 ->route('admin.products.excluded_dates.index')
                 ->with('success', 'Fecha bloqueada actualizada correctamente.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'update', 'tour_excluded_date', $excludedDate->tour_excluded_date_id, $e, [
+            LoggerHelper::exception($this->controller, 'update', 'product_excluded_date', $excludedDate->product_excluded_date_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -189,16 +189,16 @@ class ProductExcludedDateController extends Controller
     public function destroy(ProductExcludedDate $excludedDate)
     {
         try {
-            $excludedDateId = $excludedDate->tour_excluded_date_id;
+            $excludedDateId = $excludedDate->product_excluded_date_id;
             $excludedDate->delete();
 
-            LoggerHelper::mutated($this->controller, 'destroy', 'tour_excluded_date', $excludedDateId, [
+            LoggerHelper::mutated($this->controller, 'destroy', 'product_excluded_date', $excludedDateId, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
             return back()->with('success', 'Fecha bloqueada eliminada.');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'destroy', 'tour_excluded_date', $excludedDate->tour_excluded_date_id ?? null, $e, [
+            LoggerHelper::exception($this->controller, 'destroy', 'product_excluded_date', $excludedDate->product_excluded_date_id ?? null, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
@@ -251,7 +251,7 @@ class ProductExcludedDateController extends Controller
                 }
             }
 
-            LoggerHelper::mutated($this->controller, 'blockAll', 'tour_excluded_date', null, [
+            LoggerHelper::mutated($this->controller, 'blockAll', 'product_excluded_date', null, [
                 'start_date' => $startDate,
                 'end_date'   => $endDate,
                 'user_id'    => optional($request->user())->getAuthIdentifier(),
@@ -259,7 +259,7 @@ class ProductExcludedDateController extends Controller
 
             return response()->json(['success' => true]);
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'blockAll', 'tour_excluded_date', null, $e, [
+            LoggerHelper::exception($this->controller, 'blockAll', 'product_excluded_date', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -281,7 +281,7 @@ class ProductExcludedDateController extends Controller
                 'reason'      => $request->input('reason'),
             ]);
 
-            LoggerHelper::mutated($this->controller, 'toggle', 'tour_availability', null, [
+            LoggerHelper::mutated($this->controller, 'toggle', 'product_availability', null, [
                 'product_id'      => $request->product_id,
                 'schedule_id'  => $request->schedule_id,
                 'date'         => $request->date,
@@ -291,7 +291,7 @@ class ProductExcludedDateController extends Controller
 
             return response()->json($result);
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'toggle', 'tour_availability', null, $e, [
+            LoggerHelper::exception($this->controller, 'toggle', 'product_availability', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -319,14 +319,14 @@ class ProductExcludedDateController extends Controller
                 }
             }
 
-            LoggerHelper::mutated($this->controller, 'bulkToggle', 'tour_availability', null, [
+            LoggerHelper::mutated($this->controller, 'bulkToggle', 'product_availability', null, [
                 'items'   => $changedCount,
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return response()->json(['ok' => true, 'changed' => $changedCount]);
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'bulkToggle', 'tour_availability', null, $e, [
+            LoggerHelper::exception($this->controller, 'bulkToggle', 'product_availability', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -353,14 +353,14 @@ class ProductExcludedDateController extends Controller
                 }
             }
 
-            LoggerHelper::mutated($this->controller, 'storeMultiple', 'tour_excluded_date', null, [
+            LoggerHelper::mutated($this->controller, 'storeMultiple', 'product_excluded_date', null, [
                 'items'   => $changedCount,
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return response()->json(['ok' => true, 'changed' => $changedCount]);
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'storeMultiple', 'tour_excluded_date', null, $e, [
+            LoggerHelper::exception($this->controller, 'storeMultiple', 'product_excluded_date', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
@@ -378,16 +378,16 @@ class ProductExcludedDateController extends Controller
     {
         try {
             $idsToDelete = $request->input('ids', []);
-            ProductExcludedDate::whereIn('tour_excluded_date_id', $idsToDelete)->delete();
+            ProductExcludedDate::whereIn('product_excluded_date_id', $idsToDelete)->delete();
 
-            LoggerHelper::mutated($this->controller, 'destroySelected', 'tour_excluded_date', null, [
+            LoggerHelper::mutated($this->controller, 'destroySelected', 'product_excluded_date', null, [
                 'count'   => count($idsToDelete),
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return response()->json(['success' => 'Fechas eliminadas correctamente.']);
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'destroySelected', 'tour_excluded_date', null, $e, [
+            LoggerHelper::exception($this->controller, 'destroySelected', 'product_excluded_date', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 

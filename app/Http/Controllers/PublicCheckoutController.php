@@ -28,7 +28,7 @@ class PublicCheckoutController extends Controller
             ->where('user_id', $userId)
             ->where('is_active', true)
             ->with([
-                'items.tour',
+                'items.product',
                 'items.schedule',
                 'items.language',
                 'items.hotel',
@@ -259,7 +259,7 @@ class PublicCheckoutController extends Controller
         $cancellationHours = (int) setting('booking.cancellation_hours', 24); // Default 24h si no existe
 
         $starts = $cart->items->map(function ($it) use ($tz) {
-            $date = $it->tour_date ?? null;
+            $date = $it->product_date ?? null;
             $time = optional($it->schedule)->start_time;
             if (!$date || !$time) return null;
             return Carbon::parse("{$date} {$time}", $tz);
@@ -319,7 +319,7 @@ class PublicCheckoutController extends Controller
                     return (object) array_merge($item, [
                         'product' => \App\Models\Product::find($item['product_id']),
                         'schedule' => \App\Models\Schedule::find($item['schedule_id']),
-                        'language' => \App\Models\ProductLanguage::find($item['tour_language_id']),
+                        'language' => \App\Models\ProductLanguage::find($item['product_language_id']),
                         'hotel' => isset($item['hotel_id']) ? \App\Models\HotelList::find($item['hotel_id']) : null,
                         'meetingPoint' => isset($item['meeting_point_id']) ? \App\Models\MeetingPoint::find($item['meeting_point_id']) : null,
                     ]);
@@ -341,7 +341,7 @@ class PublicCheckoutController extends Controller
         // 2) Snapshot de config SOLO para versiones / compat (no para mostrar contenido)
         $cfgPack = $svc->make();
 
-        // Calcular cutoff de cancelación gratuita (24h antes del primer tour)
+        // Calcular cutoff de cancelación gratuita (24h antes del primer product)
         if (isset($cart->items) && method_exists($cart, 'items')) {
             $freeCancelUntil = $this->computeFreeCancelUntil($cart);
         } else {
@@ -469,7 +469,7 @@ class PublicCheckoutController extends Controller
                 $this->persistSessionItemsToCart($cart, $sessionCartItems);
 
                 // Reload items relationships for next steps
-                $cart->load(['items.tour.prices.category', 'items.schedule', 'items.language', 'items.hotel', 'items.meetingPoint']);
+                $cart->load(['items.product.prices.category', 'items.schedule', 'items.language', 'items.hotel', 'items.meetingPoint']);
 
                 // Do NOT return redirect. Allow flow to continue with $cart.
             } else {
@@ -621,8 +621,8 @@ class PublicCheckoutController extends Controller
                     'cart_item_id' => $item->cart_item_id,
                     'product_id' => $item->product_id,
                     'schedule_id' => $item->schedule_id,
-                    'tour_language_id' => $item->tour_language_id,
-                    'tour_date' => $item->tour_date,
+                    'product_language_id' => $item->product_language_id,
+                    'product_date' => $item->product_date,
                     'categories' => $item->categories,
                     'hotel_id' => $item->is_other_hotel ? null : $item->hotel_id,
                     'is_other_hotel' => (bool) $item->is_other_hotel,
@@ -672,7 +672,7 @@ class PublicCheckoutController extends Controller
     public function showByToken(string $token, PolicySnapshotService $svc)
     {
         $booking = \App\Models\Booking::where('checkout_token', $token)
-            ->with(['detail', 'product', 'user', 'detail.schedule', 'detail.tourLanguage'])
+            ->with(['detail', 'product', 'user', 'detail.schedule', 'detail.productLanguage'])
             ->firstOrFail();
 
         if (!$booking->isCheckoutTokenValid()) {
@@ -716,7 +716,7 @@ class PublicCheckoutController extends Controller
         $tz = config('app.timezone', 'America/Costa_Rica');
         $cancellationHours = (int) setting('booking.cancellation_hours', 24);
 
-        $serviceDate = $booking->tour_date;
+        $serviceDate = $booking->product_date;
         $startTime = optional($booking->detail?->schedule)->start_time;
 
         $freeCancelUntil = null;
@@ -737,9 +737,9 @@ class PublicCheckoutController extends Controller
                     'cart_item_id' => null,
                     'product_id' => $booking->product_id,
                     'product' => $booking->product,
-                    'tour_date' => $booking->tour_date,
+                    'product_date' => $booking->product_date,
                     'schedule' => $booking->detail?->schedule,
-                    'language' => $booking->detail?->tourLanguage,
+                    'language' => $booking->detail?->productLanguage,
                     'categories' => $booking->detail?->categories ?? [],
                     'hotel' => $booking->detail?->hotel_id ? \App\Models\HotelList::find($booking->detail->hotel_id) : null,
                     'meetingPoint' => $booking->detail?->meeting_point_id ? \App\Models\MeetingPoint::find($booking->detail->meeting_point_id) : null,
@@ -768,7 +768,7 @@ class PublicCheckoutController extends Controller
     public function showPayment(string $bookingReference)
     {
         $booking = \App\Models\Booking::where('booking_reference', $bookingReference)
-            ->with(['detail', 'product', 'user', 'detail.schedule', 'detail.tourLanguage'])
+            ->with(['detail', 'product', 'user', 'detail.schedule', 'detail.productLanguage'])
             ->firstOrFail();
 
         // Check if booking is already paid
@@ -926,7 +926,7 @@ class PublicCheckoutController extends Controller
 
             // Load Product to get prices
             $productId = $itemData['product_id'] ?? null;
-            $serviceDate = $itemData['tour_date'] ?? null;
+            $serviceDate = $itemData['product_date'] ?? null;
 
             if ($productId && is_array($rawCats)) {
                 // Check if categories are already in snapshot format (from buildCategoriesSnapshot)
@@ -990,8 +990,8 @@ class PublicCheckoutController extends Controller
             $cart->items()->create([
                 'product_id' => $itemData['product_id'] ?? null,
                 'schedule_id' => $itemData['schedule_id'] ?? null,
-                'tour_language_id' => $itemData['tour_language_id'] ?? null,
-                'tour_date' => $itemData['tour_date'] ?? null,
+                'product_language_id' => $itemData['product_language_id'] ?? null,
+                'product_date' => $itemData['product_date'] ?? null,
                 'hotel_id' => $itemData['hotel_id'] ?? null,
                 'meeting_point_id' => $itemData['meeting_point_id'] ?? $itemData['selected_meeting_point'] ?? null, // handle both keys if inconsistent
                 'is_other_hotel' => $itemData['is_other_hotel'] ?? false,

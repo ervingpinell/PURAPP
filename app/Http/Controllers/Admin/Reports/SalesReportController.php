@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\Product;
-use App\Models\TourLanguage;
+use App\Models\ProductLanguage;
 use App\Models\Payment;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -33,11 +33,11 @@ class SalesReportController extends Controller
 
         $status = $request->input('status');
         $productIds = collect((array) $request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $langIds = collect((array) $request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $langIds = collect((array) $request->input('product_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         // ====== Catalogs ======
         $productsMap = Product::pluck('name', 'product_id');
-        $langsMap = TourLanguage::pluck('name', 'tour_language_id');
+        $langsMap = ProductLanguage::pluck('name', 'product_language_id');
 
         // ====== Base Query ======
         $baseQuery = $this->buildBaseQuery($from, $to, $status, $productIds, $langIds);
@@ -70,13 +70,13 @@ class SalesReportController extends Controller
 
         // Revenue by language
         $revenueByLanguage = (clone $baseQuery)
-            ->join('tour_languages', 'tour_languages.tour_language_id', '=', 'booking_details.tour_language_id')
+            ->join('product_languages', 'product_languages.product_language_id', '=', 'booking_details.product_language_id')
             ->selectRaw('
-                tour_languages.name as language_name,
+                product_languages.name as language_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
-            ->groupBy('tour_languages.tour_language_id', 'tour_languages.name')
+            ->groupBy('product_languages.product_language_id', 'product_languages.name')
             ->orderByDesc('revenue')
             ->limit(10)
             ->get();
@@ -86,7 +86,7 @@ class SalesReportController extends Controller
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
             ->whereBetween('bookings.created_at', [$from, $to])
             ->when(!empty($productIds), fn($q) => $q->whereIn('booking_details.product_id', $productIds))
-            ->when(!empty($langIds), fn($q) => $q->whereIn('booking_details.tour_language_id', $langIds))
+            ->when(!empty($langIds), fn($q) => $q->whereIn('booking_details.product_language_id', $langIds))
             ->selectRaw('
                 bookings.status,
                 SUM(booking_details.total) as revenue,
@@ -125,7 +125,7 @@ class SalesReportController extends Controller
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
         $status = $request->input('status');
         $productIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
-        $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $langIds = collect((array)$request->input('product_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         $baseQuery = $this->buildBaseQuery($from, $to, $status, $productIds, $langIds);
 
@@ -216,13 +216,13 @@ class SalesReportController extends Controller
         $baseQuery = $this->buildBaseQuery($from, $to, $status, $productIds, []);
 
         $data = (clone $baseQuery)
-            ->join('tour_languages', 'tour_languages.tour_language_id', '=', 'booking_details.tour_language_id')
+            ->join('product_languages', 'product_languages.product_language_id', '=', 'booking_details.product_language_id')
             ->selectRaw('
-                tour_languages.name as language_name,
+                product_languages.name as language_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
-            ->groupBy('tour_languages.tour_language_id', 'tour_languages.name')
+            ->groupBy('product_languages.product_language_id', 'product_languages.name')
             ->orderByDesc('revenue')
             ->limit(10)
             ->get();
@@ -306,7 +306,7 @@ class SalesReportController extends Controller
     {
         $query = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-            ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
+            ->join('products', 'products.product_id', '=', 'booking_details.product_id')
             ->whereBetween('bookings.created_at', [$from, $to]);
 
         if ($status) {
@@ -318,7 +318,7 @@ class SalesReportController extends Controller
         }
 
         if (!empty($langIds)) {
-            $query->whereIn('booking_details.tour_language_id', $langIds);
+            $query->whereIn('booking_details.product_language_id', $langIds);
         }
 
         return $query;

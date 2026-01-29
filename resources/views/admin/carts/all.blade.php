@@ -127,7 +127,7 @@
                     <table class="table table-sm table-striped mb-0">
                         <thead class="table-dark">
                             <tr class="text-center">
-                                <th>{{ __('carts.items_modal.headers.tour') }}</th>
+                                <th>{{ __('carts.items_modal.headers.product') }}</th>
                                 <th>{{ __('carts.items_modal.headers.date') }}</th>
                                 <th>{{ __('carts.items_modal.headers.schedule') }}</th>
                                 <th>{{ __('carts.items_modal.headers.language') }}</th>
@@ -141,15 +141,15 @@
                         <tbody>
                             @forelse($cart->items as $item)
                             @php
-                            $ap = (float)($item->tour->adult_price ?? 0);
-                            $kp = (float)($item->tour->kid_price ?? 0);
+                            $ap = (float)($item->product->adult_price ?? 0);
+                            $kp = (float)($item->product->kid_price ?? 0);
                             $aq = (int)($item->adults_quantity ?? 0);
                             $kq = (int)($item->kids_quantity ?? 0);
                             $itemTotal = ($ap * $aq) + ($kp * $kq);
                             @endphp
                             <tr class="text-center align-middle">
-                                <td>{{ $item->tour->name ?? '—' }}</td>
-                                <td>{{ $item->tour_date ?? '—' }}</td>
+                                <td>{{ $item->product->name ?? '—' }}</td>
+                                <td>{{ $item->product_date ?? '—' }}</td>
                                 <td>
                                     @if($item->schedule)
                                     <span class="badge bg-success">
@@ -200,8 +200,8 @@
 
             @php
             $cartTotalFooter = $cart->items->sum(function($it){
-            $ap=(float)($it->tour->adult_price ?? 0);
-            $kp=(float)($it->tour->kid_price ?? 0);
+            $ap=(float)($it->product->adult_price ?? 0);
+            $kp=(float)($it->product->kid_price ?? 0);
             $aq=(int)($it->adults_quantity ?? 0);
             $kq=(int)($it->kids_quantity ?? 0);
             return ($ap*$aq)+($kp*$kq);

@@ -82,7 +82,7 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
         $activityDateText = $this->fmtDate(
             $bk?->start_date
             ?? $bk?->activity_date
-            ?? $bk?->tour_date
+            ?? $bk?->product_date
             ?? $bk?->created_at
             ?? $rr->created_at,
             $loc

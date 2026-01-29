@@ -63,14 +63,14 @@ class BookingsExport implements FromView
             $q->whereDate('booking_date', '<=', $f['booking_date_to']);
         }
 
-        // Por fecha de producto (detail.tour_date - legacy column name)
-        if (!empty($f['tour_date_from'])) {
-            $from = $f['tour_date_from'];
-            $q->whereHas('detail', fn($d) => $d->whereDate('tour_date', '>=', $from));
+        // Por fecha de producto (detail.product_date - legacy column name)
+        if (!empty($f['product_date_from'])) {
+            $from = $f['product_date_from'];
+            $q->whereHas('detail', fn($d) => $d->whereDate('product_date', '>=', $from));
         }
-        if (!empty($f['tour_date_to'])) {
-            $to = $f['tour_date_to'];
-            $q->whereHas('detail', fn($d) => $d->whereDate('tour_date', '<=', $to));
+        if (!empty($f['product_date_to'])) {
+            $to = $f['product_date_to'];
+            $q->whereHas('detail', fn($d) => $d->whereDate('product_date', '<=', $to));
         }
 
         // Por horario (schedule_id en el detail)
@@ -96,9 +96,9 @@ class BookingsExport implements FromView
             }
         }
 
-        if (!empty($filters['tour_date_from']) || !empty($filters['tour_date_to'])) {
-            $from = $filters['tour_date_from'] ?? null;
-            $to   = $filters['tour_date_to']   ?? null;
+        if (!empty($filters['product_date_from']) || !empty($filters['product_date_to'])) {
+            $from = $filters['product_date_from'] ?? null;
+            $to   = $filters['product_date_to']   ?? null;
 
             if ($from && $to && $from === $to)       $name .= " products on $from";
             elseif ($from && $to)                    $name .= " products from $from to $to";

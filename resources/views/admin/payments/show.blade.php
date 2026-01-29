@@ -194,9 +194,9 @@
 
                                 <dt class="col-5">Tour:</dt>
                                 <dd class="col-7">
-                                    @if($payment->booking->tour)
+                                    @if($payment->booking->product)
                                         <span class="text-break">
-                                            {{ $payment->booking->tour->name }}
+                                            {{ $payment->booking->product->name }}
                                         </span>
                                     @else
                                         <span class="text-muted">N/A</span>
@@ -206,10 +206,10 @@
                         </div>
                         <div class="col-12 col-md-6">
                             <dl class="row mb-0">
-                                <dt class="col-5">Tour Date:</dt>
+                                <dt class="col-5">Product Date:</dt>
                                 <dd class="col-7">
                                     @if($payment->booking->detail)
-                                        {{ \Carbon\Carbon::parse($payment->booking->detail->tour_date)->format('M d, Y') }}
+                                        {{ \Carbon\Carbon::parse($payment->booking->detail->product_date)->format('M d, Y') }}
                                     @else
                                         <span class="text-muted">N/A</span>
                                     @endif

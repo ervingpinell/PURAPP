@@ -51,7 +51,7 @@ class Booking extends Model
         'user_phone',
         'user_was_guest',
         'product_id', // Renamed from product_id
-        'tour_language_id', // Name kept as is for now
+        'product_language_id', // Name kept as is for now
         'booking_reference',
         'payment_token',
         'payment_token_created_at',

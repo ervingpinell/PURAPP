@@ -21,7 +21,7 @@ class BookingCreator
      * Crea una reserva con categorías modulares
      *
      * $payload:
-     *  - user_id, product_id, schedule_id, tour_language_id, tour_date
+     *  - user_id, product_id, schedule_id, product_language_id, product_date
      *  - categories: ['category_id' => quantity, ...]
      *  - status, promo_code, meeting_point_id, hotel_id, is_other_hotel, other_hotel_name, notes
      *  - exclude_cart_id (opcional)
@@ -44,7 +44,7 @@ class BookingCreator
             }
 
             // Snapshot (price + quantity + slug + name) - usar fecha del producto para precios temporales
-            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($product, $quantities, $payload['tour_date'] ?? null);
+            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($product, $quantities, $payload['product_date'] ?? null);
             if (empty($categoriesSnapshot)) {
                 throw new \RuntimeException('No valid active categories found for this product');
             }
@@ -71,7 +71,7 @@ class BookingCreator
 
             // Capacidad
             if ($validateCapacity) {
-                $date          = $payload['tour_date'];
+                $date          = $payload['product_date'];
                 $excludeCartId = $payload['exclude_cart_id'] ?? null;
 
                 $snap = $this->cap->capacitySnapshot(
@@ -116,7 +116,7 @@ class BookingCreator
 
             if ($isPayLater) {
                 // Pay-later booking
-                $productDate = \Carbon\Carbon::parse($payload['tour_date']);
+                $productDate = \Carbon\Carbon::parse($payload['product_date']);
 
                 // Get settings
                 $daysBeforeCharge = (int) setting('booking.pay_later.days_before_charge', 2);
@@ -155,7 +155,7 @@ class BookingCreator
                 'user_was_guest'    => (bool) ($user?->is_guest ?? false),
 
                 'product_id'           => (int) $payload['product_id'],
-                'tour_language_id'  => (int) $payload['tour_language_id'],
+                'product_language_id'  => (int) $payload['product_language_id'],
                 'booking_date'      => $payload['booking_date'] ?? now(),
                 'status'            => $payload['status'] ?? 'pending',
                 'total'             => $totalBooking,
@@ -181,8 +181,8 @@ class BookingCreator
                 'booking_id'        => $booking->booking_id,
                 'product_id'           => (int) $payload['product_id'],
                 'schedule_id'       => (int) $payload['schedule_id'],
-                'tour_date'         => $payload['tour_date'],
-                'tour_language_id'  => (int) $payload['tour_language_id'],
+                'product_date'         => $payload['product_date'],
+                'product_language_id'  => (int) $payload['product_language_id'],
                 'categories'        => $categoriesSnapshot,
                 'total'             => $detailSubtotal, // Base price (Subtotal)
                 'taxes_breakdown'   => $taxesBreakdown,

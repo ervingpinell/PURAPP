@@ -44,7 +44,7 @@ class BlockAllRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'blockAll', $validator->errors()->toArray(), [
-            'entity'  => 'tour_excluded_date',
+            'entity'  => 'product_excluded_date',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
         parent::failedValidation($validator);

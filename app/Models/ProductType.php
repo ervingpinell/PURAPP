@@ -66,9 +66,9 @@ class ProductType extends Model implements HasMedia
 
     public function orderedProducts()
     {
-        return $this->belongsToMany(Product::class, 'tour_type_tour_order', 'tour_type_id', 'tour_id')
+        return $this->belongsToMany(Product::class, 'product_type_product_order', 'product_type_id', 'product_id')
                     ->withPivot('position')
-                    ->orderBy('tour_type_tour_order.position');
+                    ->orderBy('product_type_product_order.position');
     }
 
     /**

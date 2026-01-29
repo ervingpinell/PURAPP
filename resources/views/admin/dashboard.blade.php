@@ -31,16 +31,16 @@
   </div>
 
   <div class="col-md-4 mb-3">
-    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tours') }}" text="{{ $totalProducts ?? 0 }}" icon="fas fa-map" theme="warning" />
+    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.products') }}" text="{{ $totalProducts ?? 0 }}" icon="fas fa-map" theme="warning" />
     <a href="{{ route('admin.products.index') }}" class="btn btn-warning btn-block mt-2">
-      {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.tours') }}
+      {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.products') }}
     </a>
   </div>
 
   <div class="col-md-4 mb-3">
-    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tour_types') }}" text="{{ $totalProductTypes ?? ($productTypes ?? 0) }}" icon="fas fa-tags" theme="success" />
+    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.product_types') }}" text="{{ $totalProductTypes ?? ($productTypes ?? 0) }}" icon="fas fa-tags" theme="success" />
     <a href="{{ route('admin.product-types.index') }}" class="btn btn-success btn-block mt-2">
-      {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.tour_types') }}
+      {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.product_types') }}
     </a>
   </div>
 
@@ -135,7 +135,7 @@
         </small><br>
         <span class="text-muted">
           {{ __('adminlte::adminlte.labels.date') }}:
-          {{ optional(optional($booking->detail)->tour_date)->format('d/m/Y') ?? '—' }}
+          {{ optional(optional($booking->detail)->product_date)->format('d/m/Y') ?? '—' }}
         </span>
       </div>
       <hr>
@@ -155,7 +155,7 @@
 
 @push('css')
 <style>
-  /* ========== Collapses tours (solo para los colapsables de arriba) ========== */
+  /* ========== Collapses products (solo para los colapsables de arriba) ========== */
   .simple-collapse {
     display: none
   }

@@ -38,8 +38,8 @@ class UpdateExcludedDateRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'product_id.required'    => 'El tour es obligatorio.',
-            'product_id.exists'      => 'El tour seleccionado no existe.',
+            'product_id.required'    => 'El product es obligatorio.',
+            'product_id.exists'      => 'El product seleccionado no existe.',
             'schedule_id.exists'  => 'El horario seleccionado no existe.',
             'start_date.required' => 'La fecha inicial es obligatoria.',
             'start_date.date'     => 'La fecha inicial no es válida.',
@@ -56,8 +56,8 @@ class UpdateExcludedDateRequest extends FormRequest
         $excludedDate = $this->route('excludedDate');
 
         LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [
-            'entity'    => 'tour_excluded_date',
-            'entity_id' => $excludedDate?->tour_excluded_date_id,
+            'entity'    => 'product_excluded_date',
+            'entity_id' => $excludedDate?->product_excluded_date_id,
             'user_id'   => optional($this->user())->getAuthIdentifier(),
         ]);
         parent::failedValidation($validator);

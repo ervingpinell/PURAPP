@@ -226,7 +226,7 @@
             });
 
         // Product Type Chart
-        fetch(`{{ route('admin.reports.products.chart.tour-type') }}?${filters}`)
+        fetch(`{{ route('admin.reports.products.chart.product-type') }}?${filters}`)
             .then(res => res.json())
             .then(data => {
                 new Chart(document.getElementById('productTypeChart'), {

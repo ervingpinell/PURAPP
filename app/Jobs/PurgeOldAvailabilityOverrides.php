@@ -105,7 +105,7 @@ class PurgeOldAvailabilityOverrides implements ShouldQueue
             ->limit($this->limit);
 
         // Procesa en chunks por id
-        DB::table('tour_availability')
+        DB::table('product_availability')
             ->whereIn('availability_id', $idSub)
             ->orderBy('availability_id')
             ->chunkById($this->chunk, function ($rows) use (&$deleted) {

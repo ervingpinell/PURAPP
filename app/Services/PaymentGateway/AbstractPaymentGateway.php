@@ -122,8 +122,8 @@ class AbstractPaymentGateway implements PaymentGatewayInterface
             'booking_reference' => $data['booking_reference'] ?? null,
             'user_id' => $data['user_id'] ?? null,
             'user_email' => $data['user_email'] ?? null,
-            'tour_name' => $data['tour_name'] ?? null,
-            'tour_date' => $data['tour_date'] ?? null,
+            'product_name' => $data['product_name'] ?? null,
+            'product_date' => $data['product_date'] ?? null,
             'environment' => app()->environment(),
         ];
     }

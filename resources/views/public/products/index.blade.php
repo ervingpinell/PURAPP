@@ -1,9 +1,9 @@
 {{-- resources/views/public/tours/index.blade.php --}}
 @extends('layouts.app')
 
-@section('meta_title'){{ branding('seo_tours_title_' . app()->getLocale(), __('adminlte::adminlte.meta.tours_title')) }}@endsection
-@section('meta_description'){{ branding('seo_tours_description_' . app()->getLocale(), __('adminlte::adminlte.meta.tours_description')) }}@endsection
-@section('title', __('adminlte::adminlte.tours_index_title'))
+@section('meta_title'){{ branding('seo_tours_title_' . app()->getLocale(), __('adminlte::adminlte.meta.products_title')) }}@endsection
+@section('meta_description'){{ branding('seo_tours_description_' . app()->getLocale(), __('adminlte::adminlte.meta.products_description')) }}@endsection
+@section('title', __('adminlte::adminlte.products_index_title'))
 
 @push('styles')
 @vite(entrypoints: [
@@ -22,7 +22,7 @@
         <a href="{{ url('/') }}">{{ __('adminlte::adminlte.home') }}</a>
       </li>
       <li class="breadcrumb-item active" aria-current="page">
-        {{ __('adminlte::adminlte.tours') }}
+        {{ __('adminlte::adminlte.products') }}
       </li>
     </ol>
   </nav>
@@ -30,7 +30,7 @@
   use App\Helpers\SchemaHelper;
   $breadcrumbItems = [
   ['name' => __('adminlte::adminlte.home'), 'url' => url('/')],
-  ['name' => __('adminlte::adminlte.tours')],
+  ['name' => __('adminlte::adminlte.products')],
   ];
   $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
   @endphp
@@ -41,10 +41,10 @@
   <div class="tours-index-header mb-2">
     <div>
       <h1 class="mt-5 mb-0">
-        {{ __('adminlte::adminlte.tours_index_title') }}
+        {{ __('adminlte::adminlte.products_index_title') }}
       </h1>
       <p class="text-muted mb-0">
-        {{ __('adminlte::adminlte.tours_index_subtitle') }}
+        {{ __('adminlte::adminlte.products_index_subtitle') }}
       </p>
     </div>
 
@@ -62,7 +62,7 @@
   <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
     {{-- Botón para desplegar filtros (collapse) --}}
     <button
-      class="btn-tour-cta btn-sm filters-toggle d-inline-flex align-items-center gap-1"
+      class="btn-product-cta btn-sm filters-toggle d-inline-flex align-items-center gap-1"
       type="button"
       data-bs-toggle="collapse"
       data-bs-target="#tours-filters"
@@ -162,7 +162,7 @@
                   {{ __('adminlte::adminlte.all_categories') }}
                 </option>
                 @foreach($categories as $cat)
-                <option value="{{ $cat->tour_type_id }}" @selected(request('category')==$cat->tour_type_id)>
+                <option value="{{ $cat->product_type_id }}" @selected(request('category')==$cat->product_type_id)>
                   {{ $cat->translated_name ?? $cat->name }}
                 </option>
                 @endforeach
@@ -237,7 +237,7 @@
   $totalProducts = $products->total();
   @endphp
 
-  {{-- LAYOUT DE TOURS --}}
+  {{-- LAYOUT DE PRODUCTS --}}
   <div
     id="tours-layout"
     class="tours-layout mode-scroll"
@@ -284,13 +284,13 @@
 
       {{-- *** AQUI HACEMOS LA CARD CLICKEABLE *** --}}
       <article
-        class="tours-index-card-wrapper tour-card-clickable"
+        class="tours-index-card-wrapper product-card-clickable"
         data-url="{{ $productUrl }}"
         tabindex="0"
         aria-label="{{ $displayName }}">
         <div class="card tours-index-card h-100">
           {{-- Imagen con badge de duración --}}
-          <div class="tour-image-container">
+          <div class="product-image-container">
             <img
               src="{{ $cover }}"
               class="card-img-top"
@@ -299,7 +299,7 @@
 
             {{-- Badge de duración sobre la imagen --}}
             @if(!empty($product->length))
-            <div class="tour-duration-badge">
+            <div class="product-duration-badge">
               <span class="duration-number">{{ $product->length }}</span>
               <span class="duration-unit">hrs</span>
             </div>
@@ -309,22 +309,22 @@
           {{-- BODY estructurado: header / main / footer --}}
           <div class="card-body tours-card-body">
             {{-- HEADER: título --}}
-            <div class="tour-card-header">
-              <div class="tour-title-pill">
-                <div class="tour-title-text">
+            <div class="product-card-header">
+              <div class="product-title-pill">
+                <div class="product-title-text">
                   {{ $displayName }}
                 </div>
               </div>
             </div>
 
             {{-- MAIN: solo tags de itinerario --}}
-            <div class="tour-card-main">
+            <div class="product-card-main">
               {{-- TAGS DE ITINERARIO --}}
-              <div class="tour-tags-container">
+              <div class="product-tags-container">
                 @if($itineraryTags->isNotEmpty())
-                <div class="tour-tags">
+                <div class="product-tags">
                   @foreach($itineraryTags as $tag)
-                  <div class="tour-tag">{{ $tag }}</div>
+                  <div class="product-tag">{{ $tag }}</div>
                   @endforeach
                 </div>
                 @endif
@@ -332,9 +332,9 @@
             </div>
 
             {{-- FOOTER: precios + botón --}}
-            <div class="tour-card-footer">
+            <div class="product-card-footer">
               {{-- Precios por categoría --}}
-              <div class="tour-prices-container">
+              <div class="product-prices-container">
                 @if($activeCategories->isNotEmpty())
                 <div class="tours-index-prices mb-2">
                   @foreach($activeCategories as $priceRecord)
@@ -373,10 +373,10 @@
                 @endif
               </div>
 
-              {{-- Botón ver tour --}}
+              {{-- Botón ver product --}}
               <a
                 href="{{ $productUrl }}"
-                class="btn btn-tour-cta w-100 mt-2">
+                class="btn btn-product-cta w-100 mt-2">
                 {{ __('adminlte::adminlte.see_tour') }}
               </a>
             </div>
@@ -415,13 +415,13 @@
 
     // --- Igualar solo 3 secciones: títulos, tags y precios ---
     function equalizeProductSections() {
-      const wrappers = Array.from(document.querySelectorAll('.tours-index-card-wrapper'));
+      const wrappers = Array.from(document.querySelectorAll('.products-index-card-wrapper'));
       if (!wrappers.length) return;
 
       const selectors = [
-        '.tour-card-header',
-        '.tour-tags-container',
-        '.tour-prices-container'
+        '.product-card-header',
+        '.product-tags-container',
+        '.product-prices-container'
       ];
 
       // 1. Resetear todas las alturas
@@ -485,7 +485,7 @@
 
     // *** NUEVO: Manejo de click/tap seguro en cards ***
     function initCardClickHandlers() {
-      const wrappers = Array.from(document.querySelectorAll('.tours-index-card-wrapper[data-url]'));
+      const wrappers = Array.from(document.querySelectorAll('.products-index-card-wrapper[data-url]'));
       if (!wrappers.length) return;
 
       const DRAG_THRESHOLD = 10; // px
@@ -661,7 +661,7 @@
     });
 
     // También después de que las imágenes se carguen
-    const images = Array.from(document.querySelectorAll('.tours-index-card img.card-img-top'));
+    const images = Array.from(document.querySelectorAll('.products-index-card img.card-img-top'));
     let imagesLoaded = 0;
     const totalImages = images.length;
 

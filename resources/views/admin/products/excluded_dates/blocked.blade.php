@@ -292,7 +292,7 @@ function collectSelected(){
   const sel=[]; document.querySelectorAll('.row-item').forEach(r=>{ const cb=r.querySelector('.select-item'); if(cb && cb.checked){ sel.push({ product_id:r.dataset.tid, schedule_id:r.dataset.sid, date:r.dataset.day }); } }); return sel;
 }
 
-async function confirmToggleOne(el, day, tourId, scheduleId, want){
+async function confirmToggleOne(el, day, productId, scheduleId, want){
   const label = el.closest('.row-item')?.dataset.title || '—';
   const res = await Swal.fire({
     icon: 'warning',
@@ -302,13 +302,13 @@ async function confirmToggleOne(el, day, tourId, scheduleId, want){
     confirmButtonText: I18N.confirm.unblockBtn,
     cancelButtonText:  I18N.buttons.cancel
   });
-  if(res.isConfirmed){ await toggleOne(el, day, tourId, scheduleId, want); }
+  if(res.isConfirmed){ await toggleOne(el, day, productId, scheduleId, want); }
 }
 
-async function toggleOne(el, day, tourId, scheduleId, want){
+async function toggleOne(el, day, productId, scheduleId, want){
   const row = el.closest('.row-item');
   try{
-    const res=await fetch(TOGGLE_URL,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},body:JSON.stringify({product_id:tourId,schedule_id:scheduleId,date:day,want})});
+    const res=await fetch(TOGGLE_URL,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':CSRF},body:JSON.stringify({product_id:productId,schedule_id:scheduleId,date:day,want})});
     const data=await res.json(); if(!data.ok) throw new Error();
     if(data.is_available){
       row.remove();

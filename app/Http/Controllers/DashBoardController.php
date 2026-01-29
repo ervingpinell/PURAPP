@@ -11,7 +11,7 @@ use Spatie\Permission\Models\Role;
 use App\Models\Schedule;
 use App\Models\Product;
 use App\Models\ProductType;
-// use App\Models\TourLanguage; // Warning: Check if this model was renamed too.
+// use App\Models\ProductLanguage; // Warning: Check if this model was renamed too.
 use App\Models\ProductLanguage; // Keeping for now if it wasn't renamed in previous steps.
 use App\Models\User;
 
@@ -137,7 +137,7 @@ class DashBoardController extends Controller
         $tomorrowC = Carbon::now($tz)->addDay();
 
         $upcomingBookings = Booking::with(['user', 'detail.product'])
-            ->whereHas('detail', fn($q) => $q->whereDate('tour_date', $tomorrow))
+            ->whereHas('detail', fn($q) => $q->whereDate('product_date', $tomorrow))
             ->orderBy('booking_date')
             ->get();
 
@@ -152,8 +152,8 @@ class DashBoardController extends Controller
             'schedule:schedule_id,start_time',
         ])
             ->whereHas('booking', fn($q) => $q->whereIn('status', ['confirmed', 'paid']))
-            ->whereDate('tour_date', '>=', $start)
-            ->whereDate('tour_date', '<=', $end)
+            ->whereDate('product_date', '>=', $start)
+            ->whereDate('product_date', '<=', $end)
             ->get(); // Traer TODO, no solo campos específicos
 
         // Pre-caches de Product y Schedule para evitar N+1
@@ -166,10 +166,10 @@ class DashBoardController extends Controller
             'date_range' => [$start, $end],
         ]);
 
-        // Agrupación por llave (tour|schedule|date) y suma de pax
+        // Agrupación por llave (product|schedule|date) y suma de pax
         $buckets = [];
         foreach ($details as $d) {
-            $date = Carbon::parse($d->tour_date, $tz)->toDateString();
+            $date = Carbon::parse($d->product_date, $tz)->toDateString();
             $key  = $d->product_id . '|' . $d->schedule_id . '|' . $date;
 
             if (!isset($buckets[$key])) {

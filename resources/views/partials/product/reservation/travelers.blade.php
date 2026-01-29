@@ -84,7 +84,7 @@ return ($t === $key) ? $fallback : $t;
 
         // Variables globales
         let activeCategories = [];
-        const dateInput = document.getElementById('tourDateInput');
+        const dateInput = document.getElementById('productDateInput');
         const categoriesContainer = document.getElementById('categoriesContainer');
         const totalSection = document.getElementById('totalSection');
 

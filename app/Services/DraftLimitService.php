@@ -24,7 +24,7 @@ class DraftLimitService
     public function __construct()
     {
         // Obtener de config o usar valor por defecto
-        $this->maxDrafts = config('tours.max_drafts_per_user', 5);
+        $this->maxDrafts = config('products.max_drafts_per_user', 5);
     }
 
     /**
@@ -53,7 +53,7 @@ class DraftLimitService
     {
         return Product::where('is_draft', true)
             ->where('created_by', $userId)
-            ->with(['tourType', 'languages'])
+            ->with(['productType', 'languages'])
             ->orderBy('updated_at', 'desc')
             ->get();
     }

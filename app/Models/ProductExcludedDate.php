@@ -12,12 +12,12 @@ use Illuminate\Database\Eloquent\Model;
 class ProductExcludedDate extends Model
 {
     protected $table = 'product_excluded_dates';
-    protected $primaryKey = 'tour_excluded_date_id'; // Note: Migration didn't rename PK of this table? Checking migration... 
-    // Migration renamed 'tour_excluded_dates' to 'product_excluded_dates', but didn't explicitly rename PK. 
+    protected $primaryKey = 'product_excluded_date_id'; // Note: Migration renamed PK of this table? Checking migration... 
+    // Migration renamed 'product_excluded_dates' to 'product_excluded_dates', but didn't explicitly rename PK. 
     // Assuming standard 'id' or keeping old name if not changed. 
     // Default assumptions in Laravel are 'id'. 
-    // The previous code had `protected $primaryKey = 'tour_excluded_date_id';`
-    // If migration script didn't rename column `tour_excluded_date_id`, we keep it.
+    // The previous code had `protected $primaryKey = 'product_excluded_date_id';`
+    // If migration script didn't rename column `product_excluded_date_id`, we keep it.
 
     protected $fillable = [
         'product_id',

@@ -103,7 +103,7 @@ class ProductPrice extends Model
         });
     }
 
-    // Table is tour_prices in database
+    // Table is product_prices in database
     public function scopeOrderByCategoryTranslatedName($q, ?string $locale = null)
     {
         $locale = $locale ? substr($locale, 0, 2) : substr(app()->getLocale() ?? 'es', 0, 2);
@@ -140,12 +140,12 @@ class ProductPrice extends Model
     public function getQuantityRangeAttribute(): string
     {
         if ($this->min_quantity === 0 && $this->max_quantity === 0) {
-            return __('m_tours.prices.range.not_allowed');
+            return __('m_products.prices.range.not_allowed');
         }
         if ($this->min_quantity === $this->max_quantity) {
-            return __('m_tours.prices.range.exactly', ['n' => $this->min_quantity]);
+            return __('m_products.prices.range.exactly', ['n' => $this->min_quantity]);
         }
-        return __('m_tours.prices.range.between', [
+        return __('m_products.prices.range.between', [
             'min' => $this->min_quantity,
             'max' => $this->max_quantity,
         ]);
@@ -181,7 +181,7 @@ class ProductPrice extends Model
     public function getSeasonLabelAttribute(): string
     {
         if (!$this->hasDateRange()) {
-            return __('m_tours.tour.pricing.all_year');
+            return __('m_products.product.pricing.all_year');
         }
 
         $from = $this->valid_from ? Carbon::parse($this->valid_from)->format('d/m/Y') : '';
@@ -190,12 +190,12 @@ class ProductPrice extends Model
         if ($from && $to) {
             return "{$from} - {$to}";
         } elseif ($from) {
-            return __('m_tours.tour.pricing.from') . " {$from}";
+            return __('m_products.product.pricing.from') . " {$from}";
         } elseif ($to) {
-            return __('m_tours.tour.pricing.until') . " {$to}";
+            return __('m_products.product.pricing.until') . " {$to}";
         }
 
-        return __('m_tours.tour.pricing.all_year');
+        return __('m_products.product.pricing.all_year');
     }
 
     // Static helpers for overlap detection...
@@ -340,7 +340,7 @@ class ProductPrice extends Model
             ];
         }
         
-        // Assuming $product has 'taxes' relation? (was $tour->taxes)
+        // Assuming $product has 'taxes' relation? (was $product->taxes)
         // Check Product model for 'taxes' relation. Guide didn't show it but it likely exists.
         // Assuming it does or will be added.
         $taxes = $product->taxes ?? collect(); 
@@ -474,7 +474,7 @@ class ProductPrice extends Model
     public static function getPeriodLabel($from, $until): string
     {
         if (!$from && !$until) {
-            return __('m_tours.tour.pricing.all_year') ?? 'Todo el año';
+            return __('m_products.product.pricing.all_year') ?? 'Todo el año';
         }
 
         $fromStr = $from ? Carbon::parse($from)->format('d/m/Y') : null;
@@ -483,11 +483,11 @@ class ProductPrice extends Model
         if ($fromStr && $untilStr) {
             return "{$fromStr} - {$untilStr}";
         } elseif ($fromStr) {
-            return (__('m_tours.tour.pricing.from') ?? 'Desde') . " {$fromStr}";
+            return (__('m_products.product.pricing.from') ?? 'Desde') . " {$fromStr}";
         } elseif ($untilStr) {
-            return (__('m_tours.tour.pricing.until') ?? 'Hasta') . " {$untilStr}";
+            return (__('m_products.product.pricing.until') ?? 'Hasta') . " {$untilStr}";
         }
 
-        return __('m_tours.tour.pricing.all_year') ?? 'Todo el año';
+        return __('m_products.product.pricing.all_year') ?? 'Todo el año';
     }
 }

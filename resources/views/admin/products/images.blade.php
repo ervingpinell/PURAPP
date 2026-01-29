@@ -371,7 +371,7 @@ $isFull = $count >= $max;
   </div>
 
   {{-- Upload --}}
-  @can('create-tour-images')
+  @can('create-product-images')
   <div class="upload-zone" id="uploadZone">
     <form action="{{ route('admin.products.images.store', $product) }}" method="POST" enctype="multipart/form-data" id="uploadForm" class="upload-inner">
       @csrf
@@ -404,7 +404,7 @@ $isFull = $count >= $max;
 
   {{-- Toolbar --}}
   @if($count > 0)
-  @can('delete-tour-images')
+  @can('delete-product-images')
   <div class="toolbar">
     <div class="row align-items-center g-2">
       <div class="col-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start">
@@ -473,7 +473,7 @@ $isFull = $count >= $max;
             <i class="fas fa-star me-1"></i> {{ __('m_tours.image.ui.cover_btn') }}
           </button>
           @endunless
-          @can('delete-tour-images')
+          @can('delete-product-images')
           <button type="button" class="btn btn-danger btn-compact w-auto flex-grow-1 delete-img"
             data-url="{{ route('admin.products.images.destroy', [$product, $image]) }}">
             <i class="fas fa-trash me-1"></i> {{ __('m_tours.image.ui.delete_btn') }}
@@ -507,7 +507,7 @@ $isFull = $count >= $max;
       </div>
       <div class="card-body">
         {{-- Upload Form --}}
-        @can('create-tour-images')
+        @can('create-product-images')
         <form action="{{ route('admin.products.videos.store', $product) }}" 
               method="POST" 
               enctype="multipart/form-data"
@@ -556,7 +556,7 @@ $isFull = $count >= $max;
                       <i class="fas fa-clock me-1"></i> {{ $video->getCustomProperty('duration', 'N/A') }}
                     </small>
                   </div>
-                  @can('delete-tour-images')
+                  @can('delete-product-images')
                   <form action="{{ route('admin.products.videos.destroy', [$product, $video->id]) }}" 
                         method="POST" 
                         onsubmit="return confirm('¿Eliminar este video?')"
@@ -632,7 +632,7 @@ $isFull = $count >= $max;
     none: @json(__('m_tours.image.ui.none_label') ?? ''),
     limit_word: @json(__('m_tours.image.ui.limit_word') ?? 'Límite'),
     confirm_set_cover_title: @json(__('m_tours.image.ui.confirm_set_cover_title') ?? '¿Establecer como portada?'),
-    confirm_set_cover_text: @json(__('m_tours.image.ui.confirm_set_cover_text') ?? 'Esta imagen será la principal del tour'),
+    confirm_set_cover_text: @json(__('m_tours.image.ui.confirm_set_cover_text') ?? 'Esta imagen será la principal del product'),
     confirm_delete_title: @json(__('m_tours.image.ui.confirm_delete_title')),
     confirm_delete_text: @json(__('m_tours.image.ui.confirm_delete_text')),
     confirm_btn: @json(__('m_tours.image.ui.confirm_btn') ?? 'Sí'),
@@ -841,7 +841,7 @@ $isFull = $count >= $max;
     // Delete all
     document.getElementById('deleteAllBtn')?.addEventListener('click', () => {
       confirm(@json(__('m_tours.image.ui.confirm_delete_all_title') ?? '¿Eliminar TODAS?'), 
-              @json(__('m_tours.image.ui.confirm_delete_all_text') ?? 'Se eliminarán todas las imágenes del tour')).then(r => {
+              @json(__('m_tours.image.ui.confirm_delete_all_text') ?? 'Se eliminarán todas las imágenes del product')).then(r => {
         if (r.isConfirmed) document.getElementById('deleteAllForm').submit();
       });
     });

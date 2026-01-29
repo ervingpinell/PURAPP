@@ -1,6 +1,6 @@
 <div class="card shadow-sm mb-4">
   <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <strong>{{ __('m_config.cut-off.summary.tour_title') }}</strong>
+    <strong>{{ __('m_config.cut-off.summary.product_title') }}</strong>
     <span class="text-muted small">{{ __('m_config.cut-off.hints.dash_means_inherit') }}</span>
   </div>
   <div class="card-body">
@@ -11,7 +11,7 @@
       <table class="table table-sm table-striped align-middle mb-0">
         <thead>
           <tr>
-            <th style="min-width:220px">{{ __('m_config.cut-off.fields.tour') }}</th>
+            <th style="min-width:220px">{{ __('m_config.cut-off.fields.product') }}</th>
             <th style="min-width:160px">{{ __('m_config.cut-off.fields.cutoff_hour_short') }}</th>
             <th style="min-width:160px">{{ __('m_config.cut-off.fields.lead_days') }}</th>
             <th class="text-end" style="width:220px">{{ __('m_config.cut-off.fields.actions') ?? 'Acciones' }}</th>
@@ -25,11 +25,11 @@
           $rid = 'tour_'.$row['product_id'];
           @endphp
           <tr>
-            <td class="fw-medium">{{ $row['tour'] }}</td>
+            <td class="fw-medium">{{ $row['product'] }}</td>
 
             <td>
               <form id="form-{{ $rid }}-update" class="d-flex gap-2 align-items-center flex-wrap" method="POST"
-                action="{{ route('admin.products.cutoff.tour.update') }}">
+                action="{{ route('admin.products.cutoff.product.update') }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="from_summary" value="1">
@@ -44,7 +44,7 @@
             </td>
 
             <td class="text-end">
-              @can('edit-tour-availability')
+              @can('edit-product-availability')
               <button type="submit" class="btn btn-primary btn-sm">
                 <i class="fas fa-save me-1"></i>{{ __('m_config.cut-off.actions.save_tour') }}
               </button>
@@ -52,7 +52,7 @@
 
               {{-- DELETE: manda PUT al mismo endpoint con valores vacíos (se guardan como NULL) --}}
               <form id="form-{{ $rid }}-delete" class="d-inline" method="POST"
-                action="{{ route('admin.products.cutoff.tour.update') }}">
+                action="{{ route('admin.products.cutoff.product.update') }}">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="from_summary" value="1">
@@ -91,7 +91,7 @@
       <table class="table table-sm table-striped align-middle mb-0" id="pivotTable">
         <thead>
           <tr>
-            <th style="min-width:220px">{{ __('m_config.cut-off.fields.tour') }}</th>
+            <th style="min-width:220px">{{ __('m_config.cut-off.fields.product') }}</th>
             <th style="min-width:220px">{{ __('m_config.cut-off.fields.schedule') }}</th>
             <th style="min-width:160px">{{ __('m_config.cut-off.fields.cutoff_hour_short') }}</th>
             <th style="min-width:160px">{{ __('m_config.cut-off.fields.lead_days') }}</th>
@@ -106,7 +106,7 @@
           $rid = 'sch_'.$row['product_id'].'_'.$row['schedule_id'];
           @endphp
           <tr>
-            <td class="fw-medium">{{ $row['tour'] }}</td>
+            <td class="fw-medium">{{ $row['product'] }}</td>
             <td class="text-nowrap">{{ $row['schedule'] }}</td>
 
             <td>
@@ -127,7 +127,7 @@
             </td>
 
             <td class="text-end">
-              @can('edit-tour-availability')
+              @can('edit-product-availability')
               <button type="submit" class="btn btn-primary btn-sm">
                 <i class="fas fa-save me-1"></i>{{ __('m_config.cut-off.actions.save_schedule') }}
               </button>

@@ -10,7 +10,6 @@ use App\Models\ProductType;
 use App\Services\LoggerHelper;
 use App\Http\Requests\Product\ProductType\StoreProductTypeRequest;
 use App\Http\Requests\Product\ProductType\UpdateProductTypeRequest;
-// use App\Http\Requests\Tour\TourType\UpdateTourTypeTranslationRequest; // Unused if merged logic, or need to check
 use App\Services\DeepLTranslator;
 use Illuminate\Http\Request; // Use basic request for manual translation update or keep interface if compatible
 
@@ -18,7 +17,7 @@ use Illuminate\Http\Request; // Use basic request for manual translation update 
 /**
  * ProductTypeController
  *
- * Handles tourtype operations.
+ * Handles producttype operations.
  */
 class ProductTypeController extends Controller
 {
@@ -27,13 +26,13 @@ class ProductTypeController extends Controller
     public function __construct(DeepLTranslator $translator)
     {
         $this->translator = $translator;
-        $this->middleware(['can:view-tour-types'])->only(['index']);
-        $this->middleware(['can:create-tour-types'])->only(['store']);
-        $this->middleware(['can:edit-tour-types'])->only(['update']);
-        $this->middleware(['can:publish-tour-types'])->only(['toggle']);
-        $this->middleware(['can:delete-tour-types'])->only(['destroy']);
-        $this->middleware(['can:restore-tour-types'])->only(['trash', 'restore']);
-        $this->middleware(['can:force-delete-tour-types'])->only(['forceDelete']);
+        $this->middleware(['can:view-product-types'])->only(['index']);
+        $this->middleware(['can:create-product-types'])->only(['store']);
+        $this->middleware(['can:edit-product-types'])->only(['update']);
+        $this->middleware(['can:publish-product-types'])->only(['toggle']);
+        $this->middleware(['can:delete-product-types'])->only(['destroy']);
+        $this->middleware(['can:restore-product-types'])->only(['trash', 'restore']);
+        $this->middleware(['can:force-delete-product-types'])->only(['forceDelete']);
     }
 
     protected string $controller = 'ProductTypeController';
@@ -85,19 +84,19 @@ class ProductTypeController extends Controller
 
             DB::commit();
 
-            LoggerHelper::mutated($this->controller, 'store', 'tour_type', $productType->getKey(), [
+            LoggerHelper::mutated($this->controller, 'store', 'product_type', $productType->getKey(), [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return redirect()->route('admin.product-types.index')
-                ->with('success', 'm_config.tourtypes.created_success');
+                ->with('success', 'm_config.producttypes.created_success');
 
         } catch (Exception $e) {
             DB::rollBack();
-            LoggerHelper::exception($this->controller, 'store', 'tour_type', null, $e, [
+            LoggerHelper::exception($this->controller, 'store', 'product_type', null, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'Error al crear el tipo de tour.')->withInput();
+            return back()->with('error', 'Error al crear el tipo de product.')->withInput();
         }
     }
 
@@ -141,19 +140,19 @@ class ProductTypeController extends Controller
 
             DB::commit();
 
-            LoggerHelper::mutated($this->controller, 'update', 'tour_type', $productType->getKey(), [
+            LoggerHelper::mutated($this->controller, 'update', 'product_type', $productType->getKey(), [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return redirect()->route('admin.product-types.index')
-                ->with('success', 'm_config.tourtypes.updated_success');
+                ->with('success', 'm_config.producttypes.updated_success');
 
         } catch (Exception $e) {
             DB::rollBack();
-            LoggerHelper::exception($this->controller, 'update', 'tour_type', $productType->getKey(), $e, [
+            LoggerHelper::exception($this->controller, 'update', 'product_type', $productType->getKey(), $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
-            return back()->with('error', 'Error al actualizar el tipo de tour.')->withInput();
+            return back()->with('error', 'Error al actualizar el tipo de product.')->withInput();
         }
     }
 
@@ -164,14 +163,14 @@ class ProductTypeController extends Controller
             $newStatus = !$productType->is_active;
             $productType->update(['is_active' => $newStatus]);
 
-            LoggerHelper::mutated($this->controller, 'toggle', 'tour_type', $productType->getKey(), [
+            LoggerHelper::mutated($this->controller, 'toggle', 'product_type', $productType->getKey(), [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
                 'new_status' => $newStatus
             ]);
 
             return back()->with('success', $newStatus ? 'Activado correctamente' : 'Desactivado correctamente');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'toggle', 'tour_type', $productType->getKey(), $e);
+            LoggerHelper::exception($this->controller, 'toggle', 'product_type', $productType->getKey(), $e);
             return back()->with('error', 'Error al cambiar el estado.');
         }
     }
@@ -185,17 +184,17 @@ class ProductTypeController extends Controller
             $productType->save();
             $productType->delete();
 
-            LoggerHelper::mutated($this->controller, 'destroy', 'tour_type', $id, [
+            LoggerHelper::mutated($this->controller, 'destroy', 'product_type', $id, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', 'm_config.tourtypes.deleted_success');
+            return back()->with('success', 'm_config.producttypes.deleted_success');
         } catch (Exception $e) {
-            LoggerHelper::exception($this->controller, 'destroy', 'tour_type', $id, $e, [
+            LoggerHelper::exception($this->controller, 'destroy', 'product_type', $id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('error', 'm_config.tourtypes.in_use_error');
+            return back()->with('error', 'm_config.producttypes.in_use_error');
         }
     }
 
@@ -215,31 +214,31 @@ class ProductTypeController extends Controller
         $productType->save();
         $productType->restore();
 
-        LoggerHelper::mutated($this->controller, 'restore', 'tour_type', $id);
+        LoggerHelper::mutated($this->controller, 'restore', 'product_type', $id);
 
         return redirect()
             ->route('admin.product-types.trash')
-            ->with('success', 'Tipo de tour restaurado correctamente.');
+            ->with('success', 'Tipo de product restaurado correctamente.');
     }
 
     public function forceDelete($id)
     {
         $productType = ProductType::onlyTrashed()->findOrFail($id);
 
-        // Verificar si tiene tours relacionados antes de borrar permanentemente
+        // Verificar si tiene products relacionados antes de borrar permanentemente
         if ($productType->products()->exists()) {
             return redirect()
                 ->route('admin.product-types.trash')
-                ->with('error', 'No se puede eliminar permanentemente porque tiene tours asociados.');
+                ->with('error', 'No se puede eliminar permanentemente porque tiene products asociados.');
         }
 
         $productType->forceDelete();
 
-        LoggerHelper::mutated($this->controller, 'forceDelete', 'tour_type', $id);
+        LoggerHelper::mutated($this->controller, 'forceDelete', 'product_type', $id);
 
         return redirect()
             ->route('admin.product-types.trash')
-            ->with('success', 'Tipo de tour eliminado permanentemente.');
+            ->with('success', 'Tipo de product eliminado permanentemente.');
     }
 
     /**

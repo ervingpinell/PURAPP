@@ -61,9 +61,9 @@ class PaymentController extends Controller
                     'items' => [
                         [
                             'product_id' => $booking->product_id,
-                            'tour_date' => $booking->tour_date,
+                            'product_date' => $booking->product_date,
                             'schedule_id' => $booking->detail?->schedule_id,
-                            'language_id' => $booking->detail?->tour_language_id, // Add language for PaymentService
+                            'language_id' => $booking->detail?->product_language_id, // Add language for PaymentService
                             'hotel_id' => $booking->detail?->hotel_id,
                             'meeting_point_id' => $booking->detail?->meeting_point_id,
                             'categories' => $booking->detail?->categories ?? [], // Asumiendo que guardamos categories en detail o booking
@@ -137,11 +137,11 @@ class PaymentController extends Controller
         // Calculate free cancellation deadline
         $freeCancelUntil = null;
         if (!empty($cartSnapshot['items'])) {
-            // Find earliest tour date
+            // Find earliest product date
             $earliestDate = null;
             foreach ($cartSnapshot['items'] as $item) {
-                if (!empty($item['tour_date'])) {
-                    $d = \Carbon\Carbon::parse($item['tour_date']);
+                if (!empty($item['product_date'])) {
+                    $d = \Carbon\Carbon::parse($item['product_date']);
 
                     // Try to get start time from schedule
                     $startTime = null;
@@ -294,7 +294,7 @@ class PaymentController extends Controller
 
         // Find booking by token
         $booking = Booking::where('payment_token', $token)
-            ->with(['detail', 'product', 'user', 'detail.schedule', 'detail.tourLanguage', 'detail.hotel', 'detail.meetingPoint'])
+            ->with(['detail', 'product', 'user', 'detail.schedule', 'detail.productLanguage', 'detail.hotel', 'detail.meetingPoint'])
             ->first();
 
         if (!$booking) {
@@ -330,9 +330,9 @@ class PaymentController extends Controller
             'items' => [
                 [
                     'product_id' => $booking->product_id,
-                    'tour_date' => $booking->tour_date,
+                    'product_date' => $booking->product_date,
                     'schedule_id' => $booking->detail?->schedule_id,
-                    'language_id' => $booking->detail?->tour_language_id,
+                    'language_id' => $booking->detail?->product_language_id,
                     'hotel_id' => $booking->detail?->hotel_id,
                     'meeting_point_id' => $booking->detail?->meeting_point_id,
                     'categories' => $booking->detail?->categories ?? [],
@@ -368,10 +368,10 @@ class PaymentController extends Controller
         $items = collect([
             [
                 'product'      => $booking->product,
-                'tour_date'    => $booking->tour_date,
+                'product_date'    => $booking->product_date,
                 'categories'   => $booking->detail?->categories ?? [],
                 'schedule'     => $booking->detail?->schedule,
-                'language'     => $booking->detail?->tourLanguage,
+                'language'     => $booking->detail?->productLanguage,
                 'hotel'        => $booking->detail?->hotel,
                 'meetingPoint' => $booking->detail?->meetingPoint,
                 'addons'       => [],
@@ -383,9 +383,9 @@ class PaymentController extends Controller
 
         // Calculate free cancellation deadline
         $freeCancelUntil = null;
-        if ($booking->detail?->tour_date) {
+        if ($booking->detail?->product_date) {
             $cutoffHours = config('booking.free_cancellation_hours', 24);
-            $freeCancelUntil = \Carbon\Carbon::parse($booking->detail->tour_date)->subHours($cutoffHours);
+            $freeCancelUntil = \Carbon\Carbon::parse($booking->detail->product_date)->subHours($cutoffHours);
         }
 
         // Fetch active policies
@@ -422,7 +422,7 @@ class PaymentController extends Controller
         $total = 0;
 
         foreach ($cartSnapshot['items'] as $item) {
-            // Use prices from the snapshot - they were calculated with the correct tour_date
+            // Use prices from the snapshot - they were calculated with the correct product_date
             foreach ($item['categories'] as $cat) {
                 $quantity = (int)($cat['quantity'] ?? 0);
                 $price = (float)($cat['price'] ?? 0);
@@ -1356,7 +1356,7 @@ class PaymentController extends Controller
             $payment->load([
                 'booking.detail',
                 'booking.detail.schedule',
-                'booking.detail.tourLanguage',
+                'booking.detail.productLanguage',
                 'booking.detail.hotel',
                 'booking.detail.meetingPoint',
                 'booking.product',

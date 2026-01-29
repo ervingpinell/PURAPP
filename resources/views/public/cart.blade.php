@@ -338,7 +338,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
     <table class="table table-bordered table-striped table-hover align-middle">
       <thead>
         <tr class="text-center">
-          <th>{{ __('adminlte::adminlte.tour') }}</th>
+          <th>{{ __('adminlte::adminlte.product') }}</th>
           <th>{{ __('adminlte::adminlte.date') }}</th>
           <th>{{ __('adminlte::adminlte.schedule') }}</th>
           <th>{{ __('adminlte::adminlte.language') }}</th>
@@ -699,7 +699,7 @@ $initialNotes = old('notes', $cart->notes ?? '');
 @foreach(($cart->items ?? collect()) as $item)
 @php
 $currentScheduleId = $item->schedule?->schedule_id ?? null;
-$currentTourLangId = $item->product_language_id ?? $item->language?->tour_language_id;
+$currentTourLangId = $item->product_language_id ?? $item->language?->product_language_id;
 $currentHotelId = $item->hotel?->hotel_id ?? null;
 $currentMeetingPoint = $item->meeting_point_id ?? null;
 
@@ -730,7 +730,7 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
             <div class="col-12 col-md-6">
               <label class="form-label fw-semibold">{{ __('adminlte::adminlte.date') }}</label>
               <input type="date"
-                name="tour_date"
+                name="product_date"
                 class="form-control"
                 value="{{ \Carbon\Carbon::parse($item->product_date)->format('Y-m-d') }}"
                 min="{{ now()->format('Y-m-d') }}"
@@ -755,9 +755,9 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
             {{-- Idioma --}}
             <div class="col-12 col-md-6">
               <label class="form-label fw-semibold">{{ __('adminlte::adminlte.language') }}</label>
-              <select name="tour_language_id" class="form-select" required>
+              <select name="product_language_id" class="form-select" required>
                 @forelse($productLangs as $pl)
-                <option value="{{ $tl->tour_language_id }}" @selected($currentTourLangId==$tl->tour_language_id)>
+                <option value="{{ $tl->product_language_id }}" @selected($currentTourLangId==$tl->product_language_id)>
                   {{ $tl->name ?? $tl->language->name ?? __('adminlte::adminlte.language') }}
                 </option>
                 @empty
@@ -770,9 +770,9 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
               </select>
             </div>
 
-            {{-- Category Quantities - Show ALL available categories from tour pricing --}}
+            {{-- Category Quantities - Show ALL available categories from product pricing --}}
             @php
-            // Get all available categories from tour pricing
+            // Get all available categories from product pricing
             $productPrices = $item->product->prices ?? collect();
 
             // Get current quantities from item

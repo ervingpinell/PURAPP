@@ -48,10 +48,10 @@ Route::prefix('v1')
     ->group(function () {
 
         // Tours data (solo para admin)
-        Route::prefix('tours/{tour}')->group(function () {
-            Route::get('schedules',  [ProductDataController::class, 'schedules'])->name('api.v1.tours.schedules');
-            Route::get('languages',  [ProductDataController::class, 'languages'])->name('api.v1.tours.languages');
-            Route::get('categories', [ProductDataController::class, 'categories'])->name('api.v1.tours.categories');
+        Route::prefix('products/{product}')->group(function () {
+            Route::get('schedules',  [ProductDataController::class, 'schedules'])->name('api.v1.products.schedules');
+            Route::get('languages',  [ProductDataController::class, 'languages'])->name('api.v1.products.languages');
+            Route::get('categories', [ProductDataController::class, 'categories'])->name('api.v1.products.categories');
         });
 
         // Promo codes

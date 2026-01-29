@@ -19,8 +19,8 @@ class BookingCancelledExpiry extends Mailable
 
     public function envelope(): Envelope
     {
-        // Calculate locale based on booking->tour connection if possible, fallback to app locale
-        $locale = $this->booking->tour->lang ?? config('app.locale');
+        // Calculate locale based on booking->product connection if possible, fallback to app locale
+        $locale = $this->booking->product->lang ?? config('app.locale');
 
         // Set the application locale for this email sending process if needed, 
         // though typically it's better to just translate the subject here.

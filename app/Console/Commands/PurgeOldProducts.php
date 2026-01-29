@@ -7,7 +7,7 @@ use App\Models\Product;
 class PurgeOldProducts extends Command
 {
     protected $signature = 'products:purge-old';
-    protected $description = 'Hard-delete tours archived >=90d ago with no bookings';
+    protected $description = 'Hard-delete products archived >=90d ago with no bookings';
 
     public function handle(): int
     {
@@ -16,7 +16,7 @@ class PurgeOldProducts extends Command
             ->whereDoesntHave('bookings')
             ->forceDelete();
 
-        $this->info("Purged {$count} tours.");
+        $this->info("Purged {$count} products.");
         return self::SUCCESS;
     }
 }

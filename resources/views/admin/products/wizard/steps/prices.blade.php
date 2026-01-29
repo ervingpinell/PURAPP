@@ -3,7 +3,7 @@
 
 @extends('adminlte::page')
 
-@section('title', __('m_tours.tour.wizard.steps.prices'))
+@section('title', __('m_tours.product.wizard.steps.prices'))
 
 @push('css')
 <style>
@@ -286,7 +286,7 @@
         <div class="card-body">
             <h1 class="mb-2" style="font-size: 1.75rem; font-weight: 600;">
                 <i class="fas fa-dollar-sign mr-2"></i>
-                {{ __('m_tours.tour.wizard.steps.prices') }}
+                {{ __('m_tours.product.wizard.steps.prices') }}
             </h1>
             <p class="mb-0" style="opacity: 0.9;">
                 Configura la estrategia de precios para tu producto
@@ -464,10 +464,10 @@
             <a href="{{ route('admin.products.wizard.step', ['product' => $product, 'step' => 4]) }}"
                 class="btn btn-secondary">
                 <i class="fas fa-arrow-left mr-2"></i>
-                {{ __('m_tours.tour.wizard.previous') }}
+                {{ __('m_tours.product.wizard.previous') }}
             </a>
             <button type="submit" class="btn btn-success btn-lg" id="submit-btn">
-                {{ __('m_tours.tour.wizard.save_and_continue') }}
+                {{ __('m_tours.product.wizard.save_and_continue') }}
                 <i class="fas fa-arrow-right ml-2"></i>
             </button>
         </div>

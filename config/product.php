@@ -12,10 +12,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Cantidad máxima de imágenes por tour
+    | Cantidad máxima de imágenes por product
     |--------------------------------------------------------------------------
     */
-    'max_images_per_tour' => 20,
+    'max_images_per_product' => 20,
     /*
     |--------------------------------------------------------------------------
     | Límite de Drafts por Usuario
@@ -27,7 +27,7 @@ return [
     |
     */
 
-    'max_drafts_per_user' => env('TOURS_MAX_DRAFTS_PER_USER', 5),
+    'max_drafts_per_user' => env('PRODUCTS_MAX_DRAFTS_PER_USER', 5),
 
     /*
     |--------------------------------------------------------------------------
@@ -35,11 +35,11 @@ return [
     |--------------------------------------------------------------------------
     |
     | Los borradores sin actividad durante este período serán marcados para
-    | eliminación automática por el comando tours:clean-old-drafts
+    | eliminación automática por el comando products:clean-old-drafts
     |
     */
 
-    'draft_auto_delete_days' => env('TOURS_DRAFT_AUTO_DELETE_DAYS', 30),
+    'draft_auto_delete_days' => env('PRODUCTS_DRAFT_AUTO_DELETE_DAYS', 30),
 
     /*
     |--------------------------------------------------------------------------
@@ -51,23 +51,23 @@ return [
     |
     */
 
-    'draft_notification_days' => env('TOURS_DRAFT_NOTIFICATION_DAYS', 7),
+    'draft_notification_days' => env('PRODUCTS_DRAFT_NOTIFICATION_DAYS', 7),
 
     /*
     |--------------------------------------------------------------------------
     | Auditoría
     |--------------------------------------------------------------------------
     |
-    | Configuración del sistema de auditoría de tours
+    | Configuración del sistema de auditoría de products
     |
     */
 
     'audit' => [
         // Habilitar/deshabilitar sistema de auditoría
-        'enabled' => env('TOURS_AUDIT_ENABLED', true),
+        'enabled' => env('PRODUCTS_AUDIT_ENABLED', true),
 
         // Días de retención de logs de auditoría (null = infinito)
-        'retention_days' => env('TOURS_AUDIT_RETENTION_DAYS', 365),
+        'retention_days' => env('PRODUCTS_AUDIT_RETENTION_DAYS', 365),
 
         // Auditar cambios en campos específicos
         'track_fields' => [
@@ -78,7 +78,7 @@ return [
             'max_capacity',
             'group_size',
             'color',
-            'tour_type_id',
+            'product_type_id',
             'is_active',
             'is_draft',
             'current_step',
@@ -97,22 +97,22 @@ return [
     | Configuración del Wizard
     |--------------------------------------------------------------------------
     |
-    | Opciones de comportamiento del wizard de creación de tours
+    | Opciones de comportamiento del wizard de creación de products
     |
     */
 
     'wizard' => [
         // Permitir saltar pasos (no recomendado)
-        'allow_skip_steps' => env('TOURS_WIZARD_ALLOW_SKIP', false),
+        'allow_skip_steps' => env('PRODUCTS_WIZARD_ALLOW_SKIP', false),
 
         // Requerir guardar antes de avanzar al siguiente paso
-        'require_save_before_next' => env('TOURS_WIZARD_REQUIRE_SAVE', true),
+        'require_save_before_next' => env('PRODUCTS_WIZARD_REQUIRE_SAVE', true),
 
         // Auto-guardar progreso (cada X segundos, 0 = deshabilitado)
-        'autosave_interval' => env('TOURS_WIZARD_AUTOSAVE_INTERVAL', 0),
+        'autosave_interval' => env('PRODUCTS_WIZARD_AUTOSAVE_INTERVAL', 0),
 
         // Mostrar advertencia al salir sin guardar
-        'warn_on_exit' => env('TOURS_WIZARD_WARN_ON_EXIT', true),
+        'warn_on_exit' => env('PRODUCTS_WIZARD_WARN_ON_EXIT', true),
     ],
 
     /*
@@ -120,23 +120,23 @@ return [
     | Notificaciones
     |--------------------------------------------------------------------------
     |
-    | Configuración de notificaciones relacionadas con tours
+    | Configuración de notificaciones relacionadas con products
     |
     */
 
     'notifications' => [
-        // Notificar al crear un tour
-        'notify_on_create' => env('TOURS_NOTIFY_ON_CREATE', false),
+        // Notificar al crear un product
+        'notify_on_create' => env('PRODUCTS_NOTIFY_ON_CREATE', false),
 
-        // Notificar al publicar un tour
-        'notify_on_publish' => env('TOURS_NOTIFY_ON_PUBLISH', true),
+        // Notificar al publicar un product
+        'notify_on_publish' => env('PRODUCTS_NOTIFY_ON_PUBLISH', true),
 
         // Notificar sobre drafts pendientes
-        'notify_pending_drafts' => env('TOURS_NOTIFY_PENDING_DRAFTS', true),
+        'notify_pending_drafts' => env('PRODUCTS_NOTIFY_PENDING_DRAFTS', true),
 
         // Frecuencia de notificación de drafts pendientes
         // Opciones: daily, weekly, biweekly, monthly
-        'pending_drafts_frequency' => env('TOURS_PENDING_DRAFTS_FREQUENCY', 'weekly'),
+        'pending_drafts_frequency' => env('PRODUCTS_PENDING_DRAFTS_FREQUENCY', 'weekly'),
     ],
 
     /*
@@ -150,12 +150,12 @@ return [
 
     'permissions' => [
         // Solo el creador puede editar sus drafts
-        'creator_only_edit_drafts' => env('TOURS_CREATOR_ONLY_EDIT_DRAFTS', true),
+        'creator_only_edit_drafts' => env('PRODUCTS_CREATOR_ONLY_EDIT_DRAFTS', true),
 
-        // Requerir aprobación para publicar tours
-        'require_approval_to_publish' => env('TOURS_REQUIRE_APPROVAL', false),
+        // Requerir aprobación para publicar products
+        'require_approval_to_publish' => env('PRODUCTS_REQUIRE_APPROVAL', false),
 
-        // Roles que pueden aprobar tours
+        // Roles que pueden aprobar products
         'approver_roles' => ['admin', 'manager'],
 
         // Roles que pueden ver auditoría completa
@@ -167,7 +167,7 @@ return [
     | Configuración de Exportación
     |--------------------------------------------------------------------------
     |
-    | Opciones para exportar datos de tours y auditoría
+    | Opciones para exportar datos de products y auditoría
     |
     */
 
@@ -176,10 +176,10 @@ return [
         'allowed_formats' => ['csv', 'xlsx', 'pdf'],
 
         // Límite máximo de registros por exportación
-        'max_records' => env('TOURS_EXPORT_MAX_RECORDS', 10000),
+        'max_records' => env('PRODUCTS_EXPORT_MAX_RECORDS', 10000),
 
         // Incluir campos sensibles en exportación
-        'include_sensitive_data' => env('TOURS_EXPORT_SENSITIVE', false),
+        'include_sensitive_data' => env('PRODUCTS_EXPORT_SENSITIVE', false),
     ],
 
     /*
@@ -192,12 +192,12 @@ return [
     */
 
     'performance' => [
-        // Cachear listados de tours (en minutos, 0 = sin caché)
-        'cache_listings_minutes' => env('TOURS_CACHE_LISTINGS', 60),
+        // Cachear listados de products (en minutos, 0 = sin caché)
+        'cache_listings_minutes' => env('PRODUCTS_CACHE_LISTINGS', 60),
 
         // Eager load automático de relaciones
         'eager_load_relations' => [
-            'tourType',
+            'productType',
             'languages',
             'amenities',
             'schedules',
@@ -205,7 +205,7 @@ return [
         ],
 
         // Paginación por defecto
-        'per_page' => env('TOURS_PER_PAGE', 25),
+        'per_page' => env('PRODUCTS_PER_PAGE', 25),
     ],
 
     /*
@@ -219,13 +219,13 @@ return [
 
     'debug' => [
         // Mostrar queries de SQL en logs
-        'log_queries' => env('TOURS_LOG_QUERIES', false),
+        'log_queries' => env('PRODUCTS_LOG_QUERIES', false),
 
         // Mostrar información de debug en wizard
-        'show_debug_info' => env('TOURS_DEBUG_INFO', false),
+        'show_debug_info' => env('PRODUCTS_DEBUG_INFO', false),
 
         // Permitir acciones peligrosas en producción
-        'allow_dangerous_actions' => env('TOURS_ALLOW_DANGEROUS', false),
+        'allow_dangerous_actions' => env('PRODUCTS_ALLOW_DANGEROUS', false),
     ],
 
 ];

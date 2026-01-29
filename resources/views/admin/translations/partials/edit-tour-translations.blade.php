@@ -1,5 +1,5 @@
 @php
-  /** @var \App\Models\Tour $item */
+  /** @var \App\Models\Product $item */
   $targetLocale = $locale ?? 'en';
 @endphp
 

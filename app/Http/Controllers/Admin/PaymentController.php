@@ -35,7 +35,7 @@ class PaymentController extends Controller
                 $q->withTrashed();
             },
             'booking.user',
-            'booking.tour'
+            'booking.product'
         ])
             ->orderByDesc('created_at');
 
@@ -114,7 +114,7 @@ class PaymentController extends Controller
      */
     public function show(Payment $payment)
     {
-        $payment->load(['booking.user', 'booking.tour', 'booking.detail']);
+        $payment->load(['booking.user', 'booking.product', 'booking.detail']);
 
         return view('admin.payments.show', compact('payment'));
     }
@@ -156,7 +156,7 @@ class PaymentController extends Controller
      */
     public function export(Request $request)
     {
-        $query = Payment::with(['booking.user', 'booking.tour'])
+        $query = Payment::with(['booking.user', 'booking.product'])
             ->orderByDesc('created_at');
 
         // Apply same filters as index
@@ -191,7 +191,7 @@ class PaymentController extends Controller
                 'Booking Reference',
                 'Customer Name',
                 'Customer Email',
-                'Tour',
+                'Product',
                 'Amount',
                 'Currency',
                 'Status',
@@ -208,7 +208,7 @@ class PaymentController extends Controller
                     $payment->booking->booking_reference ?? 'N/A',
                     $payment->booking->user->full_name ?? 'N/A',
                     $payment->booking->user->email ?? 'N/A',
-                    $payment->booking->tour->name ?? 'N/A',
+                    $payment->booking->product->name ?? 'N/A',
                     $payment->amount,
                     $payment->currency,
                     $payment->status,

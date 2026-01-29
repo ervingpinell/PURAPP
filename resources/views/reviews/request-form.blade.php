@@ -118,13 +118,13 @@
         </div>
       </div>
 
-      {{-- Sidebar Column: Tour & Booking Info (appears second on mobile) --}}
+      {{-- Sidebar Column: Product & Booking Info (appears second on mobile) --}}
       <div class="col-12 col-lg-6 order-2 order-lg-1">
-        {{-- Tour Card --}}
+        {{-- Product Card --}}
         @if($product)
         <div class="card info-card shadow-sm mb-3 mb-md-4">
           @if($product->cover_image_url)
-          <div class="tour-image-wrapper">
+          <div class="product-image-wrapper">
             <img src="{{ $product->cover_image_url }}"
                  alt="{{ $product->name }}"
                  class="card-img-top">
@@ -218,13 +218,13 @@
     overflow: hidden;
   }
 
-  .tour-image-wrapper {
+  .product-image-wrapper {
     position: relative;
     height: 220px;
     overflow: hidden;
   }
 
-  .tour-image-wrapper img {
+  .product-image-wrapper img {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -395,7 +395,7 @@
       gap: 0.5rem;
     }
 
-    .tour-image-wrapper {
+    .product-image-wrapper {
       height: 200px;
     }
   }

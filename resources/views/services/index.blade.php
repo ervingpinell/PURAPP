@@ -55,7 +55,7 @@
   <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
     {{-- Button to toggle filters (collapse) --}}
     <button
-      class="btn-tour-cta btn-sm filters-toggle d-inline-flex align-items-center gap-1"
+      class="btn-product-cta btn-sm filters-toggle d-inline-flex align-items-center gap-1"
       type="button"
       data-bs-toggle="collapse"
       data-bs-target="#services-filters"

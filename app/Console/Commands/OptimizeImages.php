@@ -17,7 +17,7 @@ class OptimizeImages extends Command
 
     public function handle()
     {
-        $path = $this->option('path') ?: 'public/storage/tours';
+        $path = $this->option('path') ?: 'public/storage/products';
         $dryRun = $this->option('dry-run');
         $convertWebP = $this->option('webp');
 

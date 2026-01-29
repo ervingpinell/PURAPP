@@ -87,8 +87,8 @@
     margin-bottom: 1.25rem !important;
   }
 
-  /* ===== Encabezado de cada tour ===== */
-  .tour-header {
+  /* ===== Encabezado de cada product ===== */
+  .product-header {
     display: flex;
     align-items: center;
     gap: .5rem;
@@ -96,7 +96,7 @@
     flex-wrap: wrap;
   }
 
-  .tour-title {
+  .product-title {
     flex: 1 1 auto;
     min-width: 0;
     white-space: nowrap;
@@ -104,7 +104,7 @@
     text-overflow: ellipsis;
   }
 
-  .tour-actions {
+  .product-actions {
     flex: 0 0 auto;
     display: flex;
     gap: .5rem;
@@ -112,7 +112,7 @@
     justify-content: flex-end;
   }
 
-  /* ===== Fila de horario por tour ===== */
+  /* ===== Fila de horario por product ===== */
   .schedule-row {
     display: flex;
     align-items: flex-start;
@@ -140,7 +140,7 @@
     text-overflow: ellipsis;
   }
 
-  .schedule-row .tour-actions {
+  .schedule-row .product-actions {
     flex: 0 0 auto;
     display: flex;
     gap: .5rem;
@@ -149,7 +149,7 @@
 
   /* ===== Responsive ===== */
   @media (max-width: 768px) {
-    .tour-actions {
+    .product-actions {
       width: 100%;
       justify-content: center;
     }
@@ -159,7 +159,7 @@
       align-items: stretch;
     }
 
-    .schedule-row .tour-actions {
+    .schedule-row .product-actions {
       justify-content: center;
       flex-wrap: wrap;
       margin-top: .5rem;
@@ -201,7 +201,7 @@
     <div class="card mb-4 shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">{{ __('m_tours.schedule.ui.general_title') }}</h5>
-        @can('create-tour-schedules')
+        @can('create-product-schedules')
         <button class="btn btn-edit btn-sm" data-toggle="modal" data-target="#modalNuevoHorarioGeneral">
           <i class="fas fa-plus"></i> {{ __('m_tours.schedule.ui.new_schedule') }}
         </button>
@@ -235,7 +235,7 @@
                 </td>
                 <td class="text-center">
                   {{-- Editar (modal único) --}}
-                  @can('edit-tour-schedules')
+                  @can('edit-product-schedules')
                   <button class="btn btn-edit btn-sm"
                     data-toggle="modal"
                     data-target="#modalEditarHorarioGeneral"
@@ -250,7 +250,7 @@
                   @endcan
 
                   {{-- Toggle GLOBAL --}}
-                  @can('publish-tour-schedules')
+                  @can('publish-product-schedules')
                   <form action="{{ route('admin.products.schedule.toggle', $s->schedule_id) }}"
                     method="POST" class="d-inline form-toggle-global"
                     data-label="{{ $s->label ?: ( \Carbon\Carbon::createFromTimeString($s->start_time)->format('g:i A') . ' - ' . \Carbon\Carbon::createFromTimeString($s->end_time)->format('g:i A') ) }}"
@@ -263,7 +263,7 @@
                   @endcan
 
                   {{-- Eliminar GLOBAL --}}
-                  @can('soft-delete-tour-schedules')
+                  @can('soft-delete-product-schedules')
                   <form action="{{ route('admin.products.schedule.destroy', $s->schedule_id) }}"
                     method="POST" class="d-inline form-delete"
                     data-label="{{ $s->label ?: ( \Carbon\Carbon::createFromTimeString($s->start_time)->format('g:i A') . ' - ' . \Carbon\Carbon::createFromTimeString($s->end_time)->format('g:i A') ) }}">
@@ -286,26 +286,26 @@
       </div>
     </div>
 
-    {{-- ===================== TOURS Y SUS HORARIOS ===================== --}}
+    {{-- ===================== PRODUCTS Y SUS HORARIOS ===================== --}}
     <div class="row">
       @foreach($products as $product)
       <div class="col-md-6 mb-4">
         <div class="card shadow-sm">
-          <div class="card-header bg-dark text-white tour-header">
-            <h5 class="mb-0 tour-title text-truncate" title="{{ $product->name }}">
+          <div class="card-header bg-dark text-white product-header">
+            <h5 class="mb-0 product-title text-truncate" title="{{ $product->name }}">
               {{ $product->name }}
             </h5>
-            <div class="tour-actions">
+            <div class="product-actions">
               {{-- Asignar existente --}}
-              @can('edit-tour-schedules')
+              @can('edit-product-schedules')
               <button class="btn btn-view btn-sm"
                 data-toggle="modal"
                 data-target="#modalAsignarExistente{{ $product->product_id }}">
                 <i class="fas fa-link"></i> {{ __('m_tours.schedule.ui.assign_existing') }}
               </button>
               @endcan
-              {{-- Crear nuevo para este tour --}}
-              @can('create-tour-schedules')
+              {{-- Crear nuevo para este product --}}
+              @can('create-product-schedules')
               <button class="btn btn-edit btn-sm"
                 data-toggle="modal"
                 data-target="#modalCrearParaTour{{ $product->product_id }}">
@@ -357,9 +357,9 @@
                 </div>
               </div>
 
-              <div class="tour-actions">
+              <div class="product-actions">
                 {{-- Editar GLOBAL --}}
-                @can('edit-tour-schedules')
+                @can('edit-product-schedules')
                 <button class="btn btn-edit btn-sm"
                   data-toggle="modal"
                   data-target="#modalEditarHorarioGeneral"
@@ -374,20 +374,20 @@
                 @endcan
 
                 {{-- Editar CAPACIDAD del pivote --}}
-                @can('edit-tour-schedules')
+                @can('edit-product-schedules')
                 <button class="btn btn-sm btn-view"
                   data-toggle="modal"
                   data-target="#modalEditarCapacidadPivote{{ $product->product_id }}_{{ $bloque->schedule_id }}"
-                  title="Editar capacidad para este tour">
+                  title="Editar capacidad para este product">
                   <i class="fas fa-users"></i>
                 </button>
                 @endcan
 
                 {{-- Toggle ASIGNACIÓN (pivote) --}}
-                @can('publish-tour-schedule-assignments')
+                @can('publish-product-schedule-assignments')
                 <form action="{{ route('admin.products.schedule.assignment.toggle', [$product->product_id, $bloque->schedule_id]) }}"
                   method="POST" class="d-inline form-assignment-toggle"
-                  data-tour="{{ $product->name }}" data-active="{{ $assignActive ? 1 : 0 }}">
+                  data-product="{{ $product->name }}" data-active="{{ $assignActive ? 1 : 0 }}">
                   @csrf @method('PATCH')
                   <button type="submit"
                     class="btn btn-toggle btn-sm"
@@ -397,10 +397,10 @@
                 </form>
                 @endcan
 
-                {{-- Quitar del tour --}}
-                @can('edit-tour-schedules')
+                {{-- Quitar del product --}}
+                @can('edit-product-schedules')
                 <form action="{{ route('admin.products.schedule.detach', [$product->product_id, $bloque->schedule_id]) }}"
-                  method="POST" class="d-inline form-detach" data-tour="{{ $product->name }}">
+                  method="POST" class="d-inline form-detach" data-product="{{ $product->name }}">
                   @csrf @method('DELETE')
                   <button type="submit" class="btn btn-delete btn-sm" title="{{ __('m_tours.schedule.ui.detach_from_tour') }}">
                     <i class="fas fa-unlink"></i>
@@ -472,7 +472,7 @@
             method="POST" class="modal-content">
             @csrf
             <div class="modal-header">
-              <h5 class="modal-title">{{ __('m_tours.schedule.ui.assign_to_tour', ['tour' => $product->name]) }}</h5>
+              <h5 class="modal-title">{{ __('m_tours.schedule.ui.assign_to_tour', ['product' => $product->name]) }}</h5>
               <button type="button" class="close" data-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -496,7 +496,7 @@
 
               <div class="alert alert-info small">
                 <i class="fas fa-info-circle me-1"></i>
-                {{ __('m_tours.schedule.ui.tour_base_capacity') }} <strong>{{ $product->max_capacity ?? 'No definida' }}</strong>
+                {{ __('m_tours.schedule.ui.product_base_capacity') }} <strong>{{ $product->max_capacity ?? 'No definida' }}</strong>
               </div>
 
               <div class="mb-3">
@@ -525,7 +525,7 @@
             @csrf
             <input type="hidden" name="product_id" value="{{ $product->product_id }}">
             <div class="modal-header">
-              <h5 class="modal-title">{{ __('m_tours.schedule.ui.new_for_tour_title', ['tour' => $product->name]) }}</h5>
+              <h5 class="modal-title">{{ __('m_tours.schedule.ui.new_for_tour_title', ['product' => $product->name]) }}</h5>
               <button type="button" class="close" data-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -547,7 +547,7 @@
 
               <div class="alert alert-info small mt-2">
                 <i class="fas fa-info-circle me-1"></i>
-                {{ __('m_tours.schedule.ui.tour_base_capacity') }} <strong>{{ $product->max_capacity ?? 'No definida' }}</strong>
+                {{ __('m_tours.schedule.ui.product_base_capacity') }} <strong>{{ $product->max_capacity ?? 'No definida' }}</strong>
               </div>
 
               <div class="mt-2">
@@ -651,7 +651,7 @@
 
         <div class="alert alert-info small mt-3 mb-0">
           <i class="fas fa-info-circle me-1"></i>
-          Para editar capacidades específicas de tours, usa el botón <i class="fas fa-users"></i> en cada tour
+          Para editar capacidades específicas de products, usa el botón <i class="fas fa-users"></i> en cada product
         </div>
 
         <input type="hidden" name="is_active" value="0">
@@ -753,12 +753,12 @@
   document.querySelectorAll('.form-assignment-toggle').forEach(form => {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
-      const tour = form.getAttribute('data-tour') || @json(__('m_tours.schedule.ui.this_tour'));
+      const product = form.getAttribute('data-product') || @json(__('m_tours.schedule.ui.this_tour'));
       const isActive = form.getAttribute('data-active') === '1';
       Swal.fire({
         title: isActive ? @json(__('m_tours.schedule.ui.toggle_assign_off_title')) : @json(__('m_tours.schedule.ui.toggle_assign_on_title')),
         html: isActive ?
-          @json(__('m_tours.schedule.ui.toggle_assign_off_html', ['tour' => ':tour'])).replace(':tour', tour) : @json(__('m_tours.schedule.ui.toggle_assign_on_html', ['tour' => ':tour'])).replace(':tour', tour),
+          @json(__('m_tours.schedule.ui.toggle_assign_off_html', ['product' => ':product'])).replace(':product', product) : @json(__('m_tours.schedule.ui.toggle_assign_on_html', ['product' => ':product'])).replace(':product', product),
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#f39c12',
@@ -795,10 +795,10 @@
   document.querySelectorAll('.form-detach').forEach(form => {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
-      const tour = form.getAttribute('data-tour') || @json(__('m_tours.schedule.ui.this_tour'));
+      const product = form.getAttribute('data-product') || @json(__('m_tours.schedule.ui.this_tour'));
       Swal.fire({
         title: @json(__('m_tours.schedule.ui.detach_confirm_title')),
-        html: @json(__('m_tours.schedule.ui.detach_confirm_html', ['tour' => ':tour'])).replace(':tour', tour),
+        html: @json(__('m_tours.schedule.ui.detach_confirm_html', ['product' => ':product'])).replace(':product', product),
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#dc3545',

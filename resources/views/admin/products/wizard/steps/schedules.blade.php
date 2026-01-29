@@ -2,7 +2,7 @@
 
 @extends('adminlte::page')
 
-@section('title', __('m_tours.tour.wizard.steps.schedules'))
+@section('title', __('m_tours.product.wizard.steps.schedules'))
 
 @push('css')
     <style>
@@ -446,7 +446,7 @@
         <div class="schedules-header">
             <h1>
                 <i class="fas fa-clock"></i>
-                {{ __('m_tours.tour.wizard.steps.schedules') }}
+                {{ __('m_tours.product.wizard.steps.schedules') }}
             </h1>
             <p>{{ $product->name }}</p>
             <p class="small mb-0">
@@ -490,14 +490,14 @@
                         <div class="card-header">
                             <h3 class="card-title">
                                 <i class="fas fa-clock"></i>
-                                {{ __('m_tours.tour.schedules_form.available_title') }}
+                                {{ __('m_tours.product.schedules_form.available_title') }}
                             </h3>
                         </div>
 
                         <div class="card-body">
                             <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                                 <p class="text-muted mb-2 mb-md-0">
-                                    {{ __('m_tours.tour.schedules_form.select_hint') }}
+                                    {{ __('m_tours.product.schedules_form.select_hint') }}
                                 </p>
                             </div>
 
@@ -585,12 +585,12 @@
                         <div class="card-header">
                             <h3 class="card-title">
                                 <i class="fas fa-info-circle"></i>
-                                {{ __('m_tours.tour.schedules_form.info_title') }}
+                                {{ __('m_tours.product.schedules_form.info_title') }}
                             </h3>
                         </div>
                         <div class="card-body">
                             <p class="small">
-                                {{ __('m_tours.tour.schedules_form.schedules_text') }}
+                                {{ __('m_tours.product.schedules_form.schedules_text') }}
                             </p>
                             <hr>
                             <p class="small mb-0">
@@ -619,14 +619,14 @@
                             {{-- IMPORTANTE: este botón NO envía este form; llama al form oculto de delete-draft --}}
                             <button type="button"
                                     class="btn btn-danger"
-                                    onclick="if (confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')) { document.getElementById('delete-draft-form').submit(); }">
+                                    onclick="if (confirm('{{ __('m_tours.product.wizard.confirm_cancel') }}')) { document.getElementById('delete-draft-form').submit(); }">
                                 <i class="fas fa-trash"></i>
                                 <span class="d-none d-md-inline">{{ __('m_tours.common.cancel') }}</span>
                             </button>
                         @endif
 
                         <button type="submit" class="btn btn-primary ml-2">
-                            {{ __('m_tours.tour.wizard.save_and_continue') }}
+                            {{ __('m_tours.product.wizard.save_and_continue') }}
                             <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
@@ -649,7 +649,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="fas fa-plus"></i>
-                        {{ __('m_tours.schedule.ui.modal_new_for_tour_title', ['tour' => $product->name]) }}
+                        {{ __('m_tours.schedule.ui.modal_new_for_tour_title', ['product' => $product->name]) }}
                     </h5>
                     <button type="button"
                             class="close"
@@ -773,7 +773,7 @@
                     endTimeRequired: @json(__('validation.required', ['attribute' => __('m_tours.schedule.fields.end_time')]) ?? 'La hora de fin es obligatoria'),
                     endTimeAfterStart: @json(__('m_tours.schedule.validation.end_after_start') ?? 'La hora de fin debe ser posterior a la hora de inicio'),
                     scheduleCreated: @json(__('m_tours.schedule.success.created') ?? 'Horario creado'),
-                    scheduleCreatedAndAttached: @json(__('m_tours.schedule.success.created_and_attached') ?? 'El horario se creó y asignó correctamente al tour'),
+                    scheduleCreatedAndAttached: @json(__('m_tours.schedule.success.created_and_attached') ?? 'El horario se creó y asignó correctamente al product'),
                     networkError: @json(__('m_tours.common.network_error') ?? 'Error de red'),
                 };
 
@@ -824,7 +824,7 @@
                 // ============================================================
                 // VALIDACIÓN DEL MODAL DE CREACIÓN RÁPIDA
                 // ============================================================
-                const modalForm = document.querySelector('#modalCreateScheduleForTour form');
+                const modalForm = document.querySelector('#modalCreateScheduleForProduct form');
                 const startTimeInput = document.getElementById('modal_schedule_start');
                 const endTimeInput = document.getElementById('modal_schedule_end');
                 const labelInput = document.getElementById('modal_schedule_label');

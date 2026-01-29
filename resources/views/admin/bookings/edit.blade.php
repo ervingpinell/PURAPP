@@ -198,7 +198,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
 
                     {{-- Product (sin Select2) --}}
                     <div class="form-group">
-                        <label for="product_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
+                        <label for="product_id">{{ __('m_bookings.bookings.fields.product') }} *</label>
                         <select name="product_id" id="product_id" class="form-control" required>
                             <option value="">-- {{ __('m_bookings.bookings.ui.select_tour') }} --</option>
                             @foreach($products as $product)
@@ -215,13 +215,13 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
                         {{-- Date --}}
                         <div class="col-12 col-md-6">
                             <div class="form-group">
-                                <label for="tour_date">{{ __('m_bookings.bookings.fields.tour_date') }} *</label>
+                                <label for="product_date">{{ __('m_bookings.bookings.fields.product_date') }} *</label>
                                 <input
                                     type="date"
-                                    name="tour_date"
-                                    id="tour_date"
+                                    name="product_date"
+                                    id="product_date"
                                     class="form-control"
-                                    value="{{ old('tour_date', optional($booking->detail?->tour_date ?? $booking->product_date)->toDateString()) }}"
+                                    value="{{ old('product_date', optional($booking->detail?->product_date ?? $booking->product_date)->toDateString()) }}"
                                     required>
                             </div>
                         </div>
@@ -239,8 +239,8 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
 
                     {{-- Language --}}
                     <div class="form-group">
-                        <label for="tour_language_id">{{ __('m_bookings.bookings.fields.language') }} *</label>
-                        <select name="tour_language_id" id="tour_language_id" class="form-control" required>
+                        <label for="product_language_id">{{ __('m_bookings.bookings.fields.language') }} *</label>
+                        <select name="product_language_id" id="product_language_id" class="form-control" required>
                             <option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>
                         </select>
                     </div>
@@ -410,9 +410,9 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         const initQtys = @json($categoryQuantitiesById ?? []);
 
         const $productSelect = $('#product_id');
-        const $dateInput = $('#tour_date');
+        const $dateInput = $('#product_date');
         const $scheduleSelect = $('#schedule_id');
-        const $languageSelect = $('#tour_language_id');
+        const $languageSelect = $('#product_language_id');
         const $categoriesContainer = $('#categories-container');
         const $promoBtn = $('#btn-apply-promo');
         const $promoMsg = $('#promo-message');
@@ -440,9 +440,9 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
                 .addClass('btn-success');
         }
 
-        // Cambio de tour
+        // Cambio de product
         $productSelect.on('change', function() {
-            const productData = $(this).find(':selected').data('tour');
+            const productData = $(this).find(':selected').data('product');
             if (!productData) return;
 
             // Get current selected values before clearing (for edit mode)
@@ -470,9 +470,9 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
             );
             if (productData.languages && productData.languages.length > 0) {
                 productData.languages.forEach(l => {
-                    const isSelected = currentLanguageId && l.tour_language_id == currentLanguageId;
+                    const isSelected = currentLanguageId && l.product_language_id == currentLanguageId;
                     $languageSelect.append(
-                        `<option value="${l.tour_language_id}" ${isSelected ? 'selected' : ''}>${l.name}</option>`
+                        `<option value="${l.product_language_id}" ${isSelected ? 'selected' : ''}>${l.name}</option>`
                     );
                 });
             }
@@ -484,7 +484,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
 
         // Cambio de fecha
         $dateInput.on('change', function() {
-            const productData = $productSelect.find(':selected').data('tour');
+            const productData = $productSelect.find(':selected').data('product');
             if (productData && $(this).val()) {
                 loadCategories(productData);
             }
@@ -863,7 +863,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         // Inicializar valores al cargar
         const initialProductId = @json(old('product_id', $booking -> product_id));
         const initialScheduleId = @json(old('schedule_id', optional($booking -> detail) -> schedule_id));
-        const initialLanguageId = @json(old('tour_language_id', $booking -> tour_language_id));
+        const initialLanguageId = @json(old('product_language_id', $booking -> product_language_id));
 
         if (initialProductId) {
             // Pre-set the values in the selects so the change handler can detect them

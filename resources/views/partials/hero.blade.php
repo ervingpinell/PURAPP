@@ -14,7 +14,7 @@
             @if(branding('hero_button_text') && branding('hero_button_link'))
                 <div class="hero-buttons">
                     <a href="{{ branding('hero_button_link', '/tours') }}" class="btn btn-hero-primary">
-                        {{ branding('hero_button_text', 'Explore Tours') }}
+                        {{ branding('hero_button_text', 'Explore Products') }}
                     </a>
                 </div>
             @endif

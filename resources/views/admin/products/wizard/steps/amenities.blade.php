@@ -2,7 +2,7 @@
 
 @extends('adminlte::page')
 
-@section('title', __('m_tours.tour.wizard.steps.amenities'))
+@section('title', __('m_tours.product.wizard.steps.amenities'))
 
 @push('css')
 <style>
@@ -399,7 +399,7 @@
     <div class="amenities-header">
         <h1>
             <i class="fas fa-check-circle"></i>
-            {{ __('m_tours.tour.wizard.steps.amenities') }}
+            {{ __('m_tours.product.wizard.steps.amenities') }}
         </h1>
         <p>{{ $product->name }}</p>
     </div>
@@ -464,13 +464,13 @@
                     <div class="card-header">
                         <h3 class="card-title">
                             <i class="fas fa-check"></i>
-                            {{ __('m_tours.tour.ui.amenities_included') }}
+                            {{ __('m_tours.product.ui.amenities_included') }}
                         </h3>
                     </div>
 
                     <div class="card-body">
                         <p class="text-muted">
-                            {{ __('m_tours.tour.ui.amenities_included_hint') }}
+                            {{ __('m_tours.product.ui.amenities_included_hint') }}
                         </p>
 
                         <div id="amenities-included-list">
@@ -513,17 +513,17 @@
                     <div class="card-header">
                         <h3 class="card-title">
                             <i class="fas fa-times"></i>
-                            {{ __('m_tours.tour.ui.amenities_excluded') }}
+                            {{ __('m_tours.product.ui.amenities_excluded') }}
                         </h3>
                     </div>
 
                     <div class="card-body">
                         <p class="text-muted">
-                            {{ __('m_tours.tour.ui.amenities_excluded_hint') }}
+                            {{ __('m_tours.product.ui.amenities_excluded_hint') }}
                         </p>
 
                         <p class="text-muted small mb-2" style="font-size: 0.85rem; opacity: 0.8;">
-                            {{ __('m_tours.tour.ui.amenities_excluded_auto_hint') }}
+                            {{ __('m_tours.product.ui.amenities_excluded_auto_hint') }}
                         </p>
 
                         <div id="amenities-excluded-list">
@@ -580,7 +580,7 @@
                 <form action="{{ route('admin.products.wizard.delete-draft', $product) }}"
                     method="POST"
                     class="d-inline"
-                    onsubmit="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
+                    onsubmit="return confirm('{{ __('m_tours.product.wizard.confirm_cancel') }}')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger">
@@ -591,7 +591,7 @@
                 @endif
 
                 <button type="submit" form="amenities-form" class="btn btn-primary ml-2">
-                    {{ __('m_tours.tour.wizard.save_and_continue') }}
+                    {{ __('m_tours.product.wizard.save_and_continue') }}
                     <i class="fas fa-arrow-right"></i>
                 </button>
             </div>

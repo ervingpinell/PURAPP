@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Admin\Product;
 
 use App\Http\Controllers\Controller;
 use App\Models\{
-    Product,     // Was Tour
-    ProductType, // Was TourType
+    Product,     // Was Product
+    ProductType, // Was ProductType
     ProductLanguage,
     ProductAuditLog, // Was ProductAuditLog
     Amenity,
@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 // use App\Services\Contracts\TranslatorInterface;
-// use App\Models\TourTypeTranslation; // Removed
+// use App\Models\ProductTypeTranslation; // Removed
 // use App\Models\ItineraryItemTranslation; // Removed
 // use App\Models\AmenityTranslation; // Removed
 // use App\Models\CustomerCategoryTranslation; // Removed
@@ -53,7 +53,7 @@ class ProductWizardController extends Controller
 
     /**
      * ============================================================
-     * INICIAR CREACIÓN DE TOUR - CON DETECCIÓN DE DRAFTS
+     * INICIAR CREACIÓN DE PRODUCT - CON DETECCIÓN DE DRAFTS
      * ============================================================
      */
     public function create()
@@ -77,8 +77,8 @@ class ProductWizardController extends Controller
         $warning = $this->draftLimit->getWarningMessage($userId);
 
         return view('admin.products.wizard.steps.details', [
-            'tour'           => null,
-            'tourTypes'      => ProductType::active()->get(),
+            'product'         => null,
+            'productTypes'      => ProductType::active()->get(),
             'languages'      => ProductLanguage::where('is_active', true)->get(),
             'step'           => 1,
             'steps'          => self::STEPS,
@@ -92,14 +92,14 @@ class ProductWizardController extends Controller
 
     /**
      * ============================================================
-     * EDITAR TOUR - Redirigir al wizard
+     * EDITAR PRODUCT - Redirigir al wizard
      * ============================================================
      */
     public function edit(Product $product)
     {
         $userId = optional(auth()->user())->user_id ?? auth()->id();
 
-        // Si el tour ya está publicado, asegurar que current_step sea 6
+        // Si el product ya está publicado, asegurar que current_step sea 6
         if (!$product->is_draft && $product->current_step < 6) {
             $product->update([
                 'current_step' => 6,
@@ -149,7 +149,7 @@ class ProductWizardController extends Controller
         if (!$product->is_draft) {
             return redirect()
                 ->route('admin.products.index')
-                ->with('error', __('m_tours.tour.wizard.not_a_draft'));
+                ->with('error', __('m_products.product.wizard.not_a_draft'));
         }
 
         // 🆕 VERIFICAR PROPIEDAD (seguridad)
@@ -183,7 +183,7 @@ class ProductWizardController extends Controller
 
         return redirect()
             ->route('admin.products.product-wizard.step', ['product' => $product, 'step' => $nextStep])
-            ->with('success', __('m_tours.tour.wizard.continuing_draft'));
+            ->with('success', __('m_products.product.wizard.continuing_draft'));
     }
 
     /**
@@ -201,8 +201,8 @@ class ProductWizardController extends Controller
             'deleteDraft',
             'Entrada a deleteDraft desde UI',
             [
-                'tour_route_param_id' => $product->product_id ?? $product->getKey(),
-                'tour_slug'           => $product->slug ?? null,
+                'product_route_param_id' => $product->product_id ?? $product->getKey(),
+                'product_slug'           => $product->slug ?? null,
                 'is_draft'            => $product->is_draft,
                 'created_by'          => $product->created_by,
                 'user_id'             => $userId,
@@ -218,7 +218,7 @@ class ProductWizardController extends Controller
             LoggerHelper::info(
                 'ProductWizardController',
                 'deleteDraft',
-                'Intento de borrar tour que no es borrador',
+                'Intento de borrar product que no es borrador',
                 [
                     'product_id' => $product->product_id ?? $product->getKey(),
                     'user_id' => $userId,
@@ -227,7 +227,7 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.index')
-                ->with('error', __('m_tours.tour.wizard.not_a_draft'));
+                ->with('error', __('m_products.product.wizard.not_a_draft'));
         }
 
         // Verificar propiedad (seguridad)
@@ -286,7 +286,7 @@ class ProductWizardController extends Controller
             LoggerHelper::info(
                 'ProductWizardController',
                 'deleteDraft',
-                'Ejecutando forceDelete del tour borrador SIN eventos',
+                'Ejecutando forceDelete del product borrador SIN eventos',
                 [
                     'product_id' => $productId,
                     'user_id' => $userId,
@@ -294,7 +294,7 @@ class ProductWizardController extends Controller
             );
 
             // 🔧 CLAVE: evitar que el trait Auditable dispare auditDeleted
-            // y trate de insertar en tour_audit_logs después de borrar el tour.
+            // y trate de insertar en product_audit_logs después de borrar el product.
             \App\Models\Product::withoutEvents(function () use ($product) {
                 $product->forceDelete();
             });
@@ -304,7 +304,7 @@ class ProductWizardController extends Controller
             LoggerHelper::mutated(
                 'ProductWizardController',
                 'deleteDraft',
-                'tour',
+                'product',
                 $productId,
                 [
                     'user_id' => $userId,
@@ -315,14 +315,14 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.product-wizard.create')
-                ->with('success', __('m_tours.tour.wizard.draft_deleted'));
+                ->with('success', __('m_products.product.wizard.draft_deleted'));
         } catch (\Throwable $e) {
             DB::rollBack();
 
             LoggerHelper::exception(
                 'ProductWizardController',
                 'deleteDraft',
-                'tour',
+                'product',
                 $product->product_id ?? $product->getKey(),
                 $e,
                 [
@@ -336,7 +336,7 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.product-wizard.create')
-                ->with('error', __('m_tours.common.error_deleting'));
+                ->with('error', __('m_products.common.error_deleting'));
         }
     }
 
@@ -388,7 +388,7 @@ class ProductWizardController extends Controller
             LoggerHelper::mutated(
                 'ProductWizardController',
                 'deleteAllDrafts',
-                'tour',
+                'product',
                 null,
                 [
                     'user_id'       => $userId,
@@ -398,14 +398,14 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.product-wizard.create')
-                ->with('success', __('m_tours.tour.wizard.all_drafts_deleted', ['count' => $deletedCount]));
+                ->with('success', __('m_products.product.wizard.all_drafts_deleted', ['count' => $deletedCount]));
         } catch (\Throwable $e) {
             DB::rollBack();
-            LoggerHelper::exception('ProductWizardController', 'deleteAllDrafts', 'tour', null, $e, ['user_id' => $userId]);
+            LoggerHelper::exception('ProductWizardController', 'deleteAllDrafts', 'product', null, $e, ['user_id' => $userId]);
             report($e);
             return redirect()
                 ->route('admin.products.product-wizard.create')
-                ->with('error', __('m_tours.common.error_deleting'));
+                ->with('error', __('m_products.common.error_deleting'));
         }
     }
 
@@ -434,7 +434,7 @@ class ProductWizardController extends Controller
                 'required', // Ahora es requerido
                 'string',
                 'max:255',
-                Rule::unique('tours', 'slug')->whereNull('deleted_at'),
+                Rule::unique('products', 'slug')->whereNull('deleted_at'),
             ],
             'overview'     => 'required|string|max:1000', // Ahora requerido
             'length'       => 'required|numeric|min:0.5|max:240', // Ahora requerido
@@ -444,7 +444,7 @@ class ProductWizardController extends Controller
             'product_type_id' => 'required|exists:product_types,product_type_id', // Ahora requerido
             'is_active'    => 'boolean',
             'languages'    => 'required|array|min:1', // Ahora requerido con mínimo 1
-            'languages.*'  => 'exists:tour_languages,tour_language_id',
+            'languages.*'  => 'exists:product_languages,product_language_id',
             'recommendations' => 'nullable|string', // 🆕 Nuevo campo
         ]);
 
@@ -485,7 +485,7 @@ class ProductWizardController extends Controller
             LoggerHelper::mutated(
                 'ProductWizardController',
                 'storeDetails',
-                'tour',
+                'product',
                 $product->product_id,
                 [
                     'user_id'      => $userId,
@@ -496,17 +496,17 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.product-wizard.step', ['product' => $product, 'step' => 2])
-                ->with('success', __('m_tours.tour.wizard.details_saved'));
+                ->with('success', __('m_products.product.wizard.details_saved'));
         } catch (\Throwable $e) {
             DB::rollBack();
-            LoggerHelper::exception('ProductWizardController', 'storeDetails', 'tour', $product?->product_id, $e, ['user_id' => $userId]);
+            LoggerHelper::exception('ProductWizardController', 'storeDetails', 'product', $product?->product_id, $e, ['user_id' => $userId]);
             report($e);
-            return back()->withInput()->with('error', __('m_tours.common.error_saving'));
+            return back()->withInput()->with('error', __('m_products.common.error_saving'));
         }
     }
 
     /**
-     * Actualizar detalles de un tour en borrador (volver del paso 2, 3, etc.)
+     * Actualizar detalles de un product en borrador (volver del paso 2, 3, etc.)
      */
     public function updateDetails(Request $request, Product $product)
     {
@@ -535,7 +535,7 @@ class ProductWizardController extends Controller
                 'min:3',
                 'max:255',
                 'regex:/^[a-z0-9-]+$/',
-                Rule::unique('tours', 'slug')
+                Rule::unique('products', 'slug')
                     ->ignore($product->getKey(), $product->getKeyName())
                     ->whereNull('deleted_at'),
             ],
@@ -546,7 +546,7 @@ class ProductWizardController extends Controller
             'product_type_id' => ['required', 'integer', 'exists:product_types,product_type_id'],
             'color'        => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'languages'    => ['required', 'array', 'min:1'],
-            'languages.*'  => ['integer', 'exists:tour_languages,tour_language_id'],
+            'languages.*'  => ['integer', 'exists:product_languages,product_language_id'],
             'recommendations' => ['nullable', 'string'], // 🆕 Nuevo campo
         ]);
 
@@ -591,7 +591,7 @@ class ProductWizardController extends Controller
                 'product' => $product,
                 'step' => $nextStep,
             ])
-            ->with('success', __('m_tours.tour.wizard.details_saved'));
+            ->with('success', __('m_products.product.wizard.details_saved'));
     }
 
 
@@ -619,7 +619,7 @@ class ProductWizardController extends Controller
                 'updated_by'   => $userId,
             ]);
         } else {
-            // Para tours publicados: aseguramos que tenga al menos 6
+            // Para products publicados: aseguramos que tenga al menos 6
             // para que el stepper muestre todos los pasos desbloqueados
             $newCurrent = max($product->current_step ?? 6, 6);
 
@@ -752,7 +752,7 @@ class ProductWizardController extends Controller
                     return back()
                         ->withInput()
                         ->withErrors([
-                            'items' => __('m_tours.itinerary.ui.min_one_item') ?? 'Debes agregar al menos un ítem al itinerario.',
+                            'items' => __('m_products.itinerary.ui.min_one_item') ?? 'Debes agregar al menos un ítem al itinerario.',
                         ]);
                 }
 
@@ -818,9 +818,9 @@ class ProductWizardController extends Controller
             DB::commit();
 
             LoggerHelper::mutated(
-                'TourWizardController',
+                'ProductWizardController',
                 'storeItinerary',
-                'tour',
+                'product',
                 $product->product_id ?? $product->getKey(),
                 [
                     'user_id'      => $userId,
@@ -831,14 +831,14 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.product-wizard.step', ['product' => $product, 'step' => 3])
-                ->with('success', __('m_tours.tour.wizard.itinerary_saved'));
+                ->with('success', __('m_products.product.wizard.itinerary_saved'));
         } catch (\Throwable $e) {
             DB::rollBack();
 
             LoggerHelper::exception(
-                'TourWizardController',
+                'ProductWizardController',
                 'storeItinerary',
-                'tour',
+                'product',
                 $product->product_id ?? $product->getKey(),
                 $e,
                 ['user_id' => $userId]
@@ -848,7 +848,7 @@ class ProductWizardController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', __('m_tours.common.error_saving'));
+                ->with('error', __('m_products.common.error_saving'));
         }
     }
     /**
@@ -872,9 +872,9 @@ class ProductWizardController extends Controller
             'new_schedule.label'          => 'nullable|string|max:100',
             'new_schedule.base_capacity'  => 'nullable|integer|min:1|max:999',
         ], [
-            'schedules.required' => __('m_tours.schedule.validation.no_schedule_selected') ?? 'Debes seleccionar al menos un horario.',
-            'schedules.min' => __('m_tours.schedule.validation.no_schedule_selected') ?? 'Debes seleccionar al menos un horario.',
-            'new_schedule.end_time.after' => __('m_tours.schedule.validation.end_after_start') ?? 'La hora de fin debe ser posterior a la hora de inicio.',
+            'schedules.required' => __('m_products.schedule.validation.no_schedule_selected') ?? 'Debes seleccionar al menos un horario.',
+            'schedules.min' => __('m_products.schedule.validation.no_schedule_selected') ?? 'Debes seleccionar al menos un horario.',
+            'new_schedule.end_time.after' => __('m_products.schedule.validation.end_after_start') ?? 'La hora de fin debe ser posterior a la hora de inicio.',
         ]);
 
         DB::beginTransaction();
@@ -920,9 +920,9 @@ class ProductWizardController extends Controller
             DB::commit();
 
             LoggerHelper::mutated(
-                'TourWizardController',
+                'ProductWizardController',
                 'storeSchedules',
-                'tour',
+                'product',
                 $product->product_id ?? $product->getKey(),
                 [
                     'user_id'        => $userId,
@@ -933,14 +933,14 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.product-wizard.step', ['product' => $product, 'step' => 4])
-                ->with('success', __('m_tours.tour.wizard.schedules_saved'));
+                ->with('success', __('m_products.product.wizard.schedules_saved'));
         } catch (\Throwable $e) {
             DB::rollBack();
 
             LoggerHelper::exception(
-                'TourWizardController',
+                'ProductWizardController',
                 'storeSchedules',
-                'tour',
+                'product',
                 $product->product_id ?? $product->getKey(),
                 $e,
                 ['user_id' => $userId]
@@ -950,7 +950,7 @@ class ProductWizardController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', __('m_tours.common.error_saving'));
+                ->with('error', __('m_products.common.error_saving'));
         }
     }
     /**
@@ -987,9 +987,9 @@ class ProductWizardController extends Controller
             DB::commit();
 
             LoggerHelper::mutated(
-                'TourWizardController',
+                'ProductWizardController',
                 'storeAmenities',
-                'tour',
+                'product',
                 $product->product_id ?? $product->getKey(),
                 [
                     'user_id'            => $userId,
@@ -1001,21 +1001,21 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.product-wizard.step', ['product' => $product, 'step' => 5])
-                ->with('success', __('m_tours.tour.wizard.amenities_saved'));
+                ->with('success', __('m_products.product.wizard.amenities_saved'));
         } catch (\Throwable $e) {
             DB::rollBack();
 
             LoggerHelper::exception(
-                'TourWizardController',
+                'ProductWizardController',
                 'storeAmenities',
-                'tour',
+                'product',
                 $product->product_id ?? $product->getKey(),
                 $e,
                 ['user_id' => $userId]
             );
 
             report($e);
-            return back()->withInput()->with('error', __('m_tours.common.error_saving'));
+            return back()->withInput()->with('error', __('m_products.common.error_saving'));
         }
     }
 
@@ -1169,7 +1169,7 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.product-wizard.step', ['product' => $product, 'step' => 6])
-                ->with('success', __('m_tours.tour.wizard.prices_saved'));
+                ->with('success', __('m_products.product.wizard.prices_saved'));
         } catch (\Throwable $e) {
             DB::rollBack();
 
@@ -1183,19 +1183,19 @@ class ProductWizardController extends Controller
             );
 
             report($e);
-            return back()->withInput()->with('error', __('m_tours.common.error_saving'));
+            return back()->withInput()->with('error', __('m_products.common.error_saving'));
         }
     }
 
     /**
-     * Publicar tour (finalizar wizard)
+     * Publicar product (finalizar wizard)
      */
     public function publish(Product $product)
     {
         if (!$product->is_draft) {
             return redirect()
                 ->route('admin.products.index')
-                ->with('info', __('m_tours.tour.wizard.already_published'));
+                ->with('info', __('m_products.product.wizard.already_published'));
         }
 
         $userId = optional(auth()->user())->user_id ?? auth()->id();
@@ -1209,9 +1209,9 @@ class ProductWizardController extends Controller
         ]);
 
         LoggerHelper::mutated(
-            'TourWizardController',
+            'ProductWizardController',
             'publish',
-            'tour',
+            'product',
             $product->product_id ?? $product->getKey(),
             [
                 'user_id'   => $userId,
@@ -1222,13 +1222,13 @@ class ProductWizardController extends Controller
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', __('m_tours.tour.wizard.published_successfully'));
+            ->with('success', __('m_products.product.wizard.published_successfully'));
     }
 
     /**
-     * QUICK CREATE: Tipo de Tour (AJAX)
+     * QUICK CREATE: Tipo de Product (AJAX)
      */
-    public function quickStoreTourType(Request $request, TranslatorInterface $translator)
+    public function quickStoreProductType(Request $request, TranslatorInterface $translator)
     {
         $data = $request->validate([
             'name'        => 'required|string|max:255',
@@ -1240,8 +1240,8 @@ class ProductWizardController extends Controller
         $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
 
         $type = DB::transaction(function () use ($data, $translator) {
-            // 1. Crear TourType solo con campos no traducibles
-            $type = TourType::create([
+            // 1. Crear ProductType solo con campos no traducibles
+            $type = ProductType::create([
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
@@ -1262,9 +1262,9 @@ class ProductWizardController extends Controller
         });
 
         LoggerHelper::mutated(
-            'TourWizardController',
-            'quickStoreTourType',
-            'tour_type',
+            'ProductWizardController',
+            'quickStoreProductType',
+            'product_type',
             $type->product_type_id ?? $type->getKey(),
             ['user_id' => $userId]
         );
@@ -1292,15 +1292,15 @@ class ProductWizardController extends Controller
         ]);
 
         LoggerHelper::mutated(
-            'TourWizardController',
+            'ProductWizardController',
             'quickStoreLanguage',
-            'tour_language',
-            $language->tour_language_id ?? $language->getKey(),
+            'product_language',
+            $language->product_language_id ?? $language->getKey(),
             ['user_id' => $userId]
         );
 
         return response()->json([
-            'id'   => $language->tour_language_id,
+            'id'   => $language->product_language_id,
             'name' => $language->name,
         ], 201);
     }
@@ -1339,7 +1339,7 @@ class ProductWizardController extends Controller
         });
 
         LoggerHelper::mutated(
-            'TourWizardController',
+            'ProductWizardController',
             'quickCreateItineraryItem',
             'itinerary_item',
             $item->item_id ?? $item->getKey(),
@@ -1361,7 +1361,7 @@ class ProductWizardController extends Controller
         if (!$product->is_draft) {
             return redirect()
                 ->route('admin.products.edit', $product)
-                ->with('info', __('m_tours.tour.wizard.already_published'));
+                ->with('info', __('m_products.product.wizard.already_published'));
         }
 
         $userId = optional($request->user())->user_id ?? $request->user()?->getAuthIdentifier();
@@ -1400,7 +1400,7 @@ class ProductWizardController extends Controller
             DB::commit();
 
             LoggerHelper::mutated(
-                'TourWizardController',
+                'ProductWizardController',
                 'quickStoreSchedule',
                 'schedule',
                 $schedule->schedule_id ?? $schedule->getKey(),
@@ -1413,12 +1413,12 @@ class ProductWizardController extends Controller
 
             return redirect()
                 ->route('admin.products.product-wizard.step', ['product' => $product, 'step' => 3])
-                ->with('success', __('m_tours.schedule.success.created_and_attached'));
+                ->with('success', __('m_products.schedule.success.created_and_attached'));
         } catch (\Throwable $e) {
             DB::rollBack();
 
             LoggerHelper::exception(
-                'TourWizardController',
+                'ProductWizardController',
                 'quickStoreSchedule',
                 'schedule',
                 null,
@@ -1434,7 +1434,7 @@ class ProductWizardController extends Controller
             return redirect()
                 ->route('admin.products.product-wizard.step', ['product' => $product, 'step' => 3])
                 ->withInput()
-                ->with('error', __('m_tours.schedule.error.create_from_wizard'));
+                ->with('error', __('m_products.schedule.error.create_from_wizard'));
         }
     }
 
@@ -1474,7 +1474,7 @@ class ProductWizardController extends Controller
             });
 
             LoggerHelper::mutated(
-                'TourWizardController',
+                'ProductWizardController',
                 'quickStoreAmenity',
                 'amenity',
                 $amenity->amenity_id ?? $amenity->getKey(),
@@ -1484,13 +1484,13 @@ class ProductWizardController extends Controller
             return response()->json([
                 'id'      => $amenity->amenity_id,
                 'name'    => $amenity->name, // Magic accessor will get from translation
-                'message' => __('m_tours.amenity.quick_create.success_text'),
+                'message' => __('m_products.amenity.quick_create.success_text'),
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
             LoggerHelper::exception(
-                'TourWizardController',
+                'ProductWizardController',
                 'quickStoreAmenity',
                 'amenity',
                 null,
@@ -1535,7 +1535,7 @@ class ProductWizardController extends Controller
                     'max:120',
                     function ($attribute, $value, $fail) use ($request) {
                         if (!is_null($value) && $value < $request->input('age_from')) {
-                            $fail(__('m_tours.prices.validation.age_to_greater_equal'));
+                            $fail(__('m_products.prices.validation.age_to_greater_equal'));
                         }
                     },
                 ],
@@ -1557,7 +1557,7 @@ class ProductWizardController extends Controller
 
         try {
             $category = DB::transaction(function () use ($data, $slug, $translator) {
-                // LoggerHelper::info('TourWizardController', 'quickStoreCategory', 'Creating category base');
+                // LoggerHelper::info('ProductWizardController', 'quickStoreCategory', 'Creating category base');
                 $category = \App\Models\CustomerCategory::create([
                     'slug'      => $slug,
                     'age_from'  => $data['age_from'],
@@ -1565,7 +1565,7 @@ class ProductWizardController extends Controller
                     'is_active' => $data['is_active'] ?? true,
                 ]);
 
-                // LoggerHelper::info('TourWizardController', 'quickStoreCategory', 'Translating name');
+                // LoggerHelper::info('ProductWizardController', 'quickStoreCategory', 'Translating name');
                 $nameTr = $translator->translateAll($data['name']);
 
                 foreach (supported_locales() as $locale) {
@@ -1577,7 +1577,7 @@ class ProductWizardController extends Controller
             });
 
             LoggerHelper::mutated(
-                'TourWizardController',
+                'ProductWizardController',
                 'quickStoreCategory',
                 'customer_category',
                 $category->category_id ?? $category->getKey(),
@@ -1598,7 +1598,7 @@ class ProductWizardController extends Controller
                 'name'      => $category->getTranslatedName(), // Use helper method
                 'age_range' => $ageLabel,
                 'slug'      => $category->slug,
-                'message'   => __('m_tours.prices.quick_category.created_ok'),
+                'message'   => __('m_products.prices.quick_category.created_ok'),
             ], 201);
         } catch (\Exception $e) {
             LoggerHelper::exception('ProductWizardController', 'quickStoreCategory', 'customer_category', null, $e, [
@@ -1606,7 +1606,7 @@ class ProductWizardController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             LoggerHelper::exception(
-                'TourWizardController',
+                'ProductWizardController',
                 'quickStoreCategory',
                 'customer_category',
                 null,

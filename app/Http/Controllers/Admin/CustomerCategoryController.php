@@ -224,11 +224,11 @@ class CustomerCategoryController extends Controller
     {
         $category = CustomerCategory::onlyTrashed()->findOrFail($id);
 
-        // Check for dependencies (TourPrice)
-        if ($category->tourPrices()->exists()) {
+        // Check for dependencies (ProductPrice)
+        if ($category->productPrices()->exists()) {
             return redirect()
                 ->route('admin.customer_categories.trash')
-                ->with('error', 'No se puede eliminar permanentemente porque tiene precios de tours asociados.');
+                ->with('error', 'No se puede eliminar permanentemente porque tiene precios de products asociados.');
         }
 
         $category->forceDelete();

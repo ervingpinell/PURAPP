@@ -6,8 +6,8 @@
 
     // Mensaje de advertencia al salir con cambios sin guardar
     $warningMessage = $warningMessage
-        ?? __('m_tours.tour.wizard.leave_warning')
-        ?? 'Tienes cambios sin guardar en este tour. ¿Seguro que quieres salir?';
+        ?? __('m_tours.product.wizard.leave_warning')
+        ?? 'Tienes cambios sin guardar en este product. ¿Seguro que quieres salir?';
 @endphp
 
 @push('js')

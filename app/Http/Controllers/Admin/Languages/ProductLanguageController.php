@@ -10,15 +10,15 @@ use Illuminate\Validation\Rule;
 /**
  * ProductLanguageController
  *
- * Handles tourlanguage operations.
+ * Handles productlanguage operations.
  */
 class ProductLanguageController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['can:view-tour-languages'])->only(['index']);
-        $this->middleware(['can:edit-tour-languages'])->only(['update']);
-        $this->middleware(['can:publish-tour-languages'])->only(['toggle']);
+        $this->middleware(['can:view-product-languages'])->only(['index']);
+        $this->middleware(['can:edit-product-languages'])->only(['update']);
+        $this->middleware(['can:publish-product-languages'])->only(['toggle']);
     }
     public function index()
     {
@@ -33,11 +33,11 @@ class ProductLanguageController extends Controller
                 'required',
                 'string',
                 'max:255',
-                'unique:tour_languages,name',
+                'unique:product_languages,name',
             ],
         ], [
-            'name.required' => __('m_tours.language.validation.name.required'),
-            'name.unique'   => __('m_tours.language.validation.name.unique'),
+            'name.required' => __('m_products.language.validation.name.required'),
+            'name.unique'   => __('m_products.language.validation.name.unique'),
         ]);
 
         ProductLanguage::create([
@@ -47,7 +47,7 @@ class ProductLanguageController extends Controller
 
         return redirect()
             ->route('admin.languages.index')
-            ->with('success', __('m_tours.language.success.created'));
+            ->with('success', __('m_products.language.success.created'));
     }
 
     public function update(Request $request, ProductLanguage $language)
@@ -57,12 +57,12 @@ class ProductLanguageController extends Controller
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('tour_languages', 'name')
-                    ->ignore($language->getKey(), 'tour_language_id'),
+                Rule::unique('product_languages', 'name')
+                    ->ignore($language->getKey(), 'product_language_id'),
             ],
         ], [
-            'name.required' => __('m_tours.language.validation.name.required'),
-            'name.unique'   => __('m_tours.language.validation.name.unique'),
+            'name.required' => __('m_products.language.validation.name.required'),
+            'name.unique'   => __('m_products.language.validation.name.unique'),
         ]);
 
         $language->update([
@@ -71,7 +71,7 @@ class ProductLanguageController extends Controller
 
         return redirect()
             ->route('admin.languages.index')
-            ->with('success', __('m_tours.language.success.updated'));
+            ->with('success', __('m_products.language.success.updated'));
     }
 
     public function toggle(ProductLanguage $language)
@@ -84,12 +84,12 @@ class ProductLanguageController extends Controller
 
         return redirect()
             ->route('admin.languages.index')
-            ->with('success', __('m_tours.language.success.' . $key));
+            ->with('success', __('m_products.language.success.' . $key));
     }
 
     public function trash(Request $request)
     {
-        $this->authorize('restore-tour-languages');
+        $this->authorize('restore-product-languages');
 
         $trashedLanguages = ProductLanguage::onlyTrashed()
             ->with(['deletedBy'])
@@ -107,30 +107,30 @@ class ProductLanguageController extends Controller
 
         return redirect()
             ->route('admin.languages.index')
-            ->with('success', __('m_tours.language.success.deleted'));
+            ->with('success', __('m_products.language.success.deleted'));
     }
 
     public function restore($id)
     {
-        $this->authorize('restore-tour-languages');
+        $this->authorize('restore-product-languages');
 
         $language = ProductLanguage::onlyTrashed()->findOrFail($id);
         $language->restore();
 
         return redirect()
             ->route('admin.languages.trash')
-            ->with('success', __('m_tours.language.success.restored') ?? 'Language restored successfully.');
+            ->with('success', __('m_products.language.success.restored') ?? 'Language restored successfully.');
     }
 
     public function forceDelete($id)
     {
-        $this->authorize('force-delete-tour-languages');
+        $this->authorize('force-delete-product-languages');
 
         $language = ProductLanguage::onlyTrashed()->findOrFail($id);
         $language->forceDelete();
 
         return redirect()
             ->route('admin.languages.trash')
-            ->with('success', __('m_tours.language.success.force_deleted') ?? 'Language permanently deleted.');
+            ->with('success', __('m_products.language.success.force_deleted') ?? 'Language permanently deleted.');
     }
 }

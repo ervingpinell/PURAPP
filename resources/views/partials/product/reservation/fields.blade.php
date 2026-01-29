@@ -50,9 +50,9 @@ $t = __($key);
 return ($t === $key) ? $fallback : $t;
 };
 
-$oldDate = old('tour_date');
+$oldDate = old('product_date');
 $oldSchedule = old('schedule_id');
-$oldLanguage = old('tour_language_id');
+$oldLanguage = old('product_language_id');
 $oldHotel = old('hotel_id');
 $oldOtherHotel = old('other_hotel_name');
 $oldIsOther = old('is_other_hotel', 0);
@@ -79,14 +79,14 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
             <span>{{ $tr('adminlte::adminlte.select_date','Selecciona una fecha') }}</span>
         </label>
         <input
-            id="tourDateInput"
+            id="productDateInput"
             type="text"
-            name="tour_date"
-            class="form-control w-100 @error('tour_date') is-invalid @enderror"
+            name="product_date"
+            class="form-control w-100 @error('product_date') is-invalid @enderror"
             placeholder="dd/mm/yyyy"
             value="{{ $oldDate }}"
             required>
-        @error('tour_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        @error('product_date') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
     {{-- Horario --}}
@@ -119,19 +119,19 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 </label>
 
 <select
-    name="tour_language_id"
-    class="form-select mb-1 w-100 @error('tour_language_id') is-invalid @enderror"
+    name="product_language_id"
+    class="form-select mb-1 w-100 @error('product_language_id') is-invalid @enderror"
     id="languageSelect"
     required>
     <option value="">-- {{ $tr('adminlte::adminlte.select_option','Selecciona una opción') }} --</option>
     @foreach($product->languages as $lang)
-    <option value="{{ $lang->tour_language_id }}" {{ $isSelected($lang->tour_language_id,$oldLanguage) }}>
+    <option value="{{ $lang->product_language_id }}" {{ $isSelected($lang->product_language_id,$oldLanguage) }}>
         {{ $lang->name }}
     </option>
     @endforeach
 </select>
 <div id="langHelp" class="error-message text-danger"></div>
-@error('tour_language_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+@error('product_language_id') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
 
 {{-- Pickup Selection Mode --}}
 <div class="pickup-options mt-3">
@@ -267,7 +267,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 
         /* ========= Datos del backend ========= */
         console.log('GV Date Script: Loading data...');
-        const RULES = @json($rulesPayload ?? ['tour' => ['min' => null], 'schedules' => [], 'initialMin' => null]);
+        const RULES = @json($rulesPayload ?? ['product' => ['min' => null], 'schedules' => [], 'initialMin' => null]);
         const blockedBySchedule = @json($blockedBySchedule ?? (object)[]);
         const fullByCapacity = @json($capacityDisabled ?? (object)[]);
         const blockedGeneral = @json($blockedGeneral ?? []);
@@ -350,7 +350,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
         };
 
         /* ========= Elementos ========= */
-        const dateInput = document.getElementById('tourDateInput');
+        const dateInput = document.getElementById('productDateInput');
         const scheduleSelect = document.getElementById('scheduleSelect');
         const help = document.getElementById('noSlotsHelp');
 
@@ -403,10 +403,10 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
                 label: textOf(o)
             }));
 
-        const ruleForSchedule = (sid) => (RULES.schedules && RULES.schedules[String(sid)]) ? RULES.schedules[String(sid)] : (RULES.tour || {
+        const ruleForSchedule = (sid) => (RULES.schedules && RULES.schedules[String(sid)]) ? RULES.schedules[String(sid)] : (RULES.product || {
             min: null
         });
-        const globalMin = RULES.initialMin || (RULES.tour?.min) || 'today';
+        const globalMin = RULES.initialMin || (RULES.product?.min) || 'today';
         const SCHEDULE_IDS = BASE_CHOICES.map(o => String(o.value));
 
         const canUseScheduleOnDate = (iso, sid) => {
@@ -560,7 +560,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
 
         scheduleSelect.addEventListener('change', () => {
             const sid = scheduleSelect.value;
-            const rule = sid ? ruleForSchedule(sid) : (RULES.tour || {
+            const rule = sid ? ruleForSchedule(sid) : (RULES.product || {
                 min: null
             });
             if (fp) {

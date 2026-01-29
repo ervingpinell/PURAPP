@@ -185,7 +185,7 @@ Estos términos y condiciones describen las reglas y regulaciones para el uso de
 
 Al acceder a este sitio web, asumimos que usted acepta estos términos y condiciones. No continúe utilizando greenvacationscr.com si no está de acuerdo con todos los términos y condiciones establecidos en esta página.
 
-La siguiente terminología se aplica a estos Términos y Condiciones, a la Política de Privacidad y al Aviso de Exención de Responsabilidad: “Cliente”, “Usted” y “Su” se refieren a la persona que accede a este sitio web y que acepta los términos y condiciones de Green Vacations Costa Rica. “La Compañía”, “Nosotros”, “Nuestro” y “Nosotros mismos” se refieren a Green Vacations Costa Rica, empresa costarricense dedicada a la operación turística y venta de tours guiados en Costa Rica.
+La siguiente terminología se aplica a estos Términos y Condiciones, a la Política de Privacidad y al Aviso de Exención de Responsabilidad: “Cliente”, “Usted” y “Su” se refieren a la persona que accede a este sitio web y que acepta los términos y condiciones de Green Vacations Costa Rica. “La Compañía”, “Nosotros”, “Nuestro” y “Nosotros mismos” se refieren a Green Vacations Costa Rica, empresa costarricense dedicada a la operación turística y venta de products guiados en Costa Rica.
 
 El término “Parte” o “Partes” hace referencia tanto al Cliente como a la Compañía. Todos los términos se refieren a la oferta, aceptación y consideración del pago necesario para llevar a cabo el proceso de prestación de nuestros servicios turísticos al Cliente de la manera más adecuada, con el propósito de satisfacer sus necesidades de viaje, conforme a la legislación vigente de Costa Rica.
 
@@ -313,7 +313,7 @@ TXT
             $savePolicyTranslations(
                 $cancel->policy_id,
                 'Política de Cancelación',
-                "• Las cancelaciones realizadas con 24 horas o más de antelación recibirán un reembolso del 100%.\n• Las cancelaciones efectuadas con menos de 24 horas de antelación, o en caso de no presentarse al tour, no son reembolsables (0%).\n• Las reprogramaciones podrán gestionarse con un mínimo de 12 horas antes del inicio del tour y estarán sujetas a disponibilidad.\n• Los reembolsos se procesarán únicamente a la misma tarjeta con la cual se realizó la compra original.\n• Para realizar cancelaciones, reprogramaciones o consultas, puede contactarnos mediante correo electrónico a info@greenvacationscr.com o vía telefónica/WhatsApp al +506 2470-1471."
+                "• Las cancelaciones realizadas con 24 horas o más de antelación recibirán un reembolso del 100%.\n• Las cancelaciones efectuadas con menos de 24 horas de antelación, o en caso de no presentarse al product, no son reembolsables (0%).\n• Las reprogramaciones podrán gestionarse con un mínimo de 12 horas antes del inicio del product y estarán sujetas a disponibilidad.\n• Los reembolsos se procesarán únicamente a la misma tarjeta con la cual se realizó la compra original.\n• Para realizar cancelaciones, reprogramaciones o consultas, puede contactarnos mediante correo electrónico a info@greenvacationscr.com o vía telefónica/WhatsApp al +506 2470-1471."
             );
 
             // =========================
@@ -326,7 +326,7 @@ TXT
             $savePolicyTranslations(
                 $refund->policy_id,
                 'Política de Devoluciones y Reembolsos',
-                "• Las devoluciones de dinero se realizan únicamente cuando el servicio no pueda ser brindado por causas atribuibles a Green Vacations Costa Rica (por ejemplo, cancelación del tour por condiciones climáticas extremas o causas operativas justificadas).\n• No se realizarán devoluciones si el cliente no se presenta al tour o cancela fuera del plazo establecido en nuestras políticas de cancelación.\n• Los reembolsos se procesarán únicamente a la misma tarjeta con la cual se efectuó la compra original.\n• El tiempo de acreditación del reembolso dependerá del banco o emisor de la tarjeta utilizada.\n• Los cargos aplicados por terceros (como plataformas de pago o entidades financieras) podrían no ser reembolsables.\n• Para solicitar una devolución o aclarar dudas sobre su reembolso, puede contactarnos a través del correo info@greenvacationscr.com o mediante teléfono/WhatsApp al +506 2470-1471."
+                "• Las devoluciones de dinero se realizan únicamente cuando el servicio no pueda ser brindado por causas atribuibles a Green Vacations Costa Rica (por ejemplo, cancelación del product por condiciones climáticas extremas o causas operativas justificadas).\n• No se realizarán devoluciones si el cliente no se presenta al product o cancela fuera del plazo establecido en nuestras políticas de cancelación.\n• Los reembolsos se procesarán únicamente a la misma tarjeta con la cual se efectuó la compra original.\n• El tiempo de acreditación del reembolso dependerá del banco o emisor de la tarjeta utilizada.\n• Los cargos aplicados por terceros (como plataformas de pago o entidades financieras) podrían no ser reembolsables.\n• Para solicitar una devolución o aclarar dudas sobre su reembolso, puede contactarnos a través del correo info@greenvacationscr.com o mediante teléfono/WhatsApp al +506 2470-1471."
             );
 
             // =========================
@@ -353,10 +353,10 @@ TXT
                 $warranty->policy_id,
                 'Política de Garantías',
                 <<<'TXT'
-• Green Vacations Costa Rica garantiza la correcta prestación de los servicios turísticos contratados, asegurando el cumplimiento de los estándares de calidad y seguridad ofrecidos en cada tour.
-• Si el cliente considera que el servicio recibido no corresponde con lo contratado, podrá presentar una solicitud formal de revisión o garantía dentro de un plazo máximo de 7 días naturales posteriores a la fecha del tour.
+• Green Vacations Costa Rica garantiza la correcta prestación de los servicios turísticos contratados, asegurando el cumplimiento de los estándares de calidad y seguridad ofrecidos en cada product.
+• Si el cliente considera que el servicio recibido no corresponde con lo contratado, podrá presentar una solicitud formal de revisión o garantía dentro de un plazo máximo de 7 días naturales posteriores a la fecha del product.
 • Esta garantía aplica únicamente a servicios operados directamente por Green Vacations Costa Rica y no cubre servicios de terceros, como transporte externo, hospedaje, alimentación o actividades subcontratadas.
-• En caso de validarse una inconformidad, Green Vacations Costa Rica podrá ofrecer una compensación, reprogramación del tour o reembolso parcial, según corresponda.
+• En caso de validarse una inconformidad, Green Vacations Costa Rica podrá ofrecer una compensación, reprogramación del product o reembolso parcial, según corresponda.
 • Para gestionar una solicitud de garantía o enviar documentación de respaldo, puede contactarnos mediante correo electrónico a info@greenvacationscr.com o vía telefónica/WhatsApp al +506 2470-1471.
 TXT
             );

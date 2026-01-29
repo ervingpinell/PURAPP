@@ -49,7 +49,7 @@ class CleanupExpiredBookings extends Command
             ->whereDoesntHave('payments', function ($query) {
                 $query->where('status', 'completed');
             })
-            ->with(['user', 'tour', 'detail'])
+            ->with(['user', 'product', 'detail'])
             ->get();
 
         if ($expiredBookings->isEmpty()) {
@@ -61,13 +61,13 @@ class CleanupExpiredBookings extends Command
 
         // Show details
         $this->table(
-            ['ID', 'Reference', 'User', 'Tour', 'Created', 'Age (min)'],
+            ['ID', 'Reference', 'User', 'Product', 'Created', 'Age (min)'],
             $expiredBookings->map(function ($booking) {
                 return [
                     $booking->booking_id,
                     $booking->booking_reference ?? 'N/A',
                     optional($booking->user)->email ?? 'N/A',
-                    optional($booking->tour)->name ?? 'N/A',
+                    optional($booking->product)->name ?? 'N/A',
                     $booking->created_at->format('Y-m-d H:i'),
                     $booking->created_at->diffInMinutes(Carbon::now()),
                 ];

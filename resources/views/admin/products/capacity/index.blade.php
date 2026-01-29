@@ -22,8 +22,8 @@
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link {{ $tab === 'by-tour' ? 'active' : '' }}"
-          href="{{ route('admin.products.capacity.index', ['tab' => 'by-tour']) }}">
+        <a class="nav-link {{ $tab === 'by-product' ? 'active' : '' }}"
+          href="{{ route('admin.products.capacity.index', ['tab' => 'by-product']) }}">
           <i class="fas fa-clock me-1"></i>
           {{ __('m_bookings.capacity.tabs.by_tour') }}
         </a>
@@ -49,7 +49,7 @@
     <table class="table table-sm table-striped">
       <thead>
         <tr>
-          <th>{{ __('m_bookings.capacity.tables.global.tour') }}</th>
+          <th>{{ __('m_bookings.capacity.tables.global.product') }}</th>
           <th>{{ __('m_bookings.capacity.tables.global.type') }}</th>
           <th style="width: 150px;">{{ __('m_bookings.capacity.tables.global.capacity') }}</th>
           <th style="width: 100px;">{{ __('m_bookings.capacity.tables.global.level') }}</th>
@@ -61,11 +61,11 @@
           <td>{{ $product->getTranslatedName() ?? $product->name }}</td>
           <td>
             <span class="badge bg-secondary">
-              {{ $product->tourType->getNameTranslatedAttribute() ?? $product->tourType->name ?? '—' }}
+              {{ $product->productType->getNameTranslatedAttribute() ?? $product->productType->name ?? '—' }}
             </span>
           </td>
           <td>
-            <form action="{{ route('admin.products.capacity.update-tour', $product) }}"
+            <form action="{{ route('admin.products.capacity.update-product', $product) }}"
               method="POST"
               class="d-flex gap-2">
               @csrf
@@ -77,7 +77,7 @@
                 min="1"
                 max="999"
                 required>
-              @can('edit-tour-availability')
+              @can('edit-product-availability')
               <button type="submit" class="btn btn-primary btn-sm" title="{{ __('m_bookings.capacity.buttons.save') }}">
                 <i class="fas fa-save"></i>
               </button>
@@ -93,8 +93,8 @@
     </table>
     @endif
 
-    {{-- TAB 2: Por Tour + Horario --}}
-    @if($tab === 'by-tour')
+    {{-- TAB 2: Por Product + Horario --}}
+    @if($tab === 'by-product')
     <div class="alert alert-info">
       <i class="fas fa-info-circle me-1"></i>
       {!! __('m_bookings.capacity.alerts.by_tour_info') !!}
@@ -114,9 +114,9 @@
         <table class="table table-sm table-striped mb-0">
           <thead>
             <tr>
-              <th>{{ __('m_bookings.capacity.tables.by_tour.schedule') }}</th>
-              <th style="width: 200px;">{{ __('m_bookings.capacity.tables.by_tour.capacity') }}</th>
-              <th style="width: 120px;">{{ __('m_bookings.capacity.tables.by_tour.level') }}</th>
+              <th>{{ __('m_bookings.capacity.tables.by_product.schedule') }}</th>
+              <th style="width: 200px;">{{ __('m_bookings.capacity.tables.by_product.capacity') }}</th>
+              <th style="width: 120px;">{{ __('m_bookings.capacity.tables.by_product.level') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -142,7 +142,7 @@
                     max="999"
                     placeholder="{{ __('m_bookings.capacity.messages.empty_placeholder', ['capacity' => $product->max_capacity ?? 15]) }}"
                     style="max-width: 120px;">
-                  @can('edit-tour-availability')
+                  @can('edit-product-availability')
                   <button type="submit" class="btn btn-primary btn-sm" title="{{ __('m_bookings.capacity.buttons.save') }}">
                     <i class="fas fa-save"></i>
                   </button>
@@ -163,7 +163,7 @@
             @empty
             <tr>
               <td colspan="3" class="text-center text-muted py-3">
-                {{ __('m_bookings.capacity.tables.by_tour.no_schedules') }}
+                {{ __('m_bookings.capacity.tables.by_product.no_schedules') }}
               </td>
             </tr>
             @endforelse
@@ -185,7 +185,7 @@
       <thead>
         <tr>
           <th>{{ __('m_bookings.capacity.tables.day_schedules.date') }}</th>
-          <th>{{ __('m_bookings.capacity.tables.day_schedules.tour') }}</th>
+          <th>{{ __('m_bookings.capacity.tables.day_schedules.product') }}</th>
           <th>{{ __('m_bookings.capacity.tables.day_schedules.schedule') }}</th>
           <th>{{ __('m_bookings.capacity.tables.day_schedules.capacity') }}</th>
           <th style="width: 100px;">{{ __('m_bookings.capacity.tables.day_schedules.actions') }}</th>
@@ -195,7 +195,7 @@
         @forelse($dayScheduleOverrides as $override)
         <tr>
           <td>{{ Carbon\Carbon::parse($override->date)->format('d/m/Y') }}</td>
-          <td>{{ $override->tour->getTranslatedName() ?? $override->tour->name }}</td>
+          <td>{{ $override->product->getTranslatedName() ?? $override->product->name }}</td>
           <td><strong>{{ date('g:i A', strtotime($override->schedule->start_time)) }}</strong></td>
           <td>
             @if($override->is_blocked)
@@ -211,7 +211,7 @@
               onsubmit="return confirm('{{ __('m_bookings.capacity.messages.deleted_confirm') }}')">
               @csrf
               @method('DELETE')
-              @can('edit-tour-availability')
+              @can('edit-product-availability')
               <button type="submit" class="btn btn-danger btn-sm" title="{{ __('m_bookings.capacity.buttons.delete') }}">
                 <i class="fas fa-trash"></i>
               </button>

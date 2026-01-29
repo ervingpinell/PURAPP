@@ -1,6 +1,6 @@
 <?php
 
-// app/Console/Commands/CleanOldTourLogs.php
+// app/Console/Commands/CleanOldProductLogs.php
 
 namespace App\Console\Commands;
 
@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 class CleanOldProductLogs extends Command
 {
     protected $signature = 'products:audit:cleanup {--days=365}';
-    protected $description = 'Elimina logs de tour_audit_logs más antiguos que N días.';
+    protected $description = 'Elimina logs de product_audit_logs más antiguos que N días.';
 
     public function handle()
     {
@@ -20,6 +20,6 @@ class CleanOldProductLogs extends Command
 
         $deleted = ProductAuditLog::where('created_at', '<', $cutoff)->delete();
 
-        $this->info("Eliminados {$deleted} registros de tour_audit_logs anteriores a {$cutoff}.");
+        $this->info("Eliminados {$deleted} registros de product_audit_logs anteriores a {$cutoff}.");
     }
 }

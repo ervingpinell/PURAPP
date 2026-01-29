@@ -10,7 +10,7 @@ use Spatie\Translatable\HasTranslations;
 /**
  * Itinerary Model
  *
- * Represents a tour itinerary.
+ * Represents a product itinerary.
  */
 class Itinerary extends Model
 {

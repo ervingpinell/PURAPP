@@ -14,7 +14,7 @@ return new class extends Migration
     {
         $reviewsEmbedColors = [
             // Colores principales
-            ['key' => 'reviews_embed_green', 'value' => '#1A5229', 'description' => 'Verde principal - títulos de tour, enlaces (Reviews Embed)'],
+            ['key' => 'reviews_embed_green', 'value' => '#1A5229', 'description' => 'Verde principal - títulos de product, enlaces (Reviews Embed)'],
             ['key' => 'reviews_embed_warn', 'value' => '#e74c3c', 'description' => 'Color para badge de review label (Reviews Embed)'],
             
             // Colores de texto

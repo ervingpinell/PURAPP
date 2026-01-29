@@ -16,7 +16,7 @@ class NotifyPendingDrafts extends Command
      *
      * @var string
      */
-    protected $signature = 'tours:notify-pending-drafts
+    protected $signature = 'products:notify-pending-drafts
                             {--days=7 : Notificar drafts más antiguos que X días}
                             {--dry-run : Simular sin enviar notificaciones}';
 
@@ -44,7 +44,7 @@ class NotifyPendingDrafts extends Command
         $draftsByUser = Product::where('is_draft', true)
             ->where('updated_at', '<', $cutoffDate)
             ->whereNotNull('created_by')
-            ->with(['tourType', 'created_by_user'])
+            ->with(['productType', 'created_by_user'])
             ->get()
             ->groupBy('created_by');
 
@@ -154,14 +154,14 @@ class NotifyPendingDrafts extends Command
      * Definir el schedule en Kernel.php:
      *
      * // Enviar recordatorio semanal
-     * $schedule->command('tours:notify-pending-drafts --days=7')
+     * $schedule->command('products:notify-pending-drafts --days=7')
      *          ->weekly()
      *          ->mondays()
      *          ->at('09:00')
      *          ->appendOutputTo(storage_path('logs/draft-notifications.log'));
      *
      * // O recordatorio quincenal
-     * $schedule->command('tours:notify-pending-drafts --days=14')
+     * $schedule->command('products:notify-pending-drafts --days=14')
      *          ->twiceMonthly(1, 16, '09:00')
      *          ->appendOutputTo(storage_path('logs/draft-notifications.log'));
      */

@@ -29,9 +29,9 @@ class CleanupOldAmenities extends Command
         foreach ($oldItems as $item) {
             $name = $item->name ?? $item->amenity_id;
             try {
-                // Verificar si tiene tours asociados antes de forzar borrado
-                if ($item->tours()->exists()) {
-                    $this->warn("! Skipped {$name}: Has associated tours.");
+                // Verificar si tiene products asociados antes de forzar borrado
+                if ($item->products()->exists()) {
+                    $this->warn("! Skipped {$name}: Has associated products.");
                     continue;
                 }
 

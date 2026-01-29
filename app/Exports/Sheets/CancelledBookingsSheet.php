@@ -27,7 +27,7 @@ class CancelledBookingsSheet implements FromCollection, WithHeadings, WithStyles
             return [
                 'date_cancelled' => $booking->updated_at?->format('Y-m-d H:i') ?? '',
                 'ref' => $booking->booking_reference,
-                'tour' => $booking->tour->title ?? '',
+                'product' => $booking->product->title ?? '',
                 'pax' => $this->getTotalPax($detail),
                 'cliente' => $booking->user->name ?? '',
                 'reason' => $this->getCancellationReason($booking),
@@ -40,7 +40,7 @@ class CancelledBookingsSheet implements FromCollection, WithHeadings, WithStyles
         return [
             'Cancelled',
             'Ref',
-            'Tour',
+            'Product',
             'Pax',
             'Cliente',
             'Reason',

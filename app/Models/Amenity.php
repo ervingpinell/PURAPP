@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Amenity Model
  *
- * Represents a tour amenity/feature (WiFi, AC, etc.).
+ * Represents a product amenity/feature (WiFi, AC, etc.).
  */
 class Amenity extends Model
 {
@@ -61,11 +61,11 @@ class Amenity extends Model
             ->withTimestamps();
     }
 
-    public function excludedFromTours()
+    public function excludedFromProducts()
     {
         return $this->belongsToMany(
             Product::class,
-            'excluded_amenity_tour',
+            'excluded_amenity_product',
             'amenity_id',
             'product_id'
         )
