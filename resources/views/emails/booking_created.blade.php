@@ -68,35 +68,35 @@ $d = collect($details ?? $booking->details ?? [])->first();
 $preferredLoc = $mailLocale;
 
 // 1) Snapshot
-$tourName = $d?->tour_name;
+$productName = $d?->product_name;
 
 // 2) Relación Tour traducida
-if (!$tourName && $d?->relationLoaded('tour') && $d?->tour) {
-$tour = $d->tour;
+if (!$productName && $d?->relationLoaded('tour') && $d?->tour) {
+$product = $d->product;
 
-if (isset($tour->translated_name) && filled($tour->translated_name)) {
-$tourName = $tour->translated_name;
+if (isset($product->translated_name) && filled($product->translated_name)) {
+$productName = $product->translated_name;
 }
-if (!$tourName && method_exists($tour, 'getTranslated')) {
-$tourName = $tour->getTranslated('name', $preferredLoc) ?? $tour->name ?? null;
+if (!$productName && method_exists($product, 'getTranslated')) {
+$productName = $product->getTranslated('name', $preferredLoc) ?? $product->name ?? null;
 }
-if (!$tourName) {
-$tr = $tour->relationLoaded('translations')
-? $tour->translations->firstWhere('locale', $preferredLoc)
-: $tour->translations()->where('locale', $preferredLoc)->first();
-$tourName = $tr->name ?? $tour->name ?? null;
+if (!$productName) {
+$tr = $product->relationLoaded('translations')
+? $product->translations->firstWhere('locale', $preferredLoc)
+: $product->translations()->where('locale', $preferredLoc)->first();
+$productName = $tr->name ?? $product->name ?? null;
 }
 }
-$tourName = $tourName ?: ($mailLocale === 'es' ? 'Tour' : 'Tour');
+$productName = $productName ?: ($mailLocale === 'es' ? 'Product' : 'Product');
 
 
-$tourDate = $d?->tour_date ? $formatEmailDate($d->tour_date) : null;
+$productDate = $d?->product_date ? $formatEmailDate($d->product_date) : null;
 $scheduleTxt = $d?->schedule
 ? \Illuminate\Support\Carbon::parse($d->schedule->start_time)->isoFormat('LT') . ' – ' . \Illuminate\Support\Carbon::parse($d->schedule->end_time)->isoFormat('LT')
 : null;
 
-$tourLang = optional($d?->tourLanguage)->language_name
-?? optional($d?->tourLanguage)->name
+$productLang = optional($d?->productLanguage)->language_name
+?? optional($d?->productLanguage)->name
 ?? optional($booking->productLanguage)->language_name
 ?? optional($booking->productLanguage)->language
 ?? null;
@@ -276,10 +276,10 @@ $notes = trim((string)($booking->notes ?? ''));
 <div class="section-card" style="margin-bottom:12px;">
   <div class="section-title" style="margin-bottom:6px;font-weight:700;">{{ $tSummary }}</div>
   <div style="font-size:14px;color:#374151;">
-    @if($tourName)<div><strong>{{ __('adminlte::email.service') }}:</strong> {{ $tourName }}</div>@endif
-    @if($tourDate)<div><strong>{{ $mailLocale==='es'?'Fecha del tour':'Tour date' }}:</strong> {{ $tourDate }}</div>@endif
+    @if($productName)<div><strong>{{ __('adminlte::email.service') }}:</strong> {{ $productName }}</div>@endif
+    @if($productDate)<div><strong>{{ $mailLocale==='es'?'Fecha del producto':'Product date' }}:</strong> {{ $productDate }}</div>@endif
     @if($scheduleTxt)<div><strong>{{ $mailLocale==='es'?'Horario':'Schedule' }}:</strong> {{ $scheduleTxt }}</div>@endif
-    @if($tourLang)<div><strong>{{ $mailLocale==='es'?'Idioma':'Language' }}:</strong> {{ $tourLang }}</div>@endif
+    @if($productLang)<div><strong>{{ $mailLocale==='es'?'Idioma':'Language' }}:</strong> {{ $productLang }}</div>@endif
 
     @if($meetingName)
     <div><strong>{{ $mailLocale==='es'?'Punto de encuentro':'Meeting point' }}:</strong>

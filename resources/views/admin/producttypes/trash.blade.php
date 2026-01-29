@@ -34,28 +34,28 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($productTypes as $tourType)
+                    @foreach($productTypes as $productType)
                     @php
-                    $daysLeft = max(0, 30 - now()->diffInDays($tourType->deleted_at));
-                    $ttName = $tourType->name ?: 'Sin nombre';
+                    $daysLeft = max(0, 30 - now()->diffInDays($productType->deleted_at));
+                    $ptName = $productType->name ?: 'Sin nombre';
                     @endphp
                     <tr>
                         <td>
-                            <strong>{{ $ttName }}</strong>
+                            <strong>{{ $ptName }}</strong>
                         </td>
                         <td class="text-center">
-                            @if($tourType->deletedBy)
+                            @if($productType->deletedBy)
                             <i class="fas fa-user-circle fa-2x text-primary"
                                 data-toggle="tooltip"
                                 data-bs-placement="top"
-                                title="{{ $tourType->deletedBy->name }}"
+                                title="{{ $productType->deletedBy->name }}"
                                 style="cursor: help;">
                             </i>
                             @else
                             <span class="text-muted">—</span>
                             @endif
                         </td>
-                        <td>{{ $tourType->deleted_at->format('d/m/Y H:i') }}</td>
+                        <td>{{ $productType->deleted_at->format('d/m/Y H:i') }}</td>
                         <td class="text-center">
                             <span class="badge {{ $daysLeft <= 7 ? 'bg-danger' : 'bg-warning' }}">
                                 {{ $daysLeft }} {{ $daysLeft === 1 ? 'día' : 'días' }}
@@ -64,7 +64,7 @@
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
                                 @can('restore-tour-types')
-                                <form action="{{ route('admin.product-types.restore', $tourType->product_type_id) }}" method="POST" class="d-inline restore-form">
+                                <form action="{{ route('admin.product-types.restore', $productType->product_type_id) }}" method="POST" class="d-inline restore-form">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="btn btn-success" title="Restaurar">
@@ -74,7 +74,7 @@
                                 @endcan
 
                                 @can('hard-delete-tour-types')
-                                <form action="{{ route('admin.product-types.forceDelete', $tourType->product_type_id) }}" method="POST" class="d-inline force-delete-form">
+                                <form action="{{ route('admin.product-types.forceDelete', $productType->product_type_id) }}" method="POST" class="d-inline force-delete-form">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger" title="Eliminar permanentemente">

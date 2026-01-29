@@ -23,7 +23,7 @@
         <label class="form-label">{{ __('m_config.cut-off.fields.tour') }}</label>
         <select class="form-select" id="tourForSchedule">
           <option value="">{{ __('m_config.cut-off.selects.tour') }}</option>
-          @foreach($tours as $t)
+          @foreach($products as $t)
           <option value="{{ $t->product_id }}">{{ $t->name }}</option>
           @endforeach
         </select>
@@ -67,7 +67,7 @@
 @push('js')
 <script>
   (() => {
-    const toursData = @json($toursPayload);
+    const productsData = @json($productsPayload);
     const tourForSchedule = document.getElementById('tourForSchedule');
     const scheduleSelect = document.getElementById('scheduleSelect');
     const schCutoff = document.getElementById('schCutoff');
@@ -93,7 +93,7 @@
       setSch(@json(__('m_config.cut-off.badges.inherit_tour_global')), 'badge-global');
 
       if (!tourId) return;
-      const t = toursData.find(x => String(x.id) === String(tourId));
+      const t = productsData.find(x => String(x.id) === String(tourId));
       if (!t) return;
       t.schedules.forEach(s => {
         const opt = document.createElement('option');

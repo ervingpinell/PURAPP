@@ -5,7 +5,7 @@ namespace App\Http\Requests\Product\ProductType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use App\Services\LoggerHelper;
-use App\Models\TourType;
+use App\Models\ProductType;
 
 class ToggleProductTypeRequest extends FormRequest
 {
@@ -29,12 +29,12 @@ class ToggleProductTypeRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        /** @var TourType|null $tourType */
-        $tourType = $this->route('tourType');
+        /** @var ProductType|null $productType */
+        $productType = $this->route('productType');
 
         LoggerHelper::validationFailed($this->controller, 'toggle', $validator->errors()->toArray(), [
-            'entity'    => 'tour_type',
-            'entity_id' => $tourType?->getKey(),
+            'entity'    => 'product_type',
+            'entity_id' => $productType?->getKey(),
             'user_id'   => optional($this->user())->getAuthIdentifier(),
         ]);
 

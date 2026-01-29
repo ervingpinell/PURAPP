@@ -307,7 +307,7 @@
     </div>
     @endif
 
-    <form action="{{ route('admin.products.product-wizard.store.prices', $product) }}" method="POST" id="pricing-form">
+    <form action="{{ route('admin.products.wizard.store.prices', $product) }}" method="POST" id="pricing-form">
         @csrf
 
         {{-- Strategy Selector --}}
@@ -461,7 +461,7 @@
 
         {{-- Navigation Buttons --}}
         <div class="d-flex justify-content-between mt-4 mb-5">
-            <a href="{{ route('admin.products.product-wizard.step', ['product' => $product, 'step' => 4]) }}"
+            <a href="{{ route('admin.products.wizard.step', ['product' => $product, 'step' => 4]) }}"
                 class="btn btn-secondary">
                 <i class="fas fa-arrow-left mr-2"></i>
                 {{ __('m_tours.tour.wizard.previous') }}

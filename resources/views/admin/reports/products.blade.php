@@ -1,12 +1,12 @@
 @extends('adminlte::page')
 
-@section('title', 'Tours Performance')
+@section('title', 'Products Performance')
 
 @section('content')
 <div class="container-fluid">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">🎫 Tours Performance</h1>
+        <h1 class="h3 mb-0">🎫 Products Performance</h1>
         <div>
             <a href="{{ route('admin.reports.index') }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Main Dashboard
@@ -42,7 +42,7 @@
         <div class="col-md-3">
             <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Active Tours</div>
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Active Products</div>
                     <div class="h5 mb-0 font-weight-bold">{{ $kpis['total_active_tours'] }}</div>
                 </div>
             </div>
@@ -50,7 +50,7 @@
         <div class="col-md-3">
             <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
-                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Tours with Bookings</div>
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Products with Bookings</div>
                     <div class="h5 mb-0 font-weight-bold">{{ $kpis['tours_with_bookings'] }}</div>
                 </div>
             </div>
@@ -78,7 +78,7 @@
         <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Top 10 Tours by Revenue</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Top 10 Products by Revenue</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="topRevenueChart" height="300"></canvas>
@@ -88,7 +88,7 @@
         <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Top 10 Tours by Bookings</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Top 10 Products by Bookings</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="topBookingsChart" height="300"></canvas>
@@ -102,36 +102,36 @@
         <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Bookings by Tour Type</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Bookings by Product Type</h6>
                 </div>
                 <div class="card-body">
-                    <canvas id="tourTypeChart"></canvas>
+                    <canvas id="productTypeChart"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-lg-6">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Top Tours Details</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">Top Products Details</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th>Tour</th>
+                                    <th>Product</th>
                                     <th class="text-end">Revenue</th>
                                     <th class="text-end">Bookings</th>
                                     <th class="text-end">PAX</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($topToursByRevenue->take(10) as $tour)
+                                @foreach($topProductsByRevenue->take(10) as $product)
                                 <tr>
-                                    <td class="text-truncate" style="max-width: 200px;">{{ $tour->tour_name }}</td>
-                                    <td class="text-end">${{ number_format($tour->revenue, 2) }}</td>
-                                    <td class="text-end">{{ $tour->bookings }}</td>
-                                    <td class="text-end">{{ $tour->pax ?? 0 }}</td>
+                                    <td class="text-truncate" style="max-width: 200px;">{{ $product->product_name }}</td>
+                                    <td class="text-end">${{ number_format($product->revenue, 2) }}</td>
+                                    <td class="text-end">{{ $product->bookings }}</td>
+                                    <td class="text-end">{{ $product->pax ?? 0 }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
@@ -149,7 +149,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const filters = new URLSearchParams(window.location.search);
 
-        // Top Tours by Revenue
+        // Top Products by Revenue
         fetch(`{{ route('admin.reports.products.chart.top-revenue') }}?${filters}&limit=10`)
             .then(res => res.json())
             .then(data => {
@@ -191,7 +191,7 @@
                 });
             });
 
-        // Top Tours by Bookings
+        // Top Products by Bookings
         fetch(`{{ route('admin.reports.products.chart.top-bookings') }}?${filters}&limit=10`)
             .then(res => res.json())
             .then(data => {
@@ -225,11 +225,11 @@
                 });
             });
 
-        // Tour Type Chart
+        // Product Type Chart
         fetch(`{{ route('admin.reports.products.chart.tour-type') }}?${filters}`)
             .then(res => res.json())
             .then(data => {
-                new Chart(document.getElementById('tourTypeChart'), {
+                new Chart(document.getElementById('productTypeChart'), {
                     type: 'doughnut',
                     data: {
                         labels: data.labels,

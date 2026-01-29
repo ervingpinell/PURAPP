@@ -109,13 +109,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const form    = modalEl.querySelector('form');
     if (!form) return;
 
-    const tourSel  = form.querySelector('select[name="product_id"]');
+    const productSel  = form.querySelector('select[name="product_id"]');
     const schedSel = form.querySelector('select[name="schedule_id"]');
 
-    if (tourSel && schedSel && tourSel.dataset.bound !== '1') {
-      tourSel.dataset.bound = '1';
-      tourSel.addEventListener('change', () => {
-        const opt = tourSel.options[tourSel.selectedIndex];
+    if (productSel && schedSel && productSel.dataset.bound !== '1') {
+      productSel.dataset.bound = '1';
+      productSel.addEventListener('change', () => {
+        const opt = productSel.options[productSel.selectedIndex];
         let schedules = [];
         try { schedules = JSON.parse(opt?.dataset?.schedules || '[]') || []; } catch(e){ schedules = []; }
         schedSel.innerHTML = `<option value="">${@json(__('m_bookings.bookings.placeholders.select_schedule'))}</option>`;
@@ -210,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Rebuild al mostrar
-    if (tourSel?.value) rebuildSchedules();
+    if (productSel?.value) rebuildSchedules();
     updateMpHelp();
   });
 
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnValidate    = document.getElementById('btnValidateEmail');
 
   const dateInput      = form?.querySelector('#tourDate');
-  const tourSel        = form?.querySelector('#selectTour');
+  const productSel        = form?.querySelector('#selectTour');
   const schedSel       = form?.querySelector('#selectSchedule');
 
   const adultsInp      = form?.querySelector('#adultsQuantity');
@@ -444,8 +444,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Build schedules al cambiar tour
   // =========================================================================
   const rebuildSchedules = () => {
-    if (!tourSel || !schedSel) return;
-    const opt = tourSel.selectedOptions[0];
+    if (!productSel || !schedSel) return;
+    const opt = productSel.selectedOptions[0];
 
     currentAdultPrice = parseFloat(opt?.getAttribute('data-adult-price') || '0') || 0;
     currentKidPrice   = parseFloat(opt?.getAttribute('data-kid-price')   || '0') || 0;
@@ -465,7 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
     calculateTotal();
   };
 
-  tourSel?.addEventListener('change', rebuildSchedules);
+  productSel?.addEventListener('change', rebuildSchedules);
   adultsInp?.addEventListener('input', calculateTotal);
   kidsInp?.addEventListener('input', calculateTotal);
 

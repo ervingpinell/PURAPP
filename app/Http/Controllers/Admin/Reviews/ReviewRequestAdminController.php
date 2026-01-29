@@ -66,10 +66,10 @@ class ReviewRequestAdminController extends Controller
 
         $query = Booking::query()
             ->with([
-                'tour:product_id,name',
-                'tour.translations',
+                'product:product_id,name',
+                'product.translations',
                 'user:user_id,first_name,last_name,email',
-                'detail.tourLanguage:tour_language_id,name',
+                'detail.productLanguage:tour_language_id,name',
             ]);
 
         // (opcional) selección explícita de columna de referencia si existe
@@ -81,7 +81,7 @@ class ReviewRequestAdminController extends Controller
             ->whereDate($dateCol, '>=', $from)
             ->whereDate($dateCol, '<=', $to)
 
-            // Sin review local previa (mismo user + tour)
+            // Sin review local previa (mismo user + product)
             ->whereNotExists(function ($subQuery) use ($reviewTable, $bookingTable) {
                 $subQuery->select(DB::raw('1'))
                     ->from($reviewTable)
@@ -122,8 +122,8 @@ class ReviewRequestAdminController extends Controller
                 });
             })
         
-            // Strict Filter: Tour Date must be in the past (or today)
-            // Helps prevent future tours from showing up even if filtered by creation date.
+            // Strict Filter: Product Date must be in the past (or today)
+            // Helps prevent future products from showing up even if filtered by creation date.
             ->whereHas('detail', function ($sub) {
                 $sub->where('tour_date', '<=', now());
             })
@@ -159,7 +159,7 @@ class ReviewRequestAdminController extends Controller
             ->with([
                 // incluye booking_reference si existe
                 'booking:booking_id,product_id' . ($hasBookingRef ? ',booking_reference' : ''),
-                'tour:product_id,name',
+                'product:product_id,name',
                 'user:user_id,first_name,last_name,email',
             ]);
 
@@ -216,7 +216,7 @@ class ReviewRequestAdminController extends Controller
             });
         });
 
-        // Filtrar por tour
+        // Filtrar por producto
         $query->when($request->filled('product_id'), fn($sub) => $sub->where('product_id', (int) request('product_id')));
 
         $requests = $query->orderByDesc($dateCol)->paginate(25)->withQueryString();
@@ -252,9 +252,9 @@ class ReviewRequestAdminController extends Controller
         ]);
 
         if ($reviewRequest->email) {
-            // Detect locale from tour language name in booking details
-            $tourLanguageName = optional(optional($booking->detail)->tourLanguage)->name ?? '';
-            $locale = $this->detectLocaleFromLanguageName($tourLanguageName);
+            // Detect locale from product language name in booking details
+            $productLanguageName = optional(optional($booking->detail)->productLanguage)->name ?? '';
+            $locale = $this->detectLocaleFromLanguageName($productLanguageName);
             
             Mail::to($reviewRequest->email)->queue(new ReviewRequestLink($reviewRequest, $locale));
         }
@@ -278,13 +278,13 @@ class ReviewRequestAdminController extends Controller
             return back()->withErrors(__('reviews.requests.errors.wait_one_minute'));
         }
 
-        // Load tour language from booking details for language detection
-        $reviewRequest->load('booking.detail.tourLanguage', 'booking.tour.translations');
+        // Load product language from booking details for language detection
+        $reviewRequest->load('booking.detail.productLanguage', 'booking.product.translations');
 
         if ($reviewRequest->email) {
-            // Detect locale from tour language name in booking details
-            $tourLanguageName = optional(optional(optional($reviewRequest->booking)->detail)->tourLanguage)->name ?? '';
-            $locale = $this->detectLocaleFromLanguageName($tourLanguageName);
+            // Detect locale from product language name in booking details
+            $productLanguageName = optional(optional(optional($reviewRequest->booking)->detail)->productLanguage)->name ?? '';
+            $locale = $this->detectLocaleFromLanguageName($productLanguageName);
             
             Mail::to($reviewRequest->email)->queue(new ReviewRequestLink($reviewRequest, $locale));
         }
@@ -307,13 +307,13 @@ class ReviewRequestAdminController extends Controller
             return back()->withErrors(__('reviews.requests.errors.expired'));
         }
 
-        // Load tour language from booking details for language detection
-        $reviewRequest->load('booking.detail.tourLanguage', 'booking.tour.translations');
+        // Load product language from booking details for language detection
+        $reviewRequest->load('booking.detail.productLanguage', 'booking.product.translations');
 
         if ($reviewRequest->email) {
-            // Detect locale from tour language name in booking details
-            $tourLanguageName = optional(optional(optional($reviewRequest->booking)->detail)->tourLanguage)->name ?? '';
-            $locale = $this->detectLocaleFromLanguageName($tourLanguageName);
+            // Detect locale from product language name in booking details
+            $productLanguageName = optional(optional(optional($reviewRequest->booking)->detail)->productLanguage)->name ?? '';
+            $locale = $this->detectLocaleFromLanguageName($productLanguageName);
             
             Mail::to($reviewRequest->email)->queue(new ReviewRequestLink($reviewRequest, $locale));
         }
@@ -372,7 +372,7 @@ class ReviewRequestAdminController extends Controller
     }
 
     /**
-     * Detect email locale from tour language name
+     * Detect email locale from product language name
      * 
      * @param string $languageName
      * @return string 'es' or 'en'
@@ -453,7 +453,7 @@ class ReviewRequestAdminController extends Controller
         $query = ReviewRequest::onlyTrashed()
             ->with([
                 'booking:booking_id,product_id' . ($hasBookingRef ? ',booking_reference' : ''),
-                'tour:product_id,name',
+                'product:product_id,name',
                 'user:user_id,first_name,last_name,email',
             ]);
 

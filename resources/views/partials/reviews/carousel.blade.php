@@ -6,7 +6,7 @@
   $carouselId     = 'tourReviewsCarousel_'.uniqid();
 
   $routeName = request()->route()->getName();
-  $isSpecificTourPage = $routeName && str_ends_with($routeName, '.products.guided_tour.show');
+  $isSpecificProductPage = $routeName && str_ends_with($routeName, '.products.guided_tour.show');
 
   $TXT_MORE = __('reviews.read_more');  if (str_starts_with($TXT_MORE,'reviews.')) $TXT_MORE = 'Leer más';
   $TXT_LESS = __('reviews.read_less');  if (str_starts_with($TXT_LESS,'reviews.')) $TXT_LESS = 'Mostrar menos';
@@ -55,10 +55,10 @@
           $title    = trim((string)($r['title'] ?? ''));
           $body     = trim((string)($r['body'] ?? ''));
 
-          $tourId   = $r['product_id'] ?? null;
-          $tourSlug = trim((string)($r['tour_slug'] ?? ''));
-          $tourUrl  = ($tourId && $tourSlug) ? localized_route('products.guided_tour.show', ['slug' => $tourSlug]) : '#';
-          $tourName = trim((string)($r['tour_name'] ?? ''));
+          $productId   = $r['product_id'] ?? null;
+          $productSlug = trim((string)($r['product_slug'] ?? ''));
+          $productUrl  = ($productId && $productSlug) ? localized_route('products.guided_tour.show', ['slug' => $productSlug]) : '#';
+          $productName = trim((string)($r['product_name'] ?? ''));
 
           $avatarUrl= $r['avatar_url'] ?? null;
           $reviewId = $r['provider_review_id'] ?? $i;
@@ -68,9 +68,9 @@
         <div class="carousel-item {{ $isActive }}">
           <div class="slide-wrap">
             <article class="hero-card">
-              @if(!$isSpecificTourPage && $tourName !== '')
+              @if(!$isSpecificProductPage && $productName !== '')
                 <h3 class="tour-title-abs">
-                  <a href="{{ $tourUrl }}" class="tour-link" data-id="{{ $tourId ?? '' }}" data-name="{{ $tourName }}">{{ $tourName }}</a>
+                  <a href="{{ $productUrl }}" class="product-link" data-id="{{ $productId ?? '' }}" data-name="{{ $productName }}">{{ $productName }}</a>
                 </h3>
               @endif
 

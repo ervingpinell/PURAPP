@@ -39,7 +39,7 @@ class PaymentController extends Controller
 
         // Si viene un booking_id (link de pago), intentamos reconstruir el snapshot desde la reserva
         if ($bookingId && !$cartSnapshot) {
-            $booking = Booking::with(['detail', 'tour', 'user', 'detail.schedule'])->find($bookingId);
+            $booking = Booking::with(['detail', 'product', 'user', 'detail.schedule'])->find($bookingId);
 
             if ($booking && ($booking->status === 'pending' || $booking->status === 'confirmed')) {
                 // 🔒 STRICT EXPIRATION CHECK: Prevent "Ghost Carts"
@@ -196,12 +196,12 @@ class PaymentController extends Controller
             'stripeKey'       => config('payment.gateways.stripe.publishable_key'),
             'items'           => collect($cartSnapshot['items'])->map(function ($item) {
                 // Determine product_id (support both keys for robust handling)
-                $tourId = $item['product_id'] ?? $item['tour'] ?? null;
+                $productId = $item['product_id'] ?? $item['product'] ?? null;
                 // If it's an object, use it; if ID, fetch it.
-                if (is_object($tourId)) {
-                    $item['tour'] = $tourId;
-                } elseif ($tourId) {
-                    $item['tour'] = \App\Models\Product::find($tourId);
+                if (is_object($productId)) {
+                    $item['product'] = $productId;
+                } elseif ($productId) {
+                    $item['product'] = \App\Models\Product::find($productId);
                 }
 
                 // Schedule
@@ -247,7 +247,7 @@ class PaymentController extends Controller
 
         // Find booking by token
         $booking = Booking::where('payment_token', $token)
-            ->with(['detail', 'tour', 'user', 'detail.schedule', 'payments'])
+            ->with(['detail', 'product', 'user', 'detail.schedule', 'payments'])
             ->first();
 
         if (!$booking) {
@@ -294,7 +294,7 @@ class PaymentController extends Controller
 
         // Find booking by token
         $booking = Booking::where('payment_token', $token)
-            ->with(['detail', 'tour', 'user', 'detail.schedule', 'detail.tourLanguage', 'detail.hotel', 'detail.meetingPoint'])
+            ->with(['detail', 'product', 'user', 'detail.schedule', 'detail.tourLanguage', 'detail.hotel', 'detail.meetingPoint'])
             ->first();
 
         if (!$booking) {
@@ -367,7 +367,7 @@ class PaymentController extends Controller
         // Reconstruct items for display
         $items = collect([
             [
-                'tour'         => $booking->tour,
+                'product'      => $booking->product,
                 'tour_date'    => $booking->tour_date,
                 'categories'   => $booking->detail?->categories ?? [],
                 'schedule'     => $booking->detail?->schedule,
@@ -376,7 +376,7 @@ class PaymentController extends Controller
                 'meetingPoint' => $booking->detail?->meetingPoint,
                 'addons'       => [],
                 'notes'        => $booking->notes,
-                'duration'     => $booking->tour?->length,
+                'duration'     => $booking->product?->length,
                 'guide'        => null,
             ]
         ]);
@@ -1359,7 +1359,7 @@ class PaymentController extends Controller
                 'booking.detail.tourLanguage',
                 'booking.detail.hotel',
                 'booking.detail.meetingPoint',
-                'booking.tour',
+                'booking.product',
                 'booking.user'
             ]);
         }

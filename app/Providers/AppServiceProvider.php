@@ -136,7 +136,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // =========================
-        // Tours para el footer (typeMeta + toursByType)
+        // Products para el footer (typeMeta + productsByType)
         // =========================
         if (! $this->app->runningInConsole()) {
             View::composer(['partials.footer', 'footer', 'components.footer'], function ($view) {
@@ -164,8 +164,8 @@ class AppServiceProvider extends ServiceProvider
                 });
 
                 // Cache de tipos agrupados
-                $toursByType = Cache::remember("footer:toursByType:{$loc}", $ttl, function () use ($loc, $fb) {
-                    $tours = Product::with(['productType'])
+                $productsByType = Cache::remember("footer:productsByType:{$loc}", $ttl, function () use ($loc, $fb) {
+                    $products = Product::with(['productType'])
                         ->active()
                         ->orderByRaw("name->>'$loc' ASC")
                         ->get([
@@ -174,22 +174,22 @@ class AppServiceProvider extends ServiceProvider
                             'slug',
                             'product_type_id',
                         ])
-                        ->map(function ($tour) use ($loc, $fb) {
-                             $name = $tour->getTranslation('name', $loc, false) 
-                                 ?: $tour->getTranslation('name', $fb)
-                                 ?: $tour->name;
+                        ->map(function ($product) use ($loc, $fb) {
+                             $name = $product->getTranslation('name', $loc, false) 
+                                 ?: $product->getTranslation('name', $fb)
+                                 ?: $product->name;
 
-                            $tour->translated_name    = $name;
-                            $tour->tour_type_id_group = optional($tour->productType)->product_type_id ?? 'uncategorized';
+                            $product->translated_name    = $name;
+                            $product->product_type_id_group = optional($product->productType)->product_type_id ?? 'uncategorized';
 
-                            return $tour;
+                            return $product;
                         });
 
-                    return $tours->groupBy(fn($t) => $t->tour_type_id_group);
+                    return $products->groupBy(fn($t) => $t->product_type_id_group);
                 });
 
                 $view->with('typeMeta', $typeMeta);
-                $view->with('toursByType', $toursByType);
+                $view->with('productsByType', $productsByType);
             });
         }
 

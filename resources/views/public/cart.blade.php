@@ -186,12 +186,12 @@ $fallback = [
 [
 'name' => __('adminlte::adminlte.adults'),
 'quantity' => (int)($it->adults_quantity ?? 0),
-'price' => (float)($it->tour->adult_price ?? 0),
+'price' => (float)($it->product->adult_price ?? 0),
 ],
 [
 'name' => __('adminlte::adminlte.kids'),
 'quantity' => (int)($it->kids_quantity ?? 0),
-'price' => (float)($it->tour->kid_price ?? 0),
+'price' => (float)($it->product->kid_price ?? 0),
 ],
 ];
 return collect($fallback)->map(function($c){
@@ -362,8 +362,8 @@ $initialNotes = old('notes', $cart->notes ?? '');
         <tr class="text-center cart-item-row"
           data-item-id="{{ $item->item_id }}"
           data-subtotal="{{ $fmt2($itemSubtotal) }}">
-          <td class="text-start">{{ $item->tour->getTranslatedName(app()->getLocale()) ?? $item->tour->name }}</td>
-          <td>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/M/Y') }}</td>
+          <td class="text-start">{{ $item->product->getTranslatedName(app()->getLocale()) ?? $item->product->name }}</td>
+          <td>{{ \Carbon\Carbon::parse($item->product_date)->format('d/M/Y') }}</td>
           <td>
             @if($item->schedule)
             {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }} -
@@ -470,11 +470,11 @@ $initialNotes = old('notes', $cart->notes ?? '');
       data-item-id="{{ $item->item_id }}"
       data-subtotal="{{ $fmt2($itemSubtotal) }}">
       <div class="card-header fw-semibold">
-        {{ $item->tour->getTranslatedName(app()->getLocale()) ?? $item->tour->name }}
+        {{ $item->product->getTranslatedName(app()->getLocale()) ?? $item->product->name }}
       </div>
       <div class="card-body">
         <div class="mb-2">
-          <i class="far fa-calendar-alt me-1"></i>{{ \Carbon\Carbon::parse($item->tour_date)->format('d/M/Y') }}
+          <i class="far fa-calendar-alt me-1"></i>{{ \Carbon\Carbon::parse($item->product_date)->format('d/M/Y') }}
           @if($item->schedule)
           <span class="ms-2"><i class="fas fa-clock me-1"></i>
             {{ \Carbon\Carbon::parse($item->schedule->start_time)->format('g:i A') }}
@@ -699,12 +699,12 @@ $initialNotes = old('notes', $cart->notes ?? '');
 @foreach(($cart->items ?? collect()) as $item)
 @php
 $currentScheduleId = $item->schedule?->schedule_id ?? null;
-$currentTourLangId = $item->tour_language_id ?? $item->language?->tour_language_id;
+$currentTourLangId = $item->product_language_id ?? $item->language?->tour_language_id;
 $currentHotelId = $item->hotel?->hotel_id ?? null;
 $currentMeetingPoint = $item->meeting_point_id ?? null;
 
-$schedules = $item->tour->schedules ?? collect();
-$tourLangs = $item->tour->languages ?? collect();
+$schedules = $item->product->schedules ?? collect();
+$productLangs = $item->product->languages ?? collect();
 $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom' : ($item->hotel ? 'hotel' : 'hotel'));
 @endphp
 <div class="modal fade" id="editItemModal-{{ $item->item_id }}" tabindex="-1" aria-labelledby="editItemLabel-{{ $item->item_id }}" aria-hidden="true">
@@ -719,7 +719,7 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
         <div class="modal-header">
           <h5 class="modal-title" id="editItemLabel-{{ $item->item_id }}">
             <i class="fas fa-pencil-alt me-2"></i>
-            {{ __('adminlte::adminlte.editItem') }} — {{ $item->tour->getTranslatedName(app()->getLocale()) ?? $item->tour->name }}
+            {{ __('adminlte::adminlte.editItem') }} — {{ $item->product->getTranslatedName(app()->getLocale()) ?? $item->product->name }}
           </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('adminlte::adminlte.close') }}"></button>
         </div>
@@ -732,7 +732,7 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
               <input type="date"
                 name="tour_date"
                 class="form-control"
-                value="{{ \Carbon\Carbon::parse($item->tour_date)->format('Y-m-d') }}"
+                value="{{ \Carbon\Carbon::parse($item->product_date)->format('Y-m-d') }}"
                 min="{{ now()->format('Y-m-d') }}"
                 required>
             </div>
@@ -756,13 +756,13 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
             <div class="col-12 col-md-6">
               <label class="form-label fw-semibold">{{ __('adminlte::adminlte.language') }}</label>
               <select name="tour_language_id" class="form-select" required>
-                @forelse($tourLangs as $tl)
+                @forelse($productLangs as $pl)
                 <option value="{{ $tl->tour_language_id }}" @selected($currentTourLangId==$tl->tour_language_id)>
                   {{ $tl->name ?? $tl->language->name ?? __('adminlte::adminlte.language') }}
                 </option>
                 @empty
                 @if($item->language)
-                <option value="{{ $item->tour_language_id }}" selected>{{ $item->language->name }}</option>
+                <option value="{{ $item->product_language_id }}" selected>{{ $item->language->name }}</option>
                 @else
                 <option value="" selected>—</option>
                 @endif
@@ -773,7 +773,7 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
             {{-- Category Quantities - Show ALL available categories from tour pricing --}}
             @php
             // Get all available categories from tour pricing
-            $tourPrices = $item->tour->prices ?? collect();
+            $productPrices = $item->product->prices ?? collect();
 
             // Get current quantities from item
             $itemCategories = is_string($item->categories) ? json_decode($item->categories, true) : ($item->categories ?? []);
@@ -786,13 +786,13 @@ $initPickup = $item->meeting_point_id ? 'mp' : ($item->is_other_hotel ? 'custom'
             }
             @endphp
 
-            @if($tourPrices->isNotEmpty())
+            @if($productPrices->isNotEmpty())
             <div class="col-12">
               <label class="form-label fw-semibold">
                 <i class="fas fa-users me-1"></i> {{ __('adminlte::adminlte.quantities') }}
               </label>
               <div class="row g-2">
-                @foreach($tourPrices as $price)
+                @foreach($productPrices as $price)
                 @php
                 $category = $price->category;
                 $categoryId = $category->category_id;

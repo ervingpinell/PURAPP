@@ -101,7 +101,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
             id="scheduleSelect"
             required>
             <option value="">-- {{ $tr('adminlte::adminlte.select_option','Selecciona una opción') }} --</option>
-            @foreach($tour->schedules->sortBy('start_time') as $schedule)
+            @foreach($product->schedules->sortBy('start_time') as $schedule)
             <option value="{{ $schedule->schedule_id }}" {{ $isSelected($schedule->schedule_id,$oldSchedule) }}>
                 {{ date('g:i A', strtotime($schedule->start_time)) }} - {{ date('g:i A', strtotime($schedule->end_time)) }}
             </option>
@@ -124,7 +124,7 @@ $maxFutureDays = (int) setting('booking.max_future_days', config('booking.max_da
     id="languageSelect"
     required>
     <option value="">-- {{ $tr('adminlte::adminlte.select_option','Selecciona una opción') }} --</option>
-    @foreach($tour->languages as $lang)
+    @foreach($product->languages as $lang)
     <option value="{{ $lang->tour_language_id }}" {{ $isSelected($lang->tour_language_id,$oldLanguage) }}>
         {{ $lang->name }}
     </option>

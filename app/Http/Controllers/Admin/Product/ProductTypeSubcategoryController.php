@@ -37,7 +37,7 @@ class ProductTypeSubcategoryController extends Controller
 
         $currentLocale = app()->getLocale();
 
-        return view('admin.tourtypes.subtypes.index', compact(
+        return view('admin.producttypes.subtypes.index', compact(
             'productType',
             'subtypes',
             'currentLocale'

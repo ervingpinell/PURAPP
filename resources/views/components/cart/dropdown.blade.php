@@ -24,8 +24,8 @@ return (float) $cats->sum(fn($c) =>
 );
 }
 return (float) (
-(($i->tour->adult_price ?? 0) * ($i->adults_quantity ?? 0)) +
-(($i->tour->kid_price ?? 0) * ($i->kids_quantity ?? 0))
+(($i->product->adult_price ?? 0) * ($i->adults_quantity ?? 0)) +
+(($i->product->kid_price ?? 0) * ($i->kids_quantity ?? 0))
 );
 })
 : 0.0
@@ -49,11 +49,11 @@ $headerTotal = max(0, $headerTotal);
 $expiresIso = optional($headerCart?->expires_at)->toIso8601String();
 $totalMinutesCfg = (int) \App\Models\Setting::getValue('cart.expiration_minutes', 30);
 
-$coverFromTour = function ($tour) {
-if (!$tour) return asset('images/volcano.png');
-if (!empty($tour->image_path)) return asset('storage/'.$tour->image_path);
+$coverFromProduct = function ($product) {
+if (!$product) return asset('images/volcano.png');
+if (!empty($product->image_path)) return asset('storage/'.$product->image_path);
 
-$tid = $tour->product_id ?? $tour->id ?? null;
+$tid = $product->product_id ?? $product->id ?? null;
 if ($tid) {
 $folder = "tours/{$tid}/gallery";
 if (Storage::disk('public')->exists($folder)) {
@@ -116,13 +116,13 @@ return asset('images/volcano.png');
     <div class="mini-cart-list">
       @foreach($headerCart->items as $it)
       @php
-      $img = $coverFromTour($it->tour);
+      $img = $coverFromProduct($it->product);
       $itemCats = collect($it->categories ?? []);
       $sum = $itemCats->isNotEmpty()
       ? (float) $itemCats->sum(fn($c) => ((float)($c['price'] ?? 0)) * ((int)($c['quantity'] ?? 0)))
       : (float) (
-      (($it->tour->adult_price ?? 0) * ($it->adults_quantity ?? 0)) +
-      (($it->tour->kid_price ?? 0) * ($it->kids_quantity ?? 0))
+      (($it->product->adult_price ?? 0) * ($it->adults_quantity ?? 0)) +
+      (($it->product->kid_price ?? 0) * ($it->kids_quantity ?? 0))
       );
 
       $pax = $itemCats->isNotEmpty()
@@ -147,12 +147,12 @@ return asset('images/volcano.png');
 
           <div class="mini-cart-info">
             <div class="mini-cart-title">
-              {{ $it->tour?->getTranslatedName() ?? '-' }}
+              {{ $it->product?->getTranslatedName() ?? '-' }}
             </div>
 
             <div class="mini-cart-meta">
               <i class="far fa-calendar-alt"></i>
-              <span>{{ \Carbon\Carbon::parse($it->tour_date)->format('d/M/Y') }}</span>
+              <span>{{ \Carbon\Carbon::parse($it->product_date)->format('d/M/Y') }}</span>
               @if($it->schedule)
               <i class="fas fa-clock" style="margin-left:6px;"></i>
               <span>
@@ -321,8 +321,8 @@ return asset('images/volcano.png');
     <div class="mini-cart-list">
       @foreach($guestCartItems as $index => $guestItem)
       @php
-      $tour = \App\Models\Tour::find($guestItem['product_id']);
-      $img = $tour ? $coverFromTour($tour) : asset('images/volcano.png');
+      $product = \App\Models\Product::find($guestItem['product_id']);
+      $img = $product ? $coverFromProduct($product) : asset('images/volcano.png');
       $itemCats = collect($guestItem['categories'] ?? []);
 
       $sum = 0;
@@ -352,7 +352,7 @@ return asset('images/volcano.png');
 
           <div class="mini-cart-info">
             <div class="mini-cart-title">
-              {{ $tour?->getTranslatedName() ?? '-' }}
+              {{ $product?->getTranslatedName() ?? '-' }}
             </div>
 
             <div class="mini-cart-meta">

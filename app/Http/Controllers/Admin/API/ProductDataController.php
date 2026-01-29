@@ -13,9 +13,9 @@ use Illuminate\Http\Request;
  */
 class ProductDataController extends Controller
 {
-    public function schedules(Product $tour)
+    public function schedules(Product $product)
     {
-        $data = $tour->schedules()
+        $data = $product->schedules()
             ->where('schedules.is_active', true)
             ->wherePivot('is_active', true)
             ->orderBy('start_time')
@@ -29,9 +29,9 @@ class ProductDataController extends Controller
         return response()->json($data);
     }
 
-    public function languages(Product $tour)
+    public function languages(Product $product)
     {
-        $data = $tour->languages()
+        $data = $product->languages()
             ->orderBy('name')
             ->get(['tour_languages.tour_language_id', 'tour_languages.name'])
             ->map(fn($l) => [
@@ -42,26 +42,26 @@ class ProductDataController extends Controller
         return response()->json($data);
     }
 
-    public function categories(Request $request, Product $tour)
+    public function categories(Request $request, Product $product)
     {
         $locale = app()->getLocale();
-        $tourDate = $request->input('tour_date');
+        $serviceDate = $request->input('tour_date');
 
         // Base query
-        $query = $tour->prices()
+        $query = $product->prices()
             ->where('is_active', true)
             ->with(['category.translations'])
             ->orderBy('category_id');
 
         // Filter by date if provided
-        if ($tourDate) {
-            $query->where(function ($q) use ($tourDate) {
+        if ($serviceDate) {
+            $query->where(function ($q) use ($serviceDate) {
                 // Prices valid for specific date OR default prices (null dates)
-                $q->where(function ($sub) use ($tourDate) {
+                $q->where(function ($sub) use ($serviceDate) {
                     $sub->whereNotNull('valid_from')
                         ->whereNotNull('valid_until')
-                        ->whereDate('valid_from', '<=', $tourDate)
-                        ->whereDate('valid_until', '>=', $tourDate);
+                        ->whereDate('valid_from', '<=', $serviceDate)
+                        ->whereDate('valid_until', '>=', $serviceDate);
                 })->orWhere(function ($sub) {
                     $sub->whereNull('valid_from')
                         ->whereNull('valid_until');
@@ -73,7 +73,7 @@ class ProductDataController extends Controller
 
         // If we have date-specific prices, we might have duplicates (default + specific).
         // We should prioritize specific dates over defaults.
-        if ($tourDate) {
+        if ($serviceDate) {
             $prices = $prices->sortByDesc(function ($price) {
                 return $price->valid_from ? 1 : 0; // Specific dates first
             })->unique('category_id'); // Keep only the first (most specific) for each category

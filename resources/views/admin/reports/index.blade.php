@@ -570,10 +570,10 @@
           </div>
 
           <div class="col-12 col-md-6 col-lg-4 col-xl-5">
-            <label class="filter-label">{{ __('reports.filters.tours_multi') }}</label>
+            <label class="filter-label">{{ __('reports.filters.products_multi') }}</label>
             @php $tSel = collect((array)request('product_id', []))->map(fn($v)=>(int)$v)->all(); @endphp
             <select name="product_id[]" class="form-control" multiple size="4">
-              @foreach($toursMap as $tid => $tname)
+              @foreach($productsMap as $tid => $tname)
               <option value="{{ $tid }}" @selected(in_array((int)$tid, $tSel))>{{ $tname }}</option>
               @endforeach
             </select>
@@ -646,7 +646,7 @@
           </div>
           <div class="report-content">
             <h6 class="report-title">Overview Report</h6>
-            <p class="report-desc">Revenue trends, top tours, and language breakdown</p>
+            <p class="report-desc">Revenue trends, top products, and language breakdown</p>
             <div class="report-badge">
               <i class="fas fa-check-circle text-success me-1"></i> Current View
             </div>
@@ -675,7 +675,7 @@
         </a>
       </div>
 
-      {{-- Tours Performance --}}
+      {{-- Products Performance --}}
       <div class="col-12 col-md-6 col-xl-4">
         <a href="{{ route('admin.reports.products', request()->all()) }}" class="text-decoration-none">
           <div class="report-type-card clickable">
@@ -683,8 +683,8 @@
               <i class="fas fa-route"></i>
             </div>
             <div class="report-content">
-              <h6 class="report-title">Tours Performance</h6>
-              <p class="report-desc">Top tours, capacity utilization, and tour types</p>
+              <h6 class="report-title">Products Performance</h6>
+              <p class="report-desc">Top products, capacity utilization, and product types</p>
               <div class="report-badge badge-new">
                 <i class="fas fa-star me-1"></i> New!
               </div>
@@ -783,7 +783,7 @@
 
       <div class="card-elevated mt-3">
         <div class="d-flex align-items-center justify-content-between px-3 pt-3">
-          <h5 class="mb-0">{{ __('reports.sections.top_tours_title') }}</h5>
+          <h5 class="mb-0">{{ __('reports.sections.top_products_title') }}</h5>
           <button id="exportTopCsv" type="button" class="btn btn-outline-primary btn-sm">
             <i class="fas fa-file-csv me-1"></i>
             <span class="d-none d-sm-inline">{{ __('reports.buttons.csv') }}</span>
@@ -801,11 +801,11 @@
                   <th class="text-end" style="width:180px">{{ __('reports.table.revenue') }}</th>
                 </tr>
               </thead>
-              <tbody id="topToursTbody">
-                @forelse($topTours as $i => $row)
+              <tbody id="topProductsTbody">
+                @forelse($topProducts as $i => $row)
                 <tr>
                   <td>{{ $i+1 }}</td>
-                  <td>{{ $toursMap[$row->product_id] ?? ('#'.$row->product_id) }}</td>
+                  <td>{{ $productsMap[$row->product_id] ?? ('#'.$row->product_id) }}</td>
                   <td>{{ $row->bookings }}</td>
                   <td>{{ $row->pax }}</td>
                   <td class="text-end">$ {{ number_format($row->revenue, 2) }}</td>
@@ -989,7 +989,7 @@
         headersTop: @json(trans('reports.csv.headers_top')),
         headersLanguage: @json(trans('reports.csv.headers_language')),
         fileRevenue: "{{ __('reports.csv.revenue_by_period_filename') }}",
-        fileTop: "{{ __('reports.csv.top_tours_filename') }}",
+        fileTop: "{{ __('reports.csv.top_products_filename') }}",
         fileLang: "{{ __('reports.csv.sales_by_language_filename') }}",
       }
     };
@@ -1100,7 +1100,7 @@
     document.getElementById('exportTopCsv')?.addEventListener('click', (e) => {
       e.preventDefault();
       const rows = [i18n.csv.headersTop];
-      document.querySelectorAll('#topToursTbody tr').forEach(tr => {
+      document.querySelectorAll('#topProductsTbody tr').forEach(tr => {
         const t = [...tr.querySelectorAll('td')].map(td => td.innerText.trim());
         if (t.length === 5) rows.push(t);
       });

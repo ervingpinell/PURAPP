@@ -61,7 +61,7 @@
       <span class="counter-badge">
         <i class="fas fa-leaf"></i>
         <span>
-          {{ trans_choice('adminlte::adminlte.tours_count', $tours->total(), ['count' => $tours->total()]) }}
+          {{ trans_choice('adminlte::adminlte.products_count', $products->total(), ['count' => $products->total()]) }}
         </span>
       </span>
     </div>
@@ -71,9 +71,9 @@
   $loc = app()->getLocale();
   $fb = config('app.fallback_locale', 'es');
 
-  $coverFromFolder = function (?int $tourId): string {
-    if (!$tourId) return asset('images/volcano.png');
-    $folder = "tours/{$tourId}/gallery";
+  $coverFromFolder = function (?int $productId): string {
+    if (!$productId) return asset('images/volcano.png');
+    $folder = "tours/{$productId}/gallery";
     if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($folder)) {
       return asset('images/volcano.png');
     }
@@ -110,7 +110,7 @@
     return "{$from}–{$to}";
   };
 
-  $totalTours = $tours->total();
+  $totalProducts = $products->total();
   @endphp
 
   {{-- LAYOUT DE TOURS (Grid mode only for subcategories) --}}
@@ -118,27 +118,27 @@
     id="tours-layout"
     class="tours-layout mode-grid"
     data-default-layout="grid"
-    data-total-tours="{{ $totalTours }}">
+    data-total-products="{{ $totalProducts }}">
 
     <div class="tours-track">
-      @forelse($tours as $tour)
+      @forelse($products as $product)
       @php
-      $cover = optional($tour->coverImage)->url
-        ?? $coverFromFolder($tour->product_id ?? $tour->id ?? null);
+      $cover = optional($product->coverImage)->url
+        ?? $coverFromFolder($product->product_id ?? $product->id ?? null);
 
       // Nombre sin paréntesis
-      $rawName = $tour->translated_name ?? $tour->name;
+      $rawName = $product->translated_name ?? $product->name;
       $displayName = preg_replace('/\s*\(.*?\)\s*/', '', (string) $rawName) ?: $rawName;
 
       // Obtener precios activos para HOY
-      $activeCategories = $tour->activePricesForDate(now())
+      $activeCategories = $product->activePricesForDate(now())
         ->sortBy('category_id')
         ->values();
 
       // Tags de itinerario
       $itineraryTags = collect();
-      if ($tour->itinerary) {
-        $items = $tour->itinerary->items ?? collect();
+      if ($product->itinerary) {
+        $items = $product->itinerary->items ?? collect();
         $itineraryTags = $items
           ->map(function ($item) use ($loc, $fb) {
             $tr = $item->translate($loc) ?? $item->translate($fb);
@@ -149,12 +149,12 @@
           ->values();
       }
 
-      $tourUrl = \App\Helpers\ProductCategoryHelper::productUrl($tour);
+      $productUrl = \App\Helpers\ProductCategoryHelper::productUrl($product);
       @endphp
 
       <article
         class="tours-index-card-wrapper tour-card-clickable"
-        data-url="{{ $tourUrl }}"
+        data-url="{{ $productUrl }}"
         tabindex="0"
         aria-label="{{ $displayName }}">
         <div class="card tours-index-card h-100">
@@ -166,9 +166,9 @@
               alt="{{ $displayName }}"
               loading="lazy">
 
-            @if(!empty($tour->length))
+            @if(!empty($product->length))
             <div class="tour-duration-badge">
-              <span class="duration-number">{{ $tour->length }}</span>
+              <span class="duration-number">{{ $product->length }}</span>
               <span class="duration-unit">hrs</span>
             </div>
             @endif
@@ -239,7 +239,7 @@
               </div>
 
               <a
-                href="{{ $tourUrl }}"
+                href="{{ $productUrl }}"
                 class="btn btn-tour-cta w-100 mt-2">
                 {{ __('adminlte::adminlte.see_tour') }}
               </a>
@@ -257,7 +257,7 @@
 
   {{-- PAGINACIÓN --}}
   <div class="mt-3">
-    {{ $tours->links() }}
+    {{ $products->links() }}
   </div>
 </div>
 @endsection

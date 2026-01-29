@@ -33,10 +33,10 @@ class SyncProviderReviews implements ShouldQueue
             $revMap = array_flip($productMap); // product_code => product_id
 
             foreach ($rows as $r) {
-                $tourId = $r['product_id'] ?? null;
+                $productId = $r['product_id'] ?? null;
 
-                if (!$tourId && !empty($r['product_code'] ?? null) && isset($revMap[$r['product_code']])) {
-                    $tourId = (int) $revMap[$r['product_code']];
+                if (!$productId && !empty($r['product_code'] ?? null) && isset($revMap[$r['product_code']])) {
+                    $productId = (int) $revMap[$r['product_code']];
                 }
 
                 Review::updateOrCreate(
@@ -45,7 +45,7 @@ class SyncProviderReviews implements ShouldQueue
                         'provider_review_id' => $r['provider_review_id'] ?? null,
                     ],
                     [
-                        'product_id'      => $tourId ?: 0,
+                        'product_id'      => $productId ?: 0,
                         'rating'       => (int)($r['rating'] ?? 0),
                         'title'        => $r['title'] ?? null,
                         'body'         => $r['body'] ?? '',

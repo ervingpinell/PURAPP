@@ -811,7 +811,7 @@ $itineraryItems = $product->itineraryItems;
                             <small>{{ __('m_tours.tour.wizard.can_edit_later') }}</small>
                         </div>
 
-                        <form method="POST" action="{{ route('admin.products.product-wizard.publish', $product) }}">
+                        <form method="POST" action="{{ route('admin.products.wizard.publish', $product) }}">
                             @csrf
                             <button type="submit" class="btn btn-light btn-block btn-lg font-weight-bold">
                                 <i class="fas fa-check-circle"></i>
@@ -821,7 +821,7 @@ $itineraryItems = $product->itineraryItems;
 
                         <hr>
 
-                        <a href="{{ route('admin.products.product-wizard.step', ['product' => $product, 'step' => 5]) }}"
+                        <a href="{{ route('admin.products.wizard.step', ['product' => $product, 'step' => 5]) }}"
                             class="btn btn-warning btn-block">
                             <i class="fas fa-arrow-left"></i>
                             {{ __('m_tours.common.previous') }}
@@ -884,7 +884,7 @@ $itineraryItems = $product->itineraryItems;
     {{-- FORM OCULTO PARA ELIMINAR DRAFT --}}
     @if($product->is_draft)
     <form id="delete-draft-form"
-        action="{{ route('admin.products.product-wizard.delete-draft', $product) }}"
+        action="{{ route('admin.products.wizard.delete-draft', $product) }}"
         method="POST"
         style="display:none;">
         @csrf

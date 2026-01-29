@@ -291,7 +291,7 @@
                     @php $gb = $groupBy ?? 'booking_date'; @endphp
                     <select name="group_by" class="form-control">
                         <option value="booking_date" @selected($gb==='booking_date' )>{{ __('reports.filters.group_booking_date') }}</option>
-                        <option value="tour_date" @selected($gb==='tour_date' )>{{ __('reports.filters.group_tour_date') }}</option>
+                        <option value="tour_date" @selected($gb==='tour_date' )>{{ __('reports.filters.group_product_date') }}</option>
                     </select>
                 </div>
 
@@ -338,10 +338,10 @@
                     </div>
 
                     <div class="col-12 col-md-3">
-                        <label class="filter-label">{{ __('reports.filters.tours') }}</label>
-                        @php $tSel = $tourIds ?? []; @endphp
+                        <label class="filter-label">{{ __('reports.filters.products') }}</label>
+                        @php $tSel = $productIds ?? []; @endphp
                         <select name="product_id[]" class="form-control" multiple size="5">
-                            @foreach($toursMap as $id => $name)
+                            @foreach($productsMap as $id => $name)
                             <option value="{{ $id }}" @selected(in_array($id, $tSel))>{{ $name }}</option>
                             @endforeach
                         </select>
@@ -350,7 +350,7 @@
                     <div class="col-12 col-md-3">
                         <label class="filter-label">{{ __('reports.filters.languages') }}</label>
                         @php $lSel = $langIds ?? []; @endphp
-                        <select name="tour_language_id[]" class="form-control" multiple size="5">
+                        <select name="product_language_id[]" class="form-control" multiple size="5">
                             @foreach($langsMap as $id => $name)
                             <option value="{{ $id }}" @selected(in_array($id, $lSel))>{{ $name }}</option>
                             @endforeach

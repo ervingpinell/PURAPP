@@ -30,7 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * @property-read User|null $user
  * @property-read Product $product
- * @property-read ProductLanguage $tourLanguage
+ * @property-read ProductLanguage $productLanguage
  * @property-read \Illuminate\Database\Eloquent\Collection|BookingDetail[] $details
  * @property-read \Illuminate\Database\Eloquent\Collection|Payment[] $payments
  * @property-read Payment|null $latestPayment

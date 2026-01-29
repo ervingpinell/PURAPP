@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Tour, Schedule, TourAvailability, TourExcludedDate};
+use App\Models\{Product, Schedule, ProductAvailability, ProductExcludedDate};
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +33,7 @@ class CapacityApiController extends Controller
             'amount'  => ['required','integer','min:1','max:9999'],
         ]);
 
-        $tour = Product::findOrFail($data['product_id']);
+        $product = Product::findOrFail($data['product_id']);
         $date = Carbon::parse($data['date'])->toDateString();
 
         Log::info('[CAPACITY] increase() start', [
@@ -41,16 +41,16 @@ class CapacityApiController extends Controller
             'user_id'     => optional($request->user())->user_id,
             'ip'          => $request->ip(),
             'schedule_id' => $schedule->schedule_id,
-            'product_id'     => $tour->product_id,
+            'product_id'     => $product->product_id,
             'date'        => $date,
             'amount'      => (int) $data['amount'],
         ]);
 
         try {
             // Override puntual para ese día+horario (ABSOLUTO = amount)
-            $availability = TourAvailability::updateOrCreate(
+            $availability = ProductAvailability::updateOrCreate(
                 [
-                    'product_id'     => $tour->product_id,
+                    'product_id'     => $product->product_id,
                     'schedule_id' => $schedule->schedule_id,
                     'date'        => $date,
                 ],
@@ -62,7 +62,7 @@ class CapacityApiController extends Controller
             );
 
             [$used, $max, $rem, $pct] = $this->metrics(
-                $tour->product_id,
+                $product->product_id,
                 $schedule->schedule_id,
                 $date,
                 (int) ($availability->max_capacity ?? 0)
@@ -88,7 +88,7 @@ class CapacityApiController extends Controller
             Log::error('[CAPACITY] increase() failed', [
                 'rid'         => $rid,
                 'schedule_id' => $schedule->schedule_id ?? null,
-                'product_id'     => $tour->product_id ?? null,
+                'product_id'     => $product->product_id ?? null,
                 'date'        => $date,
                 'error'       => $e->getMessage(),
             ]);
@@ -116,7 +116,7 @@ class CapacityApiController extends Controller
             'reason'  => ['nullable','string','max:255'],
         ]);
 
-        $tour = Product::findOrFail($data['product_id']);
+        $product = Product::findOrFail($data['product_id']);
         $date = Carbon::parse($data['date'])->toDateString();
 
         Log::info('[CAPACITY] block() start', [
@@ -124,16 +124,16 @@ class CapacityApiController extends Controller
             'user_id'     => optional($request->user())->user_id,
             'ip'          => $request->ip(),
             'schedule_id' => $schedule->schedule_id,
-            'product_id'     => $tour->product_id,
+            'product_id'     => $product->product_id,
             'date'        => $date,
             'reason'      => $data['reason'] ?? null,
         ]);
 
         try {
             // Bloqueo puntual (override is_blocked=true y max_capacity=null)
-            TourAvailability::updateOrCreate(
+            ProductAvailability::updateOrCreate(
                 [
-                    'product_id'     => $tour->product_id,
+                    'product_id'     => $product->product_id,
                     'schedule_id' => $schedule->schedule_id,
                     'date'        => $date,
                 ],
@@ -145,9 +145,9 @@ class CapacityApiController extends Controller
             );
 
             // Bitácora
-            TourExcludedDate::firstOrCreate(
+            ProductExcludedDate::firstOrCreate(
                 [
-                    'product_id'     => $tour->product_id,
+                    'product_id'     => $product->product_id,
                     'schedule_id' => $schedule->schedule_id,
                     'start_date'  => $date,
                     'end_date'    => $date,
@@ -155,7 +155,7 @@ class CapacityApiController extends Controller
                 ['reason' => $data['reason'] ?? 'Bloqueo puntual']
             );
 
-            $used = $this->countUsed($tour->product_id, $schedule->schedule_id, $date);
+            $used = $this->countUsed($product->product_id, $schedule->schedule_id, $date);
 
             Log::info('[CAPACITY] block() ok', [
                 'rid'   => $rid,
@@ -175,7 +175,7 @@ class CapacityApiController extends Controller
             Log::error('[CAPACITY] block() failed', [
                 'rid'         => $rid,
                 'schedule_id' => $schedule->schedule_id ?? null,
-                'product_id'     => $tour->product_id ?? null,
+                'product_id'     => $product->product_id ?? null,
                 'date'        => $date,
                 'error'       => $e->getMessage(),
             ]);
@@ -202,7 +202,7 @@ class CapacityApiController extends Controller
             'start'   => ['nullable','date'],
         ]);
 
-        $tour  = Product::findOrFail($data['product_id']);
+        $product  = Product::findOrFail($data['product_id']);
         $days  = (int) ($data['days'] ?? 30);
         $start = isset($data['start']) ? Carbon::parse($data['start'])->startOfDay() : Carbon::today();
 
@@ -211,7 +211,7 @@ class CapacityApiController extends Controller
             'user_id'     => optional($request->user())->user_id,
             'ip'          => $request->ip(),
             'schedule_id' => $schedule->schedule_id,
-            'product_id'     => $tour->product_id,
+            'product_id'     => $product->product_id,
             'days'        => $days,
             'start'       => $start->toDateString(),
         ]);
@@ -223,7 +223,7 @@ class CapacityApiController extends Controller
                 $date = (clone $start)->addDays($d)->toDateString();
 
                 // override puntual para esa fecha
-                $override = TourAvailability::where('product_id', $tour->product_id)
+                $override = ProductAvailability::where('product_id', $product->product_id)
                     ->where('schedule_id', $schedule->schedule_id)
                     ->whereDate('date', $date) // PG-safe
                     ->first();
@@ -233,17 +233,17 @@ class CapacityApiController extends Controller
                 } elseif (!is_null($override?->max_capacity)) {
                     $max = (int) $override->max_capacity;
                 } else {
-                    $base = $this->resolveBaseCapacity($tour->product_id, $schedule->schedule_id);
-                    $max  = (int) ($base ?? $tour->max_capacity ?? 0);
+                    $base = $this->resolveBaseCapacity($product->product_id, $schedule->schedule_id);
+                    $max  = (int) ($base ?? $product->max_capacity ?? 0);
                 }
 
-                $used = $this->countUsed($tour->product_id, $schedule->schedule_id, $date);
+                $used = $this->countUsed($product->product_id, $schedule->schedule_id, $date);
                 $rem  = max(0, $max - $used);
                 $pct  = $max > 0 ? (int) floor(($used * 100) / $max) : 0;
 
                 $rows[] = [
                     'date'      => $date,
-                    'tour'      => $tour->name,
+                    'product'   => $product->name,
                     'used'      => $used,
                     'max'       => $max,
                     'remaining' => $rem,
@@ -262,7 +262,7 @@ class CapacityApiController extends Controller
             Log::error('[CAPACITY] details() failed', [
                 'rid'         => $rid,
                 'schedule_id' => $schedule->schedule_id ?? null,
-                'product_id'     => $tour->product_id ?? null,
+                'product_id'     => $product->product_id ?? null,
                 'error'       => $e->getMessage(),
             ]);
 
@@ -277,20 +277,20 @@ class CapacityApiController extends Controller
     /* ======================= Helpers ======================= */
 
     /**
-     * Capacidad base en el pivot `schedule_tour.base_capacity`.
+     * Capacidad base en el pivot `schedule_product.base_capacity`.
      */
-    private function resolveBaseCapacity(int $tourId, int $scheduleId): ?int
+    private function resolveBaseCapacity(int $productId, int $scheduleId): ?int
     {
         try {
             $base = DB::table('schedule_tour')
-                ->where('product_id', $tourId)
+                ->where('product_id', $productId)
                 ->where('schedule_id', $scheduleId)
                 ->value('base_capacity');
 
             return is_null($base) ? null : (int) $base;
         } catch (Throwable $e) {
             Log::warning('[CAPACITY] resolveBaseCapacity() failed', [
-                'product_id'     => $tourId,
+                'product_id'     => $productId,
                 'schedule_id' => $scheduleId,
                 'error'       => $e->getMessage(),
             ]);
@@ -302,14 +302,14 @@ class CapacityApiController extends Controller
      * Cuenta “usados” consultando booking_details (evita usar schedule_id en bookings).
      * Ajusta nombres de tabla/columnas si difieren.
      */
-    private function countUsed(int $tourId, int $scheduleId, string $date): int
+    private function countUsed(int $productId, int $scheduleId, string $date): int
     {
         try {
             // Asumimos tabla booking_details con: booking_id, product_id, schedule_id, tour_date (DATE), deleted_at (soft deletes)
             // y tabla bookings con: booking_id, deleted_at (soft deletes), status (opcional)
             $q = DB::table('booking_details as bd')
                 ->join('bookings as b', 'b.booking_id', '=', 'bd.booking_id')
-                ->where('bd.product_id', $tourId)
+                ->where('bd.product_id', $productId)
                 ->where('bd.schedule_id', $scheduleId)
                 ->whereDate('bd.tour_date', $date)
                 ->whereNull('bd.deleted_at')
@@ -321,7 +321,7 @@ class CapacityApiController extends Controller
             return (int) $q->count();
         } catch (Throwable $e) {
             Log::error('[CAPACITY] countUsed() failed', [
-                'product_id'     => $tourId,
+                'product_id'     => $productId,
                 'schedule_id' => $scheduleId,
                 'date'        => $date,
                 'error'       => $e->getMessage(),
@@ -334,9 +334,9 @@ class CapacityApiController extends Controller
     /**
      * Calcula métricas con “max” ya resuelto.
      */
-    private function metrics(int $tourId, int $scheduleId, string $date, int $max): array
+    private function metrics(int $productId, int $scheduleId, string $date, int $max): array
     {
-        $used = $this->countUsed($tourId, $scheduleId, $date);
+        $used = $this->countUsed($productId, $scheduleId, $date);
         $rem  = max(0, $max - $used);
         $pct  = $max > 0 ? (int) floor(($used * 100) / $max) : 0;
         return [$used, $max, $rem, $pct];

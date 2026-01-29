@@ -18,12 +18,12 @@
   <div id="collapseItinerary" class="accordion-collapse collapse"
        data-bs-parent="#tourDetailsAccordion">
     <div class="accordion-body px-0">
-      @if($tour->itinerary)
-        <h5>{{ $tour->itinerary->translated_name ?? '' }}</h5>
-        <p>{{ $tour->itinerary->translated_description ?? '' }}</p>
+      @if($product->itinerary)
+        <h5>{{ $product->itinerary->translated_name ?? '' }}</h5>
+        <p>{{ $product->itinerary->translated_description ?? '' }}</p>
 
         <div class="itinerary-timeline">
-          @foreach($tour->itinerary->items as $index => $item)
+          @foreach($product->itinerary->items as $index => $item)
             <div class="timeline-item">
               <div class="timeline-marker">{{ $index + 1 }}</div>
               <div class="timeline-content">

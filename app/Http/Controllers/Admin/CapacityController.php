@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Schedule, Tour, TourAvailability, TourExcludedDate};
+use App\Models\{Schedule, Product, ProductAvailability, ProductExcludedDate};
 use App\Services\Bookings\BookingCapacityService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -36,19 +36,19 @@ class CapacityController extends Controller
             'date'    => ['required', 'date'],
         ]);
 
-        $tour = Product::findOrFail($data['product_id']);
+        $product = Product::findOrFail($data['product_id']);
         $date = Carbon::parse($data['date'])->toDateString();
 
         try {
             DB::beginTransaction();
 
-            $override = TourAvailability::where('product_id', $tour->product_id)
+            $override = ProductAvailability::where('product_id', $product->product_id)
                 ->where('schedule_id', $schedule->schedule_id)
                 ->where('date', $date)
                 ->first();
 
             $wasBlocked = $override && $override->is_blocked;
-            $snapshot = $this->capacityService->capacitySnapshot($tour, $schedule, $date);
+            $snapshot = $this->capacityService->capacitySnapshot($product, $schedule, $date);
             $confirmed = (int)$snapshot['confirmed'];
             $currentMax = (int)$snapshot['max'];
 
@@ -56,14 +56,14 @@ class CapacityController extends Controller
             if ($wasBlocked || $currentMax === 0) {
                 $newMax = max($confirmed, $confirmed + (int)$data['amount']); // Mínimo = confirmados
 
-                TourExcludedDate::where('product_id', $tour->product_id)
+                ProductExcludedDate::where('product_id', $product->product_id)
                     ->where('schedule_id', $schedule->schedule_id)
                     ->whereDate('start_date', $date)
                     ->delete();
 
-                TourAvailability::updateOrCreate(
+                ProductAvailability::updateOrCreate(
                     [
-                        'product_id'     => $tour->product_id,
+                        'product_id'     => $product->product_id,
                         'schedule_id' => $schedule->schedule_id,
                         'date'        => $date,
                     ],
@@ -76,9 +76,9 @@ class CapacityController extends Controller
             } else {
                 $newMax = max($confirmed, $currentMax + (int)$data['amount']); // Permite sumar/restar
 
-                TourAvailability::updateOrCreate(
+                ProductAvailability::updateOrCreate(
                     [
-                        'product_id'     => $tour->product_id,
+                        'product_id'     => $product->product_id,
                         'schedule_id' => $schedule->schedule_id,
                         'date'        => $date,
                     ],
@@ -92,7 +92,7 @@ class CapacityController extends Controller
 
             DB::commit();
 
-            $updated = $this->capacityService->capacitySnapshot($tour, $schedule, $date);
+            $updated = $this->capacityService->capacitySnapshot($product, $schedule, $date);
             $pct = $updated['max'] > 0 ? (int)floor(($updated['confirmed'] * 100) / $updated['max']) : 0;
 
             return response()->json([
@@ -104,7 +104,7 @@ class CapacityController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-            LoggerHelper::exception('CapacityController', 'increase', 'TourAvailability', $tour->product_id, $e);
+            LoggerHelper::exception('CapacityController', 'increase', 'ProductAvailability', $product->product_id, $e);
 
             return response()->json([
                 'ok'      => false,
@@ -125,7 +125,7 @@ class CapacityController extends Controller
             'date'    => ['nullable', 'date'],
         ]);
 
-        $tour = Product::findOrFail($data['product_id']);
+        $product = Product::findOrFail($data['product_id']);
         $tz   = config('app.timezone', 'UTC');
 
         if (!empty($data['date'])) {
@@ -141,12 +141,12 @@ class CapacityController extends Controller
             $rows  = [];
 
             foreach ($dates as $date) {
-                $snap = $this->capacityService->capacitySnapshot($tour, $schedule, $date);
+                $snap = $this->capacityService->capacitySnapshot($product, $schedule, $date);
                 $pct  = $snap['max'] > 0 ? (int)floor(($snap['confirmed'] * 100) / $snap['max']) : 0;
 
                 $rows[] = [
                     'date'      => $date,
-                    'tour'      => $tour->name,
+                    'product'   => $product->name,
                     'used'      => $snap['confirmed'],
                     'max'       => $snap['max'],
                     'remaining' => $snap['available'],
@@ -156,7 +156,7 @@ class CapacityController extends Controller
 
             return response()->json(['ok' => true, 'data' => $rows]);
         } catch (\Throwable $e) {
-            LoggerHelper::exception('CapacityController', 'show', 'Tour', $tour->product_id, $e);
+            LoggerHelper::exception('CapacityController', 'show', 'Product', $product->product_id, $e);
 
             return response()->json([
                 'ok'      => false,
@@ -178,14 +178,14 @@ class CapacityController extends Controller
             'reason'  => ['nullable', 'string', 'max:255'],
         ]);
 
-        $tour = Product::findOrFail($data['product_id']);
+        $product = Product::findOrFail($data['product_id']);
         $date = Carbon::parse($data['date'])->toDateString();
 
         try {
             DB::beginTransaction();
 
             // Verificar si ya está bloqueado
-            $existing = TourAvailability::where('product_id', $tour->product_id)
+            $existing = ProductAvailability::where('product_id', $product->product_id)
                 ->where('schedule_id', $schedule->schedule_id)
                 ->where('date', $date)
                 ->first();
@@ -199,9 +199,9 @@ class CapacityController extends Controller
             }
 
             // Crear override de bloqueo
-            TourAvailability::updateOrCreate(
+            ProductAvailability::updateOrCreate(
                 [
-                    'product_id'     => $tour->product_id,
+                    'product_id'     => $product->product_id,
                     'schedule_id' => $schedule->schedule_id,
                     'date'        => $date,
                 ],
@@ -213,9 +213,9 @@ class CapacityController extends Controller
             );
 
             // Bitácora en excluded_dates
-            TourExcludedDate::firstOrCreate(
+            ProductExcludedDate::firstOrCreate(
                 [
-                    'product_id'     => $tour->product_id,
+                    'product_id'     => $product->product_id,
                     'schedule_id' => $schedule->schedule_id,
                     'start_date'  => $date,
                     'end_date'    => $date,
@@ -225,9 +225,9 @@ class CapacityController extends Controller
 
             DB::commit();
 
-            $snap = $this->capacityService->capacitySnapshot($tour, $schedule, $date);
+            $snap = $this->capacityService->capacitySnapshot($product, $schedule, $date);
 
-            LoggerHelper::mutated('CapacityController', 'block', 'TourExcludedDate', $tour->product_id, [
+            LoggerHelper::mutated('CapacityController', 'block', 'ProductExcludedDate', $product->product_id, [
                 'schedule_id' => $schedule->schedule_id,
                 'date'        => $date,
             ]);
@@ -241,7 +241,7 @@ class CapacityController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-            LoggerHelper::exception('CapacityController', 'block', 'TourExcludedDate', null, $e);
+            LoggerHelper::exception('CapacityController', 'block', 'ProductExcludedDate', null, $e);
 
             return response()->json([
                 'ok'      => false,

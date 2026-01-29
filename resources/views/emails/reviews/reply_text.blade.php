@@ -12,7 +12,7 @@
 {{ __('reviews.emails.reply.greeting', ['name' => $customerName ?: __('reviews.emails.traveler')]) }}
 
 {{ strip_tags(__('reviews.emails.reply.intro', [
-    'extra' => $tourName ? __('reviews.emails.reply.about_text', ['tour' => $tourName]) : ''
+    'extra' => $productName ? __('reviews.emails.reply.about_text', ['product' => $productName]) : ''
 ])) }}
 
 {!! __('reviews.emails.reply.quote', ['text' => $body]) !!}

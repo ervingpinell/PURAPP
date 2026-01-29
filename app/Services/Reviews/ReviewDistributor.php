@@ -18,23 +18,23 @@ class ReviewDistributor
     ) {}
 
     /**
-     * Para HOME: N reviews por tour, distribuidas entre proveedores
+     * Para HOME: N reviews por producto, distribuidas entre proveedores
      */
-    public function forHome(Collection $tours, int $perTour = 3, int $maxTotal = 24): Collection
+    public function forHome(Collection $products, int $perProduct = 3, int $maxTotal = 24): Collection
     {
         $result = collect();
         $globalSeen = []; // Dedupe global
 
-        foreach ($tours->shuffle() as $tour) {
+        foreach ($products->shuffle() as $product) {
             if ($result->count() >= $maxTotal) break;
 
-            $tourReviews = $this->distributedForTour(
-                $tour->product_id,
-                $perTour,
+            $productReviews = $this->distributedForProduct(
+                $product->product_id,
+                $perProduct,
                 $globalSeen
             );
 
-            $result = $result->merge($tourReviews);
+            $result = $result->merge($productReviews);
         }
 
         return $result->take($maxTotal);
@@ -43,21 +43,21 @@ class ReviewDistributor
     /**
      * Para INDEX: ~5-6 reviews por tour
      */
-    public function forIndex(Collection $tours, int $perTour = 5): Collection
+    public function forIndex(Collection $products, int $perProduct = 5): Collection
     {
         $result = collect();
         $globalSeen = [];
 
-        foreach ($tours as $tour) {
-            $tourReviews = $this->distributedForTour(
-                $tour->product_id,
-                $perTour,
+        foreach ($products as $product) {
+            $productReviews = $this->distributedForProduct(
+                $product->product_id,
+                $perProduct,
                 $globalSeen
             );
 
             $result->push([
-                'tour' => $tour,
-                'reviews' => $tourReviews
+                'product' => $product,
+                'reviews' => $productReviews
             ]);
         }
 
@@ -67,13 +67,13 @@ class ReviewDistributor
     /**
      * Para TOUR específico: mínimo 12 reviews
      */
-    public function forTourPage(int $tourId, int $min = 12): Collection
+    public function forProductPage(int $productId, int $min = 12): Collection
     {
         $seen = [];
 
         // 1) Reviews del tour
         $own = $this->aggregator->aggregate([
-            'product_id' => $tourId,
+            'product_id' => $productId,
             'limit' => $min * 2
         ])->filter(fn($r) => !$this->isDuplicate($r, $seen));
 
@@ -84,7 +84,7 @@ class ReviewDistributor
             $others = $this->aggregator->aggregate([
                 'limit' => $needed * 3
             ])->filter(fn($r) =>
-                ($r['product_id'] ?? null) != $tourId &&
+                ($r['product_id'] ?? null) != $productId &&
                 !$this->isDuplicate($r, $seen)
             )->take($needed);
 
@@ -95,9 +95,9 @@ class ReviewDistributor
     }
 
     /**
-     * Distribuye reviews para UN tour específico entre proveedores
+     * Distribuye reviews para UN producto específico entre proveedores
      */
-    private function distributedForTour(int $tourId, int $want, array &$globalSeen): Collection
+    private function distributedForProduct(int $productId, int $want, array &$globalSeen): Collection
     {
         $providers = $this->getActiveProviders();
         $result = collect();
@@ -107,7 +107,7 @@ class ReviewDistributor
 
             $reviews = $this->aggregator->aggregate([
                 'provider' => $provider,
-                'product_id' => $tourId,
+                'product_id' => $productId,
                 'limit' => 2 // Traer pocas por proveedor
             ]);
 

@@ -2,7 +2,7 @@
 
 namespace App\Services\Bookings;
 
-use App\Models\{Booking, BookingDetail, Tour, Schedule, PromoCode};
+use App\Models\{Booking, BookingDetail, Product, Schedule, PromoCode};
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -29,9 +29,9 @@ class BookingCreator
     public function create(array $payload, bool $validateCapacity = true, bool $countHolds = true): Booking
     {
         return DB::transaction(function () use ($payload, $validateCapacity, $countHolds) {
-            // 🔒 PESSIMISTIC LOCK: Prevent concurrent bookings for same tour/schedule/date
-            // Lock tour and schedule records to prevent race conditions on capacity
-            $tour     = Product::with('prices.category')
+            // 🔒 PESSIMISTIC LOCK: Prevent concurrent bookings for same product/schedule/date
+            // Lock product and schedule records to prevent race conditions on capacity
+            $product     = Product::with('prices.category')
                 ->lockForUpdate()
                 ->findOrFail($payload['product_id']);
             $schedule = Schedule::lockForUpdate()
@@ -43,10 +43,10 @@ class BookingCreator
                 throw new \InvalidArgumentException('No categories provided');
             }
 
-            // Snapshot (price + quantity + slug + name) - usar fecha del tour para precios temporales
-            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $quantities, $payload['tour_date'] ?? null);
+            // Snapshot (price + quantity + slug + name) - usar fecha del producto para precios temporales
+            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($product, $quantities, $payload['tour_date'] ?? null);
             if (empty($categoriesSnapshot)) {
-                throw new \RuntimeException('No valid active categories found for this tour');
+                throw new \RuntimeException('No valid active categories found for this product');
             }
 
             // Subtotales y pax
@@ -75,7 +75,7 @@ class BookingCreator
                 $excludeCartId = $payload['exclude_cart_id'] ?? null;
 
                 $snap = $this->cap->capacitySnapshot(
-                    $tour,
+                    $product,
                     $schedule,
                     $date,
                     excludeBookingId: null,
@@ -92,7 +92,7 @@ class BookingCreator
                         'confirmed'  => (int) $snap['confirmed'],
                         'held'       => (int) $snap['held'],
                         'requested'  => (int) $totalPax,
-                        'product_id'    => (int) $tour->product_id,
+                        'product_id'    => (int) $product->product_id,
                         'schedule_id' => (int) $schedule->schedule_id,
                         'date'       => $date,
                     ]));
@@ -116,14 +116,14 @@ class BookingCreator
 
             if ($isPayLater) {
                 // Pay-later booking
-                $tourDate = \Carbon\Carbon::parse($payload['tour_date']);
+                $productDate = \Carbon\Carbon::parse($payload['tour_date']);
 
                 // Get settings
                 $daysBeforeCharge = (int) setting('booking.pay_later.days_before_charge', 2);
                 $linkExpiresHours = (int) setting('booking.pay_later.link_expires_hours', 72);
 
                 // Calculate auto-charge date
-                $autoChargeAt = $tourDate->copy()->subDays($daysBeforeCharge)->startOfDay();
+                $autoChargeAt = $productDate->copy()->subDays($daysBeforeCharge)->startOfDay();
 
                 // Payment link expires in X hours
                 $paymentLinkExpiresAt = now()->addHours($linkExpiresHours);

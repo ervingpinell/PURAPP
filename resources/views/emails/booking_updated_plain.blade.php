@@ -3,7 +3,7 @@ $mailLocale = $mailLocale ?? 'en';
 $reference = $reference ?? ($booking->booking_reference ?? $booking->booking_id);
 
 $d = collect($booking->details ?? [])->first();
-$tourName = $d?->relationLoaded('tour') ? ($d->tour->title ?? 'Tour') : ($booking->product->title ?? 'Tour');
+$productName = $d?->relationLoaded('tour') ? ($d->product->title ?? 'Product') : ($booking->product->title ?? 'Product');
 @endphp
 
 {{ $mailLocale === 'es' ? 'Reserva Actualizada' : 'Booking Updated' }}
@@ -15,8 +15,8 @@ $tourName = $d?->relationLoaded('tour') ? ($d->tour->title ?? 'Tour') : ($bookin
 
 {{ $mailLocale === 'es' ? 'Resumen' : 'Summary' }}
 ----------------
-{{ __('adminlte::email.service') }}: {{ $tourName }}
-{{ $mailLocale === 'es' ? 'Fecha' : 'Date' }}: {{ $d?->tour_date ? \Illuminate\Support\Carbon::parse($d->tour_date)->format('d-M-Y') : 'N/A' }}
+{{ __('adminlte::email.service') }}: {{ $productName }}
+{{ $mailLocale === 'es' ? 'Fecha' : 'Date' }}: {{ $d?->product_date ? \Illuminate\Support\Carbon::parse($d->product_date)->format('d-M-Y') : 'N/A' }}
 
 {{ $mailLocale === 'es' ? 'Total' : 'Total' }}: ${{ number_format($booking->total, 2) }}
 

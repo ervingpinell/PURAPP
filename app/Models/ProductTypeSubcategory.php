@@ -13,7 +13,7 @@ class ProductTypeSubcategory extends Model
     protected $table = 'product_type_subcategories';
     protected $primaryKey = 'subtype_id';
     
-    public $translatable = ['name', 'description'];
+    public $translatable = ['name', 'description', 'meta_title', 'meta_description'];
     
     protected $fillable = [
         'product_type_id',

@@ -29,7 +29,7 @@ class BookingsExport implements FromView
         // Caso normal: construir la query según filtros
         $q = Booking::with([
             'user',
-            'tour.tourType',
+            'product.productType',
             'detail.schedule',
             'detail.hotel',
             'detail.meetingPoint',
@@ -63,7 +63,7 @@ class BookingsExport implements FromView
             $q->whereDate('booking_date', '<=', $f['booking_date_to']);
         }
 
-        // Por fecha de tour (detail.tour_date)
+        // Por fecha de producto (detail.tour_date - legacy column name)
         if (!empty($f['tour_date_from'])) {
             $from = $f['tour_date_from'];
             $q->whereHas('detail', fn($d) => $d->whereDate('tour_date', '>=', $from));
@@ -90,9 +90,9 @@ class BookingsExport implements FromView
         $name = 'Report';
 
         if (!empty($filters['product_id'])) {
-            $tour = \App\Models\Product::find($filters['product_id']);
-            if ($tour) {
-                $name .= ' ' . preg_replace('/\s*\([^)]*\)/', '', $tour->name);
+            $product = \App\Models\Product::find($filters['product_id']);
+            if ($product) {
+                $name .= ' ' . preg_replace('/\s*\([^)]*\)/', '', $product->name);
             }
         }
 
@@ -100,10 +100,10 @@ class BookingsExport implements FromView
             $from = $filters['tour_date_from'] ?? null;
             $to   = $filters['tour_date_to']   ?? null;
 
-            if ($from && $to && $from === $to)       $name .= " tours on $from";
-            elseif ($from && $to)                    $name .= " tours from $from to $to";
-            elseif ($from)                           $name .= " tours from $from";
-            elseif ($to)                             $name .= " tours until $to";
+            if ($from && $to && $from === $to)       $name .= " products on $from";
+            elseif ($from && $to)                    $name .= " products from $from to $to";
+            elseif ($from)                           $name .= " products from $from";
+            elseif ($to)                             $name .= " products until $to";
         } elseif (!empty($filters['booking_date_from']) || !empty($filters['booking_date_to'])) {
             $from = $filters['booking_date_from'] ?? null;
             $to   = $filters['booking_date_to']   ?? null;

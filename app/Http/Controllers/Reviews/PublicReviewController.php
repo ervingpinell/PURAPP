@@ -23,7 +23,7 @@ class PublicReviewController extends Controller
     public function show(string $token)
     {
         /** @var \App\Models\ReviewRequest|null $rr */
-        $rr = ReviewRequest::with(['booking.tour', 'user'])
+        $rr = ReviewRequest::with(['booking.product', 'user'])
             ->where('token', $token)
             ->first();
 
@@ -48,7 +48,7 @@ class PublicReviewController extends Controller
         // Mostrar formulario
         return view('reviews.request-form', [
             'rr'    => $rr,
-            'tour'  => optional($rr->booking)->tour,
+            'product'  => optional($rr->booking)->product,
             'user'  => $rr->user,
             'token' => $token,
         ]);
@@ -57,14 +57,14 @@ class PublicReviewController extends Controller
     /**
      * Recibe el POST del formulario público de reseñas.
      * - Valida inputs
-     * - Evita duplicados (mismo tour + mismo user_id o misma booking_id)
+     * - Evita duplicados (mismo producto + mismo user_id o misma booking_id)
      * - Crea la reseña "local" como pendiente/no pública
      * - Marca la ReviewRequest como cumplida
      */
     public function submit(Request $request, string $token)
 {
     /** @var \App\Models\ReviewRequest|null $rr */
-    $rr = ReviewRequest::with(['booking.tour.coverImage', 'booking.detail', 'user'])
+    $rr = ReviewRequest::with(['booking.product.coverImage', 'booking.detail', 'user'])
         ->where('token', $token)
         ->first();
 
@@ -153,10 +153,10 @@ class PublicReviewController extends Controller
 
     // Notificar al admin por email
     try {
-        $tour = optional($rr->booking)->tour;
+        $product = optional($rr->booking)->product;
 
-        $tourName = $tour?->translated_name
-            ?? $tour?->name
+        $productName = $product?->translated_name
+            ?? $product?->name
             ?? null;
 
         // Link directo al edit del review en el panel admin (si existe la ruta)
@@ -177,7 +177,7 @@ class PublicReviewController extends Controller
             ?? config('mail.from.address');
 
         Mail::queue(
-            new ReviewSubmittedNotification($review, $tourName, $authorName, $adminUrl)
+            new ReviewSubmittedNotification($review, $productName, $authorName, $adminUrl)
         );
     } catch (\Throwable $e) {
         // Si falla la notificación, no rompemos el flujo del cliente

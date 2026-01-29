@@ -21,7 +21,7 @@
         <label class="form-label">{{ __('m_config.cut-off.fields.tour') }}</label>
         <select class="form-select" id="tourSelect">
           <option value="">{{ __('m_config.cut-off.selects.tour') }}</option>
-          @foreach($tours as $t)
+          @foreach($products as $t)
           <option value="{{ $t->product_id }}" data-cutoff="{{ $t->cutoff_hour }}" data-lead="{{ $t->lead_days }}">{{ $t->name }}</option>
           @endforeach
         </select>
@@ -36,7 +36,7 @@
     <form method="POST" action="{{ route('admin.products.cutoff.tour.update') }}" id="form-tour">
       @csrf
       @method('PUT')
-      <input type="hidden" name="product_id" id="tourIdHiddenForTour" value="">
+      <input type="hidden" name="product_id" id="productIdHiddenForProduct" value="">
       <div class="row g-3">
         <div class="col-md-3">
           <label class="form-label">{{ __('m_config.cut-off.fields.cutoff_hour_short') }}</label>
@@ -54,7 +54,7 @@
             <button class="btn btn-primary">
               <i class="fas fa-save me-1"></i> {{ __('m_config.cut-off.actions.save_tour') }}
             </button>
-            <button type="button" class="btn btn-outline-secondary" id="clearTourOverride">
+            <button type="button" class="btn btn-outline-secondary" id="clearProductOverride">
               {{ __('m_config.cut-off.actions.clear') }}
             </button>
             @endcan
@@ -73,8 +73,8 @@
     const tourCutoff = document.getElementById('tourCutoff');
     const tourLead = document.getElementById('tourLead');
     const tourBadge = document.getElementById('tourBadge');
-    const tourIdHidden = document.getElementById('tourIdHiddenForTour');
-    const clearBtn = document.getElementById('clearTourOverride');
+    const productIdHidden = document.getElementById('productIdHiddenForProduct');
+    const clearBtn = document.getElementById('clearProductOverride');
 
     const setBadge = (text, cls) => {
       if (!tourBadge) return;
@@ -85,7 +85,7 @@
 
     function refresh() {
       const opt = tourSelect?.selectedOptions[0];
-      tourIdHidden.value = opt ? opt.value : '';
+      productIdHidden.value = opt ? opt.value : '';
       if (!opt) {
         tourCutoff.value = '';
         tourLead.value = '';

@@ -19,7 +19,7 @@ use App\Models\Product;
 $locale = app()->getLocale();
 
 // 1) Recolectar los product_id presentes en las alertas
-$tourIds = $serverAlerts
+$productIds = $serverAlerts
 ->map(fn($a) => data_get($a, 'product_id')
 ?? data_get($a, 'tour.product_id')
 ?? data_get($a, 'tour.id'))
@@ -31,24 +31,24 @@ $tourIds = $serverAlerts
 // Spatie no tiene 'translations' relationship en la definición de modelo updated pero Spatie Translatable la maneja internamente.
 // Actually invalid relationship if remove? Spatie uses 'translations' table but access via trait.
 // If accessors are used, translation is automatic.
-// The code uses $tour->getTranslatedName($locale) which was likely custom.
+// The code uses $product->getTranslatedName($locale) which was likely custom.
 // We should check if getTranslatedName exists in Product model or use standard Spatie accessor $product->name.
 
-$toursById = Product::whereIn('product_id', $tourIds)
+$productsById = Product::whereIn('product_id', $productIds)
 ->get()
 ->keyBy('product_id');
 
 // 3) Reescribir el campo "tour" con el nombre traducido
-$serverAlerts = $serverAlerts->map(function ($a) use ($toursById, $locale) {
+$serverAlerts = $serverAlerts->map(function ($a) use ($productsById, $locale) {
 $tid = data_get($a, 'product_id')
 ?? data_get($a, 'tour.product_id')
 ?? data_get($a, 'tour.id');
 
-if ($tid && $toursById->has($tid)) {
-$tour = $toursById[$tid];
+if ($tid && $productsById->has($tid)) {
+$product = $productsById[$tid];
 data_set($a, 'product_id', $tid);
 // Use standard accessor or explicit getTranslation
-data_set($a, 'tour', $tour->name); // $model->name is automagically translated by Spatie
+data_set($a, 'tour', $product->name); // $model->name is automagically translated by Spatie
 }
 return $a;
 });
@@ -574,9 +574,9 @@ $I18N = [
     const markAll = $('#cap-markread');
     const list = $('#cap-list');
 
-    // ===== Datos crudos del servidor y mapa schedule->tour =====
+    // ===== Datos crudos del servidor y mapa schedule->product =====
     const serverRaw = JSON.parse($('#cap-data')?.textContent || '[]');
-    const scheduleTourMap = Object.fromEntries(
+    const scheduleProductMap = Object.fromEntries(
       serverRaw.map(a => {
         const sid = String(a.schedule_id ?? a.scheduleId ?? a.scheduleID ?? '');
         const tid = a.product_id ?? a.tourId ?? a.tourID ?? a?.tour?.product_id ?? a?.tour?.id ?? null;
@@ -728,11 +728,11 @@ $I18N = [
           `<div class="cap-empty"><i class="fas fa-check-circle"></i><p>${T('no_alerts')}</p></div>`;
       }
 
-      // Hidratación: asegurar data-tour desde el mapa
+      // Hidratación: asegurar data-product desde el mapa
       $$('.cap-card').forEach(c => {
         if (!c.dataset.tour || c.dataset.tour === '0' || c.dataset.tour === '') {
           const sid = String(c.dataset.id || '');
-          const tid = scheduleTourMap[sid] ?? null;
+          const tid = scheduleProductMap[sid] ?? null;
           if (tid) {
             c.dataset.tour = String(tid);
           }
@@ -942,7 +942,7 @@ $I18N = [
       const type = remaining === 0 ? 'sold_out' : (remaining <= 3 || pct >= 80) ? 'near_capacity' : 'info';
 
       // Obtener product_id de la tarjeta
-      const tourId = getTourIdForCard(card);
+      const tourId = getProductIdForCard(card);
 
       return {
         key: card.dataset.key,
@@ -959,10 +959,10 @@ $I18N = [
     };
 
     // Helper para obtener product_id siempre
-    const getTourIdForCard = (card) => {
+    const getProductIdForCard = (card) => {
       const sid = String(card.dataset.id || '');
       const fromAttr = card.dataset.tour && card.dataset.tour !== '0' ? parseInt(card.dataset.tour, 10) : null;
-      const fromMap = scheduleTourMap[sid] ? parseInt(scheduleTourMap[sid], 10) : null;
+      const fromMap = scheduleProductMap[sid] ? parseInt(scheduleProductMap[sid], 10) : null;
       return fromAttr || fromMap || null;
     };
 
@@ -993,7 +993,7 @@ $I18N = [
         let url = e.target.closest('.js-det').dataset.urlDet;
         if (!url) return Swal.fire(T('missing_route'), T('define_route_det'), 'warning');
 
-        const tourId = getTourIdForCard(card);
+        const tourId = getProductIdForCard(card);
         if (!tourId) {
           return Swal.fire(T('error'), 'No se pudo determinar el product_id para esta alerta.', 'error');
         }
@@ -1112,7 +1112,7 @@ $I18N = [
         if (isNaN(amount) || amount === 0) return Swal.fire(T('invalid_qty'), T('enter_int'), 'error');
 
         try {
-          const tourId = getTourIdForCard(card);
+          const tourId = getProductIdForCard(card);
           if (!tourId) {
             return Swal.fire(T('error'), 'No se pudo determinar el product_id para esta alerta.', 'error');
           }
@@ -1193,7 +1193,7 @@ $I18N = [
         if (!isConfirmed) return;
 
         try {
-          const tourId = getTourIdForCard(card);
+          const tourId = getProductIdForCard(card);
           if (!tourId) {
             return Swal.fire(T('error'), 'No se pudo determinar el product_id para esta alerta.', 'error');
           }

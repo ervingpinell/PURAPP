@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\TourAuditLog;
+use App\Models\ProductAuditLog;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -21,7 +21,7 @@ class AuditController extends Controller
      */
     public function index(Request $request)
     {
-        $query = TourAuditLog::with(['tour', 'user'])
+        $query = ProductAuditLog::with(['product', 'user'])
             ->orderBy('created_at', 'desc');
 
         // FILTROS
@@ -81,7 +81,7 @@ class AuditController extends Controller
 
         // Datos para filtros
         $locale = app()->getLocale();
-        $tours = Product::select('product_id', 'name')
+        $products = Product::select('product_id', 'name')
             ->orderByRaw("name->>'$locale' ASC")
             ->get();
 
@@ -89,12 +89,12 @@ class AuditController extends Controller
             ->orderByRaw("CONCAT(first_name, ' ', last_name)")
             ->get();
 
-        $actions = TourAuditLog::select('action')
+        $actions = ProductAuditLog::select('action')
             ->distinct()
             ->orderBy('action')
             ->pluck('action');
 
-        $contexts = TourAuditLog::select('context')
+        $contexts = ProductAuditLog::select('context')
             ->distinct()
             ->whereNotNull('context')
             ->orderBy('context')
@@ -105,7 +105,7 @@ class AuditController extends Controller
 
         return view('admin.audit.index', compact(
             'logs',
-            'tours',
+            'products',
             'users',
             'actions',
             'contexts',
@@ -116,12 +116,12 @@ class AuditController extends Controller
     /**
      * Ver detalles de un log específico
      */
-    public function show(TourAuditLog $log)
+    public function show(ProductAuditLog $log)
     {
-        $log->load(['tour', 'user']);
+        $log->load(['product', 'user']);
 
-        // Obtener logs relacionados del mismo tour (contexto)
-        $relatedLogs = TourAuditLog::where('product_id', $log->product_id)
+        // Obtener logs relacionados del mismo producto (contexto)
+        $relatedLogs = ProductAuditLog::where('product_id', $log->product_id)
             ->where('audit_id', '!=', $log->audit_id)
             ->orderBy('created_at', 'desc')
             ->limit(10)
@@ -131,11 +131,11 @@ class AuditController extends Controller
     }
 
     /**
-     * Ver historial completo de un tour
+     * Ver historial completo de un producto
      */
-    public function tourHistory(Product $tour)
+    public function productHistory(Product $product)
     {
-        $logs = TourAuditLog::where('product_id', $tour->product_id)
+        $logs = ProductAuditLog::where('product_id', $product->product_id)
             ->with('user')
             ->orderBy('created_at', 'desc')
             ->paginate(30);
@@ -143,7 +143,7 @@ class AuditController extends Controller
         // Timeline visual agrupado por día
         $timeline = $this->buildTimeline($logs);
 
-        return view('admin.audit.tour-history', compact('tour', 'logs', 'timeline'));
+        return view('admin.audit.product-history', compact('product', 'logs', 'timeline'));
     }
 
     /**
@@ -151,24 +151,24 @@ class AuditController extends Controller
      */
     public function userActivity(User $user)
     {
-        $logs = TourAuditLog::where('user_id', $user->user_id)
-            ->with('tour')
+        $logs = ProductAuditLog::where('user_id', $user->user_id)
+            ->with('product')
             ->orderBy('created_at', 'desc')
             ->paginate(30);
 
         // Estadísticas del usuario
         $userStats = [
-            'total_actions' => TourAuditLog::where('user_id', $user->user_id)->count(),
-            'tours_created' => TourAuditLog::where('user_id', $user->user_id)
+            'total_actions' => ProductAuditLog::where('user_id', $user->user_id)->count(),
+            'products_created' => ProductAuditLog::where('user_id', $user->user_id)
                 ->where('action', 'created')
                 ->count(),
-            'drafts_created' => TourAuditLog::where('user_id', $user->user_id)
+            'drafts_created' => ProductAuditLog::where('user_id', $user->user_id)
                 ->where('action', 'draft_created')
                 ->count(),
-            'actions_today' => TourAuditLog::where('user_id', $user->user_id)
+            'actions_today' => ProductAuditLog::where('user_id', $user->user_id)
                 ->whereDate('created_at', today())
                 ->count(),
-            'most_common_action' => TourAuditLog::where('user_id', $user->user_id)
+            'most_common_action' => ProductAuditLog::where('user_id', $user->user_id)
                 ->select('action', DB::raw('count(*) as total'))
                 ->groupBy('action')
                 ->orderBy('total', 'desc')
@@ -187,41 +187,41 @@ class AuditController extends Controller
 
         $stats = [
             // Totales
-            'total_logs' => TourAuditLog::count(),
-            'logs_period' => TourAuditLog::where('created_at', '>=', now()->subDays($days))->count(),
+            'total_logs' => ProductAuditLog::count(),
+            'logs_period' => ProductAuditLog::where('created_at', '>=', now()->subDays($days))->count(),
 
             // Por acción
-            'by_action' => TourAuditLog::getStatsByAction($days),
+            'by_action' => ProductAuditLog::getStatsByAction($days),
 
             // Usuarios más activos
-            'most_active_users' => TourAuditLog::getMostActiveUsers(10, $days),
+            'most_active_users' => ProductAuditLog::getMostActiveUsers(10, $days),
 
-            // Tours más modificados
-            'most_modified_tours' => $this->getMostModifiedTours($days),
+            // Productos más modificados
+            'most_modified_products' => $this->getMostModifiedProducts($days),
 
             // Actividad por día (últimos 30 días)
             'activity_by_day' => $this->getActivityByDay($days),
 
             // Contextos
-            'by_context' => TourAuditLog::where('created_at', '>=', now()->subDays($days))
+            'by_context' => ProductAuditLog::where('created_at', '>=', now()->subDays($days))
                 ->select('context', DB::raw('count(*) as total'))
                 ->groupBy('context')
                 ->pluck('total', 'context')
                 ->toArray(),
 
             // Drafts
-            'drafts_created' => TourAuditLog::where('created_at', '>=', now()->subDays($days))
+            'drafts_created' => ProductAuditLog::where('created_at', '>=', now()->subDays($days))
                 ->where('action', 'draft_created')
                 ->count(),
-            'drafts_completed' => TourAuditLog::where('created_at', '>=', now()->subDays($days))
+            'drafts_completed' => ProductAuditLog::where('created_at', '>=', now()->subDays($days))
                 ->where('action', 'published')
                 ->count(),
-            'drafts_deleted' => TourAuditLog::where('created_at', '>=', now()->subDays($days))
+            'drafts_deleted' => ProductAuditLog::where('created_at', '>=', now()->subDays($days))
                 ->where('action', 'draft_deleted')
                 ->count(),
 
             // Actividad reciente
-            'recent_activity' => TourAuditLog::with(['tour', 'user'])
+            'recent_activity' => ProductAuditLog::with(['product', 'user'])
                 ->orderBy('created_at', 'desc')
                 ->limit(20)
                 ->get(),
@@ -235,7 +235,7 @@ class AuditController extends Controller
      */
     public function export(Request $request)
     {
-        $query = TourAuditLog::with(['tour', 'user'])
+        $query = ProductAuditLog::with(['product', 'user'])
             ->orderBy('created_at', 'desc');
 
         // Aplicar los mismos filtros que en index
@@ -276,7 +276,7 @@ class AuditController extends Controller
             fputcsv($file, [
                 'ID',
                 'Fecha',
-                'Tour',
+                'Producto',
                 'Usuario',
                 'Acción',
                 'Contexto',
@@ -290,7 +290,7 @@ class AuditController extends Controller
                 fputcsv($file, [
                     $log->audit_id,
                     $log->created_at->format('Y-m-d H:i:s'),
-                    $log->tour?->name ?? 'N/A',
+                    $log->product?->name ?? 'N/A',
                     $log->user_display_name,
                     $log->action_label,
                     $log->context ?? 'N/A',
@@ -319,7 +319,7 @@ class AuditController extends Controller
         $days = $request->days;
         $cutoffDate = now()->subDays($days);
 
-        $deletedCount = TourAuditLog::where('created_at', '<', $cutoffDate)->delete();
+        $deletedCount = ProductAuditLog::where('created_at', '<', $cutoffDate)->delete();
 
         return redirect()
             ->route('admin.audit.index')
@@ -335,7 +335,7 @@ class AuditController extends Controller
      */
     private function getQuickStats(Request $request): array
     {
-        $baseQuery = TourAuditLog::query();
+        $baseQuery = ProductAuditLog::query();
 
         // Aplicar filtros actuales a las estadísticas
         if ($request->filled('product_id')) {
@@ -354,17 +354,17 @@ class AuditController extends Controller
             'total' => (clone $baseQuery)->count(),
             'today' => (clone $baseQuery)->whereDate('created_at', today())->count(),
             'this_week' => (clone $baseQuery)->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
-            'unique_tours' => (clone $baseQuery)->distinct('product_id')->count('product_id'),
+            'unique_products' => (clone $baseQuery)->distinct('product_id')->count('product_id'),
             'unique_users' => (clone $baseQuery)->distinct('user_id')->count('user_id'),
         ];
     }
 
     /**
-     * Obtener tours más modificados
+     * Obtener productos más modificados
      */
-    private function getMostModifiedTours(int $days): array
+    private function getMostModifiedProducts(int $days): array
     {
-        return TourAuditLog::where('created_at', '>=', now()->subDays($days))
+        return ProductAuditLog::where('created_at', '>=', now()->subDays($days))
             ->whereNotNull('product_id')
             ->select('product_id', DB::raw('count(*) as modifications_count'))
             ->groupBy('product_id')
@@ -373,7 +373,7 @@ class AuditController extends Controller
             ->get()
             ->map(function ($item) {
                 return [
-                    'tour' => Product::find($item->product_id),
+                    'product' => Product::find($item->product_id),
                     'modifications_count' => $item->modifications_count,
                 ];
             })
@@ -385,7 +385,7 @@ class AuditController extends Controller
      */
     private function getActivityByDay(int $days): array
     {
-        return TourAuditLog::where('created_at', '>=', now()->subDays($days))
+        return ProductAuditLog::where('created_at', '>=', now()->subDays($days))
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as total'))
             ->groupBy('date')
             ->orderBy('date', 'asc')

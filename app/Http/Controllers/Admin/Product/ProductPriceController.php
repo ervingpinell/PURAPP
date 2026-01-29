@@ -13,25 +13,25 @@ use Exception;
 use App\Services\LoggerHelper;
 
 /**
- * TourPriceController
+ * ProductPriceController
  *
- * Handles tourprice operations.
+ * Handles productprice operations.
  */
 class ProductPriceController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['can:view-tour-prices'])->only(['index']);
-        $this->middleware(['can:create-tour-prices'])->only(['store']);
-        $this->middleware(['can:edit-tour-prices'])->only(['update', 'bulkUpdate', 'updateTaxes']);
-        $this->middleware(['can:publish-tour-prices'])->only(['toggle']);
-        $this->middleware(['can:delete-tour-prices'])->only(['destroy']);
+        $this->middleware(['can:view-product-prices'])->only(['index']);
+        $this->middleware(['can:create-product-prices'])->only(['store']);
+        $this->middleware(['can:edit-product-prices'])->only(['update', 'bulkUpdate', 'updateTaxes']);
+        $this->middleware(['can:publish-product-prices'])->only(['toggle']);
+        $this->middleware(['can:delete-product-prices'])->only(['destroy']);
     }
 
-    protected string $controller = 'TourPriceController';
+    protected string $controller = 'ProductPriceController';
 
     /**
-     * Muestra y gestiona los precios de un tour
+     * Muestra y gestiona los precios de un producto
      */
     public function index(Product $product)
     {
@@ -173,7 +173,7 @@ class ProductPriceController extends Controller
     }
 
     /**
-     * Agrega una nueva categoría al tour
+     * Agrega una nueva categoría al producto
      */
     public function store(Request $request, Product $product)
     {
@@ -236,7 +236,7 @@ class ProductPriceController extends Controller
             // Si el precio es 0, desactivar automáticamente
             $isActive = $validated['price'] > 0;
 
-            $tourPrice = ProductPrice::create([
+            $productPrice = ProductPrice::create([
                 'product_id'      => $product->product_id,
                 'category_id'  => $validated['category_id'],
                 'price'        => $validated['price'],
@@ -248,7 +248,7 @@ class ProductPriceController extends Controller
                 'label'        => $validated['label'] ?? null,
             ]);
 
-            LoggerHelper::mutated($this->controller, 'store', 'tour_prices', $tourPrice->tour_price_id, [
+            LoggerHelper::mutated($this->controller, 'store', 'tour_prices', $productPrice->tour_price_id, [
                 'product_id'     => $product->product_id,
                 'category_id' => $validated['category_id'],
                 'user_id'     => optional($request->user())->getAuthIdentifier(),
@@ -358,7 +358,7 @@ class ProductPriceController extends Controller
     }
 
     /**
-     * Elimina un precio (desvincula categoría del tour)
+     * Elimina un precio (desvincula categoría del producto)
      */
     public function destroy(Product $product, ProductPrice $price)
     {
@@ -371,7 +371,7 @@ class ProductPriceController extends Controller
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
             ]);
 
-            return back()->with('success', "Categoría '{$categoryName}' eliminada del tour.");
+            return back()->with('success', "Categoría '{$categoryName}' eliminada del producto.");
         } catch (Exception $e) {
             LoggerHelper::exception($this->controller, 'destroy', 'tour_prices', $price->tour_price_id, $e, [
                 'user_id' => optional(request()->user())->getAuthIdentifier(),
@@ -382,7 +382,7 @@ class ProductPriceController extends Controller
     }
 
     /**
-     * Actualiza los impuestos asignados al tour
+     * Actualiza los impuestos asignados al producto
      */
     public function updateTaxes(Request $request, Product $product)
     {
@@ -412,7 +412,7 @@ class ProductPriceController extends Controller
     /**
      * Valida que no haya solapamiento de fechas para la misma categoría
      * 
-     * @param int $tourId
+     * @param int $productId
      * @param int $categoryId
      * @param string|null $validFrom
      * @param string|null $validUntil
@@ -420,7 +420,7 @@ class ProductPriceController extends Controller
      * @return bool True si hay solapamiento, false si no
      */
     protected function validateDateOverlap(
-        int $tourId,
+        int $productId,
         int $categoryId,
         ?string $validFrom,
         ?string $validUntil,
@@ -432,7 +432,7 @@ class ProductPriceController extends Controller
             return false;
         }
 
-        $query = ProductPrice::where('product_id', $tourId)
+        $query = ProductPrice::where('product_id', $productId)
             ->where('category_id', $categoryId);
 
         if ($excludePriceId) {

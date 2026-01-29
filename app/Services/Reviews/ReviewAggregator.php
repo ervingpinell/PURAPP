@@ -31,7 +31,7 @@ class ReviewAggregator
     {
         $want     = max(1, (int)($opts['limit'] ?? 50));
         $provider = $opts['provider'] ?? null;
-        $tourId   = $opts['product_id'] ?? null;
+        $productId   = $opts['product_id'] ?? null;
 
         $enabled = $this->enabledProviders($provider);
         $rows    = collect();
@@ -65,15 +65,15 @@ class ReviewAggregator
         // Deduplicación única por clave
         $rows = $rows->unique(fn($r) => $this->makeUniqueKey($r));
 
-        // Adjuntar nombres de tour a todas las reviews
-        $rows = $this->attachTourNames($rows);
+        // Adjuntar nombres de producto a todas las reviews
+        $rows = $this->attachProductNames($rows);
 
         // CRÍTICO: Si se pidió un product_id específico, filtrar ANTES de shuffle
-        if ($tourId !== null) {
-            $rows = $rows->filter(fn($r) => (int)($r['product_id'] ?? 0) === (int)$tourId);
+        if ($productId !== null) {
+            $rows = $rows->filter(fn($r) => (int)($r['product_id'] ?? 0) === (int)$productId);
         }
 
-        // Shuffle y limitar (NO hacer shuffle si ya viene filtrado por tour)
+        // Shuffle y limitar (NO hacer shuffle si ya viene filtrado por producto)
         return $rows->take($want)->values();
     }
 
@@ -102,15 +102,15 @@ class ReviewAggregator
         $body   = trim((string) ($r['body'] ?? ''));
         $author = trim((string) ($r['author_name'] ?? ''));
         $date   = $r['date'] ?? null;
-        $tourId = $r['product_id'] ?? null;
+        $productId = $r['product_id'] ?? null;
 
         $indexableProviders = config('reviews.indexable_providers', ['local']);
         $indexable = in_array($provider, $indexableProviders, true);
 
         // Si tiene product_code pero no product_id, intentar mapear desde settings
         $productCode = $r['product_code'] ?? null;
-        if (!$tourId && $productCode) {
-            $tourId = $this->mapProductCodeToTour($productCode);
+        if (!$productId && $productCode) {
+            $productId = $this->mapProductCodeToProduct($productCode);
         }
 
         return [
@@ -122,9 +122,9 @@ class ReviewAggregator
             'body'               => $body,
             'author_name'        => $author !== '' ? $author : null,
             'date'               => $date ?: null,
-            'product_id'            => $tourId,
+            'product_id'            => $productId,
             'product_code'       => $productCode,
-            'tour_name'          => $r['tour_name'] ?? null,
+            'product_name'          => $r['product_name'] ?? null,
             'avatar_url'         => $r['avatar_url'] ?? null,
             'language'           => $r['language'] ?? null,
         ];
@@ -153,7 +153,7 @@ class ReviewAggregator
     /**
      * Mapea product_code a product_id usando los product_map de settings de proveedores
      */
-    private function mapProductCodeToTour(?string $productCode): ?int
+    private function mapProductCodeToProduct(?string $productCode): ?int
     {
         if (!$productCode) return null;
 
@@ -175,9 +175,9 @@ class ReviewAggregator
                 $productMap = (array) ($settings['product_map'] ?? []);
 
                 // Invertir: product_code => product_id
-                foreach ($productMap as $tourId => $code) {
+                foreach ($productMap as $productId => $code) {
                     if (is_string($code) && trim($code) !== '') {
-                        $cache[strtolower(trim($code))] = (int) $tourId;
+                        $cache[strtolower(trim($code))] = (int) $productId;
                     }
                 }
             }
@@ -190,7 +190,7 @@ class ReviewAggregator
     /**
      * Adjunta tour_name a reviews que tienen product_id pero no tour_name
      */
-    private function attachTourNames(Collection $reviews): Collection
+    private function attachProductNames(Collection $reviews): Collection
     {
         $locale = app()->getLocale();
         $fallback = config('app.fallback_locale', 'es');
@@ -198,7 +198,7 @@ class ReviewAggregator
         // IDs únicos que necesitan nombres
         $needNames = $reviews->filter(
             fn($r) =>
-            !empty($r['product_id']) && empty($r['tour_name'])
+            !empty($r['product_id']) && empty($r['product_name'])
         )->pluck('product_id')->unique()->values();
 
         if ($needNames->isEmpty()) {
@@ -206,7 +206,7 @@ class ReviewAggregator
         }
 
         // Cargar tours con traducciones
-        $tours = DB::table('tours')
+        $products = DB::table('tours')
             ->select('product_id', 'name')
             ->whereIn('product_id', $needNames->all())
             ->get()
@@ -220,19 +220,19 @@ class ReviewAggregator
             ->groupBy('product_id');
 
         // Mapear nombres
-        $tourNames = [];
-        foreach ($tours as $tourId => $tour) {
-            $trans = $translations->get($tourId, collect());
+        $productNames = [];
+        foreach ($products as $productId => $product) {
+            $trans = $translations->get($productId, collect());
             $localized = $trans->firstWhere('locale', $locale);
             $fallbackTrans = $trans->firstWhere('locale', $fallback);
 
-            $tourNames[(int)$tourId] = $localized->name ?? $fallbackTrans->name ?? $tour->name ?? '';
+            $productNames[(int)$productId] = $localized->name ?? $fallbackTrans->name ?? $product->name ?? '';
         }
 
         // Adjuntar nombres
-        return $reviews->map(function ($r) use ($tourNames) {
-            if (!empty($r['product_id']) && empty($r['tour_name'])) {
-                $r['tour_name'] = $tourNames[(int)$r['product_id']] ?? '';
+        return $reviews->map(function ($r) use ($productNames) {
+            if (!empty($r['product_id']) && empty($r['product_name'])) {
+                $r['product_name'] = $productNames[(int)$r['product_id']] ?? '';
             }
             return $r;
         });

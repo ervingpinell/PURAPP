@@ -20,14 +20,14 @@
       <div class="row">
         <div class="col-md-6">
           <ul class="list-unstyled">
-            @foreach($tour->amenities as $am)
+            @foreach($product->amenities as $am)
             <li>✔️ {{ $am->translated_name ?? $am->name }}</li>
             @endforeach
           </ul>
         </div>
         <div class="col-md-6">
           <ul class="list-unstyled">
-            @foreach($tour->excludedAmenities as $ex)
+            @foreach($product->excludedAmenities as $ex)
             <li><i class="fas fa-times text-danger"></i> {{ $ex->translated_name ?? $ex->name }}</li>
             @endforeach
           </ul>

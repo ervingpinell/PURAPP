@@ -29,9 +29,9 @@
         {{ __('m_tours.image.cover_updated_title') }}
       </h1>
     </div>
-    @isset($tourType)
+    @isset($productType)
       <div class="brand-sub mt-1">
-        {{ $tourType->name }} • {{ __('m_tours.image.ui.id_label') }}: {{ $tourType->product_type_id }}
+        {{ $productType->name }} • {{ __('m_tours.image.ui.id_label') }}: {{ $productType->product_type_id }}
       </div>
     @endisset
   </div>
@@ -51,7 +51,7 @@
             alt="{{ __('m_tours.image.ui.cover_alt') }}"
             class="img-fluid rounded mb-2">
           <div class="text-muted small">
-            {{ $tourType->name }} ({{ __('m_tours.image.ui.id_label') }}: {{ $tourType->product_type_id }})
+            {{ $productType->name }} ({{ __('m_tours.image.ui.id_label') }}: {{ $productType->product_type_id }})
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@
           {{ __('m_tours.image.ui.upload_new_cover_title') }}
         </div>
         <div class="card-body">
-          <form method="POST" action="{{ route('admin.types.images.update', $tourType) }}" enctype="multipart/form-data">
+          <form method="POST" action="{{ route('admin.types.images.update', $productType) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 

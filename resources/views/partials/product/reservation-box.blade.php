@@ -1,5 +1,5 @@
-@include('partials.tour.reservation.form', [
-  'tour'              => $tour,
+@include('partials.product.reservation.form', [
+  'tour'              => $product,
   'hotels'            => $hotels,
   'meetingPoints'     => $meetingPoints,
   'blockedGeneral'    => $blockedGeneral ?? [],

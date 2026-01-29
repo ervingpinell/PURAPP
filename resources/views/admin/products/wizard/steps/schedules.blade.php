@@ -457,7 +457,7 @@
             </p>
         </div>
 
-        <form method="POST" action="{{ route('admin.products.product-wizard.store.schedules', $product) }}">
+        <form method="POST" action="{{ route('admin.products.wizard.store.schedules', $product) }}">
             @csrf
 
             {{-- Botones de acción --}}
@@ -608,7 +608,7 @@
             {{-- Footer navegación --}}
             <div class="card-footer navigation-footer">
                 <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ route('admin.products.product-wizard.step', ['product' => $product, 'step' => 1]) }}"
+                    <a href="{{ route('admin.products.wizard.step', ['product' => $product, 'step' => 1]) }}"
                        class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         {{ __('m_tours.common.previous') }}
@@ -639,7 +639,7 @@
     {{-- Modal crear horario --}}
     <div class="modal fade" id="modalCreateScheduleForTour" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <form action="{{ route('admin.products.product-wizard.quick.schedule', $product) }}"
+            <form action="{{ route('admin.products.wizard.quick.schedule', $product) }}"
                   method="POST"
                   class="modal-content"
                   autocomplete="off">

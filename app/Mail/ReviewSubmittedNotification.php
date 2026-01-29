@@ -13,7 +13,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public Review $review;
-    public ?string $tourName;
+    public ?string $productName;
     public ?string $customerName;
     public ?string $adminPanelUrl;
 
@@ -21,19 +21,19 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
 
     /**
      * @param Review      $review
-     * @param string|null $tourName       Nombre del tour (opcional, se intenta resolver igual)
+     * @param string|null $productName       Nombre del producto (opcional, se intenta resolver igual)
      * @param string|null $customerName   Nombre del cliente (opcional)
      * @param string|null $adminPanelUrl  URL directa al CRUD (edit) o index
      */
     public function __construct(
         Review $review,
-        ?string $tourName = null,
+        ?string $productName = null,
         ?string $customerName = null,
         ?string $adminPanelUrl = null
     ) {
         // Cargar relaciones mínimas para mostrar info en el correo
         $this->review        = $review->loadMissing('product', 'booking', 'user');
-        $this->tourName      = $tourName;
+        $this->productName      = $productName;
         $this->customerName  = $customerName;
         $this->adminPanelUrl = $adminPanelUrl;
 
@@ -76,7 +76,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
         // ===== Resolver nombres =====
         $product = $this->review->product;
 
-        $resolvedTourName = $this->tourName
+        $resolvedProductName = $this->productName
             ?? ($product ? ($product->getTranslation('name', $loc, false) ?? $product->name) : null);
 
         $resolvedCustomer = $this->customerName
@@ -87,8 +87,8 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
 
         // ===== Subject (con traducción si existe) =====
         $subject = __('reviews.emails.submitted.subject', [], $loc);
-        if ($resolvedTourName) {
-            $subject .= ' — ' . $resolvedTourName;
+        if ($resolvedProductName) {
+            $subject .= ' — ' . $resolvedProductName;
         }
 
         // FROM
@@ -116,7 +116,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
             ->subject($subject)
             ->view('emails.reviews.submitted', [
                 'review'       => $this->review,
-                'tourName'     => $resolvedTourName,
+                'productName'     => $resolvedProductName,
                 'customerName' => $resolvedCustomer,
                 'adminUrl'     => $adminUrl,
 
@@ -129,7 +129,7 @@ class ReviewSubmittedNotification extends Mailable implements ShouldQueue
             ])
             ->text('emails.reviews.submitted_text', [
                 'review'       => $this->review,
-                'tourName'     => $resolvedTourName,
+                'productName'     => $resolvedProductName,
                 'customerName' => $resolvedCustomer,
                 'adminUrl'     => $adminUrl,
             ]);

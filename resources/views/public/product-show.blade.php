@@ -7,10 +7,10 @@
 {{-- Tour Schema (TouristAttraction) --}}
 @php
 use App\Helpers\SchemaHelper;
-$tourSchema = SchemaHelper::generateTourSchema($tour, $tourReviews ?? null);
+$productSchema = SchemaHelper::generateProductSchema($product, $productReviews ?? null);
 @endphp
 <script type="application/ld+json">
-    {!! json_encode($tourSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    {!! json_encode($productSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
 </script>
 
 {{-- Breadcrumb Schema --}}
@@ -18,7 +18,7 @@ $tourSchema = SchemaHelper::generateTourSchema($tour, $tourReviews ?? null);
 $breadcrumbItems = [
 ['name' => __('adminlte::adminlte.home'), 'url' => url('/')],
 ['name' => __('adminlte::adminlte.tours'), 'url' => url('/tours')],
-['name' => $tour->getTranslatedName(), 'url' => Request::url()],
+['name' => $product->getTranslatedName(), 'url' => Request::url()],
 ];
 $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
 @endphp
@@ -29,14 +29,14 @@ $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
 
 @push('styles')
 @vite([
-'resources/css/tour.css',
-'resources/css/tour-carousel.css',
+'resources/css/product.css',
+'resources/css/product-carousel.css',
 'resources/css/breadcrumbs.css',
 ])
 @endpush
 
 @section('content')
-<section class="tour-section">
+<section class="product-section">
   <div class="container">
     {{-- Breadcrumbs --}}
     <nav aria-label="breadcrumb" class="mb-3">
@@ -48,31 +48,31 @@ $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
           <a href="{{ url('/tours') }}">{{ __('adminlte::adminlte.tours') }}</a>
         </li>
         <li class="breadcrumb-item active" aria-current="page">
-          {{ $tour->getTranslatedName() }}
+          {{ $product->getTranslatedName() }}
         </li>
       </ol>
     </nav>
     <div class="row g-4">
       {{-- Left Column: Tour Content (60%) --}}
       <div class="col-lg-8">
-        @include('partials.tour.feedback')
+        @include('partials.product.feedback')
 
         {{-- Gallery --}}
-        @include('partials.tour.carousel', ['tour' => $tour])
+        @include('partials.product.carousel', ['product' => $product])
 
         {{-- Title + Meta Badges + Overview --}}
-        @include('partials.tour.overview-with-meta', ['tour' => $tour])
+        @include('partials.product.overview-with-meta', ['product' => $product])
 
         {{-- 🔽 ACCORDIONS --}}
         <div class="mt-5">
-          @include('partials.tour.accordions', ['tour' => $tour, 'hotels' => $hotels])
+          @include('partials.product.accordions', ['product' => $product, 'hotels' => $hotels])
         </div>
 
         {{-- 🌟 Reviews --}}
         <div class="mt-5">
           <h2 class="fw-bold text-center mb-3">{{ __('reviews.reviews_title') }}</h2>
           @include('partials.reviews.carousel', [
-            'items' => $tourReviews ?? collect(),
+            'items' => $productReviews ?? collect(),
             'providerHeight' => 320
           ])
         </div>
@@ -81,8 +81,8 @@ $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
       {{-- Right Column: Sticky Booking Form (40%) --}}
       <div class="col-lg-4">
         <div class="sticky-booking-wrapper">
-          @include('partials.tour.reservation-box', [
-            'tour' => $tour,
+          @include('partials.product.reservation-box', [
+            'product' => $product,
             'hotels' => $hotels,
             'blockedGeneral' => $blockedGeneral ?? [],
             'blockedBySchedule' => $blockedBySchedule ?? [],
@@ -94,17 +94,17 @@ $breadcrumbSchema = SchemaHelper::generateBreadcrumbSchema($breadcrumbItems);
 
     {{-- JS globals para el box/calendario --}}
     @php
-    $tourJsData = [
-    'id' => $tour->product_id,
-    'code' => $tour->viator_code,
-    'name' => $tour->getTranslatedName(),
+    $productJsData = [
+    'id' => $product->product_id,
+    'code' => $product->viator_code,
+    'name' => $product->getTranslatedName(),
     ];
     @endphp
     <script>
-      window.tourData = @json($tourJsData);
-      window.tourId = {{ $tour->product_id }};
-      window.maxCapacity = {{ $tour->max_capacity }};
-      window.productCode = @json($tour -> viator_code);
+      window.productData = @json($productJsData);
+      window.productId = {{ $product->product_id }};
+      window.maxCapacity = {{ $product->max_capacity }};
+      window.productCode = @json($product -> viator_code);
       window.blockedGeneral = @json($blockedGeneral ?? []);
       window.blockedBySchedule = @json((object)($blockedBySchedule ?? []));
       window.fullyBlockedDates = @json($fullyBlockedDates ?? []);

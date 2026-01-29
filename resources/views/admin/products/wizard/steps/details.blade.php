@@ -228,8 +228,8 @@ $currentStep = $step ?? 1;
         id="tour-details-form"
         method="POST"
         action="{{ $isEditing
-            ? route('admin.products.product-wizard.update.details', $product)
-            : route('admin.products.product-wizard.store.details') }}"
+            ? route('admin.products.wizard.update.details', $product)
+            : route('admin.products.wizard.store.details') }}"
         novalidate>
         @csrf
 
@@ -603,7 +603,7 @@ $currentStep = $step ?? 1;
 <div class="modal fade" id="modalCreateTourType" tabindex="-1" aria-labelledby="modalCreateTourTypeLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form method="POST"
-            action="{{ route('admin.products.product-wizard.quick.tour-type') }}"
+            action="{{ route('admin.products.wizard.quick.tour-type') }}"
             class="modal-content"
             id="formCreateTourType">
             @csrf
@@ -690,7 +690,7 @@ $currentStep = $step ?? 1;
 <div class="modal fade" id="modalCreateLanguage" tabindex="-1" aria-labelledby="modalCreateLanguageLabel" aria-hidden="true">
     <div class="modal-dialog">
         <form method="POST"
-            action="{{ route('admin.products.product-wizard.quick.language') }}"
+            action="{{ route('admin.products.wizard.quick.language') }}"
             class="modal-content"
             id="formCreateLanguage">
             @csrf
@@ -805,13 +805,13 @@ $mainDraft = $existingDrafts->sortByDesc('updated_at')->first();
                 <button type="button"
                     class="btn btn-danger flex-fill mx-2"
                     id="deleteMainDraft"
-                    data-delete-url="{{ route('admin.products.product-wizard.delete-draft', $mainDraft) }}"
+                    data-delete-url="{{ route('admin.products.wizard.delete-draft', $mainDraft) }}"
                     data-draft-name="{{ $mainDraft->name }}">
                     <i class="fas fa-trash-alt"></i>
                     {{ __('m_tours.tour.wizard.delete_draft') }}
                 </button>
 
-                <a href="{{ route('admin.products.product-wizard.continue', $mainDraft) }}"
+                <a href="{{ route('admin.products.wizard.continue', $mainDraft) }}"
                     class="btn btn-success flex-fill mx-2">
                     <i class="fas fa-play"></i>
                     {{ __('m_tours.tour.wizard.continue_draft') }}

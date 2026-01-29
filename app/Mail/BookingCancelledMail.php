@@ -18,7 +18,7 @@ class BookingCancelledMail extends Mailable implements ShouldQueue
 
     protected string $mailLocale;
     protected string $reference;
-    protected string $tourLangLabel;
+    protected string $productLangLabel;
     protected string $statusText;
 
     /**
@@ -58,7 +58,7 @@ class BookingCancelledMail extends Mailable implements ShouldQueue
 
         $this->mailLocale    = $this->mailLocaleFromBooking($this->booking);
         $this->reference     = $this->bookingReference($this->booking);
-        $this->tourLangLabel = $this->humanTourLanguage($this->mailLocale, $this->booking);
+        $this->productLangLabel = $this->humanTourLanguage($this->mailLocale, $this->booking);
         $this->statusText    = $this->statusLabel($this->mailLocale, $this->booking);
 
         // === Pickup times desde el primer detalle ===
@@ -102,7 +102,7 @@ class BookingCancelledMail extends Mailable implements ShouldQueue
                 'booking'           => $this->booking,
                 'mailLocale'        => $this->mailLocale,
                 'reference'         => $this->reference,
-                'tourLangLabel'     => $this->tourLangLabel,
+                'productLangLabel'     => $this->productLangLabel,
                 'statusLabel'       => $this->statusText,
                 'company'           => $fromName,
                 'contactEmail'      => $replyTo,

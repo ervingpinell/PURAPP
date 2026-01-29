@@ -13,7 +13,7 @@
 'resources/css/reviews.css',
 'resources/css/homereviews.css',
 'resources/css/home.css',
-'resources/css/tour.css',
+'resources/css/product.css',
 'resources/css/app.css'
 ])
 <style>
@@ -43,8 +43,8 @@
   {{ __('adminlte::adminlte.our_services') }}
 </h2>
 
-<section class="tours-section" id="tours">
-  @include('partials.tours', ['toursByType' => $toursByType, 'typeMeta' => $typeMeta])
+<section class="products-section" id="products">
+  @include('partials.product-type-cards', ['productsByType' => $productsByType, 'typeMeta' => $typeMeta])
 </section>
 
 <section class="home-testimonials">

@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\TourAvailability;
+use App\Models\ProductAvailability;
 use App\Services\LoggerHelper;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -47,7 +47,7 @@ class PurgeOldAvailabilityOverrides implements ShouldQueue
     {
         $cutoff = Carbon::today()->subDays($this->daysAgo)->toDateString();
 
-        $q = TourAvailability::query()
+        $q = ProductAvailability::query()
             ->whereDate('date', '<', $cutoff);
 
         if ($this->onlyInactive) {
@@ -111,7 +111,7 @@ class PurgeOldAvailabilityOverrides implements ShouldQueue
             ->chunkById($this->chunk, function ($rows) use (&$deleted) {
                 $ids = collect($rows)->pluck('availability_id')->all();
                 if ($ids) {
-                    $deleted += TourAvailability::whereIn('availability_id', $ids)->delete();
+                    $deleted += ProductAvailability::whereIn('availability_id', $ids)->delete();
                 }
             }, 'availability_id', 'availability_id');
 

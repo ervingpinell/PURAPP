@@ -121,31 +121,31 @@
       {{-- Sidebar Column: Tour & Booking Info (appears second on mobile) --}}
       <div class="col-12 col-lg-6 order-2 order-lg-1">
         {{-- Tour Card --}}
-        @if($tour)
+        @if($product)
         <div class="card info-card shadow-sm mb-3 mb-md-4">
-          @if($tour->cover_image_url)
+          @if($product->cover_image_url)
           <div class="tour-image-wrapper">
-            <img src="{{ $tour->cover_image_url }}"
-                 alt="{{ $tour->name }}"
+            <img src="{{ $product->cover_image_url }}"
+                 alt="{{ $product->name }}"
                  class="card-img-top">
           </div>
           @endif
           <div class="card-body p-3 p-md-4">
             <h5 class="card-title mb-3">
               <i class="fas fa-map-marked-alt text-success mr-2"></i>
-              {{ $tour->name }}
+              {{ $product->name }}
             </h5>
 
             @if($rr->booking)
             <div class="booking-details">
-              @if($rr->booking->detail && $rr->booking->detail->tour_date)
+              @if($rr->booking->detail && $rr->booking->detail->product_date)
               <div class="detail-item">
                 <div class="detail-icon">
                   <i class="fas fa-calendar-alt"></i>
                 </div>
                 <div class="detail-content">
                   <span class="detail-label">{{ __('reviews.public.booking_date') }}</span>
-                  <span class="detail-value">{{ $rr->booking->detail->tour_date->format('d/m/Y') }}</span>
+                  <span class="detail-value">{{ $rr->booking->detail->product_date->format('d/m/Y') }}</span>
                 </div>
               </div>
               @endif

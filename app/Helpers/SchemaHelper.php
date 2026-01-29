@@ -8,16 +8,16 @@ use Illuminate\Support\Facades\Storage;
 class SchemaHelper
 {
     /**
-     * Generate TouristAttraction schema for a tour
+     * Generate Product schema for SEO
      */
-    public static function generateTourSchema(Product $tour, $reviews = null): array
+    public static function generateProductSchema(Product $product, $reviews = null): array
     {
         $locale = app()->getLocale();
-        $tourName = $tour->getTranslatedName();
-        $overview = $tour->getTranslatedOverview();
+        $productName = $product->getTranslatedName();
+        $overview = $product->getTranslatedOverview();
 
         // Get active prices
-        $activeCategories = $tour->activePricesForDate(now());
+        $activeCategories = $product->activePricesForDate(now());
 
         // Calculate price range
         $prices = $activeCategories->pluck('price')->filter();
@@ -25,7 +25,7 @@ class SchemaHelper
         $highPrice = $prices->max() ?? 0;
 
         // Get images from gallery
-        $images = self::getTourImages($tour);
+        $images = self::getProductImages($product);
 
         // Build offers array
         $offers = [];
@@ -48,7 +48,7 @@ class SchemaHelper
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Product',
-            'name' => $tourName,
+            'name' => $productName,
             'description' => strip_tags($overview ?? ''),
         ];
 
@@ -99,15 +99,15 @@ class SchemaHelper
     }
 
     /**
-     * Get tour images from gallery
+     * Get product images from gallery
      */
-    protected static function getTourImages(Product $tour): array
+    protected static function getProductImages(Product $product): array
     {
         $images = [];
 
         // Try to get from gallery folder
-        $tourId = $tour->product_id ?? $tour->id;
-        $folder = "tours/{$tourId}/gallery";
+        $productId = $product->product_id ?? $product->id;
+        $folder = "products/{$productId}/gallery";
 
         if (Storage::disk('public')->exists($folder)) {
             $allowed = ['jpg', 'jpeg', 'png', 'webp'];
@@ -123,8 +123,8 @@ class SchemaHelper
         }
 
         // Fallback to cover image if no gallery
-        if (empty($images) && $tour->coverImage) {
-            $images[] = $tour->coverImage->url;
+        if (empty($images) && $product->coverImage) {
+            $images[] = $product->coverImage->url;
         }
 
         return $images;

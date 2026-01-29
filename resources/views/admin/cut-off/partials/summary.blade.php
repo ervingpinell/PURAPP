@@ -4,7 +4,7 @@
     <span class="text-muted small">{{ __('m_config.cut-off.hints.dash_means_inherit') }}</span>
   </div>
   <div class="card-body">
-    @if(empty($tourOverrides))
+    @if(empty($productOverrides))
     <div class="text-muted">{{ __('m_config.cut-off.summary.no_tour_overrides') }}</div>
     @else
     <div class="table-responsive">
@@ -18,7 +18,7 @@
           </tr>
         </thead>
         <tbody>
-          @foreach($tourOverrides as $row)
+          @foreach($productOverrides as $row)
           @php
           $cutVal = $row['cutoff'] === '—' ? '' : $row['cutoff'];
           $leadVal = $row['lead'] === '—' ? '' : $row['lead'];

@@ -2,7 +2,7 @@
 
 namespace App\Traits;
 
-use App\Models\TourAuditLog;
+use App\Models\ProductAuditLog;
 
 /**
  * Trait Auditable
@@ -54,7 +54,7 @@ trait Auditable
     {
         $action = $this->is_draft ? 'draft_created' : 'created';
 
-        TourAuditLog::logAction(
+        ProductAuditLog::logAction(
             action: $action,
             tourId: $this->getKey(),
             newValues: $this->getAuditableData(),
@@ -95,7 +95,7 @@ trait Auditable
             $newValues[$field] = $changes[$field];
         }
 
-        TourAuditLog::logAction(
+        ProductAuditLog::logAction(
             action: $action,
             tourId: $this->getKey(),
             oldValues: $oldValues,
@@ -113,7 +113,7 @@ trait Auditable
     {
         $action = $this->is_draft ? 'draft_deleted' : 'deleted';
 
-        TourAuditLog::logAction(
+        ProductAuditLog::logAction(
             action: $action,
             tourId: $this->getKey(),
             oldValues: $this->getAuditableData(),
@@ -127,7 +127,7 @@ trait Auditable
      */
     protected function auditRestored(): void
     {
-        TourAuditLog::logAction(
+        ProductAuditLog::logAction(
             action: 'restored',
             tourId: $this->getKey(),
             newValues: $this->getAuditableData(),
@@ -262,8 +262,8 @@ trait Auditable
         string $action,
         ?string $description = null,
         ?array $additionalData = null
-    ): TourAuditLog {
-        return TourAuditLog::logAction(
+    ): ProductAuditLog {
+        return ProductAuditLog::logAction(
             action: $action,
             tourId: $this->getKey(),
             newValues: $additionalData,
@@ -277,7 +277,7 @@ trait Auditable
      */
     public function auditLogs()
     {
-        return $this->hasMany(TourAuditLog::class, 'product_id', 'product_id')
+        return $this->hasMany(ProductAuditLog::class, 'product_id', 'product_id')
                     ->orderBy('created_at', 'desc');
     }
 
@@ -286,7 +286,7 @@ trait Auditable
      */
     public function lastAuditLog()
     {
-        return $this->hasOne(TourAuditLog::class, 'product_id', 'product_id')
+        return $this->hasOne(ProductAuditLog::class, 'product_id', 'product_id')
                     ->latest('created_at');
     }
 

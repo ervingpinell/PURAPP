@@ -7,23 +7,23 @@
     /**
      * === 1) Detectar idioma del tour (spanish vs. other) ===
      * Priorizamos:
-     *  - $tourLanguageCode (ej. 'es', 'en')
-     *  - $tourLanguageName  (ej. 'Español', 'English')
-     *  - relaciones si vienen: $detail->tourLanguage->name / $booking->productLanguage->name
+     *  - $productLanguageCode (ej. 'es', 'en')
+     *  - $productLanguageName  (ej. 'Español', 'English')
+     *  - relaciones si vienen: $detail->productLanguage->name / $booking->productLanguage->name
      */
-    $tourLanguageCode = $tourLanguageCode
+    $productLanguageCode = $productLanguageCode
         ?? null;
 
-    $tourLanguageName = $tourLanguageName
-        ?? ($detail->tourLanguage->name ?? null)
+    $productLanguageName = $productLanguageName
+        ?? ($detail->productLanguage->name ?? null)
         ?? ($booking->productLanguage->name ?? null);
 
     $isSpanish = false;
 
-    if (!empty($tourLanguageCode)) {
-        $isSpanish = Str::startsWith(Str::lower($tourLanguageCode), 'es');
-    } elseif (!empty($tourLanguageName)) {
-        $nameLower = Str::lower($tourLanguageName);
+    if (!empty($productLanguageCode)) {
+        $isSpanish = Str::startsWith(Str::lower($productLanguageCode), 'es');
+    } elseif (!empty($productLanguageName)) {
+        $nameLower = Str::lower($productLanguageName);
         // heurística simple: 'español', 'spanish', 'es-xx'
         $isSpanish = (Str::contains($nameLower, 'espa') || Str::contains($nameLower, 'spani'));
     }
@@ -48,23 +48,23 @@
     ];
 
     // === 4) Nombre del tour usando traducciones ===
-    if (!empty($tour) && method_exists($tour, 'getTranslatedName')) {
+    if (!empty($product) && method_exists($product, 'getTranslatedName')) {
         // si el tour tiene traducciones, respeta el mailLocale (es/en)
-        $tourNameResolved = $tour->getTranslatedName($mailLocale);
+        $productNameResolved = $product->getTranslatedName($mailLocale);
     } else {
         // fallback a lo que venga por variable
-        $tourNameResolved = $tourName ?? '';
+        $productNameResolved = $productName ?? '';
     }
 
     // Adjuntar fecha de actividad si viene (texto ya formateado fuera)
-    $tourLabel = trim($tourNameResolved . (!empty($activityDateText) ? " ({$activityDateText})" : ''));
+    $productLabel = trim($productNameResolved . (!empty($activityDateText) ? " ({$activityDateText})" : ''));
 
     // === 5) Textos del email en ES / EN (sin usar __()) ===
     $nameForGreeting = $userName ?: ($mailLocale === 'es' ? 'viajero' : 'traveler');
 
     if ($mailLocale === 'es') {
         $greeting = "Hola {$nameForGreeting},";
-        $intro    = "¡Pura vida! 🙌 Gracias por elegirnos. Nos encantaría saber cómo te fue en {$tourLabel}.";
+        $intro    = "¡Pura vida! 🙌 Gracias por elegirnos. Nos encantaría saber cómo te fue en {$productLabel}.";
         $ask      = "¿Nos regalas 1–2 minutos para dejar tu reseña? ¡Nos ayuda muchísimo!";
         $cta      = "Dejar mi reseña";
 
@@ -74,7 +74,7 @@
 
     } else {
         $greeting = "Hi {$nameForGreeting},";
-        $intro    = "Pura vida! 🙌 Thanks for choosing us. We’d love to know how it went on {$tourLabel}.";
+        $intro    = "Pura vida! 🙌 Thanks for choosing us. We’d love to know how it went on {$productLabel}.";
         $ask      = "Could you spare 1–2 minutes to leave your review? It truly helps a lot.";
         $cta      = "Leave my review";
 
@@ -84,7 +84,7 @@
     }
 
     // Preheader (puedes ajustar si quieres algo más descriptivo)
-    $pre = $preheader ?? $tourLabel;
+    $pre = $preheader ?? $productLabel;
 
     // Texto de expiración (si viene la fecha ya formateada)
     $expiresText = null;

@@ -5,7 +5,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\TourAuditLog;
+use App\Models\ProductAuditLog;
 use Illuminate\Support\Carbon;
 
 class CleanOldProductLogs extends Command
@@ -18,7 +18,7 @@ class CleanOldProductLogs extends Command
         $days   = (int) $this->option('days');
         $cutoff = Carbon::now()->subDays($days);
 
-        $deleted = TourAuditLog::where('created_at', '<', $cutoff)->delete();
+        $deleted = ProductAuditLog::where('created_at', '<', $cutoff)->delete();
 
         $this->info("Eliminados {$deleted} registros de tour_audit_logs anteriores a {$cutoff}.");
     }

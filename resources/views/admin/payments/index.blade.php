@@ -219,16 +219,16 @@
                                 @endif
                             </td>
                             <td class="align-middle d-none d-xl-table-cell">
-                                @if($payment->booking && $payment->booking->tour)
+                                @if($payment->booking && $payment->booking->product)
                                 <span class="text-truncate d-inline-block" style="max-width: 200px;"
-                                    title="{{ $payment->booking->tour->name }}">
-                                    {{ $payment->booking->tour->name }}
+                                    title="{{ $payment->booking->product->name }}">
+                                    {{ $payment->booking->product->name }}
                                 </span>
                                 @elseif(isset($payment->metadata['deleted_booking_snapshot']['tour']))
-                                @php $tour = $payment->metadata['deleted_booking_snapshot']['tour']; @endphp
+                                @php $product = $payment->metadata['deleted_booking_snapshot']['product']; @endphp
                                 <span class="text-danger text-truncate d-inline-block" style="max-width: 200px;"
-                                    title="{{ $tour['name'] ?? 'N/A' }} - {{ __('payment.messages.booking_deleted') }}">
-                                    {{ $tour['name'] ?? 'N/A' }}
+                                    title="{{ $product['name'] ?? 'N/A' }} - {{ __('payment.messages.booking_deleted') }}">
+                                    {{ $product['name'] ?? 'N/A' }}
                                     <i class="fas fa-trash-alt ml-1"></i>
                                 </span>
                                 @else

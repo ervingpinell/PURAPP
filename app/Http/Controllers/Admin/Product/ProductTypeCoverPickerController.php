@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Admin\Product;
 use App\Http\Controllers\Controller;
 use App\Models\ProductType; // Fixed missing import
 use Illuminate\Http\Request;
-// Removed unused Storage and TourType imports
+// Removed unused Storage import
 
 /**
- * TourTypeCoverPickerController
+ * ProductTypeCoverPickerController
  *
- * Handles tourtypecoverpicker operations.
+ * Handles product type cover picker operations.
  */
 class ProductTypeCoverPickerController extends Controller
 {
@@ -76,7 +76,7 @@ class ProductTypeCoverPickerController extends Controller
             'coverAccessor' => 'cover_url',
             // IMPORTANTE: apuntamos al edit de este mismo controlador
             'manageRoute'   => 'admin.types.images.edit',
-            'requiredPermission' => 'edit_cover-tour-images',
+            'requiredPermission' => 'edit_cover-product-images',
             'i18n' => [
                 'title'              => 'Categorias',
                 'heading'            => 'Categorías',
@@ -104,12 +104,8 @@ class ProductTypeCoverPickerController extends Controller
             $coverUrl = asset('images/volcano.png');
         }
             
-        // Variable name in view likely expects $tourType or maybe generic?
-        // Let's check view passed vars below: compact('tourType', 'coverUrl')
-        // So we must pass 'tourType' => $productType
-        $tourType = $productType;
-
-        return view('admin.tourtypes.edit-cover', compact('tourType', 'coverUrl'));
+        // Pass productType to view
+        return view('admin.producttypes.edit-cover', compact('productType', 'coverUrl'));
     }
 
     /**

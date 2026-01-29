@@ -132,8 +132,8 @@
                             required
                             style="width: 100%">
                             <option value="">{{ __('reviews.providers.select_tour_placeholder') }}</option>
-                            @foreach($allTours as $tour)
-                            <option value="{{ $tour['id'] }}">{{ $tour['name'] }}</option>
+                            @foreach($allProducts as $product)
+                            <option value="{{ $product['id'] }}">{{ $product['name'] }}</option>
                             @endforeach
                         </select>
                         @error('product_id')

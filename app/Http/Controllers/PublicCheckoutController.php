@@ -317,7 +317,7 @@ class PublicCheckoutController extends Controller
             $cart = (object) [
                 'items' => collect($sessionCartItems)->map(function ($item) {
                     return (object) array_merge($item, [
-                        'tour' => \App\Models\Product::find($item['product_id']),
+                        'product' => \App\Models\Product::find($item['product_id']),
                         'schedule' => \App\Models\Schedule::find($item['schedule_id']),
                         'language' => \App\Models\ProductLanguage::find($item['tour_language_id']),
                         'hotel' => isset($item['hotel_id']) ? \App\Models\HotelList::find($item['hotel_id']) : null,
@@ -672,7 +672,7 @@ class PublicCheckoutController extends Controller
     public function showByToken(string $token, PolicySnapshotService $svc)
     {
         $booking = \App\Models\Booking::where('checkout_token', $token)
-            ->with(['detail', 'tour', 'user', 'detail.schedule', 'detail.tourLanguage'])
+            ->with(['detail', 'product', 'user', 'detail.schedule', 'detail.tourLanguage'])
             ->firstOrFail();
 
         if (!$booking->isCheckoutTokenValid()) {
@@ -716,12 +716,12 @@ class PublicCheckoutController extends Controller
         $tz = config('app.timezone', 'America/Costa_Rica');
         $cancellationHours = (int) setting('booking.cancellation_hours', 24);
 
-        $tourDate = $booking->tour_date;
+        $serviceDate = $booking->tour_date;
         $startTime = optional($booking->detail?->schedule)->start_time;
 
         $freeCancelUntil = null;
-        if ($tourDate && $startTime) {
-            $freeCancelUntil = Carbon::parse("{$tourDate} {$startTime}", $tz)
+        if ($serviceDate && $startTime) {
+            $freeCancelUntil = Carbon::parse("{$serviceDate} {$startTime}", $tz)
                 ->subHours($cancellationHours);
         }
 
@@ -736,7 +736,7 @@ class PublicCheckoutController extends Controller
                 (object) [
                     'cart_item_id' => null,
                     'product_id' => $booking->product_id,
-                    'tour' => $booking->tour,
+                    'product' => $booking->product,
                     'tour_date' => $booking->tour_date,
                     'schedule' => $booking->detail?->schedule,
                     'language' => $booking->detail?->tourLanguage,
@@ -768,7 +768,7 @@ class PublicCheckoutController extends Controller
     public function showPayment(string $bookingReference)
     {
         $booking = \App\Models\Booking::where('booking_reference', $bookingReference)
-            ->with(['detail', 'tour', 'user', 'detail.schedule', 'detail.tourLanguage'])
+            ->with(['detail', 'product', 'user', 'detail.schedule', 'detail.tourLanguage'])
             ->firstOrFail();
 
         // Check if booking is already paid
@@ -924,11 +924,11 @@ class PublicCheckoutController extends Controller
             $expandedCats = [];
             $rawCats = $itemData['categories'] ?? [];
 
-            // Load Tour to get prices
-            $tourId = $itemData['product_id'] ?? null;
-            $tourDate = $itemData['tour_date'] ?? null;
+            // Load Product to get prices
+            $productId = $itemData['product_id'] ?? null;
+            $serviceDate = $itemData['tour_date'] ?? null;
 
-            if ($tourId && is_array($rawCats)) {
+            if ($productId && is_array($rawCats)) {
                 // Check if categories are already in snapshot format (from buildCategoriesSnapshot)
                 // Format: [['category_id' => 1, 'quantity' => 12, 'price' => 75.00, ...], ...]
                 $firstItem = reset($rawCats);
@@ -950,9 +950,9 @@ class PublicCheckoutController extends Controller
                 } else {
                     // Legacy format: ['category_id' => quantity, ...]
                     // This shouldn't happen with current CartController, but handle it for safety
-                    $tour = \App\Models\Product::with('prices.category')->find($tourId);
+                    $product = \App\Models\Product::with('prices.category')->find($productId);
 
-                    if ($tour) {
+                    if ($product) {
                         foreach ($rawCats as $catId => $qty) {
                             $qty = (int)$qty;
                             if ($qty <= 0) continue;
@@ -960,17 +960,17 @@ class PublicCheckoutController extends Controller
                             $priceVal = 0;
 
                             // Find valid price for date
-                            $priceModel = $tour->prices->filter(function ($p) use ($catId, $tourDate) {
-                                return $p->category_id == $catId && $p->isValidForDate($tourDate);
+                            $priceModel = $product->prices->filter(function ($p) use ($catId, $serviceDate) {
+                                return $p->category_id == $catId && $p->isValidForDate($serviceDate);
                             })->first();
 
                             if (!$priceModel) {
-                                $priceModel = $tour->prices->where('category_id', $catId)
+                                $priceModel = $product->prices->where('category_id', $catId)
                                     ->whereNull('valid_from')->whereNull('valid_until')
                                     ->first();
                             }
                             if (!$priceModel) {
-                                $priceModel = $tour->prices->where('category_id', $catId)->first();
+                                $priceModel = $product->prices->where('category_id', $catId)->first();
                             }
 
                             $priceVal = $priceModel ? (float)$priceModel->price : 0.0;

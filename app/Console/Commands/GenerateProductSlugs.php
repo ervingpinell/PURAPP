@@ -19,7 +19,7 @@ class GenerateProductSlugs extends Command
      *
      * @var string
      */
-    protected $description = 'Genera slugs únicos para todos los tours que no tienen slug';
+    protected $description = 'Genera slugs únicos para todos los productos que no tienen slug';
 
     /**
      * Execute the console command.
@@ -37,27 +37,27 @@ class GenerateProductSlugs extends Command
             });
         }
 
-        $tours = $query->get();
+        $products = $query->get();
 
-        if ($tours->isEmpty()) {
-            $this->info('No tours to process.');
+        if ($products->isEmpty()) {
+            $this->info('No products to process.');
             return Command::SUCCESS;
         }
 
-        $this->info("Procesando {$tours->count()} tours...");
-        $bar = $this->output->createProgressBar($tours->count());
+        $this->info("Procesando {$products->count()} productos...");
+        $bar = $this->output->createProgressBar($products->count());
         $bar->start();
 
         $updated = 0;
 
-        foreach ($tours as $tour) {
+        foreach ($products as $product) {
             try {
-                $tour->slug = Product::generateUniqueSlug($tour->name, $tour->product_id);
-                $tour->save();
+                $product->slug = Product::generateUniqueSlug($product->name, $product->product_id);
+                $product->save();
                 $updated++;
             } catch (\Exception $e) {
                 $this->newLine();
-                $this->error("Error en tour #{$tour->product_id}: {$e->getMessage()}");
+                $this->error("Error en producto #{$product->product_id}: {$e->getMessage()}");
             }
 
             $bar->advance();

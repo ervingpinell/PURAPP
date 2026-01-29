@@ -27,7 +27,7 @@
 
     foreach ($bookingsIter as $b) {
     $detail = $b->detail ?? null;
-    $tour = $b->tour ?? null;
+    $product = $b->tour ?? null;
 
     $catsRaw = [];
     if (!empty($detail?->categories)) {
@@ -126,7 +126,7 @@
             @foreach($bookingsIter as $booking)
             @php
             $detail = $booking->detail ?? null;
-            $tour = $booking->product ?? null;
+            $product = $booking->product ?? null;
             $hotel = $detail->hotel ?? null;
             $schedule = $detail->schedule ?? null;
 
@@ -179,8 +179,8 @@
             if ($persons === 0) {
             $adults = (int)($detail->adults_quantity ?? 0);
             $kids = (int)($detail->kids_quantity ?? 0);
-            $adultPrice = (float)($tour->adult_price ?? 0.0);
-            $kidPrice = (float)($tour->kid_price ?? 0.0);
+            $adultPrice = (float)($product->adult_price ?? 0.0);
+            $kidPrice = (float)($product->kid_price ?? 0.0);
 
             if ($adults > 0) {
             $nameA = __('m_bookings.categories.adult', [], false) ?: 'Adults';
@@ -252,9 +252,9 @@
             ? $booking->booking_date->format('d-M-Y H:i')
             : ($booking->booking_date ?: $EM);
 
-            $tourName = $tour ? preg_replace('/\s*\([^)]*\)/', '', (string)($tour->name ?? '')) : $EM;
+            $productName = $product ? preg_replace('/\s*\([^)]*\)/', '', (string)($product->name ?? '')) : $EM;
 
-            $tourDateStr = $detail?->tour_date instanceof \Carbon\Carbon
+            $productDateStr = $detail?->tour_date instanceof \Carbon\Carbon
             ? $detail->tour_date->toDateString()
             : ((string)($detail->tour_date ?? $EM));
 
@@ -262,7 +262,7 @@
             ? ($schedule->start_time . ' - ' . $schedule->end_time)
             : $EM;
 
-            $typeName = $tour && $tour->tourType ? (string)$tour->tourType->name : $EM;
+            $typeName = $product && $product->productType ? (string)$product->productType->name : $EM;
 
             $customerName = optional($booking->user)->full_name
             ?? trim(((string)optional($booking->user)->first_name.' '.(string)optional($booking->user)->last_name))
@@ -294,8 +294,8 @@
                 <td>{{ $customerName }}</td>
                 <td>{{ $email }}</td>
                 <td>{{ $phone }}</td>
-                <td>{{ $tourName }}</td>
-                <td>{{ $tourDateStr }}</td>
+                <td>{{ $productName }}</td>
+                <td>{{ $productDateStr }}</td>
                 <td>
                     @php
                     $hasHotel = !empty($detail->hotel_id) || !empty($detail->other_hotel_name);

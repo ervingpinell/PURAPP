@@ -8,7 +8,7 @@
     $provider = $review->provider ?? 'local';
 
     $tHeader   = $mailLocale === 'es' ? 'Nueva reseña recibida' : 'New review received';
-    $tTour     = $mailLocale === 'es' ? 'Tour'                  : 'Tour';
+    $tTour     = $mailLocale === 'es' ? 'Product'                  : 'Product';
     $tCustomer = $mailLocale === 'es' ? 'Cliente'               : 'Customer';
     $tRating   = $mailLocale === 'es' ? 'Calificación'          : 'Rating';
     $tTitle    = $mailLocale === 'es' ? 'Título'                : 'Title';
@@ -20,8 +20,8 @@
 
 {{ $tHeader }}
 
-@if($tourName)
-{{ $tTour }}: {{ $tourName }}
+@if($productName)
+{{ $tTour }}: {{ $productName }}
 @endif
 
 @if($customerName)

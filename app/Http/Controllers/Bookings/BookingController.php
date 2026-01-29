@@ -67,15 +67,15 @@ class BookingController extends Controller
             }
 
             // Pre-validación por grupos (tour+fecha+horario)
-            $groups = $cart->items->groupBy(fn($i) => $i->product_id . '_' . $i->tour_date . '_' . $i->schedule_id);
+            $groups = $cart->items->groupBy(fn($i) => $i->product_id . '_' . $i->product_date . '_' . $i->schedule_id);
 
             foreach ($groups as $items) {
                 $first      = $items->first();
-                $tour       = $first->tour;
-                $tourDate   = $first->tour_date;
+                $product       = $first->tour;
+                $productDate   = $first->product_date;
                 $scheduleId = $first->schedule_id;
 
-                $schedule = $tour->schedules()
+                $schedule = $product->schedules()
                     ->where('schedules.schedule_id', $scheduleId)
                     ->where('schedules.is_active', true)
                     ->wherePivot('is_active', true)
@@ -93,9 +93,9 @@ class BookingController extends Controller
                 });
 
                 $remaining = $this->capacity->remainingCapacity(
-                    $tour,
+                    $product,
                     $schedule,
-                    $tourDate,
+                    $productDate,
                     excludeBookingId: null,
                     countHolds: true,
                     excludeCartId: (int) $cart->cart_id
@@ -105,8 +105,8 @@ class BookingController extends Controller
                     throw \Illuminate\Validation\ValidationException::withMessages([
                         'capacity' => __("m_bookings.messages.limited_seats_available", [
                             'available' => $remaining,
-                            'tour'      => $tour->getTranslatedName(),
-                            'date'      => \Carbon\Carbon::parse($tourDate)->translatedFormat('M d, Y')
+                            'tour'      => $product->getTranslatedName(),
+                            'date'      => \Carbon\Carbon::parse($productDate)->translatedFormat('M d, Y')
                         ]),
                     ]);
                 }
@@ -159,7 +159,7 @@ class BookingController extends Controller
                     'product_id'           => $item->product_id,
                     'schedule_id'       => $item->schedule_id,
                     'tour_language_id'  => $item->tour_language_id,
-                    'tour_date'         => $item->tour_date,
+                    'product_date'         => $item->product_date,
                     'booking_date'      => now(),
                     'categories'        => $quantities,
                     // Pickup
@@ -331,19 +331,19 @@ class BookingController extends Controller
             $scheduleStart = \App\Models\Schedule::find($detail->schedule_id)?->start_time;
         }
         $startDateTime = null;
-        if ($detail->tour_date && $scheduleStart) {
+        if ($detail->product_date && $scheduleStart) {
             try {
-                $startDateTime = \Carbon\Carbon::parse($detail->tour_date . ' ' . $scheduleStart);
+                $startDateTime = \Carbon\Carbon::parse($detail->product_date . ' ' . $scheduleStart);
             } catch (\Throwable $e) {
                 $startDateTime = null;
             }
-        } elseif ($detail->tour_date) {
-            $startDateTime = \Carbon\Carbon::parse($detail->tour_date)->startOfDay();
+        } elseif ($detail->product_date) {
+            $startDateTime = \Carbon\Carbon::parse($detail->product_date)->startOfDay();
         }
 
         if ($startDateTime && now()->diffInHours($startDateTime, false) < $hoursBefore) {
             return back()->withInput()->withErrors([
-                'tour_date' => __('m_bookings.bookings.errors.modification_window_passed', ['hours' => $hoursBefore])
+                'product_date' => __('m_bookings.bookings.errors.modification_window_passed', ['hours' => $hoursBefore])
             ]);
         }
 
@@ -352,7 +352,7 @@ class BookingController extends Controller
             'product_id'           => 'required|exists:tours,product_id',
             'schedule_id'       => 'required|exists:schedules,schedule_id',
             'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
-            'tour_date'         => 'required|date|after:today',
+            'product_date'         => 'required|date|after:today',
             'categories'        => 'required|array|min:1',
             'categories.*'      => 'required|integer|min:0',
             'meeting_point_id'  => 'nullable|integer|exists:meeting_points,id',
@@ -403,7 +403,7 @@ class BookingController extends Controller
         $cap = app(BookingCapacityService::class)->capacitySnapshot(
             $newTour,
             $newSchedule,
-            $in['tour_date'],
+            $in['product_date'],
             excludeBookingId: (int)$booking->booking_id,
             countHolds: true
         );
@@ -411,7 +411,7 @@ class BookingController extends Controller
             return back()->withInput()->withErrors([
                 'capacity' => __('m_bookings.bookings.errors.insufficient_capacity', [
                     'tour'      => $newTour->name,
-                    'date'      => \Carbon\Carbon::parse($in['tour_date'])->translatedFormat('M d, Y'),
+                    'date'      => \Carbon\Carbon::parse($in['product_date'])->translatedFormat('M d, Y'),
                     'time'      => \Carbon\Carbon::parse($newSchedule->start_time)->format('g:i A'),
                     'requested' => $totalPax,
                     'available' => $cap['available'],
@@ -449,7 +449,7 @@ class BookingController extends Controller
             $detail->update([
                 'product_id'           => (int)$in['product_id'],
                 'schedule_id'       => (int)$in['schedule_id'],
-                'tour_date'         => $in['tour_date'],
+                'product_date'         => $in['product_date'],
                 'tour_language_id'  => (int)$in['tour_language_id'],
                 'categories'        => $categoriesSnapshot,
                 'total'             => $detailSubtotal,

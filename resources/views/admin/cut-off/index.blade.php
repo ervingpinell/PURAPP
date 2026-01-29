@@ -36,8 +36,8 @@
   use Carbon\Carbon;
 
   // build payload para JS
-  $toursPayload = [];
-  foreach ($tours as $t) {
+  $productsPayload = [];
+  foreach ($products as $t) {
       $item = [
           'id'   => (int)$t->product_id,
           'name' => $t->name,
@@ -53,16 +53,16 @@
               'lead'  => optional($s->pivot)->lead_days,
           ];
       }
-      $toursPayload[] = $item;
+      $productsPayload[] = $item;
   }
 
   // resumen con IDs (para summary editable)
-  $tourOverrides = [];
+  $productOverrides = [];
   $scheduleOverrides = [];
-  foreach ($tours as $t) {
-      $hasTourOverride = ($t->cutoff_hour || !is_null($t->lead_days));
-      if ($hasTourOverride) {
-          $tourOverrides[] = [
+  foreach ($products as $t) {
+      $hasProductOverride = ($t->cutoff_hour || !is_null($t->lead_days));
+      if ($hasProductOverride) {
+          $productOverrides[] = [
             'product_id' => (int)$t->product_id,
             'tour'    => $t->name,
             'cutoff'  => $t->cutoff_hour ?: '—',
@@ -129,14 +129,14 @@
       @include('admin.cut-off.partials.global', ['cutoff'=>$cutoff,'lead'=>$lead,'tz'=>$tz])
     </div>
     <div id="pane-tour" class="tab-pane fade">
-      @include('admin.cut-off.partials.tour', ['tours'=>$tours])
+      @include('admin.cut-off.partials.tour', ['products'=>$products])
     </div>
     <div id="pane-schedule" class="tab-pane fade">
-      @include('admin.cut-off.partials.schedule', ['tours'=>$tours,'toursPayload'=>$toursPayload])
+      @include('admin.cut-off.partials.schedule', ['products'=>$products,'toursPayload'=>$productsPayload])
     </div>
     <div id="pane-summary" class="tab-pane fade">
       {{-- Usa la versión editable que ya hicimos; importante que los forms lleven name="from_summary" --}}
-      @include('admin.cut-off.partials.summary', ['tourOverrides'=>$tourOverrides,'scheduleOverrides'=>$scheduleOverrides])
+      @include('admin.cut-off.partials.summary', ['productOverrides'=>$productOverrides,'scheduleOverrides'=>$scheduleOverrides])
     </div>
     <div id="pane-help" class="tab-pane fade">
       @include('admin.cut-off.partials.help')

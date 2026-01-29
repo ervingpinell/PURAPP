@@ -10,12 +10,12 @@
     $created  = $review->created_at ? $review->created_at->format('d-M-Y H:i') : null;
     $provider = $review->provider ?? 'local';
 
-    $tourLabel = $tourName ?: ($mailLocale === 'es' ? 'Tour' : 'Tour');
+    $productLabel = $productName ?: ($mailLocale === 'es' ? 'Product' : 'Product');
     $customerLabel = $customerName ?: ($mailLocale === 'es' ? 'Cliente' : 'Customer');
 
     $tHeader   = $mailLocale === 'es' ? 'Nueva reseña recibida'        : 'New review received';
     $tSummary  = $mailLocale === 'es' ? 'Resumen de la reseña'         : 'Review summary';
-    $tTour     = $mailLocale === 'es' ? 'Tour'                          : 'Tour';
+    $tProduct     = $mailLocale === 'es' ? 'Product'                          : 'Product';
     $tCustomer = $mailLocale === 'es' ? 'Cliente'                       : 'Customer';
     $tRating   = $mailLocale === 'es' ? 'Calificación'                  : 'Rating';
     $tTitle    = $mailLocale === 'es' ? 'Título'                        : 'Title';
@@ -29,9 +29,9 @@
   <div class="section-title" style="margin-bottom:4px;">
     {{ $tHeader }}
   </div>
-  @if($tourName)
+  @if($productName)
     <div style="font-size:13px;color:#6b7280;">
-      {{ $tTour }}: {{ $tourName }}
+      {{ $tProduct }}: {{ $productName }}
     </div>
   @endif
 </div>
@@ -39,8 +39,8 @@
 <div class="section-card" style="margin-bottom:12px;">
   <div class="section-title" style="margin-bottom:6px;font-weight:700;">{{ $tSummary }}</div>
   <div style="font-size:14px;color:#374151;">
-    @if($tourName)
-      <div><strong>{{ $tTour }}:</strong> {{ $tourName }}</div>
+    @if($productName)
+      <div><strong>{{ $tProduct }}:</strong> {{ $productName }}</div>
     @endif
 
     @if($customerName)

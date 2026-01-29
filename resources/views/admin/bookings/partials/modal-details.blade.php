@@ -66,12 +66,12 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
         @php
         // ===== Datos base
         $detail = $booking->detail;
-        $tour = $booking->product;
+        $product = $booking->product;
 
         // Nombre del tour (live o snapshot) con i18n
-        $liveName = optional($tour)->name;
+        $liveName = optional($product)->name;
         $snapName = $detail->tour_name_snapshot ?? ($booking->product_name_snapshot ?? null);
-        $tourName = $liveName
+        $productName = $liveName
         ?? ($snapName
         ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])
         : __('m_bookings.bookings.messages.deleted_tour'));
@@ -134,8 +134,8 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
         if (empty($categories)) {
         $adultsQty = (int)($detail->adults_quantity ?? 0);
         $kidsQty = (int)($detail->kids_quantity ?? 0);
-        $adultPrice = (float)($detail->adult_price ?? $tour?->adult_price ?? 0);
-        $kidPrice = (float)($detail->kid_price ?? $tour?->kid_price ?? 0);
+        $adultPrice = (float)($detail->adult_price ?? $product?->adult_price ?? 0);
+        $kidPrice = (float)($detail->kid_price ?? $product?->kid_price ?? 0);
 
         if ($adultsQty > 0) {
         $name = __('customer_categories.labels.adult');
@@ -316,7 +316,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
           </div>
         </div>
 
-        {{-- Tour Information --}}
+        {{-- Product Information --}}
         <div class="card mb-3">
           <div class="card-header bg-warning">
             <strong>{{ __('m_bookings.details.tour_info') }}</strong>
@@ -326,7 +326,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
               <div class="col-md-6">
                 <dl class="row">
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.tour') }}:</dt>
-                  <dd class="col-sm-8">{{ $tourName }}</dd>
+                  <dd class="col-sm-8">{{ $productName }}</dd>
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.tour_date') }}:</dt>
                   <dd class="col-sm-8">{{ optional($detail?->tour_date)?->format('M d, Y') ?? '—' }}</dd>
@@ -365,7 +365,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
                   @endif
 
                   <dt class="col-sm-4">{{ __('m_bookings.bookings.fields.type') }}:</dt>
-                  <dd class="col-sm-8">{{ optional($tour?->tourType)->name ?? '—' }}</dd>
+                  <dd class="col-sm-8">{{ optional($product?->productType)->name ?? '—' }}</dd>
                 </dl>
               </div>
             </div>
@@ -487,12 +487,12 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
             <strong>{{ __('m_bookings.bookings.fields.booking_reference') }}:</strong> {{ $booking->booking_reference }}
           </div>
 
-          {{-- Tour Schedule Info --}}
+          {{-- Product Schedule Info --}}
           @if($detail?->schedule)
           @php
           $scheduleStart = \Carbon\Carbon::parse($detail->schedule->start_time);
           $scheduleEnd = $detail->schedule->end_time ? \Carbon\Carbon::parse($detail->schedule->end_time) : null;
-          $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
+          $productPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
             @endphp
             <div class="alert alert-warning mb-3">
             <i class="fas fa-clock me-2"></i>
@@ -501,7 +501,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
             @if($scheduleEnd)
             - {{ $scheduleEnd->format('g:i A') }}
             @endif
-            <span class="badge bg-{{ $tourPeriod === 'AM' ? 'info' : 'warning' }} ms-2">{{ $tourPeriod }} Tour</span>
+            <span class="badge bg-{{ $productPeriod === 'AM' ? 'info' : 'warning' }} ms-2">{{ $productPeriod }} Product</span>
         </div>
         @endif
 
@@ -643,7 +643,7 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
         $scheduleStart -> hour
       }
     };
-    const tourPeriod = '{{ $tourPeriod }}';
+    const tourPeriod = '{{ $productPeriod }}';
 
     pickupInput.addEventListener('change', function() {
       if (!this.value) {

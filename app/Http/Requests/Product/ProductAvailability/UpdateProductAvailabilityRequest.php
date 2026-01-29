@@ -52,7 +52,7 @@ class UpdateProductAvailabilityRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        /** @var TourAvailability|null $availability */
+        /** @var ProductAvailability|null $availability */
         $availability = $this->route('availability');
 
         LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [

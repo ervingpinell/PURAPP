@@ -21,24 +21,24 @@ class CancelUnpaidBeforeProduct extends Command
      *
      * @var string
      */
-    protected $description = 'Cancel unpaid pay-later bookings X hours before tour date';
+    protected $description = 'Cancel unpaid pay-later bookings X hours before product date';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $hoursBeforeTour = (int) setting('booking.pay_later.cancel_hours_before_tour', 24);
+        $hoursBeforeProduct = (int) setting('booking.pay_later.cancel_hours_before_tour', 24);
 
-        // Calculate the cutoff time (tour date - X hours)
-        $cutoffTime = now()->addHours($hoursBeforeTour);
+        // Calculate the cutoff time (product date - X hours)
+        $cutoffTime = now()->addHours($hoursBeforeProduct);
 
         // Find unpaid pay-later bookings with tour date approaching
         $bookingsToCancel = Booking::where('status', 'pending')
             ->where('is_paid', false)
             ->where('is_pay_later', true)
             ->whereHas('details', function ($q) use ($cutoffTime) {
-                // Tour date/time is within the cancellation window
+                // Product date/time is within the cancellation window
                 $q->where('tour_date', '<=', $cutoffTime->format('Y-m-d'));
             })
             ->with(['user', 'tour', 'details'])
@@ -56,16 +56,16 @@ class CancelUnpaidBeforeProduct extends Command
 
         foreach ($bookingsToCancel as $booking) {
             try {
-                $tourDate = $booking->details->first()?->tour_date;
+                $productDate = $booking->details->first()?->tour_date;
 
                 // Double-check timing
-                if (!$tourDate || now()->diffInHours($tourDate, false) > $hoursBeforeTour) {
+                if (!$productDate || now()->diffInHours($productDate, false) > $hoursBeforeProduct) {
                     continue; // Not yet time to cancel
                 }
 
                 // Cancel the booking
                 $booking->status = 'cancelled';
-                $note = "\n\n[AUTO-CANCELLED] Unpaid pay-later booking cancelled {$hoursBeforeTour}h before tour on " . now()->format('Y-m-d H:i:s');
+                $note = "\n\n[AUTO-CANCELLED] Unpaid pay-later booking cancelled {$hoursBeforeProduct}h before product on " . now()->format('Y-m-d H:i:s');
                 $booking->notes = ($booking->notes ?? '') . $note;
                 $booking->save();
 
@@ -78,14 +78,14 @@ class CancelUnpaidBeforeProduct extends Command
                 }
 
                 $cancelledCount++;
-                $this->info("Cancelled booking {$booking->booking_reference} (tour: {$tourDate})");
+                $this->info("Cancelled booking {$booking->booking_reference} (product date: {$productDate})");
 
                 if (config('app.debug')) {
-                    Log::info("[CancelBeforeTour] Booking cancelled", [
+                    Log::info("[CancelBeforeProduct] Booking cancelled", [
                         'booking_id' => $booking->booking_id,
                         'reference' => $booking->booking_reference,
-                        'tour_date' => $tourDate,
-                        'hours_before' => $hoursBeforeTour
+                        'product_date' => $productDate,
+                        'hours_before' => $hoursBeforeProduct
                     ]);
                 }
             } catch (\Exception $e) {

@@ -25,14 +25,14 @@ class CutOffController extends Controller
             $tz     = config('app.timezone');
             $now    = now($tz);
 
-            $tours = Product::select('product_id', 'name', 'cutoff_hour', 'lead_days')
+            $products = Product::select('product_id', 'name', 'cutoff_hour', 'lead_days')
                 ->with(['schedules' => function ($q) {
                     $q->select('schedules.schedule_id', 'schedules.start_time', 'schedules.end_time');
                 }])
                 ->orderByRaw("name->>'" . app()->getLocale() . "' ASC")
                 ->get();
 
-            return view('admin.cut-off.index', compact('cutoff', 'lead', 'tz', 'now', 'tours'));
+            return view('admin.cut-off.index', compact('cutoff', 'lead', 'tz', 'now', 'products'));
         } catch (\Throwable $e) {
             Log::error('CutOffController@edit error', [
                 'error' => $e->getMessage(),
@@ -85,12 +85,12 @@ class CutOffController extends Controller
         }
     }
 
-    /** Bloqueo por TOUR */
-    public function updateTourOverrides(Request $request)
+    /** Bloqueo por PRODUCT */
+    public function updateProductOverrides(Request $request)
     {
         try {
             $data = $request->validate([
-                'product_id'     => ['required', 'exists:tours,product_id'],
+                'product_id'     => ['required', 'exists:product2,product_id'],
                 'cutoff_hour' => ['nullable', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d$/'],
                 'lead_days'   => ['nullable', 'integer', 'min:0', 'max:30'],
             ], [
@@ -102,29 +102,29 @@ class CutOffController extends Controller
             $product->lead_days   = ($data['lead_days']   !== null && $data['lead_days']   !== '') ? (int) $data['lead_days'] : null;
             $product->save();
 
-            LoggerHelper::mutated('CutOffController', 'updateTourOverrides', 'Tour', $product->product_id, ['cutoff_hour' => $product->cutoff_hour, 'lead_days' => $product->lead_days]);
+            LoggerHelper::mutated('CutOffController', 'updateProductOverrides', 'Product', $product->product_id, ['cutoff_hour' => $product->cutoff_hour, 'lead_days' => $product->lead_days]);
 
-            $tab = $request->boolean('from_summary') ? 'summary' : 'tour';
+            $tab = $request->boolean('from_summary') ? 'summary' : 'product';
 
             return redirect()->route('admin.products.cutoff.edit', ['tab' => $tab])
-                ->with('success', __('m_config.cut-off.actions.save_tour'));
+                ->with('success', __('m_config.cut-off.actions.save_product'));
         } catch (\Illuminate\Validation\ValidationException $ve) {
-            LoggerHelper::validationFailed('CutOffController', 'updateTourOverrides', $ve->errors());
+            LoggerHelper::validationFailed('CutOffController', 'updateProductOverrides', $ve->errors());
             throw $ve;
         } catch (\Throwable $e) {
-            LoggerHelper::exception('CutOffController', 'updateTourOverrides', 'Tour', $request->input('product_id'), $e);
-            $tab = $request->boolean('from_summary') ? 'summary' : 'tour';
+            LoggerHelper::exception('CutOffController', 'updateProductOverrides', 'Product', $request->input('product_id'), $e);
+            $tab = $request->boolean('from_summary') ? 'summary' : 'product';
             return redirect()->route('admin.products.cutoff.edit', ['tab' => $tab])
                 ->with('error', __('m_config.cut-off.flash.error_title'));
         }
     }
 
-    /** Bloqueo por HORARIO (pivot schedule_tour) */
+    /** Bloqueo por HORARIO (pivot schedule_product) */
     public function updateScheduleOverrides(Request $request)
     {
         try {
             $data = $request->validate([
-                'product_id'           => ['required', 'exists:tours,product_id'],
+                'product_id'           => ['required', 'exists:product2,product_id'],
                 'schedule_id'       => ['required', 'exists:schedules,schedule_id'],
                 'pivot_cutoff_hour' => ['nullable', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d$/'],
                 'pivot_lead_days'   => ['nullable', 'integer', 'min:0', 'max:30'],
@@ -147,7 +147,7 @@ class CutOffController extends Controller
                 $payload
             );
 
-            LoggerHelper::mutated('CutOffController', 'updateScheduleOverrides', 'ScheduleTour', $data['schedule_id'], ['product_id' => $data['product_id'], 'payload' => $payload]);
+            LoggerHelper::mutated('CutOffController', 'updateScheduleOverrides', 'ScheduleProduct', $data['schedule_id'], ['product_id' => $data['product_id'], 'payload' => $payload]);
 
             $tab = $request->boolean('from_summary') ? 'summary' : 'schedule';
 
@@ -157,7 +157,7 @@ class CutOffController extends Controller
             LoggerHelper::validationFailed('CutOffController', 'updateScheduleOverrides', $ve->errors());
             throw $ve;
         } catch (\Throwable $e) {
-            LoggerHelper::exception('CutOffController', 'updateScheduleOverrides', 'ScheduleTour', $data['schedule_id'] ?? null, $e);
+            LoggerHelper::exception('CutOffController', 'updateScheduleOverrides', 'ScheduleProduct', $data['schedule_id'] ?? null, $e);
             $tab = $request->boolean('from_summary') ? 'summary' : 'schedule';
             return redirect()->route('admin.products.cutoff.edit', ['tab' => $tab])
                 ->with('error', __('m_config.cut-off.flash.error_title'));

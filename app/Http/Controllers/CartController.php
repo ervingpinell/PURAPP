@@ -168,7 +168,7 @@ class CartController extends Controller
         // Validar estructura básica
         $request->validate([
             'product_id' => 'required|exists:tours,product_id',
-            'tour_date' => 'required|date|after_or_equal:today',
+            'product_date' => 'required|date|after_or_equal:today',
             'schedule_id' => 'required|exists:schedules,schedule_id',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
             'categories' => 'required|array|min:1',
@@ -184,11 +184,11 @@ class CartController extends Controller
 
         // For guests, store in session with price snapshot just like registered users
         if (!Auth::check()) {
-            $tour = Product::with(['schedules', 'prices.category'])->findOrFail((int) $request->product_id);
-            $tourDate = $request->tour_date;
+            $product = Product::with(['schedules', 'prices.category'])->findOrFail((int) $request->product_id);
+            $productDate = $request->product_date;
 
             // Build categories snapshot with prices (same as authenticated users)
-            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $request->categories, $tourDate);
+            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($product, $request->categories, $productDate);
 
             if (empty($categoriesSnapshot)) {
                 return $this->backOrJsonError($request, __('m_bookings.validation.no_active_categories'));
@@ -202,9 +202,9 @@ class CartController extends Controller
             $totalPax = collect($request->categories)->sum();
 
             $snap = $this->capacity->capacitySnapshot(
-                $tour,
+                $product,
                 $schedule,
-                $tourDate,
+                $productDate,
                 excludeBookingId: null,
                 countHolds: true,
                 excludeCartId: null,
@@ -216,8 +216,8 @@ class CartController extends Controller
                     ? __('carts.messages.capacity_full')
                     : __('carts.messages.limited_seats_available', [
                         'available' => $snap['available'],
-                        'tour' => $tour->getTranslatedName(),
-                        'date' => $tourDate,
+                        'tour' => $product->getTranslatedName(),
+                        'date' => $productDate,
                     ]);
                 return $this->backOrJsonError($request, $msg);
             }
@@ -235,7 +235,7 @@ class CartController extends Controller
 
             $sessionCart[] = [
                 'product_id' => (int) $request->product_id,
-                'tour_date' => $request->tour_date,
+                'product_date' => $request->product_date,
                 'schedule_id' => (int) $request->schedule_id,
                 'tour_language_id' => (int) $request->tour_language_id,
                 'categories' => $categoriesSnapshot, // NOW includes prices!
@@ -275,12 +275,12 @@ class CartController extends Controller
         // WRAP IN TRANSACTION WITH PESSIMISTIC LOCKS
         return DB::transaction(function () use ($request, $user) {
             // LOCK tour and schedule to prevent race conditions
-            $tour = Product::with(['schedules', 'prices.category'])
+            $product = Product::with(['schedules', 'prices.category'])
                 ->lockForUpdate()
                 ->findOrFail((int) $request->product_id);
 
             // Validación por categorías
-            $validationResult = $this->validation->validateQuantities($tour, $request->categories);
+            $validationResult = $this->validation->validateQuantities($product, $request->categories);
             if (!$validationResult['valid']) {
                 $errorMsg = implode(' ', $validationResult['errors']);
                 return $this->backOrJsonError($request, $errorMsg);
@@ -289,16 +289,16 @@ class CartController extends Controller
             // LOCK schedule
             $schedule = Schedule::lockForUpdate()
                 ->findOrFail((int) $request->schedule_id);
-            $schedule = $this->findValidScheduleOrFail($tour, (int) $request->schedule_id);
-            $tourDate = $request->tour_date;
+            $schedule = $this->findValidScheduleOrFail($product, (int) $request->schedule_id);
+            $productDate = $request->product_date;
 
             // Capacidad WITH active reservations
             $totalPax = $this->totalFromCategories($request->categories);
 
             $snap = $this->capacity->capacitySnapshot(
-                $tour,
+                $product,
                 $schedule,
-                $tourDate,
+                $productDate,
                 excludeBookingId: null,
                 countHolds: true,
                 excludeCartId: null,
@@ -310,14 +310,14 @@ class CartController extends Controller
                     ? __('carts.messages.capacity_full')
                     : __('carts.messages.limited_seats_available', [
                         'available' => $snap['available'],
-                        'tour' => $tour->getTranslatedName(),
-                        'date' => $this->fmtDateEn($tourDate),
+                        'tour' => $product->getTranslatedName(),
+                        'date' => $this->fmtDateEn($productDate),
                     ]);
                 return $this->backOrJsonError($request, $msg);
             }
 
             // Snapshot de categorías con precios
-            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $request->categories, $tourDate);
+            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($product, $request->categories, $productDate);
 
             if (empty($categoriesSnapshot)) {
                 return $this->backOrJsonError($request, __('m_bookings.validation.no_active_categories'));
@@ -360,8 +360,8 @@ class CartController extends Controller
 
             $cartItem = CartItem::create([
                 'cart_id' => $cart->cart_id,
-                'product_id' => (int) $tour->product_id,
-                'tour_date' => $tourDate,
+                'product_id' => (int) $product->product_id,
+                'product_date' => $productDate,
                 'schedule_id' => (int) $request->schedule_id,
                 'tour_language_id' => (int) $request->tour_language_id,
                 'categories' => $categoriesSnapshot,
@@ -407,7 +407,7 @@ class CartController extends Controller
         // Handle AUTHENTICATED user cart update
         // 1) Validación (categories pasa a nullable)
         $request->validate([
-            'tour_date' => 'required|date|after_or_equal:today',
+            'product_date' => 'required|date|after_or_equal:today',
             'schedule_id' => 'required|exists:schedules,schedule_id',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
             'categories' => 'nullable|array',
@@ -431,9 +431,9 @@ class CartController extends Controller
         }
 
         // 4) Entidades base
-        $tour = $item->tour->load('prices.category');
-        $schedule = $this->findValidScheduleOrFail($tour, (int) $request->schedule_id);
-        $tourDate = $request->tour_date;
+        $product = $item->tour->load('prices.category');
+        $schedule = $this->findValidScheduleOrFail($product, (int) $request->schedule_id);
+        $productDate = $request->product_date;
 
         // 5) Resolver categorías efectivas
         $requestedCategories = $request->input('categories');
@@ -446,25 +446,25 @@ class CartController extends Controller
         );
 
         // Validación de negocio por categorías
-        $validationResult = $this->validation->validateQuantities($tour, $requestedCategories);
+        $validationResult = $this->validation->validateQuantities($product, $requestedCategories);
         if (!$validationResult['valid']) {
             $errorMsg = implode(' ', $validationResult['errors']);
             return back()->with('error', $errorMsg);
         }
 
         // 6) Bloqueos
-        if ($this->capacity->isDateBlocked($tour, $schedule, $tourDate)) {
+        if ($this->capacity->isDateBlocked($product, $schedule, $productDate)) {
             return back()->with('error', __('carts.messages.date_no_longer_available', [
-                'date' => $this->fmtDateEn($tourDate),
+                'date' => $this->fmtDateEn($productDate),
                 'min' => 1
             ]));
         }
 
         // 7) Capacidad
         $snap = $this->capacity->capacitySnapshot(
-            $tour,
+            $product,
             $schedule,
-            $tourDate,
+            $productDate,
             excludeBookingId: null,
             countHolds: true,
             excludeCartId: (int) $cart->cart_id
@@ -479,8 +479,8 @@ class CartController extends Controller
                 ? __('carts.messages.slot_full')
                 : __('carts.messages.limited_seats_available', [
                     'available' => $remaining,
-                    'tour' => $tour->getTranslatedName(),
-                    'date' => $this->fmtDateEn($tourDate),
+                    'tour' => $product->getTranslatedName(),
+                    'date' => $this->fmtDateEn($productDate),
                 ]);
             return back()->with('error', $msg);
         }
@@ -489,7 +489,7 @@ class CartController extends Controller
         [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForUpdate($request);
 
         // 9) Recalcular snapshot
-        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $requestedCategories, $tourDate);
+        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($product, $requestedCategories, $productDate);
 
         if (empty($categoriesSnapshot)) {
             return back()->with('error', __('m_bookings.validation.no_active_categories'));
@@ -497,7 +497,7 @@ class CartController extends Controller
 
         // 10) Guardar cambios
         $item->fill([
-            'tour_date' => $tourDate,
+            'product_date' => $productDate,
             'schedule_id' => (int) $schedule->schedule_id,
             'tour_language_id' => (int) $request->tour_language_id,
             'categories' => $categoriesSnapshot,
@@ -565,7 +565,7 @@ class CartController extends Controller
     {
         // 1) Validación
         $request->validate([
-            'tour_date' => 'required|date|after_or_equal:today',
+            'product_date' => 'required|date|after_or_equal:today',
             'schedule_id' => 'required|exists:schedules,schedule_id',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
             'categories' => 'nullable|array',
@@ -587,9 +587,9 @@ class CartController extends Controller
         $item = $sessionCart[$index];
 
         // 3) Load tour and schedule
-        $tour = Product::with('prices.category')->findOrFail($item['product_id']);
-        $schedule = $this->findValidScheduleOrFail($tour, (int) $request->schedule_id);
-        $tourDate = $request->tour_date;
+        $product = Product::with('prices.category')->findOrFail($item['product_id']);
+        $schedule = $this->findValidScheduleOrFail($product, (int) $request->schedule_id);
+        $productDate = $request->product_date;
 
         // 4) Resolver categorías efectivas
         $requestedCategories = $request->input('categories');
@@ -602,25 +602,25 @@ class CartController extends Controller
         );
 
         // Validación de negocio por categorías
-        $validationResult = $this->validation->validateQuantities($tour, $requestedCategories);
+        $validationResult = $this->validation->validateQuantities($product, $requestedCategories);
         if (!$validationResult['valid']) {
             $errorMsg = implode(' ', $validationResult['errors']);
             return back()->with('error', $errorMsg);
         }
 
         // 5) Bloqueos
-        if ($this->capacity->isDateBlocked($tour, $schedule, $tourDate)) {
+        if ($this->capacity->isDateBlocked($product, $schedule, $productDate)) {
             return back()->with('error', __('carts.messages.date_no_longer_available', [
-                'date' => $this->fmtDateEn($tourDate),
+                'date' => $this->fmtDateEn($productDate),
                 'min' => 1
             ]));
         }
 
         // 6) Capacidad (sin excluir cart porque es guest)
         $snap = $this->capacity->capacitySnapshot(
-            $tour,
+            $product,
             $schedule,
-            $tourDate,
+            $productDate,
             excludeBookingId: null,
             countHolds: true,
             excludeCartId: null
@@ -635,8 +635,8 @@ class CartController extends Controller
                 ? __('carts.messages.slot_full')
                 : __('carts.messages.limited_seats_available', [
                     'available' => $remaining,
-                    'tour' => $tour->getTranslatedName(),
-                    'date' => $this->fmtDateEn($tourDate),
+                    'tour' => $product->getTranslatedName(),
+                    'date' => $this->fmtDateEn($productDate),
                 ]);
             return back()->with('error', $msg);
         }
@@ -645,7 +645,7 @@ class CartController extends Controller
         [$hotelId, $isOther, $other, $mpId] = $this->resolvePickupForUpdate($request);
 
         // 8) Recalcular snapshot
-        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $requestedCategories, $tourDate);
+        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($product, $requestedCategories, $productDate);
 
         if (empty($categoriesSnapshot)) {
             return back()->with('error', __('m_bookings.validation.no_active_categories'));
@@ -654,7 +654,7 @@ class CartController extends Controller
         // 9) Update item in session
         $sessionCart[$index] = [
             'product_id' => $item['product_id'],
-            'tour_date' => $tourDate,
+            'product_date' => $productDate,
             'schedule_id' => (int) $schedule->schedule_id,
             'tour_language_id' => (int) $request->tour_language_id,
             'categories' => $categoriesSnapshot,
@@ -911,11 +911,11 @@ class CartController extends Controller
     }
 
     /* ====================== API: Get Categories por Tour (AJAX) ====================== */
-    public function getCategories(Product $tour)
+    public function getCategories(Product $product)
     {
         $locale = app()->getLocale();
 
-        $categories = $tour->prices()
+        $categories = $product->prices()
             ->where('tour_prices.is_active', true)
             ->with('category')
             ->orderBy('category_id')
@@ -1012,9 +1012,9 @@ class CartController extends Controller
         $request->replace($in);
     }
 
-    private function findValidScheduleOrFail($tour, int $scheduleId)
+    private function findValidScheduleOrFail($product, int $scheduleId)
     {
-        $schedule = $tour->schedules()
+        $schedule = $product->schedules()
             ->where('schedules.schedule_id', $scheduleId)
             ->where('schedules.is_active', true)
             ->wherePivot('is_active', true)

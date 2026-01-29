@@ -217,10 +217,10 @@ class HttpJsonReviewSource implements ReviewSource
         $rid    = (string)($get($this->map['provider_review_id']) ?? md5(json_encode($row)));
         $pcode  = (string)($get($this->map['product_code']) ?? ($code ?? ''));
 
-        $tourId = null;
+        $productId = null;
         if ($pcode !== '' && !empty($this->productMap)) {
             $rev = array_flip($this->productMap);
-            if (isset($rev[$pcode])) $tourId = (int)$rev[$pcode];
+            if (isset($rev[$pcode])) $productId = (int)$rev[$pcode];
         }
 
         $lang = null;
@@ -236,7 +236,7 @@ class HttpJsonReviewSource implements ReviewSource
             'date'               => $date,
             'provider_review_id' => $rid,
             'product_code'       => $pcode ?: null,
-            'product_id'            => $tourId,
+            'product_id'            => $productId,
             'language'           => $lang,
         ];
 
@@ -266,10 +266,10 @@ class HttpJsonReviewSource implements ReviewSource
         return false;
     }
 
-    protected function codesFor($tourId): array
+    protected function codesFor($productId): array
     {
-        if (!empty($tourId)) {
-            $key = (string)$tourId;
+        if (!empty($productId)) {
+            $key = (string)$productId;
             if (!empty($this->productMap[$key])) {
                 return [(string)$this->productMap[$key]];
             }

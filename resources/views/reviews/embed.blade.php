@@ -1,5 +1,5 @@
 @php
-  use App\Models\Tour;
+  use App\Models\Product;
   use Illuminate\Support\Carbon;
 
   // === Parámetros ===
@@ -33,22 +33,22 @@
   $r       = $reviews->first();
 
   // PRIORIDAD: 1) Review, 2) Query params, 3) DB
-  $tourId   = (int)($r['product_id'] ?? request('product_id', 0));
-  $tourName = trim((string)($r['tour_name'] ?? request('tname', '')));
+  $productId   = (int)($r['product_id'] ?? request('product_id', 0));
+  $productName = trim((string)($r['product_name'] ?? request('tname', '')));
 
   // Si aún no hay nombre pero hay ID, consultar DB
-  if ($tourId && !$tourName) {
-      $tour = Tour::with('translations')->find($tourId);
-      if ($tour) {
+  if ($productId && !$productName) {
+      $product = Product::with('translations')->find($productId);
+      if ($product) {
           $locale = app()->getLocale();
           $fallback = config('app.fallback_locale', 'es');
-          $tr = ($tour->translations ?? collect())->firstWhere('locale', $locale)
-              ?: ($tour->translations ?? collect())->firstWhere('locale', $fallback);
-          $tourName = $tr->name ?? $tour->name ?? '';
+          $tr = ($product->translations ?? collect())->firstWhere('locale', $locale)
+              ?: ($product->translations ?? collect())->firstWhere('locale', $fallback);
+          $productName = $tr->name ?? $product->name ?? '';
       }
   }
 
-$tourUrl = request('turl') ?: ($tourId ? localized_route('products.guided_tour.show', ['tour'=>$tourId]) : '');
+$productUrl = request('turl') ?: ($productId ? localized_route('products.guided_tour.show', ['product'=>$productId]) : '');
 
   $rating = max(0, min(5, (int) data_get($r, 'rating', 5)));
   $title  = trim((string) data_get($r, 'title', ''));
@@ -108,14 +108,14 @@ $tourUrl = request('turl') ?: ($tourId ? localized_route('products.guided_tour.s
   @else
     <div class="wrap">
       <article class="hero-card">
-        @if($tourName || $tourUrl)
+        @if($productName || $productUrl)
           <h3 class="tour-title-abs">
-            @if($tourUrl)
-              <a href="{{ $tourUrl }}" class="open-parent-modal" data-name="{{ $tourName }}" rel="nofollow noopener">
-                {{ $tourName }}
+            @if($productUrl)
+              <a href="{{ $productUrl }}" class="open-parent-modal" data-name="{{ $productName }}" rel="nofollow noopener">
+                {{ $productName }}
               </a>
             @else
-              {{ $tourName }}
+              {{ $productName }}
             @endif
           </h3>
         @endif

@@ -103,7 +103,7 @@ class ProductPrice extends Model
         });
     }
 
-    // Keep using tour_prices in joins if needed? No, table renamed to product_prices
+    // Table is tour_prices in database
     public function scopeOrderByCategoryTranslatedName($q, ?string $locale = null)
     {
         $locale = $locale ? substr($locale, 0, 2) : substr(app()->getLocale() ?? 'es', 0, 2);

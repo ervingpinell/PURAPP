@@ -12,14 +12,14 @@ class CleanupOldProducts extends Command
      *
      * @var string
      */
-    protected $signature = 'products:cleanup {--days=30 : Number of days after which to permanently delete tours}';
+    protected $signature = 'products:cleanup {--days=30 : Number of days after which to permanently delete products}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Permanently delete tours that have been in trash for more than X days';
+    protected $description = 'Permanently delete products that have been in trash for more than X days';
 
     /**
      * Execute the console command.
@@ -28,26 +28,26 @@ class CleanupOldProducts extends Command
     {
         $days = (int) $this->option('days');
 
-        $this->info("Looking for tours deleted more than {$days} days ago...");
+        $this->info("Looking for products deleted more than {$days} days ago...");
 
-        $oldTours = Product::onlyTrashed()
+        $oldProducts = Product::onlyTrashed()
             ->olderThan($days)
             ->get();
 
-        if ($oldTours->isEmpty()) {
-            $this->info('No tours found for cleanup.');
+        if ($oldProducts->isEmpty()) {
+            $this->info('No products found for cleanup.');
             return 0;
         }
 
-        $this->info("Found {$oldTours->count()} tour(s) to permanently delete.");
+        $this->info("Found {$oldProducts->count()} product(s) to permanently delete.");
 
-        foreach ($oldTours as $tour) {
-            $tourName = $tour->name ?? $tour->product_id;
-            $tour->forceDelete();
-            $this->line("✓ Permanently deleted: {$tourName}");
+        foreach ($oldProducts as $product) {
+            $productName = $product->name ?? $product->product_id;
+            $product->forceDelete();
+            $this->line("✓ Permanently deleted: {$productName}");
         }
 
-        $this->info("✅ Cleanup completed. {$oldTours->count()} tour(s) permanently deleted.");
+        $this->info("✅ Cleanup completed. {$oldProducts->count()} product(s) permanently deleted.");
 
         return 0;
     }

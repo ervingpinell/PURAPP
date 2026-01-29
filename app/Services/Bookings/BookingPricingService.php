@@ -2,7 +2,7 @@
 
 namespace App\Services\Bookings;
 
-use App\Models\{PromoCode, Tour};
+use App\Models\{PromoCode, Product};
 
 /**
  * BookingPricingService
@@ -24,11 +24,11 @@ class BookingPricingService
     }
 
     /**
-     * Construye snapshot de categorías activas para el tour a partir de quantities
+     * Construye snapshot de categorías activas para el producto a partir de quantities
      * $quantities = ['category_id' => quantity, ...]
-     * $date = Fecha del tour para seleccionar precio correcto (opcional)
+     * $date = Fecha del producto para seleccionar precio correcto (opcional)
      */
-    public function buildCategoriesSnapshot(Product $tour, array $quantities, $date = null): array
+    public function buildCategoriesSnapshot(Product $product, array $quantities, $date = null): array
     {
         $snapshot = [];
 
@@ -36,7 +36,7 @@ class BookingPricingService
             $quantity = (int) $quantity;
             if ($quantity <= 0) continue;
 
-            $query = $tour->prices()
+            $query = $product->prices()
                 ->where('category_id', $categoryId)
                 ->where('is_active', true)
                 ->whereHas('category', fn($q) => $q->where('is_active', true))

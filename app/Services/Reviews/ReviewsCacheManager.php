@@ -28,11 +28,11 @@ class ReviewsCacheManager
     }
 
     /**
-     * Invalida caché de un tour específico
+     * Invalida caché de un producto específico
      */
-    public function flushTour(int $tourId): void
+    public function flushProduct(int $productId): void
     {
-        $this->bumpRevision("tour.{$tourId}");
+        $this->bumpRevision("product.{$productId}");
     }
 
     /**

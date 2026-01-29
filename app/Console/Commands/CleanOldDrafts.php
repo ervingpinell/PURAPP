@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Product;
-use App\Models\TourAuditLog;
+use App\Models\ProductAuditLog;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -109,8 +109,8 @@ class CleanOldDrafts extends Command
             foreach ($oldDrafts as $draft) {
                 try {
                     // Guardar info para log de auditoría
-                    $tourId = $draft->product_id;
-                    $tourName = $draft->name;
+                    $productId = $draft->product_id;
+                    $productName = $draft->name;
                     $userId = $draft->created_by;
 
                     // Eliminar relaciones
@@ -128,11 +128,11 @@ class CleanOldDrafts extends Command
                     $draft->forceDelete();
 
                     // Registrar en auditoría
-                    TourAuditLog::logAction(
+                    ProductAuditLog::logAction(
                         action: 'draft_deleted',
-                        tourId: $tourId,
+                        tourId: $productId,
                         userId: null, // Sistema
-                        description: "Borrador '{$tourName}' eliminado automáticamente por antigüedad ({$days}+ días)",
+                        description: "Borrador '{$productName}' eliminado automáticamente por antigüedad ({$days}+ días)",
                         context: 'system',
                         tags: ['auto-cleanup', 'scheduled']
                     );

@@ -13,10 +13,10 @@
         'phone' => env('COMPANY_PHONE', '+506 2479 1471'),
     ];
 
-    // Intro con “sobre <strong>Tour</strong>” (HTML)
+    // Intro con “sobre <strong>Product</strong>” (HTML)
     $introHtml = __('reviews.emails.reply.intro', [
-        'extra' => $tourName
-            ? __('reviews.reply.about_html', ['tour' => e($tourName)])
+        'extra' => $productName
+            ? __('reviews.reply.about_html', ['product' => e($productName)])
             : '',
     ]);
 

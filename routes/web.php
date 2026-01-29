@@ -872,7 +872,7 @@ Route::middleware([SetLocale::class])->group(function () {
                      * PRODUCT WIZARD - Creación paso a paso con gestión de drafts
                      * ============================================================
                      */
-                    Route::prefix('product-wizard')->name('product-wizard.')->group(function () {
+                    Route::prefix('wizard')->name('wizard.')->group(function () {
                         // Paso inicial - Detecta drafts existentes
                         Route::get('/create', [ProductWizardController::class, 'create'])->name('create');
 
@@ -1160,26 +1160,7 @@ Route::middleware([SetLocale::class])->group(function () {
                     });
                 });
 
-                // ============================
-                // PRODUCT WIZARD
-                // ============================
-                Route::group(['middleware' => ['can:create-tours']], function () {
-                    Route::prefix('products/wizard')->name('products.wizard.')->group(function () {
-                        // Start/Create
-                        Route::get('/start', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'start'])->name('start');
-                        Route::get('/create', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'start'])->name('create'); // Alias for blade compatibility
-                        
-                        // Wizard Steps
-                        Route::post('/step-1', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'storeStep1'])->name('storeStep1');
-                        Route::get('/{product}/step-2', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'step2'])->name('step2');
-                        Route::post('/{product}/step-2', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'storeStep2'])->name('storeStep2');
-                        Route::get('/{product}/step-3', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'step3'])->name('step3');
-                        Route::post('/{product}/step-3', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'storeStep3'])->name('storeStep3');
-                        Route::get('/{product}/step-4', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'step4'])->name('step4');
-                        Route::post('/{product}/step-4', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'storeStep4'])->name('storeStep4');
-                        Route::get('/{product}/finish', [App\Http\Controllers\Admin\Product\ProductWizardController::class, 'finish'])->name('finish');
-                    });
-                });
+
 
                 // ============================
                 // TOUR PRICING

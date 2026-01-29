@@ -49,7 +49,7 @@ class ProductTypeController extends Controller
 
         $currentLocale = app()->getLocale();
 
-        return view('admin.tourtypes.index', compact('productTypes', 'currentLocale', 'trashedCount'));
+        return view('admin.producttypes.index', compact('productTypes', 'currentLocale', 'trashedCount'));
     }
 
     public function store(StoreProductTypeRequest $request)
@@ -205,7 +205,7 @@ class ProductTypeController extends Controller
             ->orderByDesc('deleted_at')
             ->get();
 
-        return view('admin.tourtypes.trash', compact('productTypes'));
+        return view('admin.producttypes.trash', compact('productTypes'));
     }
 
     public function restore($id)

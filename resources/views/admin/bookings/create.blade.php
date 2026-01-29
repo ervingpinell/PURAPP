@@ -1,1017 +1,1220 @@
-{{-- resources/views/admin/bookings/create.blade.php --}}
 @extends('adminlte::page')
 
-@section('title', __('m_bookings.bookings.ui.create_booking'))
+@section('title', __('m_bookings.bookings.ui.add_booking'))
 
 @section('content_header')
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <h1 class="mb-2 mb-sm-0">
-        <i class="fas fa-plus-circle me-2"></i>
-        {{ __('m_bookings.bookings.ui.create_booking') }}
-    </h1>
-    <a href="{{ route('admin.bookings.index') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left me-1"></i> {{ __('m_bookings.bookings.buttons.back') }}
-    </a>
-</div>
+<h1>{{ __('m_bookings.bookings.ui.add_booking') }}</h1>
 @stop
 
 @section('content')
-@if(session('error'))
-<div class="alert alert-danger alert-dismissible fade show">
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-    {{ session('error') }}
-</div>
-@endif
+<div class="container-fluid">
+    <div class="booking-form-wrapper">
+        @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <h5><i class="icon fas fa-ban"></i> {{ __('m_bookings.bookings.validation.error_title') ?? 'Error!' }}</h5>
+            <ul>
+                @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
 
-@if($errors->any())
-<div class="alert alert-danger alert-dismissible fade show">
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-    <ul class="mb-0">
-        @foreach($errors->all() as $error)
-        <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
+        {{-- Debug: Check if capacity_error session exists --}}
+        @if(session('capacity_error'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+            <h5><i class="icon fas fa-exclamation-triangle"></i> DEBUG: Capacity Error Detected</h5>
+            <p>{{ session('capacity_error')['message'] ?? 'No message' }}</p>
+            <p>Available: {{ session('capacity_error')['available'] ?? 'N/A' }}, Requested: {{ session('capacity_error')['requested'] ?? 'N/A' }}</p>
+        </div>
+        @endif
 
-<form action="{{ route('admin.bookings.store') }}" method="POST" id="createBookingForm">
-    @csrf
+        <form id="booking-form" method="POST" action="{{ route('admin.bookings.store') }}">
+            @csrf
+            <input type="hidden" name="status" value="pending">
 
-    <div class="row g-3">
-        {{-- Left Column: Customer & Tour Info --}}
-        <div class="col-12 col-xl-8">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        {{ __('m_bookings.bookings.ui.booking_info') }}
-                    </h3>
+            {{-- Product Cover Image --}}
+            <div id="product-cover-container" style="display:none;" class="mb-3">
+                <img id="product-cover" src="" alt="Product Cover" class="product-cover-img">
+            </div>
+
+            {{-- Step 1: Tour & Date --}}
+            <div class="step-card">
+                <div class="step-header">
+                    <i class="fas fa-map-marked-alt mr-2"></i>
+                    <span>1. {{ __('m_bookings.bookings.steps.select_tour_date') ?? 'Select Tour & Date' }}</span>
                 </div>
-                <div class="card-body">
-
-                    {{-- Customer (sin fondo blanco) --}}
-                    <div class="form-group">
-                        <label for="user_id">{{ __('m_bookings.bookings.fields.customer') }} *</label>
-                        <select name="user_id" id="user_id" class="form-control select2 no-bg" required>
-                            <option value="">-- {{ __('m_bookings.bookings.ui.select_customer') }} --</option>
-                            @foreach($users as $user)
-                            <option value="{{ $user->user_id }}" {{ old('user_id') == $user->user_id ? 'selected' : '' }}>
-                                {{ $user->full_name ?? trim(($user->first_name ?? '').' '.($user->last_name ?? '')) }} ({{ $user->email }})
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Tour (sin fondo blanco) --}}
-                    <div class="form-group">
-                        <label for="product_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
-                        <select name="product_id" id="product_id" class="form-control select2 no-bg" required>
-                            <option value="">-- {{ __('m_bookings.bookings.ui.select_tour') }} --</option>
-                            @foreach($tours as $tour)
-                            <option value="{{ $tour->product_id }}" {{ old('product_id') == $tour->product_id ? 'selected' : '' }}>
-                                {{ $tour->name }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
-
+                <div class="step-body">
                     <div class="row">
-                        {{-- Date (ajustada por límites dinámicos) --}}
-                        <div class="col-12 col-md-6">
-                            <div class="form-group">
-                                <label for="tour_date">{{ __('m_bookings.bookings.fields.tour_date') }} *</label>
-                                <input
-                                    type="date"
-                                    name="tour_date"
-                                    id="tour_date"
-                                    class="form-control"
-                                    value="{{ old('tour_date') }}"
-                                    required>
-                                <small class="form-text text-muted" id="tour_date_help"></small>
+                        <div class="col-md-6 col-12 mb-3">
+                            <label for="product_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
+                            <select name="product_id" id="product_id" class="form-control select2" required>
+                                <option value="">-- {{ __('m_bookings.bookings.ui.select_tour') }} --</option>
+                                @foreach($products as $product)
+                                <option value="{{ $product->product_id }}"
+                                    data-product='@json($product)'
+                                    data-cover="{{ $product->cover_image ?? '' }}"
+                                    {{ old('product_id') == $product->product_id ? 'selected' : '' }}>
+                                    {{ $product->name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-12 mb-3">
+                            <label for="tour_date">{{ __('m_bookings.bookings.fields.date') }} *</label>
+                            <input type="date"
+                                name="tour_date"
+                                id="tour_date"
+                                class="form-control"
+                                value="{{ old('tour_date') }}"
+                                required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Step 2: Schedule & Language --}}
+            <div class="step-card" id="step2" style="display:none;">
+                <div class="step-header step-header-info">
+                    <i class="fas fa-clock mr-2"></i>
+                    <span>2. {{ __('m_bookings.bookings.steps.select_schedule_language') ?? 'Select Schedule & Language' }}</span>
+                </div>
+                <div class="step-body">
+                    <div class="row">
+                        <div class="col-md-6 col-12 mb-3">
+                            <label for="schedule_id">{{ __('m_bookings.bookings.fields.schedule') }} *</label>
+                            <select name="schedule_id" id="schedule_id" class="form-control" required>
+                                <option value="">-- {{ __('m_bookings.bookings.ui.select_schedule') }} --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 col-12 mb-3">
+                            <label for="tour_language_id">{{ __('m_bookings.bookings.fields.language') }} *</label>
+                            <select name="tour_language_id" id="tour_language_id" class="form-control" required>
+                                <option value="">-- {{ __('m_bookings.bookings.ui.select_language') }} --</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Step 3: Categories --}}
+            <div class="step-card" id="step3" style="display:none;">
+                <div class="step-header step-header-success">
+                    <i class="fas fa-users mr-2"></i>
+                    <span>3. {{ __('m_bookings.bookings.steps.select_participants') ?? 'Select Participants' }}</span>
+                </div>
+                <div class="step-body">
+                    <div id="categories-container"></div>
+
+                    {{-- Promo Code --}}
+                    <div class="mt-3">
+                        <label for="promo_code">{{ __('m_bookings.bookings.fields.promo_code') ?? 'Promo Code' }}</label>
+                        <div class="input-group">
+                            <input type="text" name="promo_code" id="promo_code" class="form-control" value="{{ old('promo_code') }}" placeholder="{{ __('m_bookings.bookings.ui.enter_promo') ?? 'Enter promo code' }}">
+                            <div class="input-group-append">
+                                <button type="button" id="btn-apply-promo" class="btn btn-success">
+                                    <i class="fas fa-check"></i> {{ __('m_bookings.actions.apply') ?? 'Apply' }}
+                                </button>
+                                <button type="button" id="btn-remove-promo" class="btn btn-danger" style="display:none;">
+                                    <i class="fas fa-times"></i> {{ __('m_bookings.actions.remove') ?? 'Remove' }}
+                                </button>
                             </div>
                         </div>
+                        <small id="promo-message" class="form-text"></small>
+                    </div>
 
-                        {{-- Schedule --}}
-                        <div class="col-12 col-md-6">
-                            <div class="form-group">
-                                <label for="schedule_id">{{ __('m_bookings.bookings.fields.schedule') }} *</label>
-                                <select name="schedule_id" id="schedule_id" class="form-control" required disabled>
-                                    <option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>
+                    {{-- Price Breakdown --}}
+                    <div class="total-display">
+                        <div class="price-breakdown">
+                            <div class="price-row">
+                                <span>{{ __('m_bookings.bookings.ui.subtotal') ?? 'Subtotal' }}:</span>
+                                <span id="subtotal-amount">$0.00</span>
+                            </div>
+                            <div class="price-row" id="discount-row" style="display:none;">
+                                <span>{{ __('m_bookings.bookings.ui.discount') ?? 'Discount' }}:</span>
+                                <span id="discount-amount" class="text-success">-$0.00</span>
+                            </div>
+                            <div class="price-row" id="tax-row" style="display:none;">
+                                <span>{{ __('m_bookings.bookings.ui.tax') ?? 'Tax' }} (<span id="tax-rate">0</span>%):</span>
+                                <span id="tax-amount">$0.00</span>
+                            </div>
+                            <div class="price-row total-row">
+                                <strong>{{ __('m_bookings.bookings.ui.total') }}:</strong>
+                                <strong><span id="total-amount" class="total-amount">$0.00</span></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Step 4: Customer & Details --}}
+            <div class="step-card" id="step4" style="display:none;">
+                <div class="step-header step-header-warning">
+                    <i class="fas fa-user mr-2"></i>
+                    <span>4. {{ __('m_bookings.bookings.steps.customer_details') ?? 'Customer & Details' }}</span>
+                </div>
+                <div class="step-body">
+                    <div class="row">
+                        <div class="col-md-6 col-12 mb-3">
+                            <label for="user_id">{{ __('m_bookings.bookings.fields.customer') }} *</label>
+                            <select name="user_id" id="user_id" class="form-control select2" required>
+                                <option value="">-- {{ __('m_bookings.bookings.ui.select_customer') }} --</option>
+                                @foreach($customers as $customer)
+                                <option value="{{ $customer->user_id }}" {{ old('user_id') == $customer->user_id ? 'selected' : '' }}>
+                                    {{ $customer->full_name }} ({{ $customer->email }})
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Hotel or Meeting Point (mutually exclusive) --}}
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label>{{ __('m_bookings.bookings.fields.pickup_location') ?? 'Pickup Location' }}</label>
+                            <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                                <label class="btn btn-outline-secondary active">
+                                    <input type="radio" name="pickup_type" value="none" checked> {{ __('m_bookings.bookings.ui.no_pickup') ?? 'No Pickup' }}
+                                </label>
+                                <label class="btn btn-outline-secondary">
+                                    <input type="radio" name="pickup_type" value="hotel"> {{ __('m_bookings.bookings.ui.hotel') ?? 'Hotel' }}
+                                </label>
+                                <label class="btn btn-outline-secondary">
+                                    <input type="radio" name="pickup_type" value="meeting_point"> {{ __('m_bookings.bookings.ui.meeting_point') ?? 'Meeting Point' }}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="hotel-section" style="display:none;">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="hotel_id">{{ __('m_bookings.bookings.fields.hotel') }}</label>
+                                <select name="hotel_id" id="hotel_id" class="form-control">
+                                    <option value="">-- {{ __('m_bookings.bookings.ui.select_hotel') }} --</option>
+                                    @foreach($hotels as $hotel)
+                                    <option value="{{ $hotel->hotel_id }}" {{ old('hotel_id') == $hotel->hotel_id ? 'selected' : '' }}>
+                                        {{ $hotel->name }}
+                                    </option>
+                                    @endforeach
+                                    <option value="other" {{ old('hotel_id') == 'other' ? 'selected' : '' }}>
+                                        {{ __('m_bookings.bookings.ui.other_hotel') ?? 'Other' }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="other-hotel-wrapper" style="display:none;">
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="other_hotel_name">{{ __('m_bookings.bookings.fields.other_hotel_name') }}</label>
+                                    <input type="text" name="other_hotel_name" id="other_hotel_name" class="form-control" value="{{ old('other_hotel_name') }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="meeting-point-section" style="display:none;">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <label for="meeting_point_id">{{ __('m_bookings.bookings.fields.meeting_point') }}</label>
+                                <select name="meeting_point_id" id="meeting_point_id" class="form-control text-dark">
+                                    <option value="">-- {{ __('m_bookings.bookings.ui.select_meeting_point') }} --</option>
+                                    @foreach($meetingPoints as $mp)
+                                    <option value="{{ $mp->meeting_point_id }}" {{ old('meeting_point_id') == $mp->meeting_point_id ? 'selected' : '' }}>
+                                        {{ $mp->getTranslated('name') }}
+                                    </option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
                     </div>
 
-                    {{-- Language --}}
-                    <div class="form-group">
-                        <label for="tour_language_id">{{ __('m_bookings.bookings.fields.language') }} *</label>
-                        <select name="tour_language_id" id="tour_language_id" class="form-control" required disabled>
-                            <option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>
-                        </select>
-                    </div>
-
-                    {{-- Hotel / Meeting Point (mutuamente excluyentes con mensaje) --}}
                     <div class="row">
-                        {{-- HOTEL --}}
-                        <div class="col-12 col-md-6">
-                            <div id="hotel_group">
-                                <div class="form-group">
-                                    <label for="hotel_id">{{ __('m_bookings.bookings.fields.hotel') }}</label>
-                                    <select name="hotel_id" id="hotel_id" class="form-control">
-                                        <option value="">-- {{ __('m_bookings.bookings.ui.select_option') }} --</option>
-                                        @foreach($hotels as $hotel)
-                                        <option value="{{ $hotel->hotel_id }}" {{ old('hotel_id') == $hotel->hotel_id ? 'selected' : '' }}>
-                                            {{ $hotel->name }}
-                                        </option>
-                                        @endforeach
-                                        <option value="other" {{ old('is_other_hotel') ? 'selected' : '' }}>
-                                            {{ __('m_bookings.bookings.placeholders.other') }}
-                                        </option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group" id="other_hotel_wrapper" style="display:none;">
-                                    <label for="other_hotel_name">{{ __('m_bookings.bookings.fields.hotel_name') }}</label>
-                                    <input type="text" name="other_hotel_name" id="other_hotel_name"
-                                        class="form-control" value="{{ old('other_hotel_name') }}">
-                                    <input type="hidden" name="is_other_hotel" id="is_other_hotel" value="{{ old('is_other_hotel', 0) }}">
-                                </div>
-                            </div>
-
-                            <div id="hotel_locked" class="form-control-plaintext border rounded px-2 py-2 d-none">
-                                {{ __('m_bookings.bookings.messages.hotel_locked_by_meeting_point') ?? 'Se seleccionó un punto de encuentro; no se puede seleccionar hotel.' }}
-                            </div>
+                        <div class="col-12 mb-3">
+                            <label for="notes">{{ __('m_bookings.bookings.fields.notes') }}</label>
+                            <textarea name="notes" id="notes" class="form-control" rows="3">{{ old('notes') }}</textarea>
                         </div>
-
-                        {{-- MEETING POINT --}}
-                        <div class="col-12 col-md-6">
-                            <div id="meeting_point_group">
-                                <div class="form-group">
-                                    <label for="meeting_point_id">{{ __('m_bookings.bookings.fields.meeting_point') }}</label>
-                                    <select name="meeting_point_id" id="meeting_point_id" class="form-control">
-                                        <option value="">-- {{ __('m_bookings.bookings.ui.select_option') }} --</option>
-                                        @foreach($meetingPoints as $mp)
-                                        <option value="{{ $mp->id }}" {{ old('meeting_point_id') == $mp->id ? 'selected' : '' }}>
-                                            {{ $mp->getTranslated('name') }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div id="mp_locked" class="form-control-plaintext border rounded px-2 py-2 d-none">
-                                {{ __('m_bookings.bookings.messages.meeting_point_locked_by_hotel') ?? 'Se seleccionó un hotel; no se puede seleccionar punto de encuentro.' }}
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Pickup time (solo hora, opcional) --}}
-                    <div class="form-group">
-                        <label for="pickup_time">{{ __('m_bookings.bookings.fields.pickup_time') }}</label>
-                        <input
-                            type="time"
-                            name="pickup_time"
-                            id="pickup_time"
-                            class="form-control"
-                            value="{{ old('pickup_time') }}">
-                    </div>
-
-                    {{-- Status oculto (siempre pending) --}}
-                    <input type="hidden" name="status" value="pending">
-
-                    {{-- Notes --}}
-                    <div class="form-group mb-0">
-                        <label for="notes">{{ __('m_bookings.bookings.fields.notes') }}</label>
-                        <textarea name="notes" id="notes" class="form-control" rows="3">{{ old('notes') }}</textarea>
                     </div>
                 </div>
             </div>
-        </div>
 
-        {{-- Right Column: Categories + Promo + Totals --}}
-        <div class="col-12 col-xl-4">
-            <div class="card sticky-lg-top">
-                <div class="card-header bg-success text-white">
-                    <h3 class="card-title mb-0">
-                        <i class="fas fa-users me-2"></i>
-                        {{ __('m_bookings.bookings.fields.travelers') }}
-                    </h3>
-                </div>
-                <div class="card-body">
-                    @if(!empty($bookingLimits ?? null))
-                    <div class="alert alert-info py-2">
-                        <div class="small">
-                            <div>
-                                <strong>{{ __('m_bookings.validation.max_persons_label') ?? 'Máx. personas por reserva' }}:</strong>
-                                {{ $bookingLimits['max_persons_total'] ?? ($bookingLimits['max_persons_per_booking'] ?? '—') }}
-                            </div>
-                        </div>
-                    </div>
-                    @endif
-
-                    <div id="categories-container">
-                        <div class="alert alert-primary mb-0">
-                            <i class="fas fa-info-circle me-2"></i>
-                            {{ __('m_bookings.bookings.ui.select_tour_to_see_categories') }}
-                        </div>
-                    </div>
-
-                    {{-- Promo Code --}}
-                    <div class="mt-3 p-3 border rounded">
-                        <label for="promo_code" class="mb-1">{{ __('m_bookings.bookings.fields.promo_code') }}</label>
-                        <div class="input-group flex-wrap">
-                            <input type="text"
-                                name="promo_code"
-                                id="promo_code"
-                                class="form-control flex-fill"
-                                value="{{ old('promo_code') }}"
-                                placeholder="PROMO2025"
-                                autocomplete="off">
-                            <div class="input-group-append w-100 w-sm-auto mt-2 mt-sm-0">
-                                <button class="btn btn-success btn-promo w-100 w-sm-auto"
-                                    type="button"
-                                    id="btn-verify-promo"
-                                    data-mode="apply">
-                                    <span class="promo-label">
-                                        {{ __('m_bookings.bookings.buttons.apply') }}
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <small id="promo-feedback" class="text-muted d-block mt-1"></small>
-                        <input type="hidden" id="promo-operation" value="">
-                        <input type="hidden" id="promo-amount" value="0">
-                        <input type="hidden" id="promo-percent" value="">
-                    </div>
-
-                    {{-- Totales --}}
-                    <div class="mt-3 p-3 border rounded">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>{{ __('m_bookings.bookings.fields.subtotal') }}:</span>
-                            <span id="subtotal-price">$0.00</span>
-                        </div>
-
-                        {{-- Ajuste por promo: puede ser descuento o recargo --}}
-                        <div class="d-flex justify-content-between mb-1" id="discount-row" style="display:none;">
-                            <span id="promo-adjust-label">
-                                {{ __('m_bookings.bookings.fields.discount') }}:
-                            </span>
-                            <span id="discount-amount">-$0.00</span>
-                        </div>
-
-                        <hr class="my-2">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <strong class="mb-0">{{ __('m_bookings.bookings.fields.total_persons') }}:</strong>
-                            <div id="total-persons" class="fw-bold fs-5">0</div>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <strong>{{ __('m_bookings.bookings.fields.total') }}:</strong>
-                            <strong id="total-price" class="text-success fs-4">$0.00</strong>
-                        </div>
-                        <small id="limits-warning" class="text-danger d-block mt-2" style="display:none;"></small>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <button type="submit" class="btn btn-success btn-block">
-                        <i class="fas fa-save me-1"></i>
-                        {{ __('m_bookings.bookings.buttons.save') }}
+            {{-- Submit Button --}}
+            <div class="text-center mt-4 mb-5 pb-4" id="submit-section" style="display:none;">
+                <div class="button-group">
+                    <button type="button" id="btn-review" class="btn btn-success btn-lg mb-2">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        {{ __('m_bookings.actions.review_booking') ?? 'Review Booking' }}
                     </button>
-                    <a href="{{ route('admin.bookings.index') }}" class="btn btn-secondary btn-block mt-2">
-                        <i class="fas fa-times me-1"></i>
-                        {{ __('m_bookings.bookings.buttons.cancel') }}
+                    <a href="{{ route('admin.bookings.index') }}" class="btn btn-secondary btn-lg mb-2">
+                        <i class="fas fa-times mr-2"></i>
+                        {{ __('m_bookings.actions.cancel') ?? 'Cancel' }}
                     </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {{-- Confirmation Modal --}}
+    <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ __('m_bookings.bookings.ui.confirm_booking') ?? 'Confirm Booking' }}</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="booking-summary"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        {{ __('m_bookings.actions.cancel') ?? 'Cancel' }}
+                    </button>
+                    <button type="button" id="btn-confirm-submit" class="btn btn-success">
+                        <i class="fas fa-save mr-2"></i>
+                        {{ __('m_bookings.actions.confirm_create') ?? 'Confirm & Create' }}
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-</form>
-@stop
-
-
-@section('js')
-<script>
-    // Locale actual para elegir traducciones correctas
-    window.APP_LOCALE = @json(app() -> getLocale());
-    window.BOOKING_LIMITS = @json($bookingLimits ?? []);
-    window.TOURS_DATA = @json($toursData ?? []);
-
-    // DEBUG: Log loaded data
-    console.log('=== BOOKING FORM DEBUG ===');
-    console.log('TOURS_DATA loaded:', window.TOURS_DATA);
-    console.log('Number of tours:', Object.keys(window.TOURS_DATA || {}).length);
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script>
-    $(function() {
-        $('.select2').select2({
-            theme: 'bootstrap4',
-            width: '100%'
-        });
-
-        // Verificación de cupones por API
-        const epVerify = '/api/v1/bookings/verify-promo-code';
-
-        let currentCategories = [];
-        let lastChangedInputId = null;
-        let isInitializing = true; // para no limpiar promo en el primer load
-        const LIMITS = window.BOOKING_LIMITS || {};
-        const PER_TOUR = window.LIMITS_PER_TOUR || {};
-        const LOCALE = window.APP_LOCALE || 'es';
-        const OLD_PROMO = @json(old('promo_code'));
-        let pendingAutoPromo = !!OLD_PROMO; // si venimos de un error, re-aplicar promo
-        const fmtMoney = n => '$' + (Number(n || 0)).toFixed(2);
-
-        // Labels para promo (recargo / descuento y botón)
-        const LABEL_DISCOUNT = @json(__('m_config.promocode.operations.discount'));
-        const LABEL_SURCHARGE = @json(__('m_config.promocode.operations.surcharge'));
-        const APPLY_LABEL = @json(__('m_bookings.bookings.buttons.apply'));
-        const REMOVE_LABEL = @json(
-            __('m_bookings.bookings.buttons.remove_promo') !== 'm_bookings.bookings.buttons.remove_promo' ?
-            __('m_bookings.bookings.buttons.remove_promo') :
-            'Eliminar código'
-        );
-
-        function resetSelect($sel, placeholder, disabled = true) {
-            $sel.html(`<option value="">${placeholder}</option>`).prop('disabled', !!disabled);
-        }
-
-        function applyOldValue($sel, value) {
-            if (value === undefined || value === null || value === '') return;
-            if ($sel.find(`option[value="${value}"]`).length) {
-                $sel.val(String(value)).trigger('change.select2');
-            }
-        }
-
-        // ---------- Date limits ----------
-        (function setupDateMinMax() {
-            const minDays = Number(LIMITS.min_days_advance ?? 1);
-            const maxDays = Number(LIMITS.max_days_advance ?? 365);
-            const $input = $('#tour_date');
-            if (!$input.length) return;
-
-            const today = new Date();
-            const minDate = new Date(today);
-            minDate.setDate(today.getDate() + minDays);
-            const maxDate = new Date(today);
-            maxDate.setDate(today.getDate() + maxDays);
-            const toYMD = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-
-            $input.attr('min', toYMD(minDate));
-            $input.attr('max', toYMD(maxDate));
-
-            const hintTpl = @json(__('m_bookings.validation.date_range_hint') ? : 'Rango permitido: :from — :to');
-            const hintText = (hintTpl || 'Rango permitido: :from — :to')
-                .replace(':from', toYMD(minDate))
-                .replace(':to', toYMD(maxDate));
-            $('#tour_date_help').text(hintText);
-
-            const current = $input.val();
-            if (current) {
-                if (current < toYMD(minDate)) $input.val(toYMD(minDate));
-                if (current > toYMD(maxDate)) $input.val(toYMD(maxDate));
-            }
-        })();
-
-        // ---------- Loaders ----------
-
-        function loadSchedules(tourId, preselect = '{{ old("schedule_id") }}') {
-            console.log('loadSchedules called with tourId:', tourId);
-            const $sel = $('#schedule_id');
-            $sel.empty().append(`<option value="">{{ __('m_bookings.bookings.fields.schedule_placeholder') }}</option>`);
-            $sel.prop('disabled', true);
-
-            if (!tourId) {
-                console.log('No tourId provided');
-                return;
-            }
-
-            if (!window.TOURS_DATA[tourId]) {
-                console.error('Tour not found in TOURS_DATA:', tourId);
-                console.log('Available tour IDs:', Object.keys(window.TOURS_DATA || {}));
-                return;
-            }
-
-            const tour = window.TOURS_DATA[tourId];
-            console.log('Tour data:', tour);
-
-            if (!tour.schedules || !tour.schedules.length) {
-                console.log('No schedules found for tour');
-                return;
-            }
-
-            console.log('Loading', tour.schedules.length, 'schedules');
-            let html = `<option value="">{{ __('m_bookings.bookings.fields.schedule_placeholder') }}</option>`;
-            tour.schedules.forEach(s => {
-                const label = `${s.start_time} - ${s.end_time}`;
-                const sel = (String(s.id) === String(preselect)) ? 'selected' : '';
-                html += `<option value="${s.id}" ${sel}>${label}</option>`;
-            });
-
-            $sel.html(html).prop('disabled', false);
-            console.log('Schedules loaded successfully');
-        }
-
-        function loadLanguages(tourId, preselect = '{{ old("tour_language_id") }}') {
-            console.log('loadLanguages called with tourId:', tourId);
-            const $sel = $('#tour_language_id');
-            $sel.empty().append(`<option value="">{{ __('m_bookings.bookings.fields.language_placeholder') }}</option>`);
-            $sel.prop('disabled', true);
-
-            if (!tourId || !window.TOURS_DATA[tourId]) {
-                console.log('No tour data available');
-                return;
-            }
-
-            const tour = window.TOURS_DATA[tourId];
-            if (!tour.languages || !tour.languages.length) {
-                console.log('No languages found for tour');
-                return;
-            }
-
-            console.log('Loading', tour.languages.length, 'languages');
-            let html = `<option value="">{{ __('m_bookings.bookings.fields.language_placeholder') }}</option>`;
-            tour.languages.forEach(l => {
-                const sel = (String(l.id) === String(preselect)) ? 'selected' : '';
-                html += `<option value="${l.id}" ${sel}>${l.name}</option>`;
-            });
-
-            $sel.html(html).prop('disabled', false);
-            console.log('Languages loaded successfully');
-        }
-
-        function loadCategories(tourId, tourDate, oldCategories = @json(old('categories', []))) {
-            const $c = $('#categories-container');
-            $c.html('');
-
-            if (!tourId || !window.TOURS_DATA[tourId]) {
-                currentCategories = [];
-                updateTotals();
-                return;
-            }
-
-            const tour = window.TOURS_DATA[tourId];
-            if (!tour.prices || !tour.prices.length) {
-                $c.html(`<div class="alert alert-warning mb-0">{{ __('m_bookings.bookings.ui.tour_without_categories') }}</div>`);
-                currentCategories = [];
-                updateTotals();
-                return;
-            }
-
-            // Filter prices by date
-            let validPrices = tour.prices;
-            if (tourDate) {
-                const selectedDate = new Date(tourDate);
-                validPrices = tour.prices.filter(p => {
-                    // If no date range, it's a default price (always valid)
-                    if (!p.valid_from && !p.valid_until) return true;
-
-                    // If has date range, check if selected date falls within
-                    if (p.valid_from && p.valid_until) {
-                        const from = new Date(p.valid_from);
-                        const until = new Date(p.valid_until);
-                        return selectedDate >= from && selectedDate <= until;
-                    }
-
-                    return false;
-                });
-
-                // Group by category_id and keep only one price per category (prioritize date-specific)
-                const categoryMap = {};
-                validPrices.forEach(p => {
-                    const hasDateRange = p.valid_from && p.valid_until;
-                    if (!categoryMap[p.category_id] || hasDateRange) {
-                        categoryMap[p.category_id] = p;
-                    }
-                });
-                validPrices = Object.values(categoryMap);
-            }
-
-            if (!validPrices.length) {
-                $c.html(`<div class="alert alert-warning mb-0">{{ __('m_bookings.bookings.ui.tour_without_categories') }}</div>`);
-                currentCategories = [];
-                updateTotals();
-                return;
-            }
-
-            currentCategories = validPrices;
-
-            let html = '';
-            currentCategories.forEach(cat => {
-                const oldVal = parseInt(oldCategories[cat.category_id]) || 0;
-                const price = parseFloat(cat.price) || 0;
-
-                html += `
-                  <div class="category-row mb-3 p-2 border rounded">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                      <strong>${cat.name}</strong>
-                      <span class="text-muted small">${fmtMoney(price)}</span>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                      <button type="button" class="btn btn-sm btn-secondary category-minus" data-category-id="${cat.category_id}">
-                        <i class="fas fa-minus"></i>
-                      </button>
-                      <input type="number"
-                             name="categories[${cat.category_id}]"
-                             class="form-control form-control-sm text-center category-input mx-2"
-                             data-category-id="${cat.category_id}"
-                             data-price="${price}"
-                             data-slug="${cat.slug}"
-                             min="0"
-                             value="${oldVal}"
-                             style="width: 72px;">
-                      <button type="button" class="btn btn-sm btn-secondary category-plus" data-category-id="${cat.category_id}">
-                        <i class="fas fa-plus"></i>
-                      </button>
-                    </div>
-                  </div>`;
-            });
-
-            $c.html(html);
-            attachCategoryHandlers();
-            updateTotals();
-
-            // Re-aplicar promo automáticamente si venimos de un error
-            if (pendingAutoPromo && OLD_PROMO) {
-                pendingAutoPromo = false;
-                $('#promo_code').val(OLD_PROMO);
-                setPromoButton('apply');
-                $('#btn-verify-promo').trigger('click');
-            }
-        }
-
-        // ---------- Helpers límites (SOLO para sumar, no para bloquear) ----------
-        function getAdultsKidsFromInputs() {
-            let adults = 0,
-                kids = 0;
-            $('.category-input').each(function() {
-                const slug = String($(this).data('slug') || '').toLowerCase();
-                const v = parseInt($(this).val()) || 0;
-                if (slug === 'adult' || slug === 'adults') adults += v;
-                if (slug === 'kid' || slug === 'kids' || slug === 'child' || slug === 'children') kids += v;
-            });
-            return {
-                adults,
-                kids
-            };
-        }
-
-        function computeSubtotalAndPersons() {
-            let persons = 0,
-                subtotal = 0;
-            $('.category-input').each(function() {
-                const qty = parseInt($(this).val()) || 0;
-                const price = parseFloat($(this).data('price')) || 0;
-                persons += qty;
-                subtotal += qty * price;
-            });
-            return {
-                persons,
-                subtotal
-            };
-        }
-
-        function showLimitsWarning(msg) {
-            $('#limits-warning').text(msg).show();
-        }
-
-        function hideLimitsWarning() {
-            $('#limits-warning').text('').hide();
-        }
-
-        function updateTotals() {
-            // En admin: solo mostramos info, no bloqueamos nada
-            hideLimitsWarning();
-
-            const {
-                persons,
-                subtotal
-            } = computeSubtotalAndPersons();
-
-            // Pintar subtotal y personas (sin límite)
-            $('#total-persons').text(persons);
-            $('#subtotal-price').text(fmtMoney(subtotal));
-
-            // ===== Promo (add/subtract con label y color) =====
-            const op = $('#promo-operation').val(); // 'add' o 'subtract'
-            const amt = parseFloat($('#promo-amount').val() || 0);
-
-            const $row = $('#discount-row');
-            const $label = $('#promo-adjust-label');
-            const $amtEl = $('#discount-amount');
-
-            $amtEl.removeClass('text-success text-danger text-primary');
-
-            if ((op === 'subtract' || op === 'add') && amt > 0) {
-                $row.show();
-
-                if (op === 'subtract') {
-                    // DESCUENTO (verde, signo -)
-                    $label.text(LABEL_DISCOUNT + ':');
-                    $amtEl.addClass('text-success')
-                        .text('-' + fmtMoney(amt).replace('$', ''));
-                } else {
-                    // RECARGO (rojo, signo +)
-                    $label.text(LABEL_SURCHARGE + ':');
-                    $amtEl.addClass('text-danger')
-                        .text('+' + fmtMoney(amt).replace('$', ''));
-                }
-            } else {
-                // Sin promo aplicada
-                $row.hide();
-                $label.text('{{ __('
-                    m_bookings.bookings.fields.discount ') }}:');
-                $amtEl.text('-$0.00');
-            }
-
-            // Total final (sin límites de capacidad)
-            const total = subtotal -
-                (op === 'subtract' ? amt : 0) +
-                (op === 'add' ? amt : 0);
-
-            $('#total-price').text(fmtMoney(Math.max(total, 0)));
-        }
-
-        // ---------- Categories interactions ----------
-        function attachCategoryHandlers() {
-            $('.category-minus').on('click', function() {
-                const id = $(this).data('category-id');
-                lastChangedInputId = String(id);
-                const $i = $(`.category-input[data-category-id="${id}"]`);
-                const cur = parseInt($i.val()) || 0;
-                // Admin: allow going down to 0
-                if (cur > 0) {
-                    $i.val(cur - 1);
-                    updateTotals();
-                }
-            });
-
-            $('.category-plus').on('click', function() {
-                const id = $(this).data('category-id');
-                lastChangedInputId = String(id);
-                const $i = $(`.category-input[data-category-id="${id}"]`);
-                const cur = parseInt($i.val()) || 0;
-                // Admin: no max limit
-                $i.val(cur + 1);
-                updateTotals();
-            });
-
-            $('.category-input').on('change keyup', function() {
-                lastChangedInputId = String($(this).data('category-id'));
-                let v = parseInt($(this).val()) || 0;
-                // Admin: only ensure non-negative
-                if (v < 0) v = 0;
-                $(this).val(v);
-                updateTotals();
-            });
-        }
-
-        // ===== PROMO =====
-        function setPromoButton(mode) {
-            const $btn = $('#btn-verify-promo');
-            const $label = $btn.find('.promo-label');
-
-            if (mode === 'remove') {
-                // Modo ELIMINAR
-                $btn.data('mode', 'remove')
-                    .removeClass('btn-success')
-                    .addClass('btn-danger');
-
-                if ($label.length) {
-                    $label.text(REMOVE_LABEL);
-                }
-            } else {
-                // Modo APLICAR
-                $btn.data('mode', 'apply')
-                    .removeClass('btn-danger')
-                    .addClass('btn-success');
-
-                if ($label.length) {
-                    $label.text(APPLY_LABEL);
-                }
-            }
-        }
-
-        function clearPromoUI(showMsg = true) {
-            $('#promo-operation').val('');
-            $('#promo-amount').val('0');
-            $('#promo-percent').val('');
-            if (showMsg) {
-                $('#promo-feedback').removeClass('text-danger text-success').addClass('text-muted')
-                    .text(@json(__('m_bookings.bookings.messages.promo_removed') ?? 'Código promocional removido.'));
-            } else {
-                $('#promo-feedback').text('');
-            }
-            setPromoButton('apply');
-            updateTotals();
-        }
-
-        $('#promo_code').on('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                $('#btn-verify-promo').trigger('click');
-            }
-        });
-
-        $('#promo_code').on('input', function() {
-            const val = ($(this).val() || '').trim();
-            if (val === '' && $('#btn-verify-promo').data('mode') === 'remove') {
-                clearPromoUI(true);
-            }
-        });
-
-        $('#btn-verify-promo').on('click', function() {
-            const $btn = $(this);
-            const mode = $btn.data('mode');
-
-            if (mode === 'remove') {
-                clearPromoUI(true);
-                $('#promo_code').val('');
-                return;
-            }
-
-            const code = ($('#promo_code').val() || '').trim();
-            const {
-                subtotal
-            } = computeSubtotalAndPersons();
-            if (!code) {
-                $('#promo-feedback')
-                    .removeClass('text-success text-muted')
-                    .addClass('text-danger')
-                    .text('{{ __('
-                        m_bookings.bookings.validation.promo_empty ') }}');
-                return;
-            }
-            if (subtotal <= 0) {
-                $('#promo-feedback')
-                    .removeClass('text-success text-muted')
-                    .addClass('text-danger')
-                    .text('{{ __('
-                        m_bookings.bookings.validation.promo_needs_subtotal ') }}');
-                return;
-            }
-
-            // Spinner mientras verifica
-            $btn.prop('disabled', true).html(
-                '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>' +
-                '<span class="promo-label">{{ __('
-                m_bookings.bookings.ui.verifying ') ?? '
-                Verificando… ' }}</span>'
-            );
-
-            $.get(epVerify, {
-                    code,
-                    subtotal
-                })
-                .done(function(resp) {
-                    if (!resp || !resp.valid) {
-                        clearPromoUI(false);
-                        $('#promo-feedback').removeClass('text-success text-muted').addClass('text-danger')
-                            .text(resp?.message || 'Código inválido');
-                    } else {
-                        $('#promo-operation').val(resp.operation);
-                        $('#promo-amount').val(resp.discount_amount || 0);
-                        $('#promo-percent').val(resp.discount_percent ?? '');
-                        $('#promo-feedback').removeClass('text-danger text-muted').addClass('text-success')
-                            .text(
-                                resp.operation === 'subtract' ?
-                                '{{ __('
-                                m_bookings.bookings.messages.promo_applied_subtract ') }} ' + fmtMoney(resp.discount_amount) :
-                                '{{ __('
-                                m_bookings.bookings.messages.promo_applied_add ') }} ' + fmtMoney(resp.discount_amount)
-                            );
-                        setPromoButton('remove');
-                    }
-                    updateTotals();
-                })
-                .fail(function(xhr) {
-                    const msg = (xhr?.responseJSON?.message) || 'Error verificando el código.';
-                    $('#promo-feedback').removeClass('text-success text-muted').addClass('text-danger').text(msg);
-                })
-                .always(function() {
-                    // Restaurar texto según el modo actual (apply/remove)
-                    const modeNow = $btn.data('mode');
-                    const finalText = modeNow === 'remove' ? REMOVE_LABEL : APPLY_LABEL;
-                    $btn.prop('disabled', false).html(
-                        `<span class="promo-label">${finalText}</span>`
-                    );
-                });
-        });
-        // ===== /PROMO =====
-
-        // ---------- Locks Hotel vs Meeting Point ----------
-        function lockHotel(msg) {
-            $('#hotel_group').addClass('d-none');
-            $('#other_hotel_wrapper').hide();
-            $('#hotel_locked').removeClass('d-none').text(msg);
-            if ($('#hotel_id').val()) $('#hotel_id').val('').trigger('change.select2');
-            $('#is_other_hotel').val('0');
-            $('#other_hotel_name').val('');
-        }
-
-        function unlockHotel() {
-            $('#hotel_locked').addClass('d-none').text('');
-            $('#hotel_group').removeClass('d-none');
-        }
-
-        function lockMeetingPoint(msg) {
-            $('#meeting_point_group').addClass('d-none');
-            $('#mp_locked').removeClass('d-none').text(msg);
-            if ($('#meeting_point_id').val()) $('#meeting_point_id').val('').trigger('change.select2');
-        }
-
-        function unlockMeetingPoint() {
-            $('#mp_locked').addClass('d-none').text('');
-            $('#meeting_point_group').removeClass('d-none');
-        }
-
-        $('#meeting_point_id').on('change', function() {
-            const hasMP = ($(this).val() || '') !== '';
-            if (hasMP) {
-                lockHotel(@json(__("m_bookings.bookings.messages.hotel_locked_by_meeting_point")));
-            } else {
-                unlockHotel();
-            }
-        });
-
-        $('#hotel_id').on('change', function() {
-            const val = $(this).val() || '';
-            const pickedHotel = val !== '';
-            const pickedOther = val === 'other';
-
-            if (pickedOther) {
-                $('#other_hotel_wrapper').slideDown();
-                $('#is_other_hotel').val('1');
-            } else {
-                $('#other_hotel_wrapper').slideUp();
-                $('#is_other_hotel').val('0');
-                $('#other_hotel_name').val('');
-            }
-
-            if (pickedHotel || pickedOther) {
-                lockMeetingPoint(@json(__("m_bookings.bookings.messages.meeting_point_locked_by_hotel")));
-            } else {
-                unlockMeetingPoint();
-            }
-        });
-
-        // ---------- Tour change event ----------
-        $('#product_id').on('change', function() {
-            const tourId = $(this).val();
-            console.log('=== TOUR CHANGED ===');
-            console.log('Selected tour ID:', tourId);
-
-            // Limpiar campos dependientes
-            resetSelect($('#schedule_id'), '{{ __("m_bookings.bookings.fields.schedule_placeholder") }}');
-            resetSelect($('#tour_language_id'), '{{ __("m_bookings.bookings.fields.language_placeholder") }}');
-            $('#categories-container').html(
-                `<div class="alert alert-info mb-0">
-              {{ __('m_bookings.bookings.ui.select_tour_to_see_categories') }}
-            </div>`
-            );
-            currentCategories = [];
-
-            // Solo limpiar promo cuando el cambio lo hace el usuario, no en el init
-            if (!isInitializing) {
-                clearPromoUI(false);
-                $('#promo_code').val('');
-                pendingAutoPromo = false;
-            }
-
-            if (!tourId) {
-                console.log('No tour selected, skipping load');
-                return;
-            }
-
-            console.log('Calling loadSchedules...');
-            loadSchedules(tourId);
-
-            console.log('Calling loadLanguages...');
-            loadLanguages(tourId);
-
-            const tourDate = $('#tour_date').val();
-            console.log('Tour date:', tourDate);
-            console.log('Calling loadCategories...');
-            loadCategories(tourId, tourDate);
-        });
-
-        // Reload categories when date changes
-        $('#tour_date').on('change', function() {
-            const tourId = $('#product_id').val();
-            const tourDate = $(this).val();
-            if (tourId) {
-                loadCategories(tourId, tourDate);
-            }
-        });
-
-        // ---------- Inicialización ----------
-        if ($('#hotel_id').val() === 'other') {
-            $('#other_hotel_wrapper').show();
-        }
-
-        (function initState() {
-            const hasMP = ($('#meeting_point_id').val() || '') !== '';
-            const hVal = $('#hotel_id').val() || '';
-            const pickedHotel = hVal !== '';
-            const pickedOther = hVal === 'other';
-
-            if (hasMP) {
-                lockHotel(@json(__("m_bookings.bookings.messages.hotel_locked_by_meeting_point")));
-            }
-            if (pickedHotel || pickedOther) {
-                lockMeetingPoint(@json(__("m_bookings.bookings.messages.meeting_point_locked_by_hotel")));
-            }
-            if (pickedOther) {
-                $('#other_hotel_wrapper').show();
-                $('#is_other_hotel').val('1');
-            }
-        })();
-
-        const oldTourId = '{{ old('
-        product_id ') }}';
-        if (oldTourId) {
-            $('#product_id').val(oldTourId).trigger('change.select2');
-            loadSchedules(oldTourId, '{{ old('
-                schedule_id ') }}');
-            loadLanguages(oldTourId, '{{ old('
-                tour_language_id ') }}');
-
-            const oldDate = $('#tour_date').val();
-            loadCategories(oldTourId, oldDate, @json(old('categories', [])));
-        }
-
-        // a partir de aquí, los cambios de tour sí limpian promo
-        isInitializing = false;
-    });
-</script>
+</div>
+</div>
 @stop
 
 @section('css')
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet" />
 <style>
-    select.no-bg+.select2-container--bootstrap4 .select2-selection--single {
-        background: transparent !important;
+    /* Centered wrapper for entire form */
+    .booking-form-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 15px;
     }
 
-    select.no-bg+.select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
-        background: transparent !important;
+    /* Dark theme compatible styles */
+    .step-card {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        margin-bottom: 15px;
+        overflow: hidden;
     }
 
-    select.no-bg+.select2-container--bootstrap4 .select2-selection--single .select2-selection__placeholder {
-        color: inherit;
+    .step-header {
+        background: rgba(52, 152, 219, 0.2);
+        border-bottom: 1px solid rgba(52, 152, 219, 0.3);
+        padding: 10px 15px;
+        color: #fff;
+        font-weight: 600;
+        font-size: 1em;
     }
 
-    select.no-bg+.select2-container--bootstrap4 .select2-selection--single:focus {
-        box-shadow: none;
+    .step-header-info {
+        background: rgba(23, 162, 184, 0.2);
+        border-bottom-color: rgba(23, 162, 184, 0.3);
     }
 
-    .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
-        color: white !important;
+    .step-header-success {
+        background: rgba(40, 167, 69, 0.2);
+        border-bottom-color: rgba(40, 167, 69, 0.3);
     }
 
-    .form-control-plaintext {
-        color: white;
+    .step-header-warning {
+        background: rgba(255, 193, 7, 0.2);
+        border-bottom-color: rgba(255, 193, 7, 0.3);
     }
 
-    .sticky-lg-top {
-        position: static;
+    .step-body {
+        padding: 15px;
     }
 
-    @media (min-width: 992px) {
-        .sticky-lg-top {
-            position: sticky;
-            top: 20px;
-            z-index: 1020;
-        }
+    .product-cover-img {
+        width: 100%;
+        max-height: 250px;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
 
-    .w-sm-auto {
-        width: auto;
+    #categories-container {
+        max-width: 800px;
+        margin: 0 auto;
     }
 
-    @media (max-width: 575.98px) {
-        .w-sm-auto {
-            width: 100% !important;
-        }
-    }
-
-    @media (max-width: 575.98px) {
-        .category-row .btn {
-            padding: .45rem .6rem;
-        }
-
-        .category-row input {
-            width: 68px !important;
-        }
-    }
-
-    .btn-promo {
-        display: inline-flex;
+    .category-item {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
         align-items: center;
+        gap: 15px;
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .category-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .category-name {
+        font-weight: 600;
+        color: #fff;
+        font-size: 0.95em;
+    }
+
+    .category-price {
+        color: #28a745;
+        font-size: 1.05em;
+        font-weight: 600;
+        min-width: 80px;
+        text-align: right;
+    }
+
+    .category-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .category-qty {
+        width: 60px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        padding: 5px;
+        font-size: 0.9em;
+    }
+
+    .total-display {
+        margin-top: 15px;
+        padding: 12px;
+        background: rgba(40, 167, 69, 0.2);
+        border: 1px solid rgba(40, 167, 69, 0.3);
+        border-radius: 5px;
+        color: #fff;
+    }
+
+    .price-breakdown {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 3px 0;
+        font-size: 0.9em;
+    }
+
+    .total-row {
+        border-top: 2px solid rgba(255, 255, 255, 0.3);
+        padding-top: 8px;
+        margin-top: 5px;
+        font-size: 1.05em;
+    }
+
+    .total-amount {
+        color: #28a745;
+        font-size: 1.2em;
+    }
+
+    label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+    }
+
+    .form-control {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(52, 152, 219, 0.5);
+        color: #fff;
+    }
+
+    .form-control option {
+        background: #343a40;
+        color: #fff;
+    }
+
+    .btn-outline-secondary {
+        color: rgba(255, 255, 255, 0.8);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-outline-secondary.active,
+    .btn-outline-secondary:hover {
+        background: rgba(52, 152, 219, 0.3);
+        border-color: rgba(52, 152, 219, 0.5);
+        color: #fff;
+    }
+
+    .modal-content {
+        background: #2d3748;
+        color: #fff;
+    }
+
+    .modal-header {
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .modal-footer {
+        border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .step-header {
+            font-size: 1em;
+            padding: 12px 15px;
+        }
+
+        .step-body {
+            padding: 15px;
+        }
+
+        .category-item {
+            grid-template-columns: 1fr;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .category-name {
+            text-align: center;
+        }
+
+        .category-price {
+            text-align: center;
+        }
+
+        .category-controls {
+            justify-content: center;
+        }
+
+        .product-cover-img {
+            max-height: 200px;
+        }
+    }
+
+    .button-group {
+        display: flex;
+        gap: 10px;
         justify-content: center;
-        gap: .4rem;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 576px) {
+        .btn-lg {
+            font-size: 0.95rem;
+            padding: 0.6rem 1.2rem;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .button-group {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .total-amount {
+            font-size: 1.2em;
+        }
+
+        .input-group-append .btn {
+            font-size: 0.85rem;
+            padding: 0.375rem 0.75rem;
+        }
     }
 </style>
+{{-- Capacity Confirmation Modal --}}
+<div class="modal fade" id="capacityModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content bg-warning">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> {{ __('m_bookings.bookings.validation.capacity_warning') ?? 'Capacity Warning' }}</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="capacity-message"></p>
+                <p>{{ __('m_bookings.bookings.validation.force_question') ?? 'Do you want to force this booking anyway?' }}</p>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-outline-dark" data-dismiss="modal">{{ __('m_bookings.actions.cancel') ?? 'Cancel' }}</button>
+                <button type="button" id="btn-force-submit" class="btn btn-outline-dark">
+                    <i class="fas fa-check"></i> {{ __('m_bookings.actions.yes_force') ?? 'Yes, Force Booking' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if(session('capacity_error'))
+<script>
+    $(document).ready(function() {
+        const error = @json(session('capacity_error'));
+        $('#capacity-message').text(error.message);
+        $('#capacityModal').modal('show');
+
+        $('#btn-force-submit').on('click', function() {
+            // Add hidden input for force
+            $('<input>').attr({
+                type: 'hidden',
+                name: 'force_capacity',
+                value: '1'
+            }).appendTo('#booking-form');
+
+            $('#capacityModal').modal('hide');
+            $('#booking-form').submit();
+        });
+    });
+</script>
+@endif
+@stop
+
+@section('js')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    console.log('Script block loaded');
+    $(document).ready(function() {
+        console.log('Document ready fired');
+        // Initialize Select2
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
+
+        const $productSelect = $('#product_id');
+        const $dateInput = $('#tour_date');
+        const $scheduleSelect = $('#schedule_id');
+        const $languageSelect = $('#tour_language_id');
+        const $categoriesContainer = $('#categories-container');
+        const $hotelSelect = $('#hotel_id');
+        const $pickupType = $('input[name="pickup_type"]');
+
+        // When product is selected
+        $productSelect.on('change', function() {
+            const selectedOption = $(this).find(':selected');
+            const productData = selectedOption.data('tour');
+            const coverImage = selectedOption.data('cover');
+
+            // Show cover image
+            if (coverImage) {
+                $('#product-cover').attr('src', coverImage);
+                $('#product-cover-container').fadeIn();
+            } else {
+                $('#product-cover-container').hide();
+            }
+
+            if (!productData) {
+                $('#step2, #step3, #step4, #submit-section').hide();
+                return;
+            }
+
+            // Populate schedules
+            $scheduleSelect.empty().append('<option value="">-- Select Schedule --</option>');
+            if (productData.schedules && productData.schedules.length > 0) {
+                productData.schedules.forEach(s => {
+                    const startTime = s.start_time ? s.start_time.substring(0, 5) : '';
+                    const endTime = s.end_time ? s.end_time.substring(0, 5) : '';
+                    $scheduleSelect.append(`<option value="${s.schedule_id}">${startTime} - ${endTime}</option>`);
+                });
+            }
+
+            // Populate languages
+            $languageSelect.empty().append('<option value="">-- Select Language --</option>');
+            if (productData.languages && productData.languages.length > 0) {
+                productData.languages.forEach(l => {
+                    $languageSelect.append(`<option value="${l.tour_language_id}">${l.name}</option>`);
+                });
+            }
+
+            $('#step2').slideDown();
+
+            if ($dateInput.val()) {
+                loadCategories(productData);
+            }
+        });
+
+        // When date is selected
+        $dateInput.on('change', function() {
+            const selectedOption = $productSelect.find(':selected');
+            const productData = selectedOption.data('tour');
+
+            if (!productData || !$(this).val()) {
+                $('#step3, #step4, #submit-section').hide();
+                return;
+            }
+
+            loadCategories(productData);
+        });
+
+        function loadCategories(productData) {
+            const selectedDate = new Date($dateInput.val());
+            const locale = '{{ app()->getLocale() }}';
+
+            if (!productData.prices || productData.prices.length === 0) {
+                $categoriesContainer.html('<div class="alert alert-warning">No categories available</div>');
+                return;
+            }
+
+            // Filter prices by date
+            const selectedDateStr = $dateInput.val();
+
+            let validPrices = productData.prices.filter(p => {
+                // No dates = always valid (default price)
+                if (!p.valid_from && !p.valid_until) return true;
+
+                // Normalize dates to YYYY-MM-DD strings for comparison
+                // p.valid_from is likely "YYYY-MM-DD..." string from JSON
+                const validFromStr = p.valid_from ? p.valid_from.substring(0, 10) : null;
+                const validUntilStr = p.valid_until ? p.valid_until.substring(0, 10) : null;
+
+                // Check if selected date is within range
+                // String comparison works for ISO dates: "2025-12-02" < "2025-12-03" is true
+                if (validFromStr && selectedDateStr < validFromStr) return false; // Before start
+                if (validUntilStr && selectedDateStr > validUntilStr) return false; // After end
+
+                return true; // Within range or open-ended
+            });
+
+            // Group by category
+            const categoryMap = {};
+            validPrices.forEach(p => {
+                const hasDateRange = p.valid_from && p.valid_until;
+                if (!categoryMap[p.category_id] || hasDateRange) {
+                    categoryMap[p.category_id] = p;
+                }
+            });
+            validPrices = Object.values(categoryMap);
+
+            if (validPrices.length === 0) {
+                $categoriesContainer.html('<div class="alert alert-warning">No prices for selected date</div>');
+                return;
+            }
+
+            // Render categories
+            $categoriesContainer.empty();
+            validPrices.forEach(price => {
+                let categoryName = 'Category';
+                if (price.category && price.category.translations) {
+                    const translation = price.category.translations.find(t => t.locale === locale);
+                    categoryName = translation ? translation.name : (price.category.name || 'Category');
+                } else if (price.category) {
+                    categoryName = price.category.name || 'Category';
+                }
+
+                const finalPrice = price.final_price || price.price || 0;
+
+                const html = `
+                <div class="category-item">
+                    <span class="category-name">${categoryName}</span>
+                    <span class="category-price">$${parseFloat(finalPrice).toFixed(2)}</span>
+                    <div class="category-controls">
+                        <button type="button" class="btn btn-sm btn-secondary btn-minus" data-category="${price.category_id}">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number"
+                               name="categories[${price.category_id}]"
+                               min="0"
+                               value="0"
+                               data-price="${finalPrice}"
+                               data-name="${categoryName}"
+                               class="form-control category-qty">
+                        <button type="button" class="btn btn-sm btn-secondary btn-plus" data-category="${price.category_id}">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+                $categoriesContainer.append(html);
+            });
+
+            $('.btn-plus').on('click', function() {
+                const categoryId = $(this).data('category');
+                const $input = $(`input[name="categories[${categoryId}]"]`);
+                $input.val(parseInt($input.val() || 0) + 1).trigger('input');
+            });
+
+            $('.btn-minus').on('click', function() {
+                const categoryId = $(this).data('category');
+                const $input = $(`input[name="categories[${categoryId}]"]`);
+                const newVal = Math.max(0, parseInt($input.val() || 0) - 1);
+                $input.val(newVal).trigger('input');
+            });
+
+            $('.category-qty').on('input', updateTotal);
+
+            $('#step3').slideDown();
+            $('#step4').slideDown();
+            $('#submit-section').slideDown();
+        }
+
+        // Pickup type toggle
+        $pickupType.on('change', function() {
+            const type = $(this).val();
+            $('#hotel-section, #meeting-point-section').hide();
+            $('#hotel_id, #meeting_point_id').val('').prop('required', false);
+
+            if (type === 'hotel') {
+                $('#hotel-section').slideDown();
+                $('#hotel_id').prop('required', true);
+            } else if (type === 'meeting_point') {
+                $('#meeting-point-section').slideDown();
+                $('#meeting_point_id').prop('required', true);
+            }
+        });
+
+        // Hotel "other" handling
+        $hotelSelect.on('change', function() {
+            if ($(this).val() === 'other') {
+                $('#other-hotel-wrapper').slideDown();
+                $('#other_hotel_name').prop('required', true);
+            } else {
+                $('#other-hotel-wrapper').slideUp();
+                $('#other_hotel_name').prop('required', false);
+            }
+        });
+
+        // Promo code functionality
+        let promoValue = 0;
+        let promoType = 'fixed'; // 'fixed' or 'percentage'
+        let promoOperation = 'subtract'; // 'add' or 'subtract'
+
+        $('#btn-apply-promo').on('click', function() {
+            const promoCode = $('#promo_code').val().trim();
+            const $btn = $(this);
+
+            if (!promoCode) {
+                $('#promo-message').removeClass('text-success').addClass('text-danger').text('Please enter a promo code');
+                return;
+            }
+
+            // Calculate current subtotal for validation
+            let subtotal = 0;
+            $('.category-qty').each(function() {
+                const qty = parseInt($(this).val()) || 0;
+                const price = parseFloat($(this).data('price')) || 0;
+                subtotal += qty * price;
+            });
+
+            if (subtotal <= 0) {
+                $('#promo-message').removeClass('text-success').addClass('text-danger').text('Please select participants first');
+                return;
+            }
+
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Checking...');
+
+            $.ajax({
+                url: "{{ route('admin.bookings.verifyPromoCode') }}",
+                method: 'GET',
+                data: {
+                    code: promoCode,
+                    subtotal: subtotal
+                },
+                success: function(response) {
+                    $btn.prop('disabled', false).html('<i class="fas fa-check"></i> Apply');
+
+                    if (response.valid) {
+                        promoValue = response.discount_percent ? response.discount_percent : response.discount_amount;
+                        promoType = response.discount_percent ? 'percentage' : 'fixed';
+                        promoOperation = response.operation || 'subtract';
+
+                        const valueText = promoType === 'percentage' ? `${promoValue}%` : `$${promoValue}`;
+                        const actionText = promoOperation === 'add' ? 'surcharge' : 'discount';
+
+                        $('#promo-message').removeClass('text-danger').addClass('text-success').text(`✓ ${valueText} ${actionText} applied!`);
+                        $('#btn-apply-promo').hide();
+                        $('#btn-remove-promo').show();
+                        $('#promo_code').prop('readonly', true);
+                        updateTotal();
+                    } else {
+                        $('#promo-message').removeClass('text-success').addClass('text-danger').text(response.message || 'Invalid promo code');
+                        promoValue = 0;
+                    }
+                },
+                error: function() {
+                    $btn.prop('disabled', false).html('<i class="fas fa-check"></i> Apply');
+                    $('#promo-message').removeClass('text-success').addClass('text-danger').text('Error validating code');
+                    promoValue = 0;
+                }
+            });
+        });
+
+        $('#btn-remove-promo').on('click', function() {
+            promoValue = 0;
+            $('#promo_code').val('').prop('readonly', false);
+            $('#promo-message').text('');
+            $('#btn-remove-promo').hide();
+            $('#btn-apply-promo').show();
+            updateTotal();
+        });
+
+        function updateTotal() {
+            // 1. Calculate Raw Total (Price * Qty)
+            let rawTotal = 0;
+            let totalQty = 0;
+            $('.category-qty').each(function() {
+                const qty = parseInt($(this).val()) || 0;
+                const price = parseFloat($(this).data('price')) || 0;
+                rawTotal += qty * price;
+                totalQty += qty;
+            });
+
+            // 2. Get Tax Configuration
+            const productData = $('#product_id option:selected').data('tour');
+            const taxes = productData && productData.taxes ? productData.taxes : [];
+
+            // 3. Calculate Base Amount (Remove Inclusive Taxes)
+            let baseAmount = rawTotal;
+            let inclusiveTaxRateTotal = 0;
+            let inclusiveFixedTotal = 0;
+
+            taxes.forEach(tax => {
+                if (tax.is_inclusive) {
+                    if (tax.type === 'percentage') {
+                        inclusiveTaxRateTotal += parseFloat(tax.rate);
+                    } else if (tax.type === 'fixed') {
+                        inclusiveFixedTotal += parseFloat(tax.rate) * totalQty;
+                    }
+                }
+            });
+
+            // Remove fixed inclusive taxes first
+            baseAmount -= inclusiveFixedTotal;
+            // Remove percentage inclusive taxes
+            if (inclusiveTaxRateTotal > 0) {
+                baseAmount = baseAmount / (1 + (inclusiveTaxRateTotal / 100));
+            }
+
+            // 4. Apply Promo (Discount or Surcharge) to Base Amount
+            let promoAmount = 0;
+            if (promoValue > 0) {
+                if (promoType === 'percentage') {
+                    promoAmount = baseAmount * (promoValue / 100);
+                } else {
+                    promoAmount = parseFloat(promoValue);
+                }
+            }
+
+            let adjustedBase = baseAmount;
+
+            if (promoOperation === 'add') {
+                adjustedBase += promoAmount;
+            } else {
+                // Subtract (Discount)
+                // Ensure discount doesn't exceed base amount
+                promoAmount = Math.min(promoAmount, baseAmount);
+                adjustedBase = Math.max(0, baseAmount - promoAmount);
+            }
+
+            // 5. Calculate Tax Amounts (on adjusted base)
+            let totalTaxAmount = 0;
+            let taxDetailsHtml = '';
+
+            taxes.forEach(tax => {
+                let taxAmount = 0;
+                if (tax.type === 'percentage') {
+                    taxAmount = adjustedBase * (parseFloat(tax.rate) / 100);
+                } else {
+                    taxAmount = parseFloat(tax.rate) * totalQty;
+                }
+
+                totalTaxAmount += taxAmount;
+
+                const label = tax.is_inclusive ? `${tax.name} (Included)` : tax.name;
+                taxDetailsHtml += `
+                    <div class="price-row dynamic-tax-row">
+                        <span>${label} (${parseFloat(tax.rate)}%):</span>
+                        <span>$${taxAmount.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+
+            // 6. Calculate Final Total
+            const finalTotal = adjustedBase + totalTaxAmount;
+
+            // Update Display
+            $('#subtotal-amount').text('$' + baseAmount.toFixed(2));
+
+            if (promoAmount > 0) {
+                $('#discount-row').show();
+                const sign = promoOperation === 'add' ? '+' : '-';
+                const label = promoOperation === 'add' ? "{{ __('m_bookings.bookings.ui.surcharge') ?? 'Surcharge' }}" : "{{ __('m_bookings.bookings.ui.discount') ?? 'Discount' }}";
+                const colorClass = promoOperation === 'add' ? 'text-danger' : 'text-success';
+
+                // Update label text if possible, or just value
+                $('#discount-row span:first').text(label + ':');
+                $('#discount-amount').removeClass('text-success text-danger text-warning').addClass(colorClass).text(sign + '$' + promoAmount.toFixed(2));
+            } else {
+                $('#discount-row').hide();
+                // Reset label
+                $('#discount-row span:first').text("{{ __('m_bookings.bookings.ui.discount') ?? 'Discount' }}:");
+            }
+
+            // Update Tax Section
+            if (taxes.length > 0) {
+                $('#tax-row').hide(); // Hide the generic tax row
+                $('.dynamic-tax-row').remove();
+                $(taxDetailsHtml).insertBefore('.total-row');
+            } else {
+                $('#tax-row').hide();
+                $('.dynamic-tax-row').remove();
+            }
+
+            $('#total-amount').text('$' + finalTotal.toFixed(2));
+        }
+        $('#btn-review').on('click', function() {
+            console.log('Review button clicked');
+            const $btn = $(this);
+
+            // 1. Validate all required fields
+            const requiredFields = {
+                'user_id': '{{ __("m_bookings.bookings.fields.customer") }}',
+                'product_id': '{{ __("m_bookings.bookings.fields.tour") }}',
+                'tour_date': '{{ __("m_bookings.bookings.fields.tour_date") }}',
+                'schedule_id': '{{ __("m_bookings.bookings.fields.schedule") }}',
+                'tour_language_id': '{{ __("m_bookings.bookings.fields.language") }}'
+            };
+
+            let missingFields = [];
+            for (const [fieldId, fieldLabel] of Object.entries(requiredFields)) {
+                const value = $('#' + fieldId).val();
+                if (!value || value === '') {
+                    missingFields.push(fieldLabel);
+                }
+            }
+
+            if (missingFields.length > 0) {
+                alert('{{ __("m_bookings.bookings.validation.required_fields") ?? "Please fill in all required fields" }}: ' + missingFields.join(', '));
+                return;
+            }
+
+            // 2. Validate at least one category has quantity > 0
+            let totalQty = 0;
+            $('.category-qty').each(function() {
+                totalQty += parseInt($(this).val()) || 0;
+            });
+
+            if (totalQty === 0) {
+                alert('{{ __("m_bookings.bookings.validation.select_categories") ?? "Please select at least one participant category" }}');
+                return;
+            }
+
+            // 3. Validate pickup type selection
+            const pickupType = $('input[name="pickup_type"]:checked').val();
+            if (!pickupType) {
+                alert('{{ __("m_bookings.bookings.validation.select_pickup") ?? "Please select a pickup option" }}');
+                return;
+            }
+
+            // 4. Validate pickup details based on type
+            if (pickupType === 'hotel') {
+                const hotelId = $('#hotel_id').val();
+                const otherHotelName = $('#other_hotel_name').val();
+                if (!hotelId && !otherHotelName) {
+                    alert('{{ __("m_bookings.bookings.validation.select_hotel_or_other") ?? "Please select a hotel or enter other hotel name" }}');
+                    return;
+                }
+                if (hotelId === 'other' && !otherHotelName) {
+                    alert('{{ __("m_bookings.bookings.validation.enter_other_hotel") ?? "Please enter the hotel name" }}');
+                    return;
+                }
+            } else if (pickupType === 'meeting_point') {
+                const meetingPointId = $('#meeting_point_id').val();
+                if (!meetingPointId) {
+                    alert('{{ __("m_bookings.bookings.validation.select_meeting_point") ?? "Please select a meeting point" }}');
+                    return;
+                }
+            }
+
+            // 5. Check if promo code is entered but not applied
+            const promoCodeInput = $('#promo_code').val().trim();
+            if (promoCodeInput && promoValue === 0) {
+                alert("{{ __('m_bookings.validation.promo_apply_required') ?? 'Please click Apply to validate your promo code first.' }}");
+                return;
+            }
+
+            // 6. Validate Capacity via AJAX
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> {{ __("m_bookings.bookings.ui.verifying") ?? "Verifying..." }}');
+
+            // Collect form data for validation
+            const formData = $('#booking-form').serializeArray();
+            // Convert to object for easier handling if needed, but serializeArray works for jQuery ajax data
+
+            $.ajax({
+                url: "{{ route('admin.bookings.validate_capacity') }}",
+                method: 'POST',
+                data: formData,
+                success: function(response) {
+                    $btn.prop('disabled', false).html('<i class="fas fa-check-circle mr-2"></i> {{ __("m_bookings.actions.review_booking") ?? "Review Booking" }}');
+
+                    // Reset force capacity flag
+                    $('input[name="force_capacity"]').remove();
+
+                    if (response.success) {
+                        // No capacity issues
+                        showReviewModal(null);
+                    } else {
+                        // Capacity exceeded - show warning in modal
+                        // Add hidden input to force capacity if user confirms
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: 'force_capacity',
+                            value: '1'
+                        }).appendTo('#booking-form');
+
+                        showReviewModal(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    $btn.prop('disabled', false).html('<i class="fas fa-check-circle mr-2"></i> {{ __("m_bookings.actions.review_booking") ?? "Review Booking" }}');
+                    console.error('Capacity validation error:', xhr);
+                    // If validation fails (e.g. 422), show error
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        let errorMsg = 'Validation Error:\n';
+                        for (const field in errors) {
+                            errorMsg += `- ${errors[field][0]}\n`;
+                        }
+                        alert(errorMsg);
+                    } else {
+                        alert('Error checking capacity. Please try again.');
+                    }
+                }
+            });
+        });
+
+        function showReviewModal(warningMessage) {
+            // Build summary HTML (same as before)
+            const productName = $('#product_id option:selected').text();
+            const tourDate = $('#tour_date').val();
+            const schedule = $('#schedule_id option:selected').text();
+            const language = $('#tour_language_id option:selected').text();
+            const customer = $('#user_id option:selected').text();
+            const notes = $('#notes').val();
+            const pickupType = $('input[name="pickup_type"]:checked').val();
+
+            let pickupInfo = "{{ __('m_bookings.bookings.ui.no_pickup') ?? 'No Pickup' }}";
+            if (pickupType === 'hotel') {
+                const hotelName = $('#hotel_id option:selected').text();
+                pickupInfo = hotelName === 'Other' ? $('#other_hotel_name').val() : hotelName;
+            } else if (pickupType === 'meeting_point') {
+                pickupInfo = $('#meeting_point_id option:selected').text();
+            }
+
+            let categoriesHtml = '';
+            $('.category-qty').each(function() {
+                const qty = parseInt($(this).val()) || 0;
+                if (qty > 0) {
+                    const name = $(this).data('name');
+                    const price = parseFloat($(this).data('price'));
+                    const subtotal = qty * price;
+                    categoriesHtml += `<tr><td>${name}</td><td>${qty}</td><td>$${price.toFixed(2)}</td><td>$${subtotal.toFixed(2)}</td></tr>`;
+                }
+            });
+
+            const subtotalDisplay = $('#subtotal-amount').text();
+            const totalDisplay = $('#total-amount').text();
+
+            let promoHtml = '';
+            if (promoValue > 0) {
+                const promoLabel = promoOperation === 'add' ? "{{ __('m_bookings.bookings.ui.surcharge') ?? 'Surcharge' }}" : "{{ __('m_bookings.bookings.ui.discount') ?? 'Discount' }}";
+                const promoClass = promoOperation === 'add' ? 'text-danger' : 'text-success';
+                const promoAmountDisplay = $('#discount-amount').text();
+                const promoCode = $('#promo_code').val();
+                promoHtml = `<tr><th>${promoLabel} (${promoCode})</th><td class="${promoClass}">${promoAmountDisplay}</td></tr>`;
+            }
+
+            let taxesHtml = '';
+            $('.dynamic-tax-row').each(function() {
+                const label = $(this).find('span:first').text();
+                const amount = $(this).find('span:last').text();
+                taxesHtml += `<tr><th>${label}</th><td>${amount}</td></tr>`;
+            });
+
+            let warningHtml = '';
+            if (warningMessage) {
+                warningHtml = `
+                    <div class="alert alert-warning">
+                        <h5><i class="fas fa-exclamation-triangle"></i> {{ __('m_bookings.bookings.validation.capacity_warning') ?? 'Capacity Warning' }}</h5>
+                        <p>${warningMessage}</p>
+                    </div>
+                `;
+            }
+
+            const summary = `
+            ${warningHtml}
+            <table class="table table-bordered">
+                <tr><th>{{ __('m_bookings.bookings.fields.tour') }}</th><td>${productName}</td></tr>
+                <tr><th>{{ __('m_bookings.bookings.fields.date') }}</th><td>${tourDate}</td></tr>
+                <tr><th>{{ __('m_bookings.bookings.fields.schedule') }}</th><td>${schedule}</td></tr>
+                <tr><th>{{ __('m_bookings.bookings.fields.language') }}</th><td>${language}</td></tr>
+                <tr><th>{{ __('m_bookings.bookings.fields.customer') }}</th><td>${customer}</td></tr>
+                <tr><th>{{ __('m_bookings.bookings.fields.pickup') }}</th><td>${pickupInfo}</td></tr>
+                ${notes ? `<tr><th>{{ __('m_bookings.bookings.fields.notes') }}</th><td>${notes}</td></tr>` : ''}
+            </table>
+
+            <h5>{{ __('m_bookings.bookings.ui.participants') ?? 'Participants' }}:</h5>
+            <table class="table table-bordered table-sm">
+                <thead><tr><th>{{ __('m_bookings.bookings.fields.category') }}</th><th>{{ __('m_bookings.bookings.fields.quantity') }}</th><th>{{ __('m_bookings.bookings.fields.price') }}</th><th>{{ __('m_bookings.bookings.ui.subtotal') }}</th></tr></thead>
+                <tbody>${categoriesHtml}</tbody>
+            </table>
+
+            <h5>{{ __('m_bookings.bookings.ui.price_breakdown') ?? 'Price Breakdown' }}:</h5>
+            <table class="table table-bordered table-sm">
+                <tr><th style="width: 70%">{{ __('m_bookings.bookings.ui.subtotal') }}</th><td>${subtotalDisplay}</td></tr>
+                ${promoHtml}
+                ${taxesHtml}
+                <tr class="bg-light"><th><strong>{{ __('m_bookings.bookings.ui.total') }}</strong></th><td><strong>${totalDisplay}</strong></td></tr>
+            </table>
+        `;
+
+            $('#booking-summary').html(summary);
+
+            // Update confirm button text/style based on warning
+            const $confirmBtn = $('#btn-confirm-submit');
+            if (warningMessage) {
+                $confirmBtn.removeClass('btn-success').addClass('btn-warning');
+                $confirmBtn.html('<i class="fas fa-exclamation-triangle mr-2"></i> {{ __("m_bookings.actions.yes_force") ?? "Yes, Force Booking" }}');
+            } else {
+                $confirmBtn.removeClass('btn-warning').addClass('btn-success');
+                $confirmBtn.html('<i class="fas fa-save mr-2"></i> {{ __("m_bookings.actions.confirm_create") ?? "Confirm & Create" }}');
+            }
+
+            $('#confirmModal').modal('show');
+        }
+
+        // Confirm submit - use event delegation for modal
+        $(document).on('click', '#btn-confirm-submit', function() {
+            console.log('Confirm submit button clicked');
+            $('#confirmModal').modal('hide');
+            $('#booking-form').submit();
+        });
+
+        $('#booking-form').on('submit', function(e) {
+            console.log('Booking form submitting...');
+            console.log('Form action:', $(this).attr('action'));
+            console.log('Form method:', $(this).attr('method'));
+        });
+
+        // Initialize on page load
+        if ($productSelect.val()) {
+            $productSelect.trigger('change');
+        }
+        if ($hotelSelect.val() === 'other') {
+            $('#other-hotel-wrapper').show();
+        }
+    });
+</script>
 @stop

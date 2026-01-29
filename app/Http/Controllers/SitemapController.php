@@ -28,16 +28,16 @@ class SitemapController extends Controller
             $urls[] = $this->url("{$base}/{$loc}/reviews",    now(), 'daily',  '0.7');
         }
 
-        // Tours
+        // Products
         if (class_exists(\App\Models\Product::class)) {
-            $tours = \App\Models\Product::query()
+            $products = \App\Models\Product::query()
                 ->whereNull('deleted_at')
                 ->get(['slug','updated_at']);
 
-            foreach ($tours as $tour) {
+            foreach ($products as $product) {
                 foreach ($locales as $loc) {
-                    $urls[] = $this->url("{$base}/{$loc}/tours/{$tour->slug}",
-                        $tour->updated_at ?? now(), 'daily', '0.85');
+                    $urls[] = $this->url("{$base}/{$loc}/tours/{$product->slug}",
+                        $product->updated_at ?? now(), 'daily', '0.85');
                 }
             }
         }

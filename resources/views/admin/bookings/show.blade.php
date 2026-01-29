@@ -54,12 +54,12 @@ return $cat['name'] ?? $cat['category_name'] ?? __('m_bookings.bookings.fields.c
 
 // ===== Datos base
 $detail = $booking->detail;
-$tour = $booking->product;
+$product = $booking->product;
 
 // Nombre del tour (live o snapshot) con i18n
-$liveName = optional($tour)->name;
+$liveName = optional($product)->name;
 $snapName = $detail->tour_name_snapshot ?? ($booking->product_name_snapshot ?? null);
-$tourName = $liveName
+$productName = $liveName
 ?? ($snapName
 ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])
 : __('m_bookings.bookings.messages.deleted_tour'));
@@ -122,8 +122,8 @@ $totalPersons += $qty;
 if (empty($categories)) {
 $adultsQty = (int)($detail->adults_quantity ?? 0);
 $kidsQty = (int)($detail->kids_quantity ?? 0);
-$adultPrice = (float)($detail->adult_price ?? $tour?->adult_price ?? 0);
-$kidPrice = (float)($detail->kid_price ?? $tour?->kid_price ?? 0);
+$adultPrice = (float)($detail->adult_price ?? $product?->adult_price ?? 0);
+$kidPrice = (float)($detail->kid_price ?? $product?->kid_price ?? 0);
 
 if ($adultsQty > 0) {
 $name = __('customer_categories.labels.adult');
@@ -210,11 +210,11 @@ $pickupTime = $detail?->pickup_time
 // Schedule info for validation
 $scheduleStart = null;
 $scheduleEnd = null;
-$tourPeriod = null;
+$productPeriod = null;
 if ($detail?->schedule) {
 $scheduleStart = \Carbon\Carbon::parse($detail->schedule->start_time);
 $scheduleEnd = $detail->schedule->end_time ? \Carbon\Carbon::parse($detail->schedule->end_time) : null;
-$tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
+$productPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
     }
     @endphp
 
@@ -380,7 +380,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                         <tbody>
                             <tr>
                                 <td class="bg-light" style="width: 200px;"><strong>{{ __('m_bookings.bookings.fields.tour') }}</strong></td>
-                                <td>{{ $tourName }}</td>
+                                <td>{{ $productName }}</td>
                             </tr>
                             <tr>
                                 <td class="bg-light"><strong>{{ __('m_bookings.bookings.fields.tour_date') }}</strong></td>
@@ -534,7 +534,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                             <strong>{{ __('m_bookings.bookings.fields.booking_reference') }}:</strong> {{ $booking->booking_reference }}
                         </div>
 
-                        {{-- Tour Schedule Info --}}
+                        {{-- Product Schedule Info --}}
                         @if($scheduleStart)
                         <div class="alert alert-warning mb-3">
                             <i class="fas fa-clock mr-2"></i>
@@ -543,7 +543,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
                             @if($scheduleEnd)
                             - {{ $scheduleEnd->format('g:i A') }}
                             @endif
-                            <span class="badge badge-{{ $tourPeriod === 'AM' ? 'info' : 'warning' }} ml-2">{{ $tourPeriod }} Tour</span>
+                            <span class="badge badge-{{ $productPeriod === 'AM' ? 'info' : 'warning' }} ml-2">{{ $productPeriod }} Product</span>
                         </div>
                         @endif
 
@@ -819,7 +819,7 @@ $tourPeriod = $scheduleStart->hour < 12 ? 'AM' : 'PM' ;
             const confirmBtn = document.getElementById('confirm_btn');
 
             if (pickupInput) {
-                const tourPeriod = '{{ $tourPeriod }}';
+                const tourPeriod = '{{ $productPeriod }}';
 
                 pickupInput.addEventListener('change', function() {
                     if (!this.value) {

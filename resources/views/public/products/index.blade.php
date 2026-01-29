@@ -52,7 +52,7 @@
       <span class="counter-badge">
         <i class="fas fa-leaf"></i>
         <span>
-          {{ trans_choice('adminlte::adminlte.tours_count', $tours->total(), ['count' => $tours->total()]) }}
+          {{ trans_choice('adminlte::adminlte.products_count', $products->total(), ['count' => $products->total()]) }}
         </span>
       </span>
     </div>
@@ -145,7 +145,7 @@
             </div>
           </div>
 
-          {{-- Categoría de TOUR (TourType) --}}
+          {{-- Categoría de PRODUCTO (TourType) --}}
           <div class="col-12 col-md-4">
             <label class="filters-label mb-1" for="category">
               {{ __('adminlte::adminlte.category_label') }}
@@ -195,9 +195,9 @@
   $loc = app()->getLocale();
   $fb = config('app.fallback_locale', 'es');
 
-  $coverFromFolder = function (?int $tourId): string {
-  if (!$tourId) return asset('images/volcano.png');
-  $folder = "tours/{$tourId}/gallery";
+  $coverFromFolder = function (?int $productId): string {
+  if (!$productId) return asset('images/volcano.png');
+  $folder = "tours/{$productId}/gallery";
   if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($folder)) {
   return asset('images/volcano.png');
   }
@@ -234,7 +234,7 @@
   return "{$from}–{$to}";
   };
 
-  $totalTours = $tours->total();
+  $totalProducts = $products->total();
   @endphp
 
   {{-- LAYOUT DE TOURS --}}
@@ -242,7 +242,7 @@
     id="tours-layout"
     class="tours-layout mode-scroll"
     data-default-layout="scroll"
-    data-total-tours="{{ $totalTours }}">
+    data-total-products="{{ $totalProducts }}">
     {{-- hint de scroll (solo mobile) --}}
     <div class="scroll-hint d-md-none">
       <span class="scroll-hint-icon">
@@ -251,24 +251,24 @@
     </div>
 
     <div class="tours-track">
-      @forelse($tours as $tour)
+      @forelse($products as $product)
       @php
-      $cover = optional($tour->coverImage)->url
-      ?? $coverFromFolder($tour->product_id ?? $tour->id ?? null);
+      $cover = optional($product->coverImage)->url
+      ?? $coverFromFolder($product->product_id ?? $product->id ?? null);
 
       // Nombre sin paréntesis
-      $rawName = $tour->translated_name ?? $tour->name;
+      $rawName = $product->translated_name ?? $product->name;
       $displayName = preg_replace('/\s*\(.*?\)\s*/', '', (string) $rawName) ?: $rawName;
 
       // NUEVO: Obtener solo UN PRECIO por categoría (válido para HOY)
-      $activeCategories = $tour->activePricesForDate(now())
+      $activeCategories = $product->activePricesForDate(now())
       ->sortBy('category_id')
       ->values();
 
       // Tags de itinerario (todos los items activos)
       $itineraryTags = collect();
-      if ($tour->itinerary) {
-      $items = $tour->itinerary->items ?? collect();
+      if ($product->itinerary) {
+      $items = $product->itinerary->items ?? collect();
       $itineraryTags = $items
       ->map(function ($item) use ($loc, $fb) {
       $tr = $item->translate($loc) ?? $item->translate($fb);
@@ -279,13 +279,13 @@
       ->values();
       }
 
-      $tourUrl = \App\Helpers\ProductCategoryHelper::productUrl($tour);
+      $productUrl = \App\Helpers\ProductCategoryHelper::productUrl($product);
       @endphp
 
       {{-- *** AQUI HACEMOS LA CARD CLICKEABLE *** --}}
       <article
         class="tours-index-card-wrapper tour-card-clickable"
-        data-url="{{ $tourUrl }}"
+        data-url="{{ $productUrl }}"
         tabindex="0"
         aria-label="{{ $displayName }}">
         <div class="card tours-index-card h-100">
@@ -298,9 +298,9 @@
               loading="lazy">
 
             {{-- Badge de duración sobre la imagen --}}
-            @if(!empty($tour->length))
+            @if(!empty($product->length))
             <div class="tour-duration-badge">
-              <span class="duration-number">{{ $tour->length }}</span>
+              <span class="duration-number">{{ $product->length }}</span>
               <span class="duration-unit">hrs</span>
             </div>
             @endif
@@ -375,7 +375,7 @@
 
               {{-- Botón ver tour --}}
               <a
-                href="{{ $tourUrl }}"
+                href="{{ $productUrl }}"
                 class="btn btn-tour-cta w-100 mt-2">
                 {{ __('adminlte::adminlte.see_tour') }}
               </a>
@@ -393,7 +393,7 @@
 
   {{-- PAGINACIÓN --}}
   <div class="mt-3">
-    {{ $tours->links() }}
+    {{ $products->links() }}
   </div>
 </div>
 @endsection
@@ -411,10 +411,10 @@
     const SCROLL = 'scroll';
     const GRID = 'grid';
     const STORAGE_KEY = 'gv_tours_layout';
-    const totalTours = parseInt(layoutRoot.dataset.totalTours || '0', 10);
+    const totalProducts = parseInt(layoutRoot.dataset.totalProducts || '0', 10);
 
     // --- Igualar solo 3 secciones: títulos, tags y precios ---
-    function equalizeTourSections() {
+    function equalizeProductSections() {
       const wrappers = Array.from(document.querySelectorAll('.tours-index-card-wrapper'));
       if (!wrappers.length) return;
 
@@ -564,7 +564,7 @@
     function shouldAllowScrollOnDesktop() {
       const isDesktop = window.matchMedia('(min-width: 992px)').matches;
       if (!isDesktop) return true;
-      return totalTours > 8;
+      return totalProducts > 8;
     }
 
     function refreshLayoutToggleVisibility() {
@@ -615,7 +615,7 @@
       }
 
       requestAnimationFrame(() => {
-        requestAnimationFrame(equalizeTourSections);
+        requestAnimationFrame(equalizeProductSections);
       });
     }
 
@@ -650,13 +650,13 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
         refreshLayoutToggleVisibility();
-        equalizeTourSections();
+        equalizeProductSections();
       }, 150);
     });
 
     // Igualar cuando termina de cargar
     window.addEventListener('load', function() {
-      setTimeout(equalizeTourSections, 100);
+      setTimeout(equalizeProductSections, 100);
       initCardClickHandlers(); // *** inicializamos aquí ***
     });
 
@@ -670,13 +670,13 @@
         if (img.complete) {
           imagesLoaded++;
           if (imagesLoaded === totalImages) {
-            requestAnimationFrame(equalizeTourSections);
+            requestAnimationFrame(equalizeProductSections);
           }
         } else {
           img.addEventListener('load', function() {
             imagesLoaded++;
             if (imagesLoaded === totalImages) {
-              requestAnimationFrame(equalizeTourSections);
+              requestAnimationFrame(equalizeProductSections);
             }
           });
         }

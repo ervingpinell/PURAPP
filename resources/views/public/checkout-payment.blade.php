@@ -344,8 +344,8 @@
                 $itemTotal = $itemSub($item);
 
                 // Extract details from array structure
-                $tour = $item['tour'];
-                $tourDate = $item['tour_date'];
+                $product = $item['product'];
+                $productDate = $item['product_date'];
                 $schedule = $item['schedule'] ?? null;
                 $language = $item['language'] ?? null;
                 $hotel = $item['hotel'] ?? null;
@@ -360,23 +360,23 @@
                 <div class="tour-item">
                     <div class="tour-name">
                         @php
-                        $tourName = $tour->name ?? '';
+                        $productName = $product->name ?? '';
                         // Try to get translated name from tour data
-                        if (is_object($tour) && method_exists($tour, 'translations')) {
-                        $tourName = optional($tour->translations->where('locale', app()->getLocale())->first())->name ?? $tour->name;
-                        } elseif (is_array($item) && isset($item['tour_name_' . app()->getLocale()])) {
-                        $tourName = $item['tour_name_' . app()->getLocale()];
-                        } elseif (is_array($item) && isset($item['i18n_tour_name'])) {
-                        $tourName = $item['i18n_tour_name'];
+                        if (is_object($product) && method_exists($product, 'translations')) {
+                        $productName = optional($product->translations->where('locale', app()->getLocale())->first())->name ?? $product->name;
+                        } elseif (is_array($item) && isset($item['product_name_' . app()->getLocale()])) {
+                        $productName = $item['product_name_' . app()->getLocale()];
+                        } elseif (is_array($item) && isset($item['i18n_product_name'])) {
+                        $productName = $item['i18n_product_name'];
                         }
                         @endphp
-                        {{ $tourName }}
+                        {{ $productName }}
                     </div>
 
                     <div class="tour-details">
                         <span>
                             <i class="far fa-calendar-alt"></i>
-                            {{ ucfirst(\Carbon\Carbon::parse($tourDate)->locale(app()->getLocale())->translatedFormat('l, d F, Y')) }}
+                            {{ ucfirst(\Carbon\Carbon::parse($productDate)->locale(app()->getLocale())->translatedFormat('l, d F, Y')) }}
                         </span>
 
                         @if($schedule)

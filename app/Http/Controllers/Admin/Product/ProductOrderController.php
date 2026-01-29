@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\DB;
 use App\Services\LoggerHelper;
 
 /**
- * TourOrderController
+ * ProductOrderController
  *
- * Handles tourorder operations.
+ * Handles product order operations.
  */
 class ProductOrderController extends Controller
 {
-    protected string $controller = 'TourOrderController';
+    protected string $controller = 'ProductOrderController';
 
     public function index(Request $request)
     {
@@ -31,12 +31,12 @@ class ProductOrderController extends Controller
         $selectedId = $request->get('product_type_id') ?? $request->get('tour_type_id');
 
         $selected = null;
-        $tours    = collect();
+        $products = collect();
 
         if ($selectedId) {
             $selected = ProductType::findOrFail($selectedId);
 
-            // 1) Tours ya ordenados por la relación orderedProducts()
+            // 1) Products ya ordenados por la relación orderedProducts()
             $ordered = $selected->orderedProducts()
                 ->select(
                     'product2.product_id', 
@@ -46,7 +46,7 @@ class ProductOrderController extends Controller
                 )
                 ->get();
 
-            // 2) Detectar tours sin fila en la tabla de orden
+            // 2) Detectar products sin fila en la tabla de orden
             $orderedIds = $ordered->pluck('product_id')->all();
 
             $missing = Product::where('product_type_id', $selected->product_type_id)
@@ -59,48 +59,40 @@ class ProductOrderController extends Controller
                 });
 
             // 3) Unir: primero ordenados (con position), luego faltantes
-            $tours = $ordered->concat($missing);
+            $products = $ordered->concat($missing);
         }
-
-        // rename tours to products for view compatibility if needed, but view uses products
-        // Wait, the view says @foreach ($products ...). 
-        // The original controller returned compact('tours'). 
-        // I need to correct the variable name in compact or in the view.
-        // The view I just edited has @foreach ($products ...). 
-        // Let's pass 'products' instead of 'tours'.
-        $products = $tours;
 
         return view('admin.products.order.index', compact('types', 'selected', 'products'));
     }
 
-    public function save(Request $request, ProductType $tourType)
+    public function save(Request $request, ProductType $productType)
     {
         try {
             $data = $request->validate([
                 'order'   => ['required', 'array', 'min:1'],
-                'order.*' => ['integer', 'distinct'], // IDs de tour en el orden deseado
+                'order.*' => ['integer', 'distinct'], // IDs de product en el orden deseado
             ]);
 
             $order = $data['order'];
 
-            DB::transaction(function () use ($order, $tourType) {
-                // Limitar a tours que realmente pertenecen a esa categoría
-                $validIds = Product::where('product_type_id', $tourType->product_type_id)
+            DB::transaction(function () use ($order, $productType) {
+                // Limitar a products que realmente pertenecen a esa categoría
+                $validIds = Product::where('product_type_id', $productType->product_type_id)
                     ->whereIn('product_id', $order)
                     ->pluck('product_id')
                     ->all();
 
                 // Reasignar posiciones secuenciales
-                foreach ($order as $idx => $tourId) {
-                    if (!in_array($tourId, $validIds, true)) {
+                foreach ($order as $idx => $productId) {
+                    if (!in_array($productId, $validIds, true)) {
                         continue;
                     }
 
                     // Use correct column names: tour_type_id and tour_id
                     DB::table('tour_type_tour_order')->updateOrInsert(
                         [
-                            'tour_type_id' => $tourType->product_type_id,
-                            'tour_id'      => $tourId,
+                            'tour_type_id' => $productType->product_type_id,
+                            'tour_id'      => $productId,
                         ],
                         [
                             'position'   => $idx + 1,
@@ -110,21 +102,21 @@ class ProductOrderController extends Controller
                     );
                 }
 
-                // (Opcional) Limpiar filas de tours que ya no están en esta categoría
+                // (Opcional) Limpiar filas de products que ya no están en esta categoría
                 DB::table('tour_type_tour_order')
-                    ->where('tour_type_id', $tourType->product_type_id)
+                    ->where('tour_type_id', $productType->product_type_id)
                     ->whereNotIn('tour_id', $validIds)
                     ->delete();
             });
 
-            LoggerHelper::mutated($this->controller, 'save', 'ProductType', $tourType->product_type_id, [
+            LoggerHelper::mutated($this->controller, 'save', 'ProductType', $productType->product_type_id, [
                 'order_count' => count($order),
                 'user_id'     => optional($request->user())->getAuthIdentifier(),
             ]);
 
             return response()->json(['ok' => true]);
         } catch (\Exception $e) {
-            LoggerHelper::exception($this->controller, 'save', 'ProductType', $tourType->product_type_id, $e, [
+            LoggerHelper::exception($this->controller, 'save', 'ProductType', $productType->product_type_id, $e, [
                 'user_id' => optional($request->user())->getAuthIdentifier(),
             ]);
 

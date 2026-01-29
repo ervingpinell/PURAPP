@@ -5,14 +5,14 @@
       'email' => env('MAIL_TO_CONTACT', config('mail.from.address')),
       'phone' => env('COMPANY_PHONE', '+506 2479 1471'),
   ];
-  $tourLabel = trim(($tourName ?? '') . (!empty($activityDateText) ? " ({$activityDateText})" : ''));
+  $productLabel = trim(($productName ?? '') . (!empty($activityDateText) ? " ({$activityDateText})" : ''));
 @endphp
 
 {{ $company }}
 
 {{ __('reviews.emails.request.greeting', ['name' => $userName ?: __('reviews.emails.traveler')]) }}
 
-{{ __('reviews.emails.request.intro', ['tour' => $tourLabel]) }}
+{{ __('reviews.emails.request.intro', ['product' => $productLabel]) }}
 
 {{ __('reviews.emails.request.ask') }}
 

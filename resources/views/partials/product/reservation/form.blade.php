@@ -2,14 +2,14 @@
   class="reservation-box brand-ui is-compact is-compact-2 p-3 shadow-sm rounded bg-white mb-4 border"
   data-max-total="{{ $maxPersonsGlobal ?? 12 }}">
   @csrf
-  <input type="hidden" name="product_id" value="{{ $tour->product_id }}">
+  <input type="hidden" name="product_id" value="{{ $product->product_id }}">
 
 
 
   <div class="form-body position-relative">
     <fieldset>
-      @include('partials.tour.reservation.travelers')
-      @include('partials.tour.reservation.fields')
+      @include('partials.product.reservation.travelers')
+      @include('partials.product.reservation.fields')
 
       {{-- Hidden fields para otros datos (Moved/Handled in fields.blade.php) --}}
     </fieldset>
@@ -30,5 +30,5 @@
     @endauth
   </div>
 
-  @include('partials.tour.reservation.cta')
+  @include('partials.product.reservation.cta')
 </form>

@@ -20,7 +20,7 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
     {
         $this->rr = $rr->loadMissing(['booking.product', 'user']);
 
-        // Detect locale: Spanish or English (controller determines based on tour language)
+        // Detect locale: Spanish or English (controller determines based on product language)
         $current = strtolower($locale ?? app()->getLocale() ?: config('app.locale', 'en'));
         $this->mailLocale = str_starts_with($current, 'es') ? 'es' : 'en';
     }
@@ -61,7 +61,7 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
                 ->subject('')
                 ->view('emails.reviews.review-link_plain', [
                     'userName'         => $userName,
-                    'tourName'         => '',
+                    'productName'         => '',
                     'activityDateText' => null,
                     'ctaUrl'           => $ctaUrl,
                     'expiresAtText'    => null,
@@ -73,9 +73,9 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
         
         // Get product name in the email's language
         if ($product) {
-            $tourName = $product->getTranslation('name', $loc, false) ?? $product->name;
+            $productName = $product->getTranslation('name', $loc, false) ?? $product->name;
         } else {
-            $tourName = __('reviews.generic.our_tour', [], $loc);
+            $productName = __('reviews.generic.our_product', [], $loc);
         }
 
         $bk = $rr->booking;
@@ -93,16 +93,16 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
         // SUBJECT: que suene más transaccional, no promo.
         // Asegúrate de que la traducción no tenga emojis ni “¡oferta!” y cosas así.
         $subject = __('reviews.emails.request.subject', [
-            'tour' => $tourName,
+            'product' => $productName,
         ], $loc);
 
         $preheader = $activityDateText
             ? __('reviews.emails.request.preheader_with_date', [
-                'tour' => $tourName,
+                'product' => $productName,
                 'date' => $activityDateText,
             ], $loc)
             : __('reviews.emails.request.preheader', [
-                'tour' => $tourName,
+                'product' => $productName,
             ], $loc);
 
         // === Remitente / Reply-To ===
@@ -155,7 +155,7 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
         return $mailable
             ->view('emails.reviews.review-link', [
                 'userName'         => $userName,
-                'tourName'         => $tourName,
+                'productName'         => $productName,
                 'activityDateText' => $activityDateText,
                 'ctaUrl'           => $ctaUrl,
                 'expiresAtText'    => $expiresAtText,
@@ -168,7 +168,7 @@ class ReviewRequestLink extends Mailable implements ShouldQueue
             ])
             ->text('emails.reviews.review-link_plain', [
                 'userName'         => $userName,
-                'tourName'         => $tourName,
+                'productName'         => $productName,
                 'activityDateText' => $activityDateText,
                 'ctaUrl'           => $ctaUrl,
                 'expiresAtText'    => $expiresAtText,

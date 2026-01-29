@@ -13,10 +13,10 @@ use Illuminate\Support\Collection;
 class BookingValidationService
 {
     /**
-     * Valida cantidades según categorías activas del tour
+     * Valida cantidades según categorías activas del producto
      * $quantities = ['category_id' => quantity, ...]
      */
-    public function validateQuantities(Product $tour, array $quantities, bool $skipGlobalLimit = false): array
+    public function validateQuantities(Product $product, array $quantities, bool $skipGlobalLimit = false): array
     {
         $errors   = [];
         $totalPax = array_sum(array_map('intval', $quantities));
@@ -31,7 +31,7 @@ class BookingValidationService
         }
 
         // Categorías activas con precio (ya con nombre traducido resuelto)
-        $active = $this->getActiveCategoriesForTour($tour);
+        $active = $this->getActiveCategoriesForProduct($product);
         if ($active->isEmpty()) {
             $errors[] = __('m_bookings.validation.no_active_categories');
             return ['valid' => false, 'errors' => $errors, 'limits' => []];
@@ -103,13 +103,13 @@ class BookingValidationService
     }
 
     /**
-     * Categorías activas (con precio) del tour.
+     * Categorías activas (con precio) del producto.
      * Devuelve una colección de stdClass con:
      * category_id, name (traducido/resuelto), slug, min_quantity, max_quantity, price
      */
-    protected function getActiveCategoriesForTour(Product $tour): Collection
+    protected function getActiveCategoriesForProduct(Product $product): Collection
     {
-        return $tour->prices()
+        return $product->prices()
             ->where('tour_prices.is_active', true)
             ->whereHas('category', fn($q) => $q->where('is_active', true))
             ->with('category')
@@ -139,10 +139,10 @@ class BookingValidationService
     /**
      * Límits para frontend
      */
-    public function getLimitsForTour(Product $tour): array
+    public function getLimitsForProduct(Product $product): array
     {
         $maxGlobal = (int) config('booking.max_persons_per_booking', 12);
-        $active    = $this->getActiveCategoriesForTour($tour);
+        $active    = $this->getActiveCategoriesForProduct($product);
 
         return [
             'max_persons_total' => $maxGlobal,

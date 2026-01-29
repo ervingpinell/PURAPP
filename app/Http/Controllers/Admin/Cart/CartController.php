@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
-use App\Models\{Cart, CartItem, Tour, ProductLanguage, HotelList, MeetingPoint, PromoCode};
+use App\Models\{Cart, CartItem, Product, ProductLanguage, HotelList, MeetingPoint, PromoCode};
 use App\Services\Bookings\{
     BookingCapacityService,
     BookingPricingService,
@@ -95,7 +95,7 @@ class CartController extends Controller
 
         $request->validate([
             'product_id'          => 'required|exists:tours,product_id',
-            'tour_date'        => 'required|date|after_or_equal:today',
+            'product_date'        => 'required|date|after_or_equal:today',
             'schedule_id'      => 'required|exists:schedules,schedule_id',
             'tour_language_id' => 'required|exists:tour_languages,tour_language_id',
             'categories'       => 'required|array|min:1',
@@ -131,15 +131,15 @@ class CartController extends Controller
             $cart->ensureExpiry((int) \App\Models\Setting::getValue('cart.expiration_minutes', 30));
         }
 
-        $tour = Product::with(['schedules', 'prices.category'])->findOrFail($request->product_id);
+        $product = Product::with(['schedules', 'prices.category'])->findOrFail($request->product_id);
 
-        $validationResult = $this->validation->validateQuantities($tour, $request->categories);
+        $validationResult = $this->validation->validateQuantities($product, $request->categories);
         if (!$validationResult['valid']) {
             $errorMsg = implode(' ', $validationResult['errors']);
             return back()->withInput()->withErrors(['categories' => $errorMsg]);
         }
 
-        $schedule = $tour->schedules()
+        $schedule = $product->schedules()
             ->where('schedules.schedule_id', $request->schedule_id)
             ->where('schedules.is_active', true)
             ->wherePivot('is_active', true)
@@ -150,9 +150,9 @@ class CartController extends Controller
 
         // Capacidad
         $remaining = $this->capacity->remainingCapacity(
-            $tour,
+            $product,
             $schedule,
-            $request->tour_date,
+            $request->product_date,
             excludeBookingId: null,
             countHolds: true
         );
@@ -160,7 +160,7 @@ class CartController extends Controller
             return back()->with('error', __('carts.messages.capacity_full'));
         }
 
-        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $request->categories);
+        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($product, $request->categories);
         if (empty($categoriesSnapshot)) {
             return back()->with('error', __('m_bookings.validation.no_active_categories'));
         }
@@ -174,7 +174,7 @@ class CartController extends Controller
         CartItem::create([
             'cart_id'          => $cart->cart_id,
             'product_id'          => (int)$request->product_id,
-            'tour_date'        => $request->tour_date,
+            'product_date'        => $request->product_date,
             'schedule_id'      => (int)$request->schedule_id,
             'tour_language_id' => (int)$request->tour_language_id,
             'categories'       => $categoriesSnapshot,
@@ -233,7 +233,7 @@ class CartController extends Controller
         $request->replace($in);
 
         $data = $request->validate([
-            'tour_date'        => ['required', 'date', 'after_or_equal:today'],
+            'product_date'        => ['required', 'date', 'after_or_equal:today'],
             'categories'       => ['required', 'array', 'min:1'],
             'categories.*'     => ['required', 'integer', 'min:0'],
             'schedule_id'      => ['nullable', 'exists:schedules,schedule_id'],
@@ -259,10 +259,10 @@ class CartController extends Controller
             ]);
         }
 
-        $tour = $item->tour->load('prices.category');
+        $product = $item->tour->load('prices.category');
 
         // Validación por categorías
-        $validationResult = $this->validation->validateQuantities($tour, $data['categories']);
+        $validationResult = $this->validation->validateQuantities($product, $data['categories']);
         if (!$validationResult['valid']) {
             $errorMsg = implode(' ', $validationResult['errors']);
             return back()->withInput()->withErrors(['categories' => $errorMsg]);
@@ -271,7 +271,7 @@ class CartController extends Controller
         $scheduleId = $data['schedule_id'] ?? $item->schedule_id;
 
         if ($scheduleId) {
-            $schedule = $tour->schedules()
+            $schedule = $product->schedules()
                 ->where('schedules.schedule_id', $scheduleId)
                 ->where('schedules.is_active', true)
                 ->wherePivot('is_active', true)
@@ -283,9 +283,9 @@ class CartController extends Controller
             // Capacidad excluyendo carrito actual
             $cart = $item->cart;
             $snap = $this->capacity->capacitySnapshot(
-                $tour,
+                $product,
                 $schedule,
-                $data['tour_date'],
+                $data['product_date'],
                 excludeBookingId: null,
                 countHolds: true,
                 excludeCartId: (int) $cart->cart_id
@@ -299,7 +299,7 @@ class CartController extends Controller
             }
         }
 
-        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($tour, $data['categories']);
+        $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($product, $data['categories']);
         if (empty($categoriesSnapshot)) {
             return back()->with('error', __('m_bookings.validation.no_active_categories'));
         }
@@ -309,7 +309,7 @@ class CartController extends Controller
         $kidCategory   = collect($categoriesSnapshot)->firstWhere('category_slug', 'kid');
 
         $item->fill([
-            'tour_date'        => $data['tour_date'],
+            'product_date'        => $data['product_date'],
             'categories'       => $categoriesSnapshot,
             'adults_quantity'  => $adultCategory ? (int)$adultCategory['quantity'] : 0,
             'kids_quantity'    => $kidCategory ? (int)$kidCategory['quantity'] : 0,

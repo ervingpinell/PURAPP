@@ -50,7 +50,7 @@ class UpdateProductRequest extends FormRequest
 
     public function rules(): array
     {
-        $tourId = $this->route('tour');
+        $productId = $this->route('product');
 
         return [
             'name'                         => ['required','string','max:255'],
@@ -59,7 +59,7 @@ class UpdateProductRequest extends FormRequest
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('tours', 'slug')->ignore($tourId, 'product_id')
+                Rule::unique('tours', 'slug')->ignore($productId, 'product_id')
             ],
             'overview'                     => ['nullable','string'],
 
@@ -104,7 +104,7 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             'slug.regex' => 'El slug solo puede contener letras minúsculas, números y guiones.',
-            'slug.unique' => 'Este slug ya está en uso por otro tour.',
+            'slug.unique' => 'Este slug ya está en uso por otro producto.',
             'languages.required' => 'Debes seleccionar al menos un idioma.',
             'languages.min'      => 'Debes seleccionar al menos un idioma.',
             'prices.*.category_id.required' => 'Debes seleccionar una categoría para cada precio.',
@@ -126,7 +126,7 @@ class UpdateProductRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [
-            'entity'  => 'tour',
+            'entity'  => 'product',
             'user_id' => optional($this->user())->getAuthIdentifier(),
         ]);
 

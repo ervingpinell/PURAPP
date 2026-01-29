@@ -16,7 +16,7 @@ class OverridesPurgeCommand extends Command
         {--dryRun=1}
         {--queue= : Si se pasa, se encola en esa cola; si no, corre sync}';
 
-    protected $description = 'Purge past TourAvailability overrides (< today - daysAgo).';
+    protected $description = 'Purge past ProductAvailability overrides (< today - daysAgo).';
 
     public function handle()
     {

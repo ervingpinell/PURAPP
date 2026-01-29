@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  *
  * Represents a language offered for a product.
  *
- * @property int $tour_language_id
+ * @property int $tour_language_id Primary key (DB column name)
  * @property string $name
  * @property bool $is_active
  * @property \Carbon\Carbon|null $created_at

@@ -134,13 +134,13 @@ class SyncExternalReviews extends Command
             $allFetchedIds = [];
 
             // Fetch reviews for each mapped product
-            foreach ($productMap as $tourId => $productCode) {
-                $this->line("   🔍 Fetching reviews for tour #{$tourId} (product: {$productCode})");
+            foreach ($productMap as $productId => $productCode) {
+                $this->line("   🔍 Fetching reviews for product #{$productId} (code: {$productCode})");
 
                 // Fetch reviews from external API for this specific product
                 $externalReviews = $this->aggregator->aggregate([
                     'provider' => $provider->slug,
-                    'product_id' => (int) $tourId,
+                    'product_id' => (int) $productId,
                     'limit' => 100,
                 ]);
 

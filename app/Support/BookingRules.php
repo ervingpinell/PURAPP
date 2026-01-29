@@ -24,35 +24,35 @@ class BookingRules
     }
 
     /**
-     * Resuelve cutoff/lead con precedencia: pivot -> tour -> global
+     * Resuelve cutoff/lead con precedencia: pivot -> product -> global
      */
-    public static function effectiveFor(?Product $tour = null, ?Schedule $schedule = null): array
+    public static function effectiveFor(?Product $product = null, ?Schedule $schedule = null): array
     {
         $global = self::global();
 
         // 1) Pivot
-        if ($tour && $schedule) {
+        if ($product && $schedule) {
             // Si ya viene cargada la relación, úsala. Si no, consulta.
-            $pivot = $tour->relationLoaded('schedules')
-                ? $tour->schedules->firstWhere('schedule_id', $schedule->getKey())?->pivot
-                : $tour->schedules()->where('schedules.schedule_id', $schedule->getKey())->first()?->pivot;
+            $pivot = $product->relationLoaded('schedules')
+                ? $product->schedules->firstWhere('schedule_id', $schedule->getKey())?->pivot
+                : $product->schedules()->where('schedules.schedule_id', $schedule->getKey())->first()?->pivot;
 
             $pCutoff = $pivot?->cutoff_hour;
             $pLead   = $pivot?->lead_days;
 
             if ($pCutoff || $pLead !== null) {
                 return [
-                    'cutoff_hour' => $pCutoff ?: ($tour?->cutoff_hour ?: $global['cutoff_hour']),
-                    'lead_days'   => $pLead   !== null ? (int)$pLead : ($tour?->lead_days ?? $global['lead_days']),
+                    'cutoff_hour' => $pCutoff ?: ($product?->cutoff_hour ?: $global['cutoff_hour']),
+                    'lead_days'   => $pLead   !== null ? (int)$pLead : ($product?->lead_days ?? $global['lead_days']),
                 ];
             }
         }
 
         // 2) Tour
-        if ($tour && ($tour->cutoff_hour || $tour->lead_days !== null)) {
+        if ($product && ($product->cutoff_hour || $product->lead_days !== null)) {
             return [
-                'cutoff_hour' => $tour->cutoff_hour ?: $global['cutoff_hour'],
-                'lead_days'   => $tour->lead_days   ?? $global['lead_days'],
+                'cutoff_hour' => $product->cutoff_hour ?: $global['cutoff_hour'],
+                'lead_days'   => $product->lead_days   ?? $global['lead_days'],
             ];
         }
 
@@ -64,12 +64,12 @@ class BookingRules
      * Calcula la fecha mínima reservable según reglas (tz = config('app.timezone')).
      * lead_days se aplica siempre; si hoy ya pasó el cutoff, agrega 1 día adicional.
      */
-    public static function earliestBookableDate(?Product $tour = null, ?Schedule $schedule = null): Carbon
+    public static function earliestBookableDate(?Product $product = null, ?Schedule $schedule = null): Carbon
     {
         $tz = config('app.timezone', 'UTC');
         $now = Carbon::now($tz);
 
-        $eff    = self::effectiveFor($tour, $schedule);
+        $eff    = self::effectiveFor($product, $schedule);
         $lead   = (int) ($eff['lead_days'] ?? 1);
         $cutoff = (string) ($eff['cutoff_hour'] ?? '18:00'); // "HH:MM"
 

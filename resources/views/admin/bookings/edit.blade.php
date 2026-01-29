@@ -196,16 +196,16 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
                         @endif
                     </div>
 
-                    {{-- Tour (sin Select2) --}}
+                    {{-- Product (sin Select2) --}}
                     <div class="form-group">
                         <label for="product_id">{{ __('m_bookings.bookings.fields.tour') }} *</label>
                         <select name="product_id" id="product_id" class="form-control" required>
                             <option value="">-- {{ __('m_bookings.bookings.ui.select_tour') }} --</option>
-                            @foreach($tours as $tour)
-                            <option value="{{ $tour->product_id }}"
-                                data-tour='@json($tour, JSON_HEX_APOS)'
-                                {{ old('product_id', $booking->product_id) == $tour->product_id ? 'selected' : '' }}>
-                                {{ $tour->name }}
+                            @foreach($products as $product)
+                            <option value="{{ $product->product_id }}"
+                                data-product='@json($product, JSON_HEX_APOS)'
+                                {{ old('product_id', $booking->product_id) == $product->product_id ? 'selected' : '' }}>
+                                {{ $product->name }}
                             </option>
                             @endforeach
                         </select>
@@ -409,7 +409,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         const locale = @json(app() -> getLocale());
         const initQtys = @json($categoryQuantitiesById ?? []);
 
-        const $tourSelect = $('#product_id');
+        const $productSelect = $('#product_id');
         const $dateInput = $('#tour_date');
         const $scheduleSelect = $('#schedule_id');
         const $languageSelect = $('#tour_language_id');
@@ -441,9 +441,9 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         }
 
         // Cambio de tour
-        $tourSelect.on('change', function() {
-            const tourData = $(this).find(':selected').data('tour');
-            if (!tourData) return;
+        $productSelect.on('change', function() {
+            const productData = $(this).find(':selected').data('tour');
+            if (!productData) return;
 
             // Get current selected values before clearing (for edit mode)
             const currentScheduleId = $scheduleSelect.val();
@@ -453,8 +453,8 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
             $scheduleSelect.empty().append(
                 '<option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>'
             );
-            if (tourData.schedules && tourData.schedules.length > 0) {
-                tourData.schedules.forEach(s => {
+            if (productData.schedules && productData.schedules.length > 0) {
+                productData.schedules.forEach(s => {
                     const startTime = s.start_time ? s.start_time.substring(0, 5) : '';
                     const endTime = s.end_time ? s.end_time.substring(0, 5) : '';
                     const isSelected = currentScheduleId && s.schedule_id == currentScheduleId;
@@ -468,8 +468,8 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
             $languageSelect.empty().append(
                 '<option value="">{{ __('m_bookings.bookings.ui.select_tour_first') }}</option>'
             );
-            if (tourData.languages && tourData.languages.length > 0) {
-                tourData.languages.forEach(l => {
+            if (productData.languages && productData.languages.length > 0) {
+                productData.languages.forEach(l => {
                     const isSelected = currentLanguageId && l.tour_language_id == currentLanguageId;
                     $languageSelect.append(
                         `<option value="${l.tour_language_id}" ${isSelected ? 'selected' : ''}>${l.name}</option>`
@@ -478,21 +478,21 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
             }
 
             if ($dateInput.val()) {
-                loadCategories(tourData);
+                loadCategories(productData);
             }
         });
 
         // Cambio de fecha
         $dateInput.on('change', function() {
-            const tourData = $tourSelect.find(':selected').data('tour');
-            if (tourData && $(this).val()) {
-                loadCategories(tourData);
+            const productData = $productSelect.find(':selected').data('tour');
+            if (productData && $(this).val()) {
+                loadCategories(productData);
             }
         });
 
-        function loadCategories(tourData) {
+        function loadCategories(productData) {
             const selectedDate = $dateInput.val();
-            if (!selectedDate || !tourData.prices) {
+            if (!selectedDate || !productData.prices) {
                 $categoriesContainer.html('<div class="alert alert-warning">Select a date</div>');
                 return;
             }
@@ -500,7 +500,7 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
             const selectedDateStr = selectedDate;
 
             // Filtrar precios por fecha
-            let validPrices = tourData.prices.filter(p => {
+            let validPrices = productData.prices.filter(p => {
                 if (!p.valid_from && !p.valid_until) return true;
 
                 const validFromStr = p.valid_from ? p.valid_from.substring(0, 10) : null;
@@ -861,17 +861,17 @@ $promoBootstrapOperation = $initOp ?: 'subtract';
         syncHotelMeetingInitialState();
 
         // Inicializar valores al cargar
-        const initialTourId = @json(old('product_id', $booking -> product_id));
+        const initialProductId = @json(old('product_id', $booking -> product_id));
         const initialScheduleId = @json(old('schedule_id', optional($booking -> detail) -> schedule_id));
         const initialLanguageId = @json(old('tour_language_id', $booking -> tour_language_id));
 
-        if (initialTourId) {
+        if (initialProductId) {
             // Pre-set the values in the selects so the change handler can detect them
             if (initialScheduleId) $scheduleSelect.val(initialScheduleId);
             if (initialLanguageId) $languageSelect.val(initialLanguageId);
             
-            // Now trigger the tour change which will populate and re-select
-            $tourSelect.val(initialTourId).trigger('change');
+            // Now trigger the product change which will populate and re-select
+            $productSelect.val(initialProductId).trigger('change');
             
             // Ensure values are set after a short delay (in case of async issues)
             setTimeout(() => {

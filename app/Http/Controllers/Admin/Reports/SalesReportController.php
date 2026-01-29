@@ -32,15 +32,15 @@ class SalesReportController extends Controller
             : Carbon::now()->endOfDay();
 
         $status = $request->input('status');
-        $tourIds = collect((array) $request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $productIds = collect((array) $request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array) $request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         // ====== Catalogs ======
-        $toursMap = Product::pluck('name', 'product_id');
+        $productsMap = Product::pluck('name', 'product_id');
         $langsMap = TourLanguage::pluck('name', 'tour_language_id');
 
         // ====== Base Query ======
-        $baseQuery = $this->buildBaseQuery($from, $to, $status, $tourIds, $langIds);
+        $baseQuery = $this->buildBaseQuery($from, $to, $status, $productIds, $langIds);
 
         // ====== KPIs ======
         $kpisData = (clone $baseQuery)
@@ -57,8 +57,8 @@ class SalesReportController extends Controller
             ->whereBetween('payments.created_at', [$from, $to])
             ->whereIn('payments.status', ['paid', 'completed'])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
-            ->when(!empty($tourIds), function ($q) use ($tourIds) {
-                $q->whereHas('booking.details', fn($q2) => $q2->whereIn('product_id', $tourIds));
+            ->when(!empty($productIds), function ($q) use ($productIds) {
+                $q->whereHas('booking.details', fn($q2) => $q2->whereIn('product_id', $productIds));
             })
             ->selectRaw('
                 payments.gateway as payment_method,
@@ -85,7 +85,7 @@ class SalesReportController extends Controller
         $revenueByStatus = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
             ->whereBetween('bookings.created_at', [$from, $to])
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('booking_details.product_id', $tourIds))
+            ->when(!empty($productIds), fn($q) => $q->whereIn('booking_details.product_id', $productIds))
             ->when(!empty($langIds), fn($q) => $q->whereIn('booking_details.tour_language_id', $langIds))
             ->selectRaw('
                 bookings.status,
@@ -110,7 +110,7 @@ class SalesReportController extends Controller
             'revenueByPaymentMethod',
             'revenueByLanguage',
             'revenueByStatus',
-            'toursMap',
+            'productsMap',
             'langsMap'
         ));
     }
@@ -124,10 +124,10 @@ class SalesReportController extends Controller
         $from = Carbon::parse($request->input('from', now()->copy()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
         $status = $request->input('status');
-        $tourIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $productIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
         $langIds = collect((array)$request->input('tour_language_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
-        $baseQuery = $this->buildBaseQuery($from, $to, $status, $tourIds, $langIds);
+        $baseQuery = $this->buildBaseQuery($from, $to, $status, $productIds, $langIds);
 
         $dateFormat = match ($period) {
             'day' => 'Y-m-d',
@@ -211,9 +211,9 @@ class SalesReportController extends Controller
         $from = Carbon::parse($request->input('from', now()->copy()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
         $status = $request->input('status');
-        $tourIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $productIds = collect((array)$request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
-        $baseQuery = $this->buildBaseQuery($from, $to, $status, $tourIds, []);
+        $baseQuery = $this->buildBaseQuery($from, $to, $status, $productIds, []);
 
         $data = (clone $baseQuery)
             ->join('tour_languages', 'tour_languages.tour_language_id', '=', 'booking_details.tour_language_id')
@@ -302,7 +302,7 @@ class SalesReportController extends Controller
     /**
      * Build base query for sales reports
      */
-    private function buildBaseQuery(Carbon $from, Carbon $to, ?string $status, array $tourIds, array $langIds)
+    private function buildBaseQuery(Carbon $from, Carbon $to, ?string $status, array $productIds, array $langIds)
     {
         $query = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
@@ -313,8 +313,8 @@ class SalesReportController extends Controller
             $query->where('bookings.status', $status);
         }
 
-        if (!empty($tourIds)) {
-            $query->whereIn('booking_details.product_id', $tourIds);
+        if (!empty($productIds)) {
+            $query->whereIn('booking_details.product_id', $productIds);
         }
 
         if (!empty($langIds)) {

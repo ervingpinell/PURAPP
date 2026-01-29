@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             FaqSeeder::class,
             PoliciesSeeder::class,
             TransportServicesSeeder::class, // Necesita tour_languages
-            toursSeeder::class,
+            ProductsSeeder::class,
         ]);
     }
 }

@@ -28,7 +28,7 @@ class ReviewRequest extends Model
     ];
 
 public function user() { return $this->belongsTo(\App\Models\User::class, 'user_id','user_id'); }
-public function tour() { return $this->belongsTo(\App\Models\Product::class, 'product_id','product_id'); }
+public function product() { return $this->belongsTo(\App\Models\Product::class, 'product_id','product_id'); }
 public function booking() { return $this->belongsTo(\App\Models\Booking::class, 'booking_id','booking_id'); }
 
 }

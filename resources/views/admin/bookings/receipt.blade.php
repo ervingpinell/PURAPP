@@ -153,7 +153,7 @@
 
     // ===== DEBUG & LANGUAGE DETECTION =====
     $receiptLocale = 'es'; // Default fallback
-    $tourLanguageName = 'Español';
+    $productLanguageName = 'Español';
     $debugInfo = [];
 
     // Debug: Check what we have
@@ -163,9 +163,9 @@
 
     // Try to get language - MAP BY NAME since table doesn't have 'code' field
     if ($booking->detail && $booking->detail->tourLanguage) {
-    $tourLang = $booking->detail->tourLanguage;
-    $langName = mb_strtolower(trim($tourLang->name ?? ''));
-    $debugInfo[] = "TourLanguage found: {$tourLang->name}";
+    $productLang = $booking->detail->tourLanguage;
+    $langName = mb_strtolower(trim($productLang->name ?? ''));
+    $debugInfo[] = "ProductLanguage found: {$productLang->name}";
 
     // Map language name to locale code
     $nameToLocaleMap = [
@@ -195,7 +195,7 @@
 
     if (isset($nameToLocaleMap[$langName])) {
     $receiptLocale = $nameToLocaleMap[$langName];
-    $tourLanguageName = $tourLang->name;
+    $productLanguageName = $productLang->name;
     $debugInfo[] = "Locale mapped to: {$receiptLocale}";
     } else {
     $debugInfo[] = "Language name '{$langName}' not mapped - using default es";
@@ -212,13 +212,13 @@
     $debugInfo[] = "App locale: " . app()->getLocale();
     $debugInfo[] = "Carbon locale: " . Carbon::getLocale();
 
-    $tour = $booking->product;
+    $product = $booking->product;
     $detail = $booking->detail;
 
-    // Tour name
-    $tourName = $tour->name ?? '—';
-    if ($tour && method_exists($tour, 'getTranslation')) {
-    $tourName = $tour->getTranslation('name', $receiptLocale) ?? $tour->name ?? '—';
+    // Product name
+    $productName = $product->name ?? '—';
+    if ($product && method_exists($product, 'getTranslation')) {
+    $productName = $product->getTranslation('name', $receiptLocale) ?? $product->name ?? '—';
     }
 
     // Categories
@@ -282,8 +282,8 @@
     if (empty($categories)) {
     $adultsQty = (int)($detail->adults_quantity ?? 0);
     $kidsQty = (int)($detail->kids_quantity ?? 0);
-    $adultPrice = (float)($detail->adult_price ?? $tour->adult_price ?? 0);
-    $kidPrice = (float)($detail->kid_price ?? $tour->kid_price ?? 0);
+    $adultPrice = (float)($detail->adult_price ?? $product->adult_price ?? 0);
+    $kidPrice = (float)($detail->kid_price ?? $product->kid_price ?? 0);
 
     if ($adultsQty > 0) {
     $categories[] = ['name' => __('m_bookings.categories.adult', [], $receiptLocale), 'quantity' => $adultsQty, 'price' => $adultPrice, 'total' => $adultsQty * $adultPrice];
@@ -298,7 +298,7 @@
     }
 
     // Dates
-    $tourDate = $detail->tour_date ? Carbon::parse($detail->tour_date)->isoFormat('DD/MMM/YYYY') : '—';
+    $productDate = $detail->tour_date ? Carbon::parse($detail->tour_date)->isoFormat('DD/MMM/YYYY') : '—';
 
     // Promo
     $redemption = $booking->redemption;
@@ -339,7 +339,7 @@
     <div class="info-block">
         <div class="info-line highlight">
             <span class="label">{{ __('m_bookings.receipt.tour_date', [], $receiptLocale) }}</span>
-            <span class="value">{{ $tourDate }}</span>
+            <span class="value">{{ $productDate }}</span>
         </div>
 
         <div class="info-line">
@@ -349,7 +349,7 @@
 
         <div class="info-line">
             <span class="label">{{ __('m_bookings.receipt.tour', [], $receiptLocale) }}</span>
-            <span class="value">{{ $tourName }}</span>
+            <span class="value">{{ $productName }}</span>
         </div>
 
         @if($detail->schedule)
@@ -361,7 +361,7 @@
 
         <div class="info-line">
             <span class="label">{{ __('m_bookings.bookings.fields.language', [], $receiptLocale) }}</span>
-            <span class="value">{{ $tourLanguageName }}</span>
+            <span class="value">{{ $productLanguageName }}</span>
         </div>
     </div>
 

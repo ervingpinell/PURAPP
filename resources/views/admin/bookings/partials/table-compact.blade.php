@@ -51,14 +51,14 @@ return [$c->slug => ($label ?: $c->slug)];
     @php
     $detail = $booking->detail;
 
-    // ===== Tour name con fallback =====
+    // ===== Product name con fallback =====
     $liveName = optional($detail?->tour)->name;
     $snapName = $detail->tour_name_snapshot ?: ($booking->product_name_snapshot ?? null);
-    $tourCellText = $liveName
+    $productCellText = $liveName
     ?? ($snapName
-    ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName])
-    : __('m_bookings.bookings.messages.deleted_tour'));
-    $tourDisplay = mb_strlen($tourCellText) > 30 ? (mb_substr($tourCellText, 0, 30) . '…') : $tourCellText;
+    ? __('m_bookings.bookings.messages.deleted_product_snapshot', ['name' => $snapName])
+    : __('m_bookings.bookings.messages.deleted_product'));
+    $productDisplay = mb_strlen($productCellText) > 30 ? (mb_substr($productCellText, 0, 30) . '…') : $productCellText;
 
     // ===== Horario =====
     $scheduleLabel = $detail?->schedule
@@ -223,7 +223,7 @@ return [$c->slug => ($label ?: $c->slug)];
         {{ $booking->getUserEmail() ?? '—' }}
       </td>
 
-      <td title="{{ $tourCellText }}">{{ $tourDisplay }}</td>
+      <td title="{{ $productCellText }}">{{ $productDisplay }}</td>
 
       <td>{{ optional($detail?->tour_date)->format('d-M-Y') ?? '—' }}</td>
 
@@ -341,7 +341,7 @@ return [$c->slug => ($label ?: $c->slug)];
   $detail = $booking->detail;
   $liveName = optional($detail?->tour)->name;
   $snapName = $detail->tour_name_snapshot ?: ($booking->product_name_snapshot ?? null);
-  $tourCellText = $liveName ?? ($snapName ? __('m_bookings.bookings.messages.deleted_tour_snapshot', ['name' => $snapName]) : __('m_bookings.bookings.messages.deleted_tour'));
+  $productCellText = $liveName ?? ($snapName ? __('m_bookings.bookings.messages.deleted_product_snapshot', ['name' => $snapName]) : __('m_bookings.bookings.messages.deleted_product'));
   
   $scheduleLabel = $detail?->schedule ? \Carbon\Carbon::parse($detail->schedule->start_time)->format('g:i A') : '—';
   
@@ -368,7 +368,7 @@ return [$c->slug => ($label ?: $c->slug)];
       
       <div class="mb-2">
         <i class="fas fa-map text-muted me-1"></i>
-        <span class="text-secondary">{{ $tourCellText }}</span>
+        <span class="text-secondary">{{ $productCellText }}</span>
       </div>
       
       <div class="d-flex justify-content-between mb-2 text-sm text-secondary">

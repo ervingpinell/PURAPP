@@ -93,10 +93,10 @@ class BookingController extends Controller
         if ($request->filled('booking_date_from')) $query->whereDate('booking_date', '>=', $request->booking_date_from);
         if ($request->filled('booking_date_to'))   $query->whereDate('booking_date', '<=', $request->booking_date_to);
 
-        if ($request->filled('tour_date_from') || $request->filled('tour_date_to')) {
+        if ($request->filled('product_date_from') || $request->filled('product_date_to')) {
             $query->whereHas('detail', function ($q) use ($request) {
-                if ($request->filled('tour_date_from')) $q->whereDate('tour_date', '>=', $request->tour_date_from);
-                if ($request->filled('tour_date_to'))   $q->whereDate('tour_date', '<=', $request->tour_date_to);
+                if ($request->filled('product_date_from')) $q->whereDate('product_date', '>=', $request->product_date_from);
+                if ($request->filled('product_date_to'))   $q->whereDate('product_date', '<=', $request->product_date_to);
             });
         }
 
@@ -107,14 +107,14 @@ class BookingController extends Controller
         $bookings = $query->orderBy('booking_date', 'desc')->paginate(15);
 
         $locale = app()->getLocale();
-        $tours = Product::orderByRaw("name->>'$locale' ASC")->get(['product_id', 'name']);
+        $products = Product::orderByRaw("name->>'$locale' ASC")->get(['product_id', 'name']);
         $schedules     = Schedule::orderBy('start_time')->get(['schedule_id', 'start_time', 'end_time']);
         $hotels        = HotelList::where('is_active', true)->orderBy('name')->get(['hotel_id', 'name']);
         $meetingPoints = MeetingPoint::where('is_active', true)
             ->orderByRaw('sort_order IS NULL, sort_order ASC')
             ->get();
 
-        return view('admin.bookings.index', compact('bookings', 'tours', 'schedules', 'hotels', 'meetingPoints'));
+        return view('admin.bookings.index', compact('bookings', 'products', 'schedules', 'hotels', 'meetingPoints'));
     }
 
     public function show(Booking $booking)
@@ -142,7 +142,7 @@ class BookingController extends Controller
     public function create()
     {
         // Load ALL necessary data upfront - simple and clean
-        $tours = Product::with([
+        $products = Product::with([
             'schedules' => fn($q) => $q->orderBy('start_time'),
             'languages' => fn($q) => $q->orderBy('name'),
             'prices' => fn($q) => $q->where('is_active', true)
@@ -162,7 +162,7 @@ class BookingController extends Controller
         $hotels = HotelList::where('is_active', true)->orderBy('name')->get();
         $meetingPoints = MeetingPoint::where('is_active', true)->get()->sortBy('name_localized');
 
-        return view('admin.bookings.create-simple', compact('tours', 'customers', 'hotels', 'meetingPoints'));
+        return view('admin.bookings.create', compact('products', 'customers', 'hotels', 'meetingPoints'));
     }
 
     /** Form edit (admin) */
@@ -179,7 +179,7 @@ class BookingController extends Controller
         ]);
 
         // Load tours with all relationships like create-simple
-        $tours = Product::with([
+        $products = Product::with([
             'schedules' => fn($q) => $q->orderBy('start_time'),
             'languages' => fn($q) => $q->orderBy('name'),
             'prices' => fn($q) => $q->where('is_active', true)
@@ -224,7 +224,7 @@ class BookingController extends Controller
         }
 
         $bookingLimits = $this->buildBookingLimits();
-        $limitsPerTour = app(BookingValidationService::class)->getLimitsForTour($booking->tour);
+        $limitsPerProduct = app(BookingValidationService::class)->getLimitsForTour($booking->tour);
 
         return view('admin.bookings.edit', compact(
             'booking',
@@ -234,7 +234,7 @@ class BookingController extends Controller
             'meetingPoints',
             'categoryQuantitiesById',
             'bookingLimits',
-            'limitsPerTour'
+            'limitsPerProduct'
         ));
     }
 
@@ -270,7 +270,7 @@ class BookingController extends Controller
                 'product_id'           => 'required|exists:tours,product_id',
                 'schedule_id'       => 'required|exists:schedules,schedule_id',
                 'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
-                'tour_date'         => 'required|date|after_or_equal:today',
+                'product_date'         => 'required|date|after_or_equal:today',
                 'booking_date'      => 'nullable|date',
                 'categories'        => 'required|array|min:1',
                 'categories.*'      => 'integer|min:0',
@@ -322,10 +322,10 @@ class BookingController extends Controller
         // =======================
         try {
             // Cargar tour + precios
-            $tour = Product::with('prices.category')->findOrFail((int)$validated['product_id']);
+            $product = Product::with('prices.category')->findOrFail((int)$validated['product_id']);
 
             // Verificar horario activo
-            $schedule = $tour->schedules()
+            $schedule = $product->schedules()
                 ->where('schedules.schedule_id', $validated['schedule_id'])
                 ->where('schedules.is_active', true)
                 ->wherePivot('is_active', true)
@@ -342,7 +342,7 @@ class BookingController extends Controller
 
             // Validar cantidades por categoría (min/max, etc.)
             // Pasamos $forceCapacity para saltar límites SOLO si el usuario ya confirmó
-            $validationResult = $this->validation->validateQuantities($tour, $validated['categories'], $forceCapacity);
+            $validationResult = $this->validation->validateQuantities($product, $validated['categories'], $forceCapacity);
 
             if (!$validationResult['valid']) {
                 $errorMsg = implode(' ', $validationResult['errors']);
@@ -367,21 +367,21 @@ class BookingController extends Controller
             // Sin embargo, para dar feedback inmediato antes de llamar al servicio:
             if (!$forceCapacity) {
                 $remaining = $this->capacity->remainingCapacity(
-                    $tour,
+                    $product,
                     $schedule,
-                    $validated['tour_date'],
+                    $validated['product_date'],
                     excludeBookingId: null,
                     countHolds: true
                 );
 
                 if ($totalPax > $remaining) {
                     $friendly = __('m_bookings.bookings.errors.insufficient_capacity', [
-                        'tour'      => $tour->name,
-                        'date'      => \Carbon\Carbon::parse($validated['tour_date'])->translatedFormat('M d, Y'),
+                        'tour'      => $product->name,
+                        'date'      => \Carbon\Carbon::parse($validated['product_date'])->translatedFormat('M d, Y'),
                         'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
                         'requested' => $totalPax,
                         'available' => $remaining,
-                        'max'       => $this->capacity->resolveMaxCapacity($tour, $schedule, $validated['tour_date']),
+                        'max'       => $this->capacity->resolveMaxCapacity($product, $schedule, $validated['product_date']),
                     ]);
 
                     // Return back with special session flag to show confirmation modal
@@ -402,7 +402,7 @@ class BookingController extends Controller
                 'product_id'           => (int)$validated['product_id'],
                 'schedule_id'       => (int)$validated['schedule_id'],
                 'tour_language_id'  => (int)$validated['tour_language_id'],
-                'tour_date'         => $validated['tour_date'],
+                'product_date'         => $validated['product_date'],
                 'booking_date'      => $validated['booking_date'] ?? now(),
                 'categories'        => $validated['categories'],
                 'status'            => $validated['status'],
@@ -514,15 +514,15 @@ class BookingController extends Controller
         }
 
         // Prevalidación por grupo (tour+fecha+horario)
-        $groups = $cart->items->groupBy(fn($i) => $i->product_id . '_' . $i->tour_date . '_' . $i->schedule_id);
+        $groups = $cart->items->groupBy(fn($i) => $i->product_id . '_' . $i->product_date . '_' . $i->schedule_id);
 
         foreach ($groups as $items) {
             $first      = $items->first();
-            $tour       = $first->tour;
-            $tourDate   = $first->tour_date;
+            $product       = $first->tour;
+            $productDate   = $first->product_date;
             $scheduleId = (int)$first->schedule_id;
 
-            $schedule = $tour->schedules()
+            $schedule = $product->schedules()
                 ->where('schedules.schedule_id', $scheduleId)
                 ->where('schedules.is_active', true)
                 ->wherePivot('is_active', true)
@@ -535,9 +535,9 @@ class BookingController extends Controller
             $totalPax = $items->sum(fn($item) => (int)$item->total_pax);
 
             $remaining = $this->capacity->remainingCapacity(
-                $tour,
+                $product,
                 $schedule,
-                $tourDate,
+                $productDate,
                 excludeBookingId: null,
                 countHolds: true,
                 excludeCartId: (int)$cart->cart_id
@@ -546,8 +546,8 @@ class BookingController extends Controller
             if ($totalPax > $remaining) {
                 return back()->with('error', __('m_bookings.messages.limited_seats_available', [
                     'available' => $remaining,
-                    'tour'      => $tour->name,
-                    'date'      => \Carbon\Carbon::parse($tourDate)->format('d/M/Y'),
+                    'tour'      => $product->name,
+                    'date'      => \Carbon\Carbon::parse($productDate)->format('d/M/Y'),
                 ]));
             }
         }
@@ -584,7 +584,7 @@ class BookingController extends Controller
                 'product_id'           => (int)$item->product_id,
                 'schedule_id'       => (int)$item->schedule_id,
                 'tour_language_id'  => (int)$item->tour_language_id,
-                'tour_date'         => $item->tour_date,
+                'product_date'         => $item->product_date,
                 'booking_date'      => now(),
                 'categories'        => $quantities,
                 'status'            => 'pending',
@@ -675,7 +675,7 @@ class BookingController extends Controller
             'product_id'           => 'required|exists:tours,product_id',
             'schedule_id'       => 'required|exists:schedules,schedule_id',
             'tour_language_id'  => 'required|exists:tour_languages,tour_language_id',
-            'tour_date'         => 'required|date',
+            'product_date'         => 'required|date',
             'booking_date'      => 'nullable|date',
             'categories'        => 'required|array|min:1',
             'categories.*'      => 'required|integer|min:0',
@@ -702,16 +702,16 @@ class BookingController extends Controller
 
         DB::beginTransaction();
         try {
-            $tourDate = Carbon::parse($validated['tour_date']);
-            if ($tourDate->lt(Carbon::today())) {
+            $productDate = Carbon::parse($validated['product_date']);
+            if ($productDate->lt(Carbon::today())) {
                 DB::rollBack();
                 return back()->withInput()
                     ->with('showEditModal', $booking->booking_id)
-                    ->withErrors(['tour_date' => __('m_bookings.bookings.validation.past_date')]);
+                    ->withErrors(['product_date' => __('m_bookings.bookings.validation.past_date')]);
             }
 
-            $newTour = Product::with('prices.category')->findOrFail($validated['product_id']);
-            $newSchedule = $newTour->schedules()
+            $newProduct = Product::with('prices.category')->findOrFail($validated['product_id']);
+            $newSchedule = $newProduct->schedules()
                 ->where('schedules.schedule_id', $validated['schedule_id'])
                 ->where('schedules.is_active', true)
                 ->wherePivot('is_active', true)
@@ -724,7 +724,7 @@ class BookingController extends Controller
                     ->withErrors(['schedule_id' => __('carts.messages.schedule_unavailable')]);
             }
 
-            $validationResult = $this->validation->validateQuantities($newTour, $validated['categories']);
+            $validationResult = $this->validation->validateQuantities($newProduct, $validated['categories']);
             if (!$validationResult['valid']) {
                 DB::rollBack();
                 $errorMsg = implode(' ', $validationResult['errors']);
@@ -735,9 +735,9 @@ class BookingController extends Controller
 
             // Capacidad (excluye booking actual)
             $snap = $this->capacity->capacitySnapshot(
-                $newTour,
+                $newProduct,
                 $newSchedule,
-                $validated['tour_date'],
+                $validated['product_date'],
                 excludeBookingId: (int)$booking->booking_id,
                 countHolds: true
             );
@@ -748,8 +748,8 @@ class BookingController extends Controller
                     ->with('showEditModal', $booking->booking_id)
                     ->withErrors([
                         'capacity' => __('m_bookings.bookings.errors.insufficient_capacity', [
-                            'tour'      => $newTour->name,
-                            'date'      => $tourDate->translatedFormat('M d, Y'),
+                            'tour'      => $newProduct->name,
+                            'date'      => $productDate->translatedFormat('M d, Y'),
                             'time'      => Carbon::parse($newSchedule->start_time)->format('g:i A'),
                             'requested' => $totalPax,
                             'available' => $snap['available'],
@@ -759,7 +759,7 @@ class BookingController extends Controller
             }
 
             // Snapshot + subtotal (with date-based pricing)
-            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($newTour, $validated['categories'], $validated['tour_date']);
+            $categoriesSnapshot = $this->pricing->buildCategoriesSnapshot($newProduct, $validated['categories'], $validated['product_date']);
 
             // Calculate totals (subtotal, taxes)
             $totals = $this->pricing->calculateTotals($categoriesSnapshot);
@@ -805,7 +805,7 @@ class BookingController extends Controller
             $detail->update([
                 'product_id'           => (int)$validated['product_id'],
                 'schedule_id'       => (int)$validated['schedule_id'],
-                'tour_date'         => $validated['tour_date'],
+                'product_date'         => $validated['product_date'],
                 'tour_language_id'  => (int)$validated['tour_language_id'],
                 'categories'        => $categoriesSnapshot,
                 'total'             => $detailSubtotal,
@@ -928,16 +928,16 @@ class BookingController extends Controller
                     return back()->with('error', __('m_bookings.bookings.errors.detail_not_found'));
                 }
 
-                $tour     = $booking->tour;
+                $product     = $booking->tour;
                 $schedule = Schedule::find((int)$detail->schedule_id);
                 if (!$schedule) {
                     return back()->with('error', __('m_bookings.bookings.errors.schedule_not_found'));
                 }
 
                 $snap = $this->capacity->capacitySnapshot(
-                    $tour,
+                    $product,
                     $schedule,
-                    $detail->tour_date,
+                    $detail->product_date,
                     excludeBookingId: (int)$booking->booking_id,
                     countHolds: true
                 );
@@ -946,8 +946,8 @@ class BookingController extends Controller
 
                 if ($requested > $snap['available']) {
                     return back()->with('error', __('m_bookings.bookings.errors.insufficient_capacity', [
-                        'tour'      => optional($tour)->name ?? 'Unknown Tour',
-                        'date'      => \Carbon\Carbon::parse($detail->tour_date)->format('M d, Y'),
+                        'tour'      => optional($product)->name ?? 'Unknown Product',
+                        'date'      => \Carbon\Carbon::parse($detail->product_date)->format('M d, Y'),
                         'time'      => \Carbon\Carbon::parse($schedule->start_time)->format('g:i A'),
                         'requested' => $requested,
                         'available' => $snap['available'],
@@ -1094,9 +1094,9 @@ class BookingController extends Controller
                         'name' => $booking->tour?->name,
                     ],
                     'detail' => $booking->detail ? [
-                        'tour_date' => $booking->detail->tour_date?->format('Y-m-d'),
+                        'product_date' => $booking->detail->product_date?->format('Y-m-d'),
                         'total_pax' => $booking->detail->total_pax,
-                        'language' => $booking->detail->tourLanguage?->name,
+                        'language' => $booking->detail->productLanguage?->name,
                     ] : null,
                     'deleted_at' => now()->format('Y-m-d H:i:s'),
                     'deleted_by' => auth()->id(),
@@ -1247,10 +1247,10 @@ class BookingController extends Controller
     }
 
     /** API: schedules por tour (AJAX) */
-    public function getSchedules(Product $tour)
+    public function getSchedules(Product $product)
     {
         return response()->json(
-            $tour->schedules()
+            $product->schedules()
                 ->where('schedules.is_active', true)
                 ->wherePivot('is_active', true)
                 ->orderBy('start_time')
@@ -1259,38 +1259,38 @@ class BookingController extends Controller
     }
 
     /** API: languages por tour (AJAX) */
-    public function getLanguages(Product $tour)
+    public function getLanguages(Product $product)
     {
         return response()->json(
-            $tour->languages()->get(['tour_language_id', 'name'])
+            $product->languages()->get(['tour_language_id', 'name'])
         );
     }
 
     /** API: categorías/precios por tour (AJAX) */
-    public function getCategories(Request $request, Product $tour)
+    public function getCategories(Request $request, Product $product)
     {
         $locale = app()->getLocale();
-        $tourDate = $request->input('tour_date');
+        $productDate = $request->input('product_date');
 
         \Log::info('BookingController@getCategories called', [
-            'product_id' => $tour->product_id,
-            'tour_date' => $tourDate
+            'product_id' => $product->product_id,
+            'product_date' => $productDate
         ]);
 
-        $query = $tour->prices()
+        $query = $product->prices()
             ->where('tour_prices.is_active', true)
             ->with('category')
             ->orderBy('category_id');
 
-        // Filter by date range if tour_date provided
-        if ($tourDate) {
-            $query->where(function ($q) use ($tourDate) {
-                $q->where(function ($sub) use ($tourDate) {
+        // Filter by date range if product_date provided
+        if ($productDate) {
+            $query->where(function ($q) use ($productDate) {
+                $q->where(function ($sub) use ($productDate) {
                     // Prices with date range
                     $sub->whereNotNull('valid_from')
                         ->whereNotNull('valid_until')
-                        ->whereDate('valid_from', '<=', $tourDate)
-                        ->whereDate('valid_until', '>=', $tourDate);
+                        ->whereDate('valid_from', '<=', $productDate)
+                        ->whereDate('valid_until', '>=', $productDate);
                 })->orWhere(function ($sub) {
                     // Default prices (no date range)
                     $sub->whereNull('valid_from')
@@ -1544,7 +1544,7 @@ class BookingController extends Controller
             // Basic validation of inputs needed for capacity check
             $validated = $request->validate([
                 'product_id' => 'required|integer|exists:tours,product_id',
-                'tour_date' => 'required|date',
+                'product_date' => 'required|date',
                 'schedule_id' => 'required|integer|exists:schedules,schedule_id',
                 'categories' => 'required|array',
                 'categories.*' => 'integer|min:0',
@@ -1567,14 +1567,14 @@ class BookingController extends Controller
                 ]);
             }
 
-            // 2. Check Tour Capacity
-            $tour = Product::findOrFail((int)$validated['product_id']);
+            // 2. Check Product Capacity
+            $product = Product::findOrFail((int)$validated['product_id']);
             $schedule = Schedule::findOrFail((int)$validated['schedule_id']);
 
             $remaining = $this->capacity->remainingCapacity(
-                $tour,
+                $product,
                 $schedule,
-                $validated['tour_date'],
+                $validated['product_date'],
                 excludeBookingId: null,
                 countHolds: true
             );

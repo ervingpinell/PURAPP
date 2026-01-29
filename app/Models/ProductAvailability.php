@@ -64,9 +64,9 @@ class ProductAvailability extends Model
     }
 
     // Backward compatibility alias
-    public function scopeForTour($query, int $tourId)
+    public function scopeForProduct($query, int $productId)
     {
-        return $this->scopeForProduct($query, $tourId);
+        return $this->scopeForProduct($query, $productId);
     }
 
     public function scopeForDate($query, int $productId, string $date, ?int $scheduleId = null)

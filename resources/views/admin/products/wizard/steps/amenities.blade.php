@@ -428,7 +428,7 @@
     }
     @endphp
 
-    <form id="amenities-form" method="POST" action="{{ route('admin.products.product-wizard.store.amenities', $product) }}">
+    <form id="amenities-form" method="POST" action="{{ route('admin.products.wizard.store.amenities', $product) }}">
         @csrf
 
         {{-- Botones de acción --}}
@@ -569,7 +569,7 @@
     {{-- Navigation Footer --}}
     <div class="card-footer navigation-footer">
         <div class="d-flex justify-content-between align-items-center">
-            <a href="{{ route('admin.products.product-wizard.step', ['product' => $product, 'step' => 1]) }}"
+            <a href="{{ route('admin.products.wizard.step', ['product' => $product, 'step' => 1]) }}"
                 class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i>
                 {{ __('m_tours.common.previous') }}
@@ -577,7 +577,7 @@
 
             <div class="d-flex">
                 @if($product->is_draft)
-                <form action="{{ route('admin.products.product-wizard.delete-draft', $product) }}"
+                <form action="{{ route('admin.products.wizard.delete-draft', $product) }}"
                     method="POST"
                     class="d-inline"
                     onsubmit="return confirm('{{ __('m_tours.tour.wizard.confirm_cancel') }}')">
@@ -603,7 +603,7 @@
 <div class="modal fade" id="modalQuickAmenity" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <form id="quickAmenityForm"
-            action="{{ route('admin.products.product-wizard.quick.amenity') }}"
+            action="{{ route('admin.products.wizard.quick.amenity') }}"
             method="POST"
             class="modal-content"
             autocomplete="off">

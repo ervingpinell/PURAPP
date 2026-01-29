@@ -31,14 +31,14 @@
   </div>
 
   <div class="col-md-4 mb-3">
-    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tours') }}" text="{{ $totalTours ?? 0 }}" icon="fas fa-map" theme="warning" />
+    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tours') }}" text="{{ $totalProducts ?? 0 }}" icon="fas fa-map" theme="warning" />
     <a href="{{ route('admin.products.index') }}" class="btn btn-warning btn-block mt-2">
       {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.tours') }}
     </a>
   </div>
 
   <div class="col-md-4 mb-3">
-    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tour_types') }}" text="{{ $totalProductTypes ?? ($tourTypes ?? 0) }}" icon="fas fa-tags" theme="success" />
+    <x-adminlte-info-box title="{{ __('adminlte::adminlte.entities.tour_types') }}" text="{{ $totalProductTypes ?? ($productTypes ?? 0) }}" icon="fas fa-tags" theme="success" />
     <a href="{{ route('admin.product-types.index') }}" class="btn btn-success btn-block mt-2">
       {{ __('adminlte::adminlte.buttons.view') }} {{ __('adminlte::adminlte.entities.tour_types') }}
     </a>
@@ -74,7 +74,7 @@
   </div>
 </div>
 
-{{-- ======= Tours Disponibles (colapsables simples) ======= --}}
+{{-- ======= Productos Disponibles (colapsables simples) ======= --}}
 <div class="row">
   <div class="col-md-12 mb-3">
     <div class="card">
@@ -129,7 +129,7 @@
       @forelse (($upcomingBookings ?? collect()) as $booking)
       <div class="mb-2">
         <strong>{{ $booking->user->full_name ?? '—' }}</strong>
-        – {{ optional(optional($booking->detail)->tour)->name ?? '—' }}<br>
+        – {{ optional(optional($booking->detail)->product)->name ?? '—' }}<br>
         <small class="text-muted">
           {{ __('adminlte::adminlte.labels.reference') }}: {{ $booking->booking_reference ?? '—' }}
         </small><br>
@@ -180,7 +180,7 @@
     const $ = (s, root = document) => root.querySelector(s);
     const $$ = (s, root = document) => Array.from(root.querySelectorAll(s));
 
-    // Toggle simple colapsables de "Tours Disponibles"
+    // Toggle simple colapsables de "Productos Disponibles"
     $$('.js-simple-toggle').forEach(b => {
       const p = $(b.getAttribute('data-target'));
       if (!p) return;

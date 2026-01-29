@@ -20,25 +20,25 @@ use App\Http\Requests\Product\ProductExcludedDate\BlockAllRequest;
 use App\Http\Requests\Product\ProductExcludedDate\DestroySelectedExcludedDatesRequest;
 
 /**
- * TourExcludedDateController
+ * ProductExcludedDateController
  *
- * Handles tourexcludeddate operations.
+ * Handles productexcludeddate operations.
  */
 class ProductExcludedDateController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['can:view-tour-excluded-dates'])->only(['index', 'blocked']);
-        $this->middleware(['can:create-tour-excluded-dates'])->only(['store']);
-        $this->middleware(['can:edit-tour-excluded-dates'])->only(['update']);
-        $this->middleware(['can:publish-tour-excluded-dates'])->only(['toggle', 'bulkToggle', 'storeMultiple', 'blockAll']);
-        $this->middleware(['can:delete-tour-excluded-dates'])->only(['destroy', 'destroyAll', 'destroySelected']);
+        $this->middleware(['can:view-product-excluded-dates'])->only(['index', 'blocked']);
+        $this->middleware(['can:create-product-excluded-dates'])->only(['store']);
+        $this->middleware(['can:edit-product-excluded-dates'])->only(['update']);
+        $this->middleware(['can:publish-product-excluded-dates'])->only(['toggle', 'bulkToggle', 'storeMultiple', 'blockAll']);
+        $this->middleware(['can:delete-product-excluded-dates'])->only(['destroy', 'destroyAll', 'destroySelected']);
     }
 
-    protected string $controller = 'TourExcludedDateController';
+    protected string $controller = 'ProductExcludedDateController';
 
     // NEW: Resolver nombre traducido si el modelo lo expone.
-    private function resolveTourName(Product $product, ?string $locale = null): string
+    private function resolveProductName(Product $product, ?string $locale = null): string
     {
         $locale = $locale ?: app()->getLocale();
         if (method_exists($product, 'getTranslatedName')) {
@@ -79,7 +79,7 @@ class ProductExcludedDateController extends Controller
         $days             = max(1, min(30, $daysRequested));
         $searchQuery      = trim((string) $request->input('q', ''));
 
-        $tours = Product::with('schedules')
+        $products = Product::with('schedules')
             ->when($searchQuery !== '', function ($query) use ($searchQuery) {
                 // Búsqueda por nombre traducido (JSON)
                 $locale = app()->getLocale();
@@ -97,7 +97,7 @@ class ProductExcludedDateController extends Controller
         $availabilityRecords = ProductAvailability::whereIn('date', $dateRange)->get();
         $exclusionRecords    = ProductExcludedDate::whereIn('start_date', $dateRange)->get();
 
-        $calendar = $this->buildCalendar($tours, $dateRange, $timezone, $availabilityRecords, $exclusionRecords);
+        $calendar = $this->buildCalendar($products, $dateRange, $timezone, $availabilityRecords, $exclusionRecords);
 
         return view('admin.products.excluded_dates.index', [
             'calendar' => $calendar,
@@ -115,7 +115,7 @@ class ProductExcludedDateController extends Controller
         $days            = (int) $request->input('days', 7);
         $searchQuery     = trim((string) $request->input('q', ''));
 
-        $tours = Product::with('schedules')
+        $products = Product::with('schedules')
             ->when($searchQuery !== '', fn($query) => $query->where('name', 'like', "%{$searchQuery}%"))
             ->orderByRaw('name->>\'' . app()->getLocale() . '\' ASC')
             ->get();
@@ -125,7 +125,7 @@ class ProductExcludedDateController extends Controller
         $availabilityRecords = ProductAvailability::whereIn('date', $dateRange)->get();
         $exclusionRecords    = ProductExcludedDate::whereIn('start_date', $dateRange)->get();
 
-        $calendar = $this->buildCalendar($tours, $dateRange, $timezone, $availabilityRecords, $exclusionRecords, onlyBlocked: true);
+        $calendar = $this->buildCalendar($products, $dateRange, $timezone, $availabilityRecords, $exclusionRecords, onlyBlocked: true);
         $calendar = array_filter($calendar, fn($buckets) => count($buckets['am']) + count($buckets['pm']) > 0);
 
         return view('admin.products.excluded_dates.blocked', [
@@ -213,15 +213,15 @@ class ProductExcludedDateController extends Controller
             $endDate   = $request->end_date ?? $startDate;
             $reason    = $request->reason ?? 'Bloqueo total';
 
-            $tours     = Product::with('schedules')->get();
+            $products     = Product::with('schedules')->get();
             $dateRange = CarbonPeriod::create($startDate, $endDate);
 
-            foreach ($tours as $product) {
+            foreach ($products as $product) {
                 foreach ($product->schedules as $schedule) {
                     foreach ($dateRange as $date) {
                         $day = $date->format('Y-m-d');
 
-                        TourAvailability::updateOrCreate(
+                        ProductAvailability::updateOrCreate(
                             [
                                 'product_id'     => $product->product_id,
                                 'schedule_id' => $schedule->schedule_id,
@@ -412,7 +412,7 @@ class ProductExcludedDateController extends Controller
     /**
      * Construye el calendario de disponibilidad con capacidades correctas
      */
-    private function buildCalendar($tours, $dateRange, string $timezone, $availabilityRecords, $exclusionRecords, bool $onlyBlocked = false): array
+    private function buildCalendar($products, $dateRange, string $timezone, $availabilityRecords, $exclusionRecords, bool $onlyBlocked = false): array
     {
         $calendar = [];
         $capacityService = app(\App\Services\Bookings\BookingCapacityService::class);
@@ -421,7 +421,7 @@ class ProductExcludedDateController extends Controller
         foreach ($dateRange as $dateString) {
             $calendar[$dateString] = ['am' => [], 'pm' => []];
 
-            foreach ($tours as $product) {
+            foreach ($products as $product) {
                 foreach ($product->schedules as $schedule) {
                     $startTime = \Carbon\Carbon::parse($schedule->start_time, $timezone);
                     $scheduleBucket = ((int) $startTime->format('H') < 12) ? 'am' : 'pm';
@@ -462,13 +462,13 @@ class ProductExcludedDateController extends Controller
                     }
 
                     // === NOMBRE TRADUCIDO ===
-                    $tourName = method_exists($product, 'getTranslatedName')
+                    $productName = method_exists($product, 'getTranslatedName')
                         ? ($product->getTranslatedName($locale) ?? $product->name)
                         : $product->name;
 
                     $entry = [
                         'product_id'          => $product->product_id,
-                        'tour_name'        => $tourName,
+                        'product_name'        => $productName,
                         'schedule_id'      => $schedule->schedule_id,
                         'time'             => $formattedTime,
                         'is_available'     => $isAvailable,
@@ -485,7 +485,7 @@ class ProductExcludedDateController extends Controller
             foreach (['am', 'pm'] as $bucket) {
                 usort(
                     $calendar[$dateString][$bucket],
-                    fn($left, $right) => strnatcasecmp($left['tour_name'], $right['tour_name'])
+                    fn($left, $right) => strnatcasecmp($left['product_name'], $right['product_name'])
                 );
             }
         }

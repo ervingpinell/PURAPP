@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Product;
-use App\Models\TourAuditLog;
+use App\Models\ProductAuditLog;
 
 /**
  * ProductObserver
@@ -34,20 +34,20 @@ class ProductObserver
     }
 
     /**
-     * Handle el evento "created" del tour
+     * Handle el evento "created" del producto
      * Se ejecuta DESPUÉS de crear
      */
-    public function created(Product $tour): void
+    public function created(Product $product): void
     {
         // La auditoría básica la maneja el trait Auditable
         // Aquí agregamos lógica adicional si es necesario
 
         // Si es un draft del wizard, registrar el paso inicial
-        if ($tour->is_draft && request()->is('*/wizard/*')) {
-            TourAuditLog::logAction(
+        if ($product->is_draft && request()->is('*/wizard/*')) {
+            ProductAuditLog::logAction(
                 action: 'draft_created',
-                tourId: $tour->product_id,
-                description: "Borrador de tour '{$tour->name}' creado en wizard (Paso 1)",
+                productId: $product->product_id,
+                description: "Borrador de producto '{$product->name}' creado en wizard (Paso 1)",
                 context: 'wizard',
                 wizardStep: 1,
                 tags: ['wizard', 'draft', 'step-1']
@@ -56,32 +56,32 @@ class ProductObserver
     }
 
     /**
-     * Handle el evento "updated" del tour
+     * Handle el evento "updated" del producto
      */
-    public function updated(Product $tour): void
+    public function updated(Product $product): void
     {
         // El trait Auditable ya maneja la auditoría básica
         // Aquí agregamos logs especiales para cambios importantes
 
         // Si cambió de draft a publicado
-        if ($tour->wasChanged('is_draft') && !$tour->is_draft) {
-            TourAuditLog::logAction(
+        if ($product->wasChanged('is_draft') && !$product->is_draft) {
+            ProductAuditLog::logAction(
                 action: 'published',
-                tourId: $tour->product_id,
-                description: "Tour '{$tour->name}' fue publicado (ya no es borrador)",
+                productId: $product->product_id,
+                description: "Producto '{$product->name}' fue publicado (ya no es borrador)",
                 context: $this->getContext(),
                 tags: ['published', 'completed']
             );
         }
 
         // Si completó un paso del wizard
-        if ($tour->wasChanged('current_step') && $tour->is_draft) {
-            $newStep = $tour->current_step;
-            $oldStep = $tour->getOriginal('current_step');
+        if ($product->wasChanged('current_step') && $product->is_draft) {
+            $newStep = $product->current_step;
+            $oldStep = $product->getOriginal('current_step');
 
-            TourAuditLog::logAction(
+            ProductAuditLog::logAction(
                 action: 'step_completed',
-                tourId: $tour->product_id,
+                productId: $product->product_id,
                 description: "Paso {$oldStep} completado, avanzando a paso {$newStep} del wizard",
                 context: 'wizard',
                 wizardStep: $newStep,
@@ -90,14 +90,14 @@ class ProductObserver
         }
 
         // Si cambió el estado activo/inactivo
-        if ($tour->wasChanged('is_active')) {
-            $action = $tour->is_active ? 'published' : 'unpublished';
-            $status = $tour->is_active ? 'activado' : 'desactivado';
+        if ($product->wasChanged('is_active')) {
+            $action = $product->is_active ? 'published' : 'unpublished';
+            $status = $product->is_active ? 'activado' : 'desactivado';
 
-            TourAuditLog::logAction(
+            ProductAuditLog::logAction(
                 action: $action,
-                tourId: $tour->product_id,
-                description: "Tour '{$tour->name}' fue {$status}",
+                productId: $product->product_id,
+                description: "Producto '{$product->name}' fue {$status}",
                 context: $this->getContext(),
                 tags: [$action, 'status-change']
             );
@@ -105,45 +105,45 @@ class ProductObserver
     }
 
     /**
-     * Handle el evento "deleting" del tour
+     * Handle el evento "deleting" del producto
      * Se ejecuta ANTES de eliminar
      */
-    public function deleting(Product $tour): void
+    public function deleting(Product $product): void
     {
         // Aquí puedes agregar lógica ANTES de eliminar
         // Por ejemplo, validaciones o limpieza de datos relacionados
     }
 
     /**
-     * Handle el evento "deleted" del tour
+     * Handle el evento "deleted" del producto
      */
-    public function deleted(Product $tour): void
+    public function deleted(Product $product): void
     {
         // El trait Auditable ya maneja el log básico
         // Podemos agregar información adicional
 
-        $isDraft = $tour->is_draft;
+        $isDraft = $product->is_draft;
         $action = $isDraft ? 'draft_deleted' : 'deleted';
-        $type = $isDraft ? 'borrador' : 'tour publicado';
+        $type = $isDraft ? 'borrador' : 'producto publicado';
 
-        TourAuditLog::logAction(
+        ProductAuditLog::logAction(
             action: $action,
-            tourId: $tour->product_id,
-            description: "El {$type} '{$tour->name}' fue eliminado",
+            productId: $product->product_id,
+            description: "El {$type} '{$product->name}' fue eliminado",
             context: $this->getContext(),
             tags: ['deleted', $isDraft ? 'draft' : 'published']
         );
     }
 
     /**
-     * Handle el evento "restored" del tour (si usa SoftDeletes)
+     * Handle el evento "restored" del producto (si usa SoftDeletes)
      */
-    public function restored(Product $tour): void
+    public function restored(Product $product): void
     {
-        TourAuditLog::logAction(
+        ProductAuditLog::logAction(
             action: 'restored',
-            tourId: $tour->product_id,
-            description: "Tour '{$tour->name}' fue restaurado",
+            productId: $product->product_id,
+            description: "Producto '{$product->name}' fue restaurado",
             context: $this->getContext(),
             tags: ['restored', 'recovered']
         );

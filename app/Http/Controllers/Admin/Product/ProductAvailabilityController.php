@@ -14,7 +14,7 @@ use App\Http\Requests\Product\ProductAvailability\UpdateProductAvailabilityReque
 use Carbon\Carbon;
 
 /**
- * TourAvailabilityController
+ * ProductAvailabilityController
  *
  * Handles touravailability operations.
  */
@@ -39,7 +39,7 @@ class ProductAvailabilityController extends Controller
         $this->middleware(['can:publish-tour-availability'])->only(['toggleBlockDaySchedule']);
     }
 
-    protected string $controller = 'TourAvailabilityController';
+    protected string $controller = 'ProductAvailabilityController';
 
     /**
      * Vista principal con tabs: Global, Por Tour+Horario, Día+Horario
@@ -187,7 +187,7 @@ class ProductAvailabilityController extends Controller
     }
 
     /**
-     * Bloqueo puntual por DÍA+HORARIO (y bitácora en TourExcludedDate).
+     * Bloqueo puntual por DÍA+HORARIO (y bitácora en ProductExcludedDate).
      * Body: { schedule_id:int|null, date:YYYY-MM-DD, block:boolean, reason?:string }
      *
      * Con la UNIQUE (product_id, schedule_id, date):
@@ -225,9 +225,9 @@ class ProductAvailabilityController extends Controller
 
             $availability = \App\Models\ProductAvailability::updateOrCreate($conditions, $attrs);
 
-            // Bitácora humana (un día) en TourExcludedDate
+            // Bitácora humana (un día) en ProductExcludedDate
             if ($data['block']) {
-                \App\Models\TourExcludedDate::firstOrCreate(
+                \App\Models\ProductExcludedDate::firstOrCreate(
                     [
                         'product_id'     => $product->product_id,
                         'schedule_id' => $conditions['schedule_id'],
@@ -237,14 +237,14 @@ class ProductAvailabilityController extends Controller
                     ['reason' => $data['reason'] ?? 'Bloqueo puntual']
                 );
             } else {
-                TourExcludedDate::where([
+                ProductExcludedDate::where([
                     'product_id'     => $product->product_id,
                     'schedule_id' => $conditions['schedule_id'],
                 ])->whereDate('start_date', $conditions['date'])->delete();
             }
 
             LoggerHelper::mutated(
-                'TourAvailabilityController',
+                'ProductAvailabilityController',
                 'toggleBlockDaySchedule',
                 'tour_availability',
                 $availability->getKey(),
@@ -260,7 +260,7 @@ class ProductAvailabilityController extends Controller
             return back()->with('success', $data['block'] ? 'Fecha bloqueada.' : 'Fecha desbloqueada.');
         } catch (\Throwable $e) {
             LoggerHelper::exception(
-                'TourAvailabilityController',
+                'ProductAvailabilityController',
                 'toggleBlockDaySchedule',
                 'tour_availability',
                 null,

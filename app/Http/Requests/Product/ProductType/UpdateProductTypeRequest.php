@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
 use App\Services\LoggerHelper;
-use App\Models\TourType;
+use App\Models\ProductType;
 
 class UpdateProductTypeRequest extends FormRequest
 {
@@ -32,8 +32,8 @@ class UpdateProductTypeRequest extends FormRequest
 
     public function rules(): array
     {
-        /** @var TourType|null $tourType */
-        $tourType = $this->route('tourType');
+        /** @var ProductType|null $productType */
+        $productType = $this->route('productType');
 
         $rules = [
             'description' => ['nullable', 'string', 'max:1000'],
@@ -46,7 +46,7 @@ class UpdateProductTypeRequest extends FormRequest
              // You can add more specific rules here if needed
         } else {
             // Obtener el ID de la traducción en español para ignorarla en la validación de unicidad
-            $translationId = $tourType?->translations()->where('locale', 'es')->first()?->id;
+            $translationId = $productType?->translations()->where('locale', 'es')->first()?->id;
 
             $rules['name'] = [
                 'required',
@@ -64,7 +64,7 @@ class UpdateProductTypeRequest extends FormRequest
             'name.required'   => 'El nombre es obligatorio.',
             'name.string'     => 'El nombre debe ser texto.',
             'name.max'        => 'El nombre no puede superar 255 caracteres.',
-            'name.unique'     => 'Ya existe un tipo de tour con ese nombre.',
+            'name.unique'     => 'Ya existe un tipo de producto con ese nombre.',
             'description.max' => 'La descripción no puede superar 1000 caracteres.',
             'duration.max'    => 'La duración no puede superar 255 caracteres.',
         ];
@@ -72,12 +72,12 @@ class UpdateProductTypeRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        /** @var TourType|null $tourType */
-        $tourType = $this->route('tourType');
+        /** @var ProductType|null $productType */
+        $productType = $this->route('productType');
 
         LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [
-            'entity'    => 'tour_type',
-            'entity_id' => $tourType?->getKey(),
+            'entity'    => 'product_type',
+            'entity_id' => $productType?->getKey(),
             'user_id'   => optional($this->user())->getAuthIdentifier(),
         ]);
 

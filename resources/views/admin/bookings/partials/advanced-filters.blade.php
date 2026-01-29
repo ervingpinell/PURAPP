@@ -38,10 +38,10 @@
           </div>
         </div>
 
-        {{-- 🗓 Tour Dates Section --}}
+        {{-- 🗓 Product Dates Section --}}
         <div class="mb-4">
           <h6 class="text-uppercase fw-bold mb-3" style="color: #6c757d; font-size: 0.85rem; letter-spacing: 0.5px;">
-            <i class="fas fa-calendar-alt me-2"></i>{{ __('m_bookings.filters.tour_dates', [], 'Fechas del Tour') }}
+            <i class="fas fa-calendar-alt me-2"></i>{{ __('m_bookings.filters.tour_dates', [], 'Fechas del Producto') }}
           </h6>
           <div class="row g-3">
             <div class="col-md-6">
@@ -55,17 +55,17 @@
           </div>
         </div>
 
-        {{-- 🎯 Tour & Schedule Section --}}
+        {{-- 🎯 Product & Schedule Section --}}
         <div class="mb-4">
           <h6 class="text-uppercase fw-bold mb-3" style="color: #6c757d; font-size: 0.85rem; letter-spacing: 0.5px;">
-            <i class="fas fa-map-marked-alt me-2"></i>{{ __('m_bookings.filters.tour_schedule', [], 'Tour y Horario') }}
+            <i class="fas fa-map-marked-alt me-2"></i>{{ __('m_bookings.filters.tour_schedule', [], 'Producto y Horario') }}
           </h6>
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label text-light" style="font-weight: 500; font-size: 0.9rem;">{{ __('m_bookings.bookings.fields.tour') }}</label>
               <select name="product_id" class="form-select bg-dark text-light border-secondary" style="border-radius: 6px;">
                 <option value="">{{ __('m_bookings.filters.all') }}</option>
-                @foreach($tours as $t)
+                @foreach($products as $t)
                 <option value="{{ $t->product_id }}" {{ request('product_id') == $t->product_id ? 'selected' : '' }}>
                   {{ $t->name }}
                 </option>

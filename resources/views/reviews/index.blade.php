@@ -26,32 +26,32 @@
   </h2>
 
   <div class="review-grid">
-    @foreach ($tours as $tour)
+    @foreach ($products as $product)
       @php
         // Proveedor por defecto si el controlador no lo definió
-        $provSlug = $tour->iframe_slug ?? config('reviews.providers.default', 'viator');
+        $provSlug = $product->iframe_slug ?? config('reviews.providers.default', 'viator');
       @endphp
 
-      <div class="review-card" id="tour-card-{{ $tour->product_id }}">
+      <div class="review-card" id="product-card-{{ $product->product_id }}">
         <h3 class="review-title">
-          <a href="{{ localized_route('products.guided_tour.show', $tour) }}"
+          <a href="{{ localized_route('products.guided_tour.show', $product) }}"
              class="text-light d-inline-block tour-link"
              style="text-decoration: underline;">
-            {{ $tour->display_name }}
+            {{ $product->display_name }}
           </a>
         </h3>
 
-        <div class="js-carousel" data-tour="{{ $tour->product_id }}">
+        <div class="js-carousel" data-product="{{ $product->product_id }}">
           @php
-            $hasMixed = isset($tour->slides)
-              && $tour->slides instanceof \Illuminate\Support\Collection
-              && $tour->slides->count() > 0;
+            $hasMixed = isset($product->slides)
+              && $product->slides instanceof \Illuminate\Support\Collection
+              && $product->slides->count() > 0;
           @endphp
 
           @if($hasMixed)
             {{-- ===== Mezcla local + remoto (hasta 6) ===== --}}
             <div class="js-slides">
-              @foreach($tour->slides as $i => $slide)
+              @foreach($product->slides as $i => $slide)
                 @if(($slide['type'] ?? '') === 'local')
                   @include('partials.reviews.card', ['r' => $slide['data'], 'active' => $i === 0])
                 @else
@@ -64,12 +64,12 @@
                     $poolFromProvider = (int)($slide['pool'] ?? 0);
                     $limitForIframe   = $poolFromProvider > 0
                         ? $poolFromProvider
-                        : (int)($tour->pool_limit ?? 30);
+                        : (int)($product->pool_limit ?? 30);
 
                     $src  = route('reviews.embed', ['provider' => $slug]) . '?' . http_build_query([
                       'layout'        => 'card',
                       'theme'         => 'site',
-                      'product_id'       => $tour->product_id,
+                      'product_id'       => $product->product_id,
                       'limit'         => $limitForIframe, // usa pool real si existe
                       'nth'           => 1,                // siempre 1
                       'base'          => 400,
@@ -105,10 +105,10 @@
             <div class="powered-by js-powered"></div>
             <div class="carousel-buttons-row">
               <button class="carousel-prev"
-                      data-tour="{{ $tour->product_id }}"
+                      data-product="{{ $product->product_id }}"
                       aria-label="{{ __('reviews.previous_review') }}">❮</button>
               <button class="carousel-next"
-                      data-tour="{{ $tour->product_id }}"
+                      data-product="{{ $product->product_id }}"
                       aria-label="{{ __('reviews.next_review') }}">❯</button>
             </div>
 
@@ -116,7 +116,7 @@
             {{-- ===== LEGACY ===== --}}
             @php
               /** @var \Illuminate\Support\Collection $items */
-              $items = $tour->indexable_reviews ?? collect();
+              $items = $product->indexable_reviews ?? collect();
             @endphp
 
             @if($items->count() > 0)
@@ -129,22 +129,22 @@
               <div class="powered-by js-powered"></div>
               <div class="carousel-buttons-row">
                 <button class="carousel-prev"
-                        data-tour="{{ $tour->product_id }}"
+                        data-product="{{ $product->product_id }}"
                         aria-label="{{ __('reviews.previous_review') }}">❮</button>
                 <button class="carousel-next"
-                        data-tour="{{ $tour->product_id }}"
+                        data-product="{{ $product->product_id }}"
                         aria-label="{{ __('reviews.next_review') }}">❯</button>
               </div>
 
-            @elseif(!empty($tour->needs_iframe))
+            @elseif(!empty($product->needs_iframe))
               @php
                 $slug = $provSlug ?: 'viator';
-                $poolLimit = (int)($tour->pool_limit ?? $tour->iframe_limit ?? 30);
+                $poolLimit = (int)($product->pool_limit ?? $product->iframe_limit ?? 30);
                 $uid = 'u'.substr(bin2hex(random_bytes(6)), 0, 8);
                 $src = route('reviews.embed', ['provider' => $slug]) . '?' . http_build_query([
                   'layout'        => 'card',
                   'theme'         => 'site',
-                  'product_id'       => $tour->product_id,
+                  'product_id'       => $product->product_id,
                   'limit'         => max(8, $poolLimit),
                   'nth'           => 1,
                   'base'          => 400,
@@ -178,10 +178,10 @@
               <div class="powered-by js-powered"></div>
               <div class="carousel-buttons-row">
                 <button class="carousel-prev"
-                        data-tour="{{ $tour->product_id }}"
+                        data-product="{{ $product->product_id }}"
                         aria-label="{{ __('reviews.previous_review') }}">❮</button>
                 <button class="carousel-next"
-                        data-tour="{{ $tour->product_id }}"
+                        data-product="{{ $product->product_id }}"
                         aria-label="{{ __('reviews.next_review') }}">❯</button>
               </div>
 

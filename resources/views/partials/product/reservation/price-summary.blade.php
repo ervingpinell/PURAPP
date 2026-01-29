@@ -1,4 +1,4 @@
-{{-- resources/views/partials/tour/reservation/price-summary.blade.php --}}
+{{-- resources/views/partials/product/reservation/price-summary.blade.php --}}
 {{-- Resumen simple de precio mínimo --}}
 
 @php

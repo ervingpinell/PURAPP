@@ -2,10 +2,10 @@
 use Illuminate\Support\Facades\Storage;
 $images = collect();
 
-if (isset($tour)) {
-$imgs = $tour->relationLoaded('images')
-? $tour->getRelation('images')
-: (method_exists($tour, 'images') ? $tour->images()->get() : collect());
+if (isset($product)) {
+$imgs = $product->relationLoaded('images')
+? $product->getRelation('images')
+: (method_exists($product, 'images') ? $product->images()->get() : collect());
 
 if ($imgs && $imgs->count()) {
 $imgs = $imgs->sortBy([
@@ -19,8 +19,8 @@ $images = $imgs->map(fn ($img) => $img->url)->values();
 }
 }
 if ($images->isEmpty()) {
-$tourId = $tour->product_id ?? $tour->id ?? null;
-$folder = $tourId ? "tours/{$tourId}/gallery" : null;
+$productId = $product->product_id ?? $product->id ?? null;
+$folder = $productId ? "tours/{$productId}/gallery" : null;
 
 if ($folder && Storage::disk('public')->exists($folder)) {
 $allowed = ['jpg','jpeg','png','webp'];
@@ -197,7 +197,7 @@ while ($images->count() < 5) {
             <img src="{{ $src }}"
               class="d-block w-100 h-100"
               style="object-fit: cover; cursor: pointer;"
-              alt="{{ $tour->getTranslatedName() }} - {{ $i + 1 }}"
+              alt="{{ $product->getTranslatedName() }} - {{ $i + 1 }}"
               data-open-lightbox
               data-index="{{ $i }}"
               width="800"
@@ -257,7 +257,7 @@ while ($images->count() < 5) {
             <div class="carousel-inner">
               @foreach($images as $i => $src)
               <div class="carousel-item {{ $i === 0 ? 'active' : '' }}">
-                <img src="{{ $src }}" alt="{{ $tour->getTranslatedName() }} - Large {{ $i + 1 }}" loading="lazy">
+                <img src="{{ $src }}" alt="{{ $product->getTranslatedName() }} - Large {{ $i + 1 }}" loading="lazy">
               </div>
               @endforeach
             </div>

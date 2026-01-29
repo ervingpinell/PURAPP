@@ -14,8 +14,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $booking_id Associated booking
  * @property int $product_id Product being booked
  * @property int $schedule_id Schedule/time slot
- * @property \Carbon\Carbon $tour_date Date of the product (legacy name)
- * @property int|null $tour_language_id Language
+ * @property \Carbon\Carbon $tour_date Date of the product (DB column name)
+ * @property int|null $tour_language_id Language (DB column name)
  * @property array $categories JSON array
  * @property float $total Total amount
  * @property-read Booking $booking

@@ -250,7 +250,7 @@
 
     @foreach($bookings as $booking)
     @php
-    $tour = $booking->product;
+    $product = $booking->product;
     $detail = $booking->detail;
 
     // ====== CATEGORÍAS (con nombre traducido) ======
@@ -308,8 +308,8 @@
     if (empty($categories)) {
     $adultsQty = (int)($detail->adults_quantity ?? 0);
     $kidsQty = (int)($detail->kids_quantity ?? 0);
-    $adultPrice = (float)($tour->adult_price ?? 0);
-    $kidPrice = (float)($tour->kid_price ?? 0);
+    $adultPrice = (float)($product->adult_price ?? 0);
+    $kidPrice = (float)($product->kid_price ?? 0);
 
     if ($adultsQty > 0) {
     $nameA = __('m_bookings.categories.adult', [], false) ?: 'Adults';
@@ -376,7 +376,7 @@
     $ref = $booking->booking_reference ?: $EM;
     $customer = optional($booking->user)->full_name ?: $EM;
     $customerEm = optional($booking->user)->email ?: $EM;
-    $tourName = $tour ? (string)$tour->name : $EM;
+    $productName = $product ? (string)$product->name : $EM;
     $bkDate = $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('m/d/Y') : $EM;
     $trDate = $detail->tour_date ? \Carbon\Carbon::parse($detail->tour_date)->format('m/d/Y') : $EM;
 
@@ -402,7 +402,7 @@
 
         <div class="data-item">
           <strong>{{ __('m_bookings.bookings.fields.tour') }}</strong>
-          <span>{{ $tourName }}</span>
+          <span>{{ $productName }}</span>
         </div>
 
         <div class="data-item">

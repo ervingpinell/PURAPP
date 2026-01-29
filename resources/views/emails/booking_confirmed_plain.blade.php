@@ -4,18 +4,18 @@ $reference = $reference ?? ($booking->booking_reference ?? $booking->booking_id)
 
 // Logic reused from HTML view for consistency
 $d = collect($booking->details ?? [])->first();
-$tourName = $d?->tour_name;
-if (!$tourName && $d?->relationLoaded('tour') && $d?->tour) {
-    $tour = $d->tour;
-    if (isset($tour->translated_name) && filled($tour->translated_name)) {
-        $tourName = $tour->translated_name;
-    } elseif (method_exists($tour, 'getTranslated')) {
-        $tourName = $tour->getTranslated('name', $mailLocale) ?? $tour->name; 
+$productName = $d?->product_name;
+if (!$productName && $d?->relationLoaded('tour') && $d?->tour) {
+    $product = $d->tour;
+    if (isset($product->translated_name) && filled($product->translated_name)) {
+        $productName = $product->translated_name;
+    } elseif (method_exists($product, 'getTranslated')) {
+        $productName = $product->getTranslated('name', $mailLocale) ?? $product->name; 
     }
 }
-$tourName = $tourName ?: ($booking->product->title ?? 'Tour');
+$productName = $productName ?: ($booking->product->title ?? 'Product');
 
-$tourDate = $d?->tour_date ? \Illuminate\Support\Carbon::parse($d->tour_date)->format('d-M-Y') : null;
+$productDate = $d?->product_date ? \Illuminate\Support\Carbon::parse($d->product_date)->format('d-M-Y') : null;
 $scheduleTxt = $d?->schedule 
     ? \Illuminate\Support\Carbon::parse($d->schedule->start_time)->isoFormat('LT') . ' – ' . \Illuminate\Support\Carbon::parse($d->schedule->end_time)->isoFormat('LT')
     : null;
@@ -28,9 +28,9 @@ $scheduleTxt = $d?->schedule
 
 {{ $mailLocale === 'es' ? 'Resumen' : 'Summary' }}
 ----------------
-{{ __('adminlte::email.service') }}: {{ $tourName }}
-@if($tourDate)
-{{ $mailLocale === 'es' ? 'Fecha' : 'Date' }}: {{ $tourDate }}
+{{ __('adminlte::email.service') }}: {{ $productName }}
+@if($productDate)
+{{ $mailLocale === 'es' ? 'Fecha' : 'Date' }}: {{ $productDate }}
 @endif
 @if($scheduleTxt)
 {{ $mailLocale === 'es' ? 'Horario' : 'Schedule' }}: {{ $scheduleTxt }}

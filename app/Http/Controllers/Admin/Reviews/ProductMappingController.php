@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 /**
  * ProductMappingController
  *
- * Manages product code mappings between external providers and internal tours.
+ * Manages product code mappings between external providers and internal products.
  */
 class ProductMappingController extends Controller
 {
@@ -36,37 +36,37 @@ class ProductMappingController extends Controller
         $settings = is_array($provider->settings) ? $provider->settings : [];
         $productMap = (array) ($settings['product_map'] ?? []);
 
-        // Load tours for the mapped IDs
-        $tourIds = array_keys($productMap);
-        $tours = Product::whereIn('product_id', $tourIds)
+        // Load products for the mapped IDs
+        $productIds = array_keys($productMap);
+        $products = Product::whereIn('product_id', $productIds)
             ->get()
             ->keyBy('product_id');
 
-        // Build mappings array with tour details
+        // Build mappings array with product details
         $mappings = [];
-        foreach ($productMap as $tourId => $productCode) {
-            $tour = $tours->get($tourId);
-            if ($tour) {
+        foreach ($productMap as $productId => $productCode) {
+            $product = $products->get($productId);
+            if ($product) {
                 $mappings[] = [
-                    'product_id' => $tourId,
-                    'tour_name' => $tour->getTranslatedName(),
+                    'product_id' => $productId,
+                    'product_name' => $product->getTranslatedName(),
                     'product_code' => $productCode,
                 ];
             }
         }
 
-        // Get all tours for dropdown
-        $allTours = Product::where('is_active', true)
+        // Get all products for dropdown
+        $allProducts = Product::where('is_active', true)
             ->orderBy('name')
             ->get()
-            ->map(function ($tour) {
+            ->map(function ($product) {
                 return [
-                    'id' => $tour->product_id,
-                    'name' => $tour->getTranslatedName(),
+                    'id' => $product->product_id,
+                    'name' => $product->getTranslatedName(),
                 ];
             });
 
-        return view('admin.reviews.providers.product-map', compact('provider', 'mappings', 'allTours'));
+        return view('admin.reviews.providers.product-map', compact('provider', 'mappings', 'allProducts'));
     }
 
     /**
@@ -78,7 +78,7 @@ class ProductMappingController extends Controller
             'product_id' => [
                 'required',
                 'integer',
-                'exists:tours,product_id',
+                'exists:product2,product_id',
                 Rule::unique('review_providers', 'settings->product_map->' . $request->product_id)
                     ->where('id', '!=', $provider->id),
             ],
@@ -103,7 +103,7 @@ class ProductMappingController extends Controller
     /**
      * Update an existing product mapping
      */
-    public function update(Request $request, ReviewProvider $provider, string $tourId)
+    public function update(Request $request, ReviewProvider $provider, string $productId)
     {
         $validated = $request->validate([
             'product_code' => 'required|string|max:255',
@@ -112,12 +112,12 @@ class ProductMappingController extends Controller
         $settings = is_array($provider->settings) ? $provider->settings : [];
         $productMap = (array) ($settings['product_map'] ?? []);
 
-        if (!isset($productMap[$tourId])) {
+        if (!isset($productMap[$productId])) {
             return back()->with('error', 'Mapping not found.');
         }
 
         // Update mapping
-        $productMap[$tourId] = trim($validated['product_code']);
+        $productMap[$productId] = trim($validated['product_code']);
         $settings['product_map'] = $productMap;
 
         $provider->settings = $settings;
@@ -131,17 +131,17 @@ class ProductMappingController extends Controller
     /**
      * Delete a product mapping
      */
-    public function destroy(ReviewProvider $provider, string $tourId)
+    public function destroy(ReviewProvider $provider, string $productId)
     {
         $settings = is_array($provider->settings) ? $provider->settings : [];
         $productMap = (array) ($settings['product_map'] ?? []);
 
-        if (!isset($productMap[$tourId])) {
+        if (!isset($productMap[$productId])) {
             return back()->with('error', 'Mapping not found.');
         }
 
         // Remove mapping
-        unset($productMap[$tourId]);
+        unset($productMap[$productId]);
         $settings['product_map'] = $productMap;
 
         $provider->settings = $settings;

@@ -8,7 +8,7 @@ use Illuminate\Support\Carbon;
 use App\Models\Amenity;
 use App\Models\ItineraryItem;
 use App\Models\TourLanguage;
-use App\Models\TourType;
+use App\Models\ProductType;
 
 class InitialSetupSeeder extends Seeder
 {
@@ -61,7 +61,7 @@ class InitialSetupSeeder extends Seeder
             );
         }
 
-        // Tour Languages
+        // Product Languages
         $languages = [
             ['name' => 'Español', 'is_active' => true],
             ['name' => 'English', 'is_active' => true],
@@ -74,8 +74,8 @@ class InitialSetupSeeder extends Seeder
             );
         }
 
-        // Tour Types (with translations)
-        $tourTypes = [
+        // Product Types (with translations)
+        $productTypes = [
             [
                 'is_active'   => true,
                 'translations' => [
@@ -96,7 +96,7 @@ class InitialSetupSeeder extends Seeder
                 'translations' => [
                     'es' => [
                         'name' => 'Medio día',
-                        'description' => 'Tours ideales para una aventura rápida para quienes tienen poco tiempo o quieren realizar otras actividades en la tarde.',
+                        'description' => 'Productos ideales para una aventura rápida para quienes tienen poco tiempo o quieren realizar otras actividades en la tarde.',
                         'duration' => '4 horas',
                     ],
                     'en' => [
@@ -108,12 +108,12 @@ class InitialSetupSeeder extends Seeder
             ],
         ];
 
-        foreach ($tourTypes as $typeData) {
+        foreach ($productTypes as $typeData) {
             $translations = $typeData['translations'];
             unset($typeData['translations']);
 
-            // Create tour type with only is_active
-            $type = TourType::create(array_merge($typeData, ['created_at' => $now, 'updated_at' => $now]));
+            // Create product type with only is_active
+            $type = ProductType::create(array_merge($typeData, ['created_at' => $now, 'updated_at' => $now]));
 
             // Create translations
             foreach ($translations as $locale => $trans) {

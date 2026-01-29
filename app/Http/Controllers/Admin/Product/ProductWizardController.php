@@ -7,7 +7,7 @@ use App\Models\{
     Product,     // Was Tour
     ProductType, // Was TourType
     ProductLanguage,
-    ProductAuditLog, // Was TourAuditLog
+    ProductAuditLog, // Was ProductAuditLog
     Amenity,
     Schedule,
     Itinerary,
@@ -76,7 +76,7 @@ class ProductWizardController extends Controller
 
         $warning = $this->draftLimit->getWarningMessage($userId);
 
-        return view('admin.products.product-wizard.steps.details', [
+        return view('admin.products.wizard.steps.details', [
             'tour'           => null,
             'tourTypes'      => ProductType::active()->get(),
             'languages'      => ProductLanguage::where('is_active', true)->get(),
@@ -375,7 +375,7 @@ class ProductWizardController extends Controller
             }
 
             // 🆕 LOG DE AUDITORÍA
-            TourAuditLog::logAction(
+            ProductAuditLog::logAction(
                 action: 'bulk_action',
                 userId: $userId,
                 description: "Usuario eliminó {$deletedCount} borrador(es) en acción masiva",

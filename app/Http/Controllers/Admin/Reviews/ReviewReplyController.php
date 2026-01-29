@@ -30,7 +30,7 @@ class ReviewReplyController extends Controller
         $this->authorize('update', $review);
 
         // Carga segura de relaciones útiles
-        $review->loadMissing('user', 'tour', 'booking.user', 'booking.tour');
+        $review->loadMissing('user', 'product', 'booking.user', 'booking.product');
 
         // Resolver destinatario con la misma lógica del store
         [$to, $customerName] = $this->resolveRecipientAndName($review);
@@ -54,7 +54,7 @@ class ReviewReplyController extends Controller
         $admin = $request->user() ?? Auth::user();
 
         // Pre-carga relaciones útiles
-        $review->loadMissing('user', 'tour', 'booking.user', 'booking.tour');
+        $review->loadMissing('user', 'product', 'booking.user', 'booking.product');
 
         // Crear la respuesta (tu tabla usa 'public', NO 'is_public')
         $reply = new ReviewReply();
@@ -82,10 +82,10 @@ class ReviewReplyController extends Controller
                 // Asegurar que la reserva y su idioma estén cargados
                 $bk = $review->relationLoaded('booking')
                     ? $review->booking
-                    : Booking::with('tourLanguage')->find($review->booking_id);
+                    : Booking::with('productLanguage')->find($review->booking_id);
 
-                if ($bk && $bk->tourLanguage) {
-                    $langName = strtolower($bk->tourLanguage->name);
+                if ($bk && $bk->productLanguage) {
+                    $langName = strtolower($bk->productLanguage->name);
 
                     // Mapeo simple de nombres a códigos ISO
                     if (str_contains($langName, 'esp') || str_contains($langName, 'span')) {
@@ -111,21 +111,21 @@ class ReviewReplyController extends Controller
             // Se usa config o string fijo
             $adminName = config('app.name', 'Company Name');
 
-            // Resolver nombre del tour TRADUCIDO
+            // Resolver nombre del producto TRADUCIDO
             // 1. Intentar traducción con el locale detectado
-            // 2. Fallback al nombre default del tour
-            $tourName = null;
-            if ($review->tour) {
-                $tourTranslation = $review->tour->translate($locale);
-                $tourName = optional($tourTranslation)->name ?? $review->tour->name;
-            } elseif ($review->booking && $review->booking->tour) {
+            // 2. Fallback al nombre default del producto
+            $productName = null;
+            if ($review->product) {
+                $productTranslation = $review->product->translate($locale);
+                $productName = optional($productTranslation)->name ?? $review->product->name;
+            } elseif ($review->booking && $review->booking->product) {
                 // Caso raro donde review no tiene product_id directo pero booking sí (aunque normalmente van juntos)
-                $tourTranslation = $review->booking->tour->translate($locale);
-                $tourName = optional($tourTranslation)->name ?? $review->booking->tour->name;
+                $productTranslation = $review->booking->product->translate($locale);
+                $productName = optional($productTranslation)->name ?? $review->booking->product->name;
             }
 
             Mail::to(new Address($to, $customerName ?: null))
-                ->queue(new ReviewReplyNotification($reply, $adminName, $tourName, $customerName, $locale));
+                ->queue(new ReviewReplyNotification($reply, $adminName, $productName, $customerName, $locale));
 
             return redirect()
                 ->route('admin.reviews.replies.thread', $review)
@@ -148,7 +148,7 @@ class ReviewReplyController extends Controller
             'replies' => fn($q) => $q->orderBy('created_at'),
             'replies.admin:user_id,first_name,last_name',
             'user:user_id,first_name,last_name,email',
-            'booking.tour',
+            'booking.product',
         ]);
 
         return view('admin.reviews.replies.thread', compact('review'));
@@ -184,7 +184,7 @@ class ReviewReplyController extends Controller
      * 1) author_email / email en la review (si existen)
      * 2) email del usuario asociado a la review
      * 3) email de la reserva asociada (user->email o customer_email/email)
-     * 4) email de la última ReviewRequest del mismo user/tour
+     * 4) email de la última ReviewRequest del mismo user/product
      *
      * Orden de resolución del nombre:
      * 1) author_name de la review

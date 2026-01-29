@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Schedule Model
  *
- * Represents a time slot/schedule for tours.
+ * Represents a time slot/schedule for products.
  * Tours can have multiple schedules (morning, afternoon, etc.).
  *
  * @property int $schedule_id Primary key
@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Carbon\Carbon|null $deleted_at
  * @property int|null $deleted_by
  *
- * @property-read \Illuminate\Database\Eloquent\Collection|Tour[] $tours
+ * @property-read \Illuminate\Database\Eloquent\Collection|Product[] $products
  * @property-read User|null $deletedBy
  */
 class Schedule extends Model

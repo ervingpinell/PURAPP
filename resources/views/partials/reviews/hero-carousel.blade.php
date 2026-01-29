@@ -56,10 +56,10 @@ $seqByProvider = [];
     $date = !empty($r['date']) ? \Illuminate\Support\Carbon::parse($r['date'])->isoFormat('ll') : '';
     $isIndexable = !empty($r['indexable']);
 
-    $tourName = trim((string)($r['tour_name'] ?? ''));
-    $tourId = !empty($r['product_id']) ? (int)$r['product_id'] : null;
-    $tourSlug = trim((string)($r['tour_slug'] ?? ''));
-    $tourUrl = ($tourId && $tourSlug) ? localized_route('products.guided_tour.show', ['slug' => $tourSlug]) : '#';
+    $productName = trim((string)($r['product_name'] ?? ''));
+    $productId = !empty($r['product_id']) ? (int)$r['product_id'] : null;
+    $productSlug = trim((string)($r['product_slug'] ?? ''));
+    $productUrl = ($productId && $productSlug) ? localized_route('products.guided_tour.show', ['slug' => $productSlug]) : '#';
 
     $avatarUrl = $r['avatar_url'] ?? null;
 
@@ -71,9 +71,9 @@ $seqByProvider = [];
     <div class="carousel-item {{ $idx === 0 ? 'active' : '' }}">
       @if($isIndexable)
       <article class="hero-card">
-        @if($tourName !== '')
+        @if($productName !== '')
         <h3 class="tour-title-abs">
-          <a href="{{ $tourUrl ?? '#' }}" class="tour-link" data-id="{{ $tourId ?? '' }}" data-name="{{ $tourName }}">{{ $tourName }}</a>
+          <a href="{{ $productUrl ?? '#' }}" class="product-link" data-id="{{ $productId ?? '' }}" data-name="{{ $productName }}">{{ $productName }}</a>
         </h3>
         @endif
 
@@ -120,9 +120,9 @@ $seqByProvider = [];
       . '?layout=hero'
       . '&limit=' . urlencode($limit)
       . '&nth=' . urlencode($nth)
-      . ($tourId ? '&product_id=' . urlencode($tourId) : '')
-      . ($tourName ? '&tname=' . urlencode($tourName) : '')
-      . ($tourUrl ? '&turl=' . urlencode($tourUrl) : '')
+      . ($productId ? '&product_id=' . urlencode($productId) : '')
+      . ($productName ? '&tname=' . urlencode($productName) : '')
+      . ($productUrl ? '&turl=' . urlencode($productUrl) : '')
       . '&base=' . urlencode($baseIframeHeight)
       . '&uid=' . urlencode($uid);
       $shouldEager = $idx < $initialLoad;

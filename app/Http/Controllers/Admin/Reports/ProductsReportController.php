@@ -6,16 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingDetail;
 use App\Models\Product;
-use App\Models\TourType;
+use App\Models\ProductType;
 use App\Models\Schedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
- * ToursReportController
+ * ProductsReportController
  *
- * Handles tour performance analytics and reports
+ * Handles product performance analytics and reports
  */
 class ProductsReportController extends Controller
 {
@@ -31,7 +31,7 @@ class ProductsReportController extends Controller
             : Carbon::now()->endOfDay();
 
         $status = $request->input('status');
-        $tourIds = collect((array) $request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
+        $productIds = collect((array) $request->input('product_id', []))->filter()->map(fn($v) => (int)$v)->values()->all();
 
         // ====== Base Query ======
         $baseQuery = BookingDetail::query()
@@ -39,15 +39,15 @@ class ProductsReportController extends Controller
             ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
             ->whereBetween('bookings.created_at', [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
-            ->when(!empty($tourIds), fn($q) => $q->whereIn('booking_details.product_id', $tourIds));
+            ->when(!empty($productIds), fn($q) => $q->whereIn('booking_details.product_id', $productIds));
 
         // ====== KPIs ======
-        $totalTours = Product::where('is_active', true)->count();
+        $totalProducts = Product::where('is_active', true)->count();
 
-        $topToursByRevenue = (clone $baseQuery)
+        $topProductsByRevenue = (clone $baseQuery)
             ->selectRaw('
                 tours.product_id,
-                tours.name as tour_name,
+                tours.name as product_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
@@ -56,10 +56,10 @@ class ProductsReportController extends Controller
             ->limit(10)
             ->get();
 
-        $topToursByBookings = (clone $baseQuery)
+        $topProductsByBookings = (clone $baseQuery)
             ->selectRaw('
                 tours.product_id,
-                tours.name as tour_name,
+                tours.name as product_name,
                 COUNT(DISTINCT bookings.booking_id) as bookings,
                 SUM(booking_details.total) as revenue
             ')
@@ -69,56 +69,56 @@ class ProductsReportController extends Controller
             ->get();
 
         // Tours by type
-        $toursByType = (clone $baseQuery)
+        $productsByType = (clone $baseQuery)
             ->join('tour_types', 'tour_types.tour_type_id', '=', 'tours.tour_type_id')
             ->selectRaw('
                 tour_types.tour_type_id,
-                COUNT(DISTINCT tours.product_id) as tour_count,
+                COUNT(DISTINCT tours.product_id) as product_count,
                 COUNT(DISTINCT bookings.booking_id) as bookings,
                 SUM(booking_details.total) as revenue
             ')
             ->groupBy('tour_types.tour_type_id')
             ->get();
 
-        // Calculate PAX for top tours
-        $topToursByRevenue = $topToursByRevenue->map(function ($tour) use ($from, $to, $status) {
+        // Calculate PAX for top products
+        $topProductsByRevenue = $topProductsByRevenue->map(function ($product) use ($from, $to, $status) {
             $details = BookingDetail::query()
                 ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
-                ->where('booking_details.product_id', $tour->product_id)
+                ->where('booking_details.product_id', $product->product_id)
                 ->whereBetween('bookings.created_at', [$from, $to])
                 ->when($status, fn($q) => $q->where('bookings.status', $status))
                 ->select('booking_details.categories')
                 ->get();
 
-            $tour->pax = $details->sum(function ($detail) {
+            $product->pax = $details->sum(function ($detail) {
                 $cats = is_string($detail->categories) ? json_decode($detail->categories, true) : $detail->categories;
                 return collect($cats ?? [])->sum(fn($c) => (int)($c['quantity'] ?? 0));
             });
-            return $tour;
+            return $product;
         });
 
         $kpis = [
-            'total_active_tours' => $totalTours,
-            'tours_with_bookings' => $topToursByRevenue->count(),
-            'most_profitable_tour' => $topToursByRevenue->first()?->tour_name ?? 'N/A',
-            'most_booked_tour' => $topToursByBookings->first()?->tour_name ?? 'N/A',
+            'total_active_products' => $totalProducts,
+            'products_with_bookings' => $topProductsByRevenue->count(),
+            'most_profitable_product' => $topProductsByRevenue->first()?->tour_name ?? 'N/A',
+            'most_booked_product' => $topProductsByBookings->first()?->tour_name ?? 'N/A',
         ];
 
-        return view('admin.reports.tours', compact(
+        return view('admin.reports.products', compact(
             'from',
             'to',
             'status',
             'kpis',
-            'topToursByRevenue',
-            'topToursByBookings',
-            'toursByType'
+            'topProductsByRevenue',
+            'topProductsByBookings',
+            'productsByType'
         ));
     }
 
     /**
-     * Chart: Top tours by revenue (horizontal bar chart)
+     * Chart: Top products by revenue (horizontal bar chart)
      */
-    public function chartTopToursByRevenue(Request $request)
+    public function chartTopProductsByRevenue(Request $request)
     {
         $from = Carbon::parse($request->input('from', now()->copy()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
@@ -131,7 +131,7 @@ class ProductsReportController extends Controller
             ->whereBetween('bookings.created_at', [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->selectRaw('
-                tours.name as tour_name,
+                tours.name as product_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
@@ -141,16 +141,16 @@ class ProductsReportController extends Controller
             ->get();
 
         return response()->json([
-            'labels' => $data->pluck('tour_name'),
+            'labels' => $data->pluck('product_name'),
             'revenue' => $data->pluck('revenue')->map(fn($v) => round((float)$v, 2)),
             'bookings' => $data->pluck('bookings'),
         ]);
     }
 
     /**
-     * Chart: Top tours by bookings (horizontal bar chart)
+     * Chart: Top products by bookings (horizontal bar chart)
      */
-    public function chartTopToursByBookings(Request $request)
+    public function chartTopProductsByBookings(Request $request)
     {
         $from = Carbon::parse($request->input('from', now()->copy()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
@@ -163,7 +163,7 @@ class ProductsReportController extends Controller
             ->whereBetween('bookings.created_at', [$from, $to])
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->selectRaw('
-                tours.name as tour_name,
+                tours.name as product_name,
                 COUNT(DISTINCT bookings.booking_id) as bookings,
                 SUM(booking_details.total) as revenue
             ')
@@ -173,7 +173,7 @@ class ProductsReportController extends Controller
             ->get();
 
         return response()->json([
-            'labels' => $data->pluck('tour_name'),
+            'labels' => $data->pluck('product_name'),
             'bookings' => $data->pluck('bookings'),
             'revenue' => $data->pluck('revenue')->map(fn($v) => round((float)$v, 2)),
         ]);
@@ -182,7 +182,7 @@ class ProductsReportController extends Controller
     /**
      * Chart: Tour performance matrix (scatter plot: revenue vs bookings)
      */
-    public function chartTourPerformanceMatrix(Request $request)
+    public function chartProductPerformanceMatrix(Request $request)
     {
         $from = Carbon::parse($request->input('from', now()->copy()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
@@ -195,7 +195,7 @@ class ProductsReportController extends Controller
             ->when($status, fn($q) => $q->where('bookings.status', $status))
             ->selectRaw('
                 tours.product_id,
-                tours.name as tour_name,
+                tours.name as product_name,
                 SUM(booking_details.total) as revenue,
                 COUNT(DISTINCT bookings.booking_id) as bookings
             ')
@@ -204,18 +204,18 @@ class ProductsReportController extends Controller
             ->get();
 
         return response()->json([
-            'data' => $data->map(fn($tour) => [
-                'x' => (int) $tour->bookings,
-                'y' => round((float) $tour->revenue, 2),
-                'label' => $tour->tour_name,
+            'data' => $data->map(fn($product) => [
+                'x' => (int) $product->bookings,
+                'y' => round((float) $product->revenue, 2),
+                'label' => $product->tour_name,
             ]),
         ]);
     }
 
     /**
-     * Chart: Bookings by tour type (donut chart)
+     * Chart: Bookings by product type (donut chart)
      */
-    public function chartBookingsByTourType(Request $request)
+    public function chartBookingsByProductType(Request $request)
     {
         $from = Carbon::parse($request->input('from', now()->copy()->startOfMonth()))->startOfDay();
         $to = Carbon::parse($request->input('to', now()))->endOfDay();
@@ -237,7 +237,7 @@ class ProductsReportController extends Controller
             ->get();
 
         // Get type names with translations
-        $typeNames = TourType::query()
+        $typeNames = ProductType::query()
             ->get()
             ->mapWithKeys(fn($type) => [$type->tour_type_id => $type->translated]);
 
@@ -249,7 +249,7 @@ class ProductsReportController extends Controller
     }
 
     /**
-     * Chart: Capacity utilization by tour
+     * Chart: Capacity utilization by product
      */
     public function chartCapacityUtilization(Request $request)
     {
@@ -258,18 +258,18 @@ class ProductsReportController extends Controller
         $limit = (int) $request->input('limit', 15);
 
         // Get bookings with PAX
-        $tourBookings = BookingDetail::query()
+        $productBookings = BookingDetail::query()
             ->join('bookings', 'bookings.booking_id', '=', 'booking_details.booking_id')
             ->join('tours', 'tours.product_id', '=', 'booking_details.product_id')
             ->whereBetween('bookings.created_at', [$from, $to])
             ->whereIn('bookings.status', ['confirmed', 'paid', 'completed'])
-            ->select('tours.product_id', 'tours.name as tour_name', 'tours.max_capacity', 'booking_details.categories')
+            ->select('tours.product_id', 'tours.name as product_name', 'tours.max_capacity', 'booking_details.categories')
             ->get()
             ->groupBy('product_id');
 
-        $utilizationData = $tourBookings->map(function ($bookings, $tourId) {
-            $tour = $bookings->first();
-            $maxCapacity = $tour->max_capacity ?? 0;
+        $utilizationData = $productBookings->map(function ($bookings, $productId) {
+            $product = $bookings->first();
+            $maxCapacity = $product->max_capacity ?? 0;
 
             $totalPax = $bookings->sum(function ($detail) {
                 $cats = is_string($detail->categories) ? json_decode($detail->categories, true) : $detail->categories;
@@ -279,7 +279,7 @@ class ProductsReportController extends Controller
             $utilization = $maxCapacity > 0 ? ($totalPax / $maxCapacity) * 100 : 0;
 
             return [
-                'tour_name' => $tour->tour_name,
+                'product_name' => $product->tour_name,
                 'utilization' => round($utilization, 2),
                 'booked_pax' => $totalPax,
                 'max_capacity' => $maxCapacity,
@@ -287,7 +287,7 @@ class ProductsReportController extends Controller
         })->sortByDesc('utilization')->take($limit)->values();
 
         return response()->json([
-            'labels' => $utilizationData->pluck('tour_name'),
+            'labels' => $utilizationData->pluck('product_name'),
             'utilization' => $utilizationData->pluck('utilization'),
             'booked_pax' => $utilizationData->pluck('booked_pax'),
             'max_capacity' => $utilizationData->pluck('max_capacity'),

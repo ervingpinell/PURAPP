@@ -22,13 +22,13 @@ use Intervention\Image\Encoders\WebpEncoder;
 use App\Services\LoggerHelper;
 
 /**
- * TourImageController
+ * ProductImageController
  *
- * Handles tourimage operations.
+ * Handles productimage operations.
  */
 class ProductImageController extends Controller
 {
-    /** List images for a tour. */
+    /** List images for a product. */
     public function index(Product $product)
     {
         try {
@@ -53,7 +53,7 @@ class ProductImageController extends Controller
         }
     }
 
-    /** Upload images for a tour (respecting per-tour limit) and convert to WebP. */
+    /** Upload images for a product (respecting per-product limit) and convert to WebP. */
     public function store(Request $request, Product $product)
     {
         try {
@@ -175,7 +175,7 @@ class ProductImageController extends Controller
                 $validFiles[] = $file;
             }
 
-            $storageFolder   = "tours/{$product->product_id}/gallery";
+            $storageFolder   = "products/{$product->product_id}/gallery";
             $nextPosition    = (int) ($product->images()->max('position') ?? 0);
             $createdCount    = 0;
             $newImageRecords = [];
@@ -246,7 +246,7 @@ class ProductImageController extends Controller
             }
 
 
-            LoggerHelper::mutated('TourImageController', 'store', 'Tour', $product->product_id, ['count' => $createdCount]);
+            LoggerHelper::mutated('ProductImageController', 'store', 'Product', $product->product_id, ['count' => $createdCount]);
 
             // 6. Construir mensaje de respuesta con SweetAlert
             
@@ -329,7 +329,7 @@ class ProductImageController extends Controller
 
             $image->update($data);
 
-            LoggerHelper::mutated('TourImageController', 'update', 'TourImage', $image->id);
+            LoggerHelper::mutated('ProductImageController', 'update', 'ProductImage', $image->id);
 
             return back()->with('swal', [
                 'icon'  => 'success',
@@ -387,7 +387,7 @@ class ProductImageController extends Controller
                 }
             }
 
-            LoggerHelper::mutated('TourImageController', 'destroy', 'TourImage', $image->id);
+            LoggerHelper::mutated('ProductImageController', 'destroy', 'ProductImage', $image->id);
 
             return back()->with('swal', [
                 'icon'  => 'success',
@@ -431,7 +431,7 @@ class ProductImageController extends Controller
                 }
             });
 
-            LoggerHelper::mutated('TourImageController', 'reorder', 'Tour', $product->product_id);
+            LoggerHelper::mutated('ProductImageController', 'reorder', 'Product', $product->product_id);
 
             return $this->reorderResponse($request, true, __('m_tours.image.order_saved'));
         } catch (Throwable $e) {
@@ -469,7 +469,7 @@ class ProductImageController extends Controller
                 $image->update(['is_cover' => true]);
             });
 
-            LoggerHelper::mutated('TourImageController', 'setCover', 'TourImage', $image->id);
+            LoggerHelper::mutated('ProductImageController', 'setCover', 'ProductImage', $image->id);
 
             return back()->with('swal', [
                 'icon'  => 'success',
@@ -492,14 +492,14 @@ class ProductImageController extends Controller
         }
     }
 
-    /** Picker: list tours to manage their images. */
+    /** Picker: list products to manage their images. */
     public function pick(Request $request)
     {
         try {
             $q = trim((string) $request->query('q', ''));
             $locale = app()->getLocale();
 
-            $tours = Product::select('product_id', 'name')
+            $products = Product::select('product_id', 'name')
                 ->with(['coverImage:id,product_id,path,is_cover'])
                 ->when($q !== '', function ($query) use ($q) {
                     $query->where(function ($sub) use ($q) {
@@ -514,23 +514,23 @@ class ProductImageController extends Controller
                 ->withQueryString();
 
             // Compute cover_url
-            $tours->getCollection()->transform(function ($product) {
+            $products->getCollection()->transform(function ($product) {
                 $product->cover_url = optional($product->coverImage)->url ?? asset('images/volcano.png');
                 return $product;
             });
 
             return view('admin.products.images.pick', [
-                'items'         => $tours,
+                'items'         => $products,
                 'q'             => $q,
                 'idField'       => 'product_id',
                 'nameField'     => 'name',
                 'coverAccessor' => 'cover_url',
                 'manageRoute'   => 'admin.products.images.index',
-                'requiredPermission' => 'view-tour-images',
+                'requiredPermission' => 'view-product-images',
                 'i18n'          => [
                     'title'   => __('m_tours.image.ui.page_title_pick'),
                     'heading' => __('m_tours.image.ui.page_heading'),
-                    'choose'  => __('m_tours.image.ui.choose_tour'),
+                    'choose'  => __('m_tours.image.ui.choose_product'),
                 ],
             ]);
         } catch (Throwable $e) {
@@ -548,10 +548,10 @@ class ProductImageController extends Controller
     }
 
     /** Helper: find a "cover-like" image from storage if no DB cover is set. */
-    protected function coverFromStorage(int $tourId): string
+    protected function coverFromStorage(int $productId): string
     {
         try {
-            $folder = "tours/{$tourId}/gallery";
+            $folder = "products/{$productId}/gallery";
             if (!Storage::disk('public')->exists($folder)) {
                 return asset('images/volcano.png');
             }
@@ -566,7 +566,7 @@ class ProductImageController extends Controller
             return $first ? asset('storage/' . $first) : asset('images/volcano.png');
         } catch (Throwable $e) {
             Log::warning('coverFromStorage failed; returning default', [
-                'product_id' => $tourId,
+                'product_id' => $productId,
                 'error'   => $e->getMessage(),
             ]);
             return asset('images/volcano.png');
@@ -579,7 +579,7 @@ class ProductImageController extends Controller
 
     /**
      * Convierte /storage/... a ruta relativa del disco 'public'
-     * p.ej. /storage/tours/1/gallery/img.webp -> tours/1/gallery/img.webp
+     * p.ej. /storage/products/1/gallery/img.webp -> products/1/gallery/img.webp
      */
     private function pathFromUrl(?string $url): ?string
     {
@@ -611,7 +611,7 @@ class ProductImageController extends Controller
             ]);
         }
 
-        // Solo imágenes del tour actual
+        // Solo imágenes del producto actual
         $images = ProductImage::query()
             ->where('product_id', $product->getKey())
             ->whereIn('id', $ids->all())
@@ -640,7 +640,7 @@ class ProductImageController extends Controller
             ProductImage::whereIn('id', $images->pluck('id'))->delete();
         });
 
-        LoggerHelper::mutated('TourImageController', 'bulkDestroy', 'Tour', $product->product_id, ['count' => $images->count()]);
+        LoggerHelper::mutated('ProductImageController', 'bulkDestroy', 'Product', $product->product_id, ['count' => $images->count()]);
 
         return back()->with('swal', [
             'icon'  => 'success',
@@ -651,7 +651,7 @@ class ProductImageController extends Controller
 
     /**
      * DELETE admin.tours.images.destroyAll
-     * Elimina TODAS las imágenes del tour.
+     * Elimina TODAS las imágenes del producto.
      */
     public function destroyAll(Request $request, Product $product)
     {
@@ -663,11 +663,11 @@ class ProductImageController extends Controller
             return back()->with('swal', [
                 'icon'  => 'info',
                 'title' => __('m_tours.image.notice'),
-                'text'  => __('Este tour no tiene imágenes para eliminar.'),
+                'text'  => __('Este producto no tiene imágenes para eliminar.'),
             ]);
         }
 
-        DB::transaction(function () use ($images, $tour) {
+        DB::transaction(function () use ($images, $product) {
             // Borrar archivos físicos
             $paths = $images->map(function ($img) {
                 return $img->path ?: $this->pathFromUrl($img->url ?? null);
@@ -681,12 +681,12 @@ class ProductImageController extends Controller
             ProductImage::where('product_id', $product->getKey())->delete();
         });
 
-        LoggerHelper::mutated('TourImageController', 'destroyAll', 'Tour', $product->product_id);
+        LoggerHelper::mutated('ProductImageController', 'destroyAll', 'Product', $product->product_id);
 
         return back()->with('swal', [
             'icon'  => 'success',
             'title' => __('m_tours.image.deleted'),
-            'text'  => __('Se eliminaron todas las imágenes del tour.'),
+            'text'  => __('Se eliminaron todas las imágenes del producto.'),
         ]);
     }
 

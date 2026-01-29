@@ -17,11 +17,11 @@
 </style>
 
 <div class="accordion" id="tourDetailsAccordion">
-  @include('partials.tour.accordion-itinerary', ['tour' => $tour])
-  @include('partials.tour.accordion-included', ['tour' => $tour])
-  @include('partials.tour.accordion-hotels', ['tour' => $tour, 'hotels' => $hotels])
-  @include('partials.tour.accordion-policies', [
-    'tour'         => $tour,
+  @include('partials.product.accordion-itinerary', ['product' => $product])
+  @include('partials.product.accordion-included', ['product' => $product])
+  @include('partials.product.accordion-hotels', ['product' => $product, 'hotels' => $hotels])
+  @include('partials.product.accordion-policies', [
+    'product'      => $product,
     'cancelPolicy' => $cancelPolicy ?? null,
     'refundPolicy' => $refundPolicy ?? null,
   ])

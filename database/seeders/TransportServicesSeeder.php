@@ -5,11 +5,11 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
-use App\Models\Tour;
-use App\Models\TourPrice;
-use App\Models\TourTranslation;
+use App\Models\Product;
+use App\Models\ProductPrice;
+use App\Models\ProductTranslation;
 use App\Models\CustomerCategory;
-use App\Models\TourType;
+use App\Models\ProductType;
 
 class TransportServicesSeeder extends Seeder
 {
@@ -32,8 +32,8 @@ class TransportServicesSeeder extends Seeder
             $this->command->warn('⚠️  DeepL API key not configured. Skipping translations.');
         }
 
-        // Crear o obtener TourType "Transporte"
-        // Check if TourType with "Transporte" translation already exists
+        // Crear o obtener ProductType "Transporte"
+        // Check if ProductType with "Transporte" translation already exists
         $transportType = DB::table('tour_type_translations')
             ->where('locale', 'es')
             ->where('name', 'Transporte')
@@ -41,9 +41,9 @@ class TransportServicesSeeder extends Seeder
 
         if ($transportType) {
             $transportTypeId = $transportType->tour_type_id;
-            $this->command->info("✅ TourType 'Transporte' found with ID: {$transportTypeId}");
+            $this->command->info("✅ ProductType 'Transporte' found with ID: {$transportTypeId}");
         } else {
-            // Create new TourType
+            // Create new ProductType
             $transportTypeId = DB::table('tour_types')->insertGetId([
                 'is_active' => true,
                 'created_at' => $now,
@@ -72,25 +72,25 @@ class TransportServicesSeeder extends Seeder
                 'updated_at' => $now,
             ]);
 
-            $this->command->info("✅ TourType 'Transporte' created with ID: {$transportTypeId}");
+            $this->command->info("✅ ProductType 'Transporte' created with ID: {$transportTypeId}");
         }
 
-        // Helper para crear tour con traducción en español
-        $createTour = function (string $name, string $overview, array $tourData) use ($now): Tour {
-            $tourData['name'] = $name;
-            $tourData['overview'] = $overview;
+        // Helper para crear producto con traducción en español
+        $createProduct = function (string $name, string $overview, array $productData) use ($now): Product {
+            $productData['name'] = $name;
+            $productData['overview'] = $overview;
 
-            $tour = Tour::create($tourData);
+            $product = Product::create($productData);
 
             // Create Spanish translation
-            TourTranslation::create([
-                'tour_id' => $tour->tour_id,
+            ProductTranslation::create([
+                'tour_id' => $product->tour_id,
                 'locale' => 'es',
                 'name' => $name,
                 'overview' => $overview,
             ]);
 
-            return $tour;
+            return $product;
         };
 
         // Definir rutas de transporte: [destino, precio]
@@ -109,10 +109,10 @@ class TransportServicesSeeder extends Seeder
         ];
 
         foreach ($routes as [$destination, $basePrice]) {
-            $tourName = "Transporte Privado: La Fortuna → {$destination}";
+            $productName = "Transporte Privado: La Fortuna → {$destination}";
             $overview = "Servicio de transporte privado desde La Fortuna hasta {$destination}. Viaje cómodo, seguro y puntual con conductor profesional. Horario flexible según su conveniencia.";
 
-            $tour = $createTour($tourName, $overview, [
+            $product = $createProduct($productName, $overview, [
                 'length' => 0, // Sin duración específica
                 'max_capacity' => 8, // Capacidad típica de vehículo
                 'group_size' => 8,
@@ -127,22 +127,22 @@ class TransportServicesSeeder extends Seeder
             ]);
 
             // Traducir a inglés
-            $this->translateTour($tour, ['en']);
+            $this->translateProduct($product, ['en']);
 
             // Crear precios por número de personas (1-8 pasajeros)
             // El precio base es para 1-4 personas, luego incrementa
-            $this->createTransportPrices($tour, $basePrice);
+            $this->createTransportPrices($product, $basePrice);
 
             // Idiomas: Español e Inglés
             DB::table('tour_language_tour')->insert([
-                ['tour_id' => $tour->tour_id, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now], // Español
-                ['tour_id' => $tour->tour_id, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now], // Inglés
+                ['tour_id' => $product->tour_id, 'tour_language_id' => 1, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now], // Español
+                ['tour_id' => $product->tour_id, 'tour_language_id' => 2, 'is_active' => true, 'created_at' => $now, 'updated_at' => $now], // Inglés
             ]);
 
             // Amenidades básicas de transporte
             foreach ([1, 2] as $amenityId) { // Guía y transporte
                 DB::table('amenity_tour')->insert([
-                    'tour_id' => $tour->tour_id,
+                    'tour_id' => $product->tour_id,
                     'amenity_id' => $amenityId,
                     'is_active' => true,
                     'created_at' => $now,
@@ -150,38 +150,38 @@ class TransportServicesSeeder extends Seeder
                 ]);
             }
 
-            $this->command->info("✅ Created transport: {$tourName}");
+            $this->command->info("✅ Created transport: {$productName}");
         }
 
         $this->command->info('✅ All transport services seeded successfully');
     }
 
     /**
-     * Translate tour name and overview to target locales using DeepL
+     * Translate product name and overview to target locales using DeepL
      */
-    private function translateTour(Tour $tour, array $targetLocales): void
+    private function translateProduct(Tour $product, array $targetLocales): void
     {
         if (!$this->translator) {
-            $this->command->warn("⚠️  Skipping translations for tour: {$tour->name}");
+            $this->command->warn("⚠️  Skipping translations for product: {$product->name}");
             return;
         }
 
         foreach ($targetLocales as $locale) {
             try {
                 $translatedName = $this->translator->translateText(
-                    $tour->name,
+                    $product->name,
                     'es',
                     $locale
                 )->text;
 
                 $translatedOverview = $this->translator->translateText(
-                    $tour->overview,
+                    $product->overview,
                     'es',
                     $locale
                 )->text;
 
-                TourTranslation::create([
-                    'tour_id' => $tour->tour_id,
+                ProductTranslation::create([
+                    'tour_id' => $product->tour_id,
                     'locale' => $locale,
                     'name' => $translatedName,
                     'overview' => $translatedOverview,
@@ -198,7 +198,7 @@ class TransportServicesSeeder extends Seeder
      * Create transport prices based on number of passengers
      * Price structure: base price for 1-4 pax, +25% for 5-6 pax, +50% for 7-8 pax
      */
-    private function createTransportPrices(Tour $tour, float $basePrice): void
+    private function createTransportPrices(Tour $product, float $basePrice): void
     {
         // Get adult category (standard passenger)
         $adultCategory = CustomerCategory::where('slug', 'adult')->first();
@@ -216,8 +216,8 @@ class TransportServicesSeeder extends Seeder
         ];
 
         foreach ($priceTiers as $tier) {
-            TourPrice::create([
-                'tour_id' => $tour->tour_id,
+            ProductPrice::create([
+                'tour_id' => $product->tour_id,
                 'category_id' => $adultCategory->category_id,
                 'price' => $tier['price'],
                 'is_active' => true,

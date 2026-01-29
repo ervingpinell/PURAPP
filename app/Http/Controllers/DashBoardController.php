@@ -119,7 +119,7 @@ class DashBoardController extends Controller
 
         // ===== Métricas básicas =====
         $totalUsers          = User::count();
-        $totalTours          = Product::count();
+        $totalProducts       = Product::count();
         $totalRoles          = Role::count();
         $totalProductTypes      = ProductType::count();
         $totalLanguages      = ProductLanguage::count();
@@ -136,7 +136,7 @@ class DashBoardController extends Controller
         $tomorrow  = Carbon::now($tz)->addDay()->toDateString();
         $tomorrowC = Carbon::now($tz)->addDay();
 
-        $upcomingBookings = Booking::with(['user', 'detail.tour'])
+        $upcomingBookings = Booking::with(['user', 'detail.product'])
             ->whereHas('detail', fn($q) => $q->whereDate('tour_date', $tomorrow))
             ->orderBy('booking_date')
             ->get();
@@ -148,7 +148,7 @@ class DashBoardController extends Controller
         // Traemos TODO: booking completo + detail con categories
         $details = BookingDetail::with([
             'booking', // Traer toda la info del booking
-            'tour:product_id,name',
+            'product:product_id,name',
             'schedule:schedule_id,start_time',
         ])
             ->whereHas('booking', fn($q) => $q->whereIn('status', ['confirmed', 'paid']))
@@ -156,8 +156,8 @@ class DashBoardController extends Controller
             ->whereDate('tour_date', '<=', $end)
             ->get(); // Traer TODO, no solo campos específicos
 
-        // Pre-caches de Tour y Schedule para evitar N+1
-        $tourCache     = Product::whereIn('product_id', $details->pluck('product_id')->unique())->get()->keyBy('product_id');
+        // Pre-caches de Product y Schedule para evitar N+1
+        $productCache  = Product::whereIn('product_id', $details->pluck('product_id')->unique())->get()->keyBy('product_id');
         $scheduleCache = Schedule::whereIn('schedule_id', $details->pluck('schedule_id')->unique())->get()->keyBy('schedule_id');
 
         // LOG temporal para debug
@@ -177,7 +177,7 @@ class DashBoardController extends Controller
                     'product_id'     => (int) $d->product_id,
                     'schedule_id' => (int) $d->schedule_id,
                     'date'        => $date,
-                    'tour_name'   => optional($d->tour)->name ?? '—',
+                    'product_name' => optional($d->product)->name ?? '—',
                     'used'        => 0,
                     'detail_ids'  => [], // Para debug
                 ];
@@ -220,7 +220,7 @@ class DashBoardController extends Controller
             'total_buckets' => count($buckets),
             'buckets' => array_map(fn($b) => [
                 'key' => $b['product_id'] . '|' . $b['schedule_id'] . '|' . $b['date'],
-                'tour' => $b['tour_name'],
+                'product' => $b['product_name'],
                 'used' => $b['used'],
                 'detail_count' => count($b['detail_ids']),
             ], $buckets),
@@ -229,14 +229,14 @@ class DashBoardController extends Controller
         // Construir alertas consultando la CAPACIDAD EFECTIVA
         $alerts = collect();
         foreach ($buckets as $g) {
-            $tour     = $tourCache->get($g['product_id']);
+            $product  = $productCache->get($g['product_id']);
             $schedule = $scheduleCache->get($g['schedule_id']);
-            if (!$tour || !$schedule) {
+            if (!$product || !$schedule) {
                 continue;
             }
 
             // Snapshot con lógica centralizada
-            $snap = $capacity->capacitySnapshot($tour, $schedule, $g['date']);
+            $snap = $capacity->capacitySnapshot($product, $schedule, $g['date']);
 
             // Usados confirmados + capacidad máxima vigente
             $used = (int) $g['used'];
@@ -260,7 +260,7 @@ class DashBoardController extends Controller
                 'product_id'     => (int) $g['product_id'],
                 'schedule_id' => (int) $g['schedule_id'],
                 'date'        => (string) $g['date'],
-                'tour'        => (string) $g['tour_name'],
+                'product'     => (string) $g['product_name'],
                 'used'        => $used,
                 'max'         => $max,
                 'remaining'   => $remaining,
@@ -269,16 +269,16 @@ class DashBoardController extends Controller
             ]);
         }
 
-        // Orden por fecha y nombre de tour
+        // Orden por fecha y nombre de producto
         $alerts = $alerts->sortBy([
             ['date', 'asc'],
-            ['tour', 'asc'],
+            ['product', 'asc'],
         ])->values();
 
         $criticalCount = $alerts->whereIn('type', ['near_capacity', 'sold_out'])->count();
 
         // ===== Phase 9: Unpaid Bookings Notifications =====
-        $unpaidBookings = Booking::with(['user', 'tour'])
+        $unpaidBookings = Booking::with(['user', 'product'])
             ->where('is_paid', false)
             ->where('status', 'pending')
             ->whereNotNull('pending_expires_at')
@@ -296,7 +296,7 @@ class DashBoardController extends Controller
 
         return view('admin.dashboard', compact(
             'totalUsers',
-            'totalTours',
+            'totalProducts',
             'totalRoles',
             'totalProductTypes',
             'totalLanguages',

@@ -14,7 +14,7 @@ class ReviewReplyNotification extends Mailable implements ShouldQueue
 
     public ReviewReply $reply;
     public string $adminName;
-    public ?string $tourName;
+    public ?string $productName;
     public ?string $customerName;
     public ?string $localeOverride;
 
@@ -23,20 +23,20 @@ class ReviewReplyNotification extends Mailable implements ShouldQueue
     /**
      * @param ReviewReply $reply
      * @param string      $adminName      Nombre del admin que responde
-     * @param string|null $tourName       Nombre del tour (opcional)
+     * @param string|null $productName       Nombre del producto (opcional)
      * @param string|null $customerName   Nombre del cliente (opcional)
      * @param string|null $locale         Locale forzado (opcional, ej. 'es', 'en')
      */
     public function __construct(
         ReviewReply $reply,
         string $adminName,
-        ?string $tourName = null,
+        ?string $productName = null,
         ?string $customerName = null,
         ?string $locale = null
     ) {
         $this->reply          = $reply->loadMissing('review');
         $this->adminName      = $adminName;
-        $this->tourName       = $tourName;
+        $this->productName       = $productName;
         $this->customerName   = $customerName;
         $this->localeOverride = $locale;
 
@@ -53,8 +53,8 @@ class ReviewReplyNotification extends Mailable implements ShouldQueue
         // Ajusta la key según tu lang:
         // ej: "Hemos respondido a tu reseña" / "We've replied to your review"
         $subject = __('reviews.emails.reply.subject', [], $loc);
-        if ($this->tourName) {
-            $subject .= ' — ' . $this->tourName;
+        if ($this->productName) {
+            $subject .= ' — ' . $this->productName;
         }
 
         // ===== FROM / REPLY-TO =====
@@ -84,7 +84,7 @@ class ReviewReplyNotification extends Mailable implements ShouldQueue
             ->view('emails.reviews.reply')
             ->with([
                 'adminName'    => $this->adminName,
-                'tourName'     => $this->tourName,
+                'productName'     => $this->productName,
                 'customerName' => $this->customerName,
                 'body'         => $this->reply->body,
                 'mailLocale'   => $loc,
@@ -96,7 +96,7 @@ class ReviewReplyNotification extends Mailable implements ShouldQueue
             ])
             ->text('emails.reviews.reply_text', [
                 'adminName'    => $this->adminName,
-                'tourName'     => $this->tourName,
+                'productName'     => $this->productName,
                 'customerName' => $this->customerName,
                 'body'         => $this->reply->body,
             ]);

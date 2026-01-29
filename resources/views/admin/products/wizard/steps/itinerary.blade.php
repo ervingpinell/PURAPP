@@ -588,7 +588,7 @@ $oldItems = old('items', []);
         </div>
     </div>
 
-    <form id="tour-itinerary-form" method="POST" action="{{ route('admin.products.product-wizard.store.itinerary', $product) }}">
+    <form id="tour-itinerary-form" method="POST" action="{{ route('admin.products.wizard.store.itinerary', $product) }}">
         @csrf
 
         {{-- Botones de acción --}}
@@ -929,7 +929,7 @@ $oldItems = old('items', []);
             {{-- FOOTER NAVEGACIÓN + CANCELAR DRAFT --}}
             <div class="card-footer navigation-footer">
                 <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ route('admin.products.product-wizard.step', ['product' => $product, 'step' => 1]) }}"
+                    <a href="{{ route('admin.products.wizard.step', ['product' => $product, 'step' => 1]) }}"
                         class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         {{ __('m_tours.common.previous') }}
@@ -959,7 +959,7 @@ $oldItems = old('items', []);
     {{-- FORM OCULTO PARA ELIMINAR DRAFT --}}
     @if($product->is_draft)
     <form id="delete-draft-form"
-        action="{{ route('admin.products.product-wizard.delete-draft', $product) }}"
+        action="{{ route('admin.products.wizard.delete-draft', $product) }}"
         method="POST"
         style="display:none;">
         @csrf
@@ -974,7 +974,7 @@ $oldItems = old('items', []);
         <form class="modal-content"
             id="formCreateItineraryItem"
             method="POST"
-            action="{{ route('admin.products.product-wizard.quick.itinerary-item') }}">
+            action="{{ route('admin.products.wizard.quick.itinerary-item') }}">
             @csrf
             <div class="modal-header">
                 <h5 class="modal-title">

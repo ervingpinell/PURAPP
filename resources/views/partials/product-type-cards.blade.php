@@ -19,9 +19,9 @@ if ($len <= 0) return 1;
   return min($max, max($min, $maxRows));
   }
 
-  $coverFromFolder = function (?int $tourId): string {
-  if (!$tourId) return asset('images/volcano.png');
-  $folder = "tours/{$tourId}/gallery";
+  $coverFromFolder = function (?int $productId): string {
+  if (!$productId) return asset('images/volcano.png');
+  $folder = "tours/{$productId}/gallery";
   if (!Storage::disk('public')->exists($folder)) return asset('images/volcano.png');
 
   $allowed = ['jpg','jpeg','png','webp'];
@@ -48,7 +48,7 @@ if ($len <= 0) return 1;
 
     @foreach ($typeMeta as $key => $meta)
     @php
-    $group = $toursByType[$key] ?? collect();
+    $group = $productsByType[$key] ?? collect();
     if ($group->isEmpty()) continue;
 
     $first = $group->first();
@@ -116,16 +116,16 @@ if ($len <= 0) return 1;
           <div class="modal-body">
             <div class="container-fluid px-2 px-sm-3">
               <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 justify-content-center tour-grid">
-                @foreach ($group as $tour)
+                @foreach ($group as $product)
                 @php
-                $tourCover = optional($tour->coverImage)->url
-                ?? $coverFromFolder($tour->product_id ?? $tour->id ?? null);
+                $productCover = optional($product->coverImage)->url
+                ?? $coverFromFolder($product->product_id ?? $product->id ?? null);
 
                 $unitLabel = __('adminlte::adminlte.horas');
                 $durLabel = __('adminlte::adminlte.duration');
 
                 // NUEVO: Usar activePricesForDate para obtener SOLO UN PRECIO por categoría
-                $activeCategories = $tour->activePricesForDate(now())
+                $activeCategories = $product->activePricesForDate(now())
                 ->sortBy('category_id')
                 ->values();
 
@@ -161,24 +161,24 @@ if ($len <= 0) return 1;
                   <div class="tour-modal-card-vertical h-100 w-100">
                     {{-- Badges arriba --}}
                     <div class="tour-badges">
-                      @if(!empty($tour->length))
-                      <span class="badge-duration">⏱ {{ $tour->length }} {{ $unitLabel }}</span>
+                      @if(!empty($product->length))
+                      <span class="badge-duration">⏱ {{ $product->length }} {{ $unitLabel }}</span>
                       @endif
                       <span class="badge-category">{{ $translatedTitle }}</span>
                     </div>
 
                     {{-- Imagen grande --}}
-                    <img src="{{ $tourCover }}" class="tour-image" alt="{{ $tour->getTranslatedName() }}" loading="lazy" width="400" height="300">
+                    <img src="{{ $productCover }}" class="product-image" alt="{{ $product->getTranslatedName() }}" loading="lazy" width="400" height="300">
 
                     {{-- Título + Precio principal --}}
                     @php
-                    $tourName = $tour->getTranslatedName();
+                    $productName = $product->getTranslatedName();
                     // Dividir título por paréntesis
-                    if (preg_match('/^([^(]+)(?:\((.+)\))?$/', $tourName, $matches)) {
+                    if (preg_match('/^([^(]+)(?:\((.+)\))?$/', $productName, $matches)) {
                     $mainTitle = trim($matches[1]);
                     $subtitle = isset($matches[2]) ? trim($matches[2]) : '';
                     } else {
-                    $mainTitle = $tourName;
+                    $mainTitle = $productName;
                     $subtitle = '';
                     }
 
@@ -195,7 +195,7 @@ if ($len <= 0) return 1;
                         <p class="tour-subtitle">{{ $subtitle }}</p>
                         @endif
                         @php
-                        $overview = $tour->getTranslatedOverview();
+                        $overview = $product->getTranslatedOverview();
                         @endphp
                         @if($overview)
                         <p class="tour-description">{{ Str::limit(strip_tags($overview), 120) }}</p>
@@ -246,7 +246,7 @@ if ($len <= 0) return 1;
                     @endif
 
                     {{-- Botón CTA --}}
-                    <a href="{{ localized_route('products.guided_tour.show', $tour) }}" class="btn-tour-cta">
+                    <a href="{{ localized_route('products.guided_tour.show', $product) }}" class="btn-product-cta">
                       {{ __('adminlte::adminlte.see_tour_details') }} →
                     </a>
                   </div>

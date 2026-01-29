@@ -5,7 +5,7 @@ namespace App\Http\Requests\Product\ProductExcludedDate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use App\Services\LoggerHelper;
-use App\Models\TourExcludedDate;
+use App\Models\ProductExcludedDate;
 
 class UpdateExcludedDateRequest extends FormRequest
 {
@@ -52,7 +52,7 @@ class UpdateExcludedDateRequest extends FormRequest
 
     protected function failedValidation(Validator $validator)
     {
-        /** @var TourExcludedDate|null $excludedDate */
+        /** @var ProductExcludedDate|null $excludedDate */
         $excludedDate = $this->route('excludedDate');
 
         LoggerHelper::validationFailed($this->controller, 'update', $validator->errors()->toArray(), [
